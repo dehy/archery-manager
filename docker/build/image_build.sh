@@ -40,6 +40,7 @@ apt-get install -y --no-install-recommends \
     php8.0-intl \
     php8.0-mbstring \
     php8.0-mysqlnd \
+    php8.0-pgsql \
     php8.0-pcov \
     php8.0-uuid \
     php8.0-xml \
