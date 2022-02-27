@@ -8,6 +8,11 @@ export DEBIAN_FRONTEND=noninteractive
 export FORCE_COLOR=0
 GOSU="/usr/sbin/gosu symfony"
 
+for dir in $(mount | grep "${APP_ROOT_PATH}" | awk '{ print $3 }')
+do
+  chown -R symfony: "${dir}"
+done
+
 cd "${APP_ROOT_PATH}"
 
 if [ -z "${APP_ENV:-}" ]
