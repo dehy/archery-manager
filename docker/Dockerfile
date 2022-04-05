@@ -4,10 +4,10 @@ ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
 LABEL org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.name="Crowd News" \
+      org.label-schema.name="Symfony Project" \
       org.label-schema.url="https://..." \
       org.label-schema.vcs-ref=$VCS_REF \
-      org.label-schema.vcs-url="https://github.com/dehy/crowd-news" \
+      org.label-schema.vcs-url="https://github.com/dehy/template-symfony" \
       org.label-schema.vendor="Arnaud de Mouhy" \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"
