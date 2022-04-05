@@ -73,6 +73,9 @@ while ! nc -w 1 -vz "${DATABASE_HOST}" "${DATABASE_PORT}"; do
     sleep 1;
 done
 
+# Executing migrations
+${GOSU} php bin/console doctrine:migrations:migrate --no-interaction
+
 # System Under Test
 if [[ "${1:-}" == "sut" ]]; then
     ${GOSU} composer install --prefer-dist
