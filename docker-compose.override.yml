@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  app:
+    volumes:
+      - .:/app
+      - app-var:/app/var
+      - app-vendor:/app/vendor
+      - app-node_modules:/app/node_modules
+      - app-public-build:/app/public/build
+      - app-dotcache:/app/.cache
+    ports:
+      - 8080:80
+        
+
+###> doctrine/doctrine-bundle ###
+  database:
+    ports:
+      - "5432"
+###< doctrine/doctrine-bundle ###
+
+###> symfony/mailer ###
+  mailer:
+    image: schickling/mailcatcher
+    ports: [1025, 1080]
+###< symfony/mailer ###
+
+volumes:
+  app-var:
+  app-vendor:
+  app-node_modules:
+  app-public-build:
+  app-dotcache:

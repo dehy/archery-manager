@@ -1,0 +1,9 @@
+# Magic local data for file(1) command.
+# Insert here your local magic data. Format is described in magic(5).
+
+# MPEG Layer 3 sound files
+0       beshort     &0xffe0     audio/mpeg
+!:mime  audio/mpeg
+#MP3 with ID3 tag
+0       string      ID3     audio/mpeg
+!:mime  audio/mpeg
