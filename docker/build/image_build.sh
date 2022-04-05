@@ -1,6 +1,6 @@
 #!/bin/bash
 
-COMPOSER_VERSION=2.2.6
+COMPOSER_VERSION=2.3.3
 
 set -eu
 
@@ -20,6 +20,7 @@ apt-key add /docker/build/nodesource.gpg.key
 apt-get update
 apt-get upgrade -y
 apt-get install -y --no-install-recommends \
+    tzdata \
     ca-certificates \
     cron \
     curl \
@@ -73,6 +74,6 @@ useradd -s /bin/bash -d /app -m symfony
 apt-get -y autoremove
 apt-get clean
 apt-get install -y --no-install-recommends -d php-xdebug # Download only
-# rm -rf /var/lib/apt/lists/*
+rm -rf /var/lib/apt/lists/*
 rm -rf /usr/share/man/*
 rm -rf /tmp/* /root/.npm

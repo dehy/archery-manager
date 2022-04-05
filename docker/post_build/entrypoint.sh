@@ -8,7 +8,7 @@ export DEBIAN_FRONTEND=noninteractive
 export FORCE_COLOR=0
 GOSU="/usr/sbin/gosu symfony"
 
-for dir in $(mount | grep "${APP_ROOT_PATH}" | awk '{ print $3 }')
+for dir in $(mount | grep "${APP_ROOT_PATH}" | grep 'rw' | awk '{ print $3 }')
 do
   chown -R symfony: "${dir}"
 done
@@ -72,6 +72,9 @@ while ! nc -w 1 -vz "${DATABASE_HOST}" "${DATABASE_PORT}"; do
     echo "Waiting for database..."
     sleep 1;
 done
+
+# Executing migrations
+${GOSU} php bin/console doctrine:migrations:migrate --no-interaction
 
 # System Under Test
 if [[ "${1:-}" == "sut" ]]; then
