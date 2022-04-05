@@ -12,6 +12,8 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"
 
+ENV TZ="Europe/Paris"
+
 VOLUME /var/lib/php/sessions
 
 EXPOSE 80
