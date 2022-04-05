@@ -1,6 +1,6 @@
 #!/bin/bash
 
-COMPOSER_VERSION=2.2.6
+COMPOSER_VERSION=2.3.3
 
 set -eu
 
