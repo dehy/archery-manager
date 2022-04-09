@@ -44,24 +44,26 @@ then
 fi
 export APP_ENV=${ORIGINAL_APP_ENV}
 
-if [[ "${APP_ENV}" == "dev" ]]; then
-    sed -i \
-        -e 's!\(error_reporting\) = .*!\1 = E_ALL!' \
-        -e 's!\(display_errors\) = off!\1 = on!' \
-        -e 's!\(display_startup_errors\) = off!\1 = on!' \
-        /etc/php/8.0/fpm/conf.d/99-symfony.ini
-
-    apt-get update
-    apt-get install -y --no-install-recommends php8.0-xdebug
-
-    apt-get autoremove -y
-fi
-
 if [[ "${APP_ENV}" == "dev" || "${APP_ENV}" == "test"  ]]; then
     mkdir -p ${APP_ROOT_PATH}/{vendor,node_modules,var/log}
     chown symfony: ${APP_ROOT_PATH}/node_modules
     chown symfony: ${APP_ROOT_PATH}/vendor
     chown symfony: ${APP_ROOT_PATH}/var/log
+
+    if [[ "${APP_ENV}" == "dev" ]]; then
+        sed -i \
+            -e 's!\(error_reporting\) = .*!\1 = E_ALL!' \
+            -e 's!\(display_errors\) = off!\1 = on!' \
+            -e 's!\(display_startup_errors\) = off!\1 = on!' \
+            /etc/php/8.0/fpm/conf.d/99-symfony.ini
+
+        apt-get update
+        apt-get install -y --no-install-recommends php8.0-xdebug
+        apt-get autoremove -y
+
+        ${GOSU} composer install
+        ${GOSU} yarn
+    fi
 fi
 
 DATABASE_URL_PARTS=$(php -r "echo json_encode(parse_url('${DATABASE_URL}'));")
