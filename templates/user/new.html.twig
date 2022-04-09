@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouvel archer{% endblock %}
+
+{% block body %}
+    <h1>Nouvel archer</h1>
+
+    {{ include('user/_form.html.twig') }}
+
+    <a href="{{ path('app_user_index') }}">retour à la liste</a>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Archer{% endblock %}
+
+{% block body %}
+    <h1>User</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ user.id }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ user.email }}</td>
+            </tr>
+            <tr>
+                <th>Nom</th>
+                <td>{{ user.lastname }}</td>
+            </tr>
+            <tr>
+                <th>Prénom</th>
+                <td>{{ user.firstname }}</td>
+            </tr>
+            <tr>
+                <th>Date de naissance</th>
+                <td>{{ user.birthdate|date }}</td>
+            </tr>
+            <tr>
+                <th>Numéro de License</th>
+                <td>{{ user.licenseNumber }}</td>
+            </tr>
+            <tr>
+                <th>License</th>
+                <td>{{ user.license|readable_enum('LicenseType') }}</td>
+            </tr>
+            <tr>
+                <th>Catégorie</th>
+                <td>{{ user.licenseCategory|readable_enum('LicenseCategoryType') }}</td>
+            </tr>
+            <tr>
+                <th>Catégorie d'âge</th>
+                <td>{{ user.licenseAgeCategory|readable_enum('LicenseAgeCategoryType') }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_user_index') }}">retour à la liste</a>
+
+    <a href="{{ path('app_user_edit', {'id': user.id}) }}">modifier</a>
+
+    {{ include('user/_delete_form.html.twig') }}
+{% endblock %}

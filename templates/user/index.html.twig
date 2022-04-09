@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Index des archers{% endblock %}
+
+{% block body %}
+    <h1>Index des archers</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Numéro de license</th>
+                <th>License</th>
+                <th>Categorie</th>
+                <th>Catégorie d'âge</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+            <tr>
+                <td>{{ user.email }}</td>
+                <td>{{ user.lastname }}</td>
+                <td>{{ user.firstname }}</td>
+                <td>{{ user.licenseNumber }}</td>
+                <td>{{ user.license|readable_enum('LicenseType') }}</td>
+                <td>{{ user.licenseCategory|readable_enum('LicenseCategoryType') }}</td>
+                <td>{{ user.licenseAgeCategory|readable_enum('LicenseAgeCategoryType') }}</td>
+                <td>
+                    <a href="{{ path('app_user_show', {'id': user.id}) }}">voir</a>
+                    <a href="{{ path('app_user_edit', {'id': user.id}) }}">modifier</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="8">aucun archer</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_user_new') }}">Nouvel archer</a>
+{% endblock %}
