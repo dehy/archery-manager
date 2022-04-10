@@ -2,13 +2,11 @@
 
 namespace App\Entity;
 
-use App\DBAL\Types\LicenseAgeCategoryType;
-use App\DBAL\Types\LicenseCategoryType;
-use App\DBAL\Types\LicenseType;
 use App\Repository\UserRepository;
 use DateTimeInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -30,27 +28,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string')]
     private $password;
 
+    #[ORM\Column(type: 'GenderType')]
+    private $gender;
+
     #[ORM\Column(type: 'string', length: 255)]
     private $lastname;
 
     #[ORM\Column(type: 'string', length: 255)]
     private $firstname;
 
-    #[ORM\Column(type: 'LicenseType')]
-    #[DoctrineAssert\EnumType(entity: LicenseType::class)]
-    private $license;
-
     #[ORM\Column(type: 'date')]
     private $birthdate;
 
-    #[ORM\Column(type: 'string', length: 7, nullable: true)]
-    private $licenseNumber;
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: License::class, orphanRemoval: true)]
+    private $licenses;
 
-    #[ORM\Column(type: 'LicenseCategoryType', nullable: true)]
-    private $licenseCategory;
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Bow::class, orphanRemoval: true)]
+    private $bows;
 
-    #[ORM\Column(type: 'LicenseAgeCategoryType', nullable: true)]
-    private $licenseAgeCategory;
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Arrow::class, orphanRemoval: true)]
+    private $arrows;
+
+    #[ORM\OneToMany(mappedBy: 'participant', targetEntity: EventParticipation::class, orphanRemoval: true)]
+    private $eventParticipations;
+
+    public function __construct()
+    {
+        $this->arrows = new ArrayCollection();
+        $this->bows = new ArrayCollection();
+        $this->licenses = new ArrayCollection();
+        $this->eventParticipations = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -122,6 +130,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
+    public function getGender()
+    {
+        return $this->gender;
+    }
+
+    public function setGender($gender): self
+    {
+        $this->gender = $gender;
+
+        return $this;
+    }
+
     public function getLastname(): ?string
     {
         return $this->lastname;
@@ -134,6 +154,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getFullname(): string
+    {
+        return sprintf('%s %s', $this->getFirstname(), $this->getLastname());
+    }
+
     public function getFirstname(): ?string
     {
         return $this->firstname;
@@ -142,18 +167,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFirstname(string $firstname): self
     {
         $this->firstname = $firstname;
-
-        return $this;
-    }
-
-    public function getLicense(): ?string
-    {
-        return $this->license;
-    }
-
-    public function setLicense(string $license): self
-    {
-        $this->license = $license;
 
         return $this;
     }
@@ -170,38 +183,122 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getLicenseNumber(): ?string
+    /**
+     * @return Collection<int, License>
+     */
+    public function getLicenses(): Collection
     {
-        return $this->licenseNumber;
+        return $this->licenses;
     }
 
-    public function setLicenseNumber(?string $licenseNumber): self
+    public function addLicense(License $license): self
     {
-        $this->licenseNumber = $licenseNumber;
+        if (!$this->licenses->contains($license)) {
+            $this->licenses[] = $license;
+            $license->setOwner($this);
+        }
 
         return $this;
     }
 
-    public function getLicenseCategory(): string
+    public function removeLicense(License $license): self
     {
-        return $this->licenseCategory;
-    }
-
-    public function setLicenseCategory(?string $licenseCategory): self
-    {
-        $this->licenseCategory = $licenseCategory;
+        if ($this->licenses->removeElement($license)) {
+            // set the owning side to null (unless already changed)
+            if ($license->getOwner() === $this) {
+                $license->setOwner(null);
+            }
+        }
 
         return $this;
     }
 
-    public function getLicenseAgeCategory(): string
+    /**
+     * @return Collection<int, Bow>
+     */
+    public function getBows(): Collection
     {
-        return $this->licenseAgeCategory;
+        return $this->bows;
     }
 
-    public function setLicenseAgeCategory(?string $licenseAgeCategory): self
+    public function addBow(Bow $bow): self
     {
-        $this->licenseAgeCategory = $licenseAgeCategory;
+        if (!$this->bows->contains($bow)) {
+            $this->bows[] = $bow;
+            $bow->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBow(Bow $bow): self
+    {
+        if ($this->bows->removeElement($bow)) {
+            // set the owning side to null (unless already changed)
+            if ($bow->getOwner() === $this) {
+                $bow->setOwner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Arrow>
+     */
+    public function getArrows(): Collection
+    {
+        return $this->arrows;
+    }
+
+    public function addArrow(Arrow $arrow): self
+    {
+        if (!$this->arrows->contains($arrow)) {
+            $this->arrows[] = $arrow;
+            $arrow->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrow(Arrow $arrow): self
+    {
+        if ($this->arrows->removeElement($arrow)) {
+            // set the owning side to null (unless already changed)
+            if ($arrow->getOwner() === $this) {
+                $arrow->setOwner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EventParticipation>
+     */
+    public function getEventParticipations(): Collection
+    {
+        return $this->eventParticipations;
+    }
+
+    public function addEventParticipation(EventParticipation $eventParticipation): self
+    {
+        if (!$this->eventParticipations->contains($eventParticipation)) {
+            $this->eventParticipations[] = $eventParticipation;
+            $eventParticipation->setParticipant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEventParticipation(EventParticipation $eventParticipation): self
+    {
+        if ($this->eventParticipations->removeElement($eventParticipation)) {
+            // set the owning side to null (unless already changed)
+            if ($eventParticipation->getParticipant() === $this) {
+                $eventParticipation->setParticipant(null);
+            }
+        }
 
         return $this;
     }

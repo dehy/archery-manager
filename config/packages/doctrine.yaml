@@ -7,6 +7,12 @@ doctrine:
         #server_version: '13'
 
         types:
+            ArrowType: App\DBAL\Types\ArrowType
+            BowType: App\DBAL\Types\BowType
+            DisciplineType: App\DBAL\Types\DisciplineType
+            EventType: App\DBAL\Types\EventType
+            FletchingType: App\DBAL\Types\FletchingType
+            GenderType: App\DBAL\Types\GenderType
             LicenseType: App\DBAL\Types\LicenseType
             LicenseCategoryType: App\DBAL\Types\LicenseCategoryType
             LicenseAgeCategoryType: App\DBAL\Types\LicenseAgeCategoryType

@@ -3,7 +3,7 @@
 {% block title %}Index des archers{% endblock %}
 
 {% block body %}
-    <h1>Index des archers</h1>
+    <h1>Liste des archers</h1>
 
     <table class="table">
         <thead>
@@ -11,10 +11,6 @@
                 <th>Email</th>
                 <th>Nom</th>
                 <th>Prénom</th>
-                <th>Numéro de license</th>
-                <th>License</th>
-                <th>Categorie</th>
-                <th>Catégorie d'âge</th>
                 <th>actions</th>
             </tr>
         </thead>
@@ -24,10 +20,6 @@
                 <td>{{ user.email }}</td>
                 <td>{{ user.lastname }}</td>
                 <td>{{ user.firstname }}</td>
-                <td>{{ user.licenseNumber }}</td>
-                <td>{{ user.license|readable_enum('LicenseType') }}</td>
-                <td>{{ user.licenseCategory|readable_enum('LicenseCategoryType') }}</td>
-                <td>{{ user.licenseAgeCategory|readable_enum('LicenseAgeCategoryType') }}</td>
                 <td>
                     <a href="{{ path('app_user_show', {'id': user.id}) }}">voir</a>
                     <a href="{{ path('app_user_edit', {'id': user.id}) }}">modifier</a>

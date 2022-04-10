@@ -3,7 +3,14 @@
 {% block title %}Archer{% endblock %}
 
 {% block body %}
-    <h1>User</h1>
+    <h1>
+        <em class="fa-solid fa-user"></em>
+        {% if app.user == user %}
+            Mon Profil
+        {% else %}
+            {{ user.fullname }}
+        {% endif %}
+    </h1>
 
     <table class="table">
         <tbody>
@@ -25,23 +32,7 @@
             </tr>
             <tr>
                 <th>Date de naissance</th>
-                <td>{{ user.birthdate|date }}</td>
-            </tr>
-            <tr>
-                <th>Numéro de License</th>
-                <td>{{ user.licenseNumber }}</td>
-            </tr>
-            <tr>
-                <th>License</th>
-                <td>{{ user.license|readable_enum('LicenseType') }}</td>
-            </tr>
-            <tr>
-                <th>Catégorie</th>
-                <td>{{ user.licenseCategory|readable_enum('LicenseCategoryType') }}</td>
-            </tr>
-            <tr>
-                <th>Catégorie d'âge</th>
-                <td>{{ user.licenseAgeCategory|readable_enum('LicenseAgeCategoryType') }}</td>
+                <td>{{ user.birthdate|format_datetime('long', 'none', locale='fr') }}</td>
             </tr>
         </tbody>
     </table>
