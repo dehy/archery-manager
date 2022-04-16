@@ -16,19 +16,40 @@
     <title>{% block title %}Archerie{% endblock %}</title>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Les Archers de Guyenne</a>
+            <h1 class="navbar-brand mb-0 h1">Les Archers de Guyenne</h1>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">Accueil</a>
+                        <a class="nav-link active" aria-current="page" href="{{ path('app_homepage') }}">Tableau de bord</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('app_user_index') }}">Archers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Évènements</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ app.user.fullname }}
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                            <li><a class="dropdown-item" href="{{ path('app_user_profile') }}">
+                                    <em class="fa-solid fa-address-card fa-fw"></em>
+                                    Mon profil
+                                </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ path('app_logout') }}">
+                                    <em class="fa-solid fa-arrow-right-from-bracket fa-fw"></em>
+                                    Se déconnecter
+                                </a></li>
+                        </ul>
                     </li>
                 </ul>
             </div>

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {% block stylesheets %}
+        {{ encore_entry_link_tags('unauthenticated') }}
+    {% endblock %}
+
+    {% block javascripts %}
+        {{ encore_entry_script_tags('unauthenticated') }}
+    {% endblock %}
+
+    <title>{% block title %}Archerie{% endblock %}</title>
+</head>
+<body>
+    <div class="container">
+        {% block body %}{% endblock %}
+    </div>
+</body>
+</html>

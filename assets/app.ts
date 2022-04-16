@@ -10,6 +10,12 @@ import './styles/app.scss';
 
 // start the Stimulus application
 import './bootstrap';
+
+// Bootstrap Javascript
 import 'bootstrap';
-import '@fortawesome/fontawesome-free/js/solid';
-import '@fortawesome/fontawesome-free/js/fontawesome';
+
+import { library, dom } from '@fortawesome/fontawesome-svg-core';
+import { faAddressCard, faArrowRightFromBracket, faBullseye, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
+
+library.add(faAddressCard, faArrowRightFromBracket, faBullseye, faCalendarDays);
+dom.watch();

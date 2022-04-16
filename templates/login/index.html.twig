@@ -1,0 +1,42 @@
+{% extends 'unauthenticated.html.twig' %}
+
+{% block title %}Identification{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-3">
+            <img src="{{ asset('build/logo-archers-de-guyenne.jpg') }}"
+                 alt="Les Archers de Bordeaux Guyenne"
+                 class="mx-auto d-block my-3"
+                 style="width: 200px" />
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Connexion</h5>
+                    <form action="{{ path('app_login') }}" method="post">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Email</label>
+                            <input type="text" class="form-control" id="username" name="_username" value="{{ last_username }}"/>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mot de passe</label>
+                            <input type="password" class="form-control" id="password" name="_password"/>
+                        </div>
+
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                        {% if error %}
+                            <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary">
+                            <em class="fa-solid fa-arrow-right-to-bracket"></em>
+                            Se connecter
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <a href="#" class="btn btn-link fst-italic mx-auto d-block">Première connexion ?</a>
+        </div>
+    </div>
+{% endblock %}

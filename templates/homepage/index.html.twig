@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello HomepageController!{% endblock %}
+
+{% block body %}
+    <div class="row mb-3">
+        <div class="col">
+            <h1>Bonjour {{ app.user.firstname }} 👋</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <h2><em class="fa-solid fa-calendar-days"></em> Prochains évènements</h2>
+            <p><em>Aucun évènement prévu</em></p>
+        </div>
+        <div class="col-6">
+            <h2><em class="fa-solid fa-bullseye"></em> Mes résultats</h2>
+            <p><em>Aucun résultat enregistré</em></p>
+        </div>
+    </div>
+{% endblock %}
