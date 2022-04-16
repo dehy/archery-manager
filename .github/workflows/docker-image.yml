@@ -1,0 +1,51 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Docker Compose Setup
+        uses: ndeloof/install-compose-action@v0.0.1
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Build
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          file: docker/Dockerfile
+          push: false
+          load: true
+          tags: archerie:to_test
+          cache-from: type=gha, scope=${{ github.workflow }}
+          cache-to: type=gha, scope=${{ github.workflow }}
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+      - name: Generate Docker Image Tag
+        id: docker_tag
+        run: echo "::set-output name=tag::$(bash ./docker/tag_from_branch.sh)"
+      - name: Login to Scaleway Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: rg.fr-par.scw.cloud/dehy
+          username: nologin
+          password: ${{ secrets.SCALEWAY_SECRET_KEY }}
+      - name: Push
+        run: |
+          docker tag archerie:to_test rg.fr-par.scw.cloud/dehy/archerie:${{ steps.docker_tag.outputs.tag }} \
+          && docker push rg.fr-par.scw.cloud/dehy/archerie:${{ steps.docker_tag.outputs.tag }};
+      - name: Reload staging docker service
+        run: curl -X POST ${{ secrets.PORTAINER_RELOAD_SERVICE_WEBHOOK }}
+        #if: github.ref == 'refs/heads/main'
