@@ -12,26 +12,26 @@ class License
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: "integer")]
     private $id;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: "integer")]
     private $season;
 
-    #[ORM\Column(type: 'LicenseType')]
+    #[ORM\Column(type: "LicenseType")]
     #[DoctrineAssert\EnumType(entity: LicenseType::class)]
     private $type;
 
-    #[ORM\Column(type: 'string', length: 7, nullable: true)]
+    #[ORM\Column(type: "string", length: 7, nullable: true)]
     private $number;
 
-    #[ORM\Column(type: 'LicenseCategoryType', nullable: true)]
+    #[ORM\Column(type: "LicenseCategoryType", nullable: true)]
     private $category;
 
-    #[ORM\Column(type: 'LicenseAgeCategoryType', nullable: true)]
+    #[ORM\Column(type: "LicenseAgeCategoryType", nullable: true)]
     private $ageCategory;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'licenses')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "licenses")]
     #[ORM\JoinColumn(nullable: false)]
     private $owner;
 

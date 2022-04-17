@@ -12,49 +12,78 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: '`user`')]
-#[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
+#[ORM\Table(name: "`user`")]
+#[
+    UniqueEntity(
+        fields: ["email"],
+        message: "There is already an account with this email"
+    )
+]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: "integer")]
     private $id;
 
-    #[ORM\Column(type: 'string', length: 180, unique: true)]
+    #[ORM\Column(type: "string", length: 180, unique: true)]
     private $email;
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column(type: "json")]
     private $roles = [];
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: "string")]
     private $password;
 
-    #[ORM\Column(type: 'GenderType')]
+    #[ORM\Column(type: "GenderType")]
     private $gender;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: "string", length: 255)]
     private $lastname;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: "string", length: 255)]
     private $firstname;
 
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: "date")]
     private $birthdate;
 
-    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: License::class, orphanRemoval: true)]
+    #[
+        ORM\OneToMany(
+            mappedBy: "owner",
+            targetEntity: License::class,
+            orphanRemoval: true
+        )
+    ]
     private $licenses;
 
-    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Bow::class, orphanRemoval: true)]
+    #[
+        ORM\OneToMany(
+            mappedBy: "owner",
+            targetEntity: Bow::class,
+            orphanRemoval: true
+        )
+    ]
     private $bows;
 
-    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Arrow::class, orphanRemoval: true)]
+    #[
+        ORM\OneToMany(
+            mappedBy: "owner",
+            targetEntity: Arrow::class,
+            orphanRemoval: true
+        )
+    ]
     private $arrows;
 
-    #[ORM\OneToMany(mappedBy: 'participant', targetEntity: EventParticipation::class, orphanRemoval: true)]
+    #[
+        ORM\OneToMany(
+            mappedBy: "participant",
+            targetEntity: EventParticipation::class,
+            orphanRemoval: true
+        )
+    ]
     private $eventParticipations;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: "boolean")]
     private $isVerified = false;
 
     public function __construct()
@@ -99,7 +128,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+        $roles[] = "ROLE_USER";
 
         return array_unique($roles);
     }
@@ -161,7 +190,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getFullname(): string
     {
-        return sprintf('%s %s', $this->getFirstname(), $this->getLastname());
+        return sprintf("%s %s", $this->getFirstname(), $this->getLastname());
     }
 
     public function getFirstname(): ?string
@@ -286,8 +315,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->eventParticipations;
     }
 
-    public function addEventParticipation(EventParticipation $eventParticipation): self
-    {
+    public function addEventParticipation(
+        EventParticipation $eventParticipation
+    ): self {
         if (!$this->eventParticipations->contains($eventParticipation)) {
             $this->eventParticipations[] = $eventParticipation;
             $eventParticipation->setParticipant($this);
@@ -296,8 +326,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function removeEventParticipation(EventParticipation $eventParticipation): self
-    {
+    public function removeEventParticipation(
+        EventParticipation $eventParticipation
+    ): self {
         if ($this->eventParticipations->removeElement($eventParticipation)) {
             // set the owning side to null (unless already changed)
             if ($eventParticipation->getParticipant() === $this) {

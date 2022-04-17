@@ -5,11 +5,11 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 
 final class GenderType extends AbstractEnumType
 {
-    public final const MALE = 'M';
-    public final const FEMALE = 'F';
+    public const MALE = "M";
+    public const FEMALE = "F";
 
     protected static array $choices = [
-         self::MALE => "Homme",
-         self::FEMALE => "Femme",
+        self::MALE => "Homme",
+        self::FEMALE => "Femme",
     ];
 }

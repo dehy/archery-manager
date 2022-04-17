@@ -12,22 +12,28 @@ class Event
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: "integer")]
     private $id;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(type: "datetime_immutable")]
     private $startsAt;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(type: "datetime_immutable")]
     private $endsAt;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: "string", length: 255)]
     private $address;
 
-    #[ORM\Column(type: 'EventType')]
+    #[ORM\Column(type: "EventType")]
     private $type;
 
-    #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventParticipation::class, orphanRemoval: true)]
+    #[
+        ORM\OneToMany(
+            mappedBy: "event",
+            targetEntity: EventParticipation::class,
+            orphanRemoval: true
+        )
+    ]
     private $participations;
 
     public function __construct()

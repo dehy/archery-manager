@@ -5,10 +5,10 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 
 final class EventType extends AbstractEnumType
 {
-    public final const TRAINING = 'training';
-    public final const CONTEST_OFFICIAL = 'contest_official';
-    public final const CONTEST_HOBBY = 'contest_hobby';
-    public final const OTHER = 'other';
+    public const TRAINING = "training";
+    public const CONTEST_OFFICIAL = "contest_official";
+    public const CONTEST_HOBBY = "contest_hobby";
+    public const OTHER = "other";
 
     protected static array $choices = [
         self::TRAINING => "Entraînement",

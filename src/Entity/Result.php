@@ -10,16 +10,16 @@ class Result
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: "integer")]
     private $id;
 
-    #[ORM\Column(type: 'DisciplineType')]
+    #[ORM\Column(type: "DisciplineType")]
     private $discipline;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: "integer", nullable: true)]
     private $distance;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: "integer")]
     private $score;
 
     public function getId(): ?int

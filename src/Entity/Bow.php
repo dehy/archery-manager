@@ -12,35 +12,41 @@ class Bow
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: "integer")]
     private $id;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'bows')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "bows")]
     #[ORM\JoinColumn(nullable: false)]
     private $owner;
 
-    #[ORM\Column(type: 'BowType')]
+    #[ORM\Column(type: "BowType")]
     private $type;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
     private $brand;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
     private $model;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: "integer", nullable: true)]
     private $limbSize;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: "integer", nullable: true)]
     private $limbStrength;
 
-    #[ORM\Column(type: 'float', nullable: true)]
+    #[ORM\Column(type: "float", nullable: true)]
     private $braceHeight;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: "integer", nullable: true)]
     private $drawLength;
 
-    #[ORM\OneToMany(mappedBy: 'bow', targetEntity: SightAdjustment::class, orphanRemoval: true)]
+    #[
+        ORM\OneToMany(
+            mappedBy: "bow",
+            targetEntity: SightAdjustment::class,
+            orphanRemoval: true
+        )
+    ]
     private $sightAdjustments;
 
     public function __construct()
@@ -167,8 +173,9 @@ class Bow
         return $this;
     }
 
-    public function removeSightAdjustment(SightAdjustment $sightAdjustment): self
-    {
+    public function removeSightAdjustment(
+        SightAdjustment $sightAdjustment
+    ): self {
         if ($this->sightAdjustments->removeElement($sightAdjustment)) {
             // set the owning side to null (unless already changed)
             if ($sightAdjustment->getBow() === $this) {

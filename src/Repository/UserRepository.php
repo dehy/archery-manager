@@ -17,7 +17,8 @@ use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
  * @method User[]    findAll()
  * @method User[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
+class UserRepository extends ServiceEntityRepository implements
+    PasswordUpgraderInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -51,10 +52,17 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     /**
      * Used to upgrade (rehash) the user's password automatically over time.
      */
-    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
-    {
+    public function upgradePassword(
+        PasswordAuthenticatedUserInterface $user,
+        string $newHashedPassword
+    ): void {
         if (!$user instanceof User) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', \get_class($user)));
+            throw new UnsupportedUserException(
+                sprintf(
+                    'Instances of "%s" are not supported.',
+                    \get_class($user)
+                )
+            );
         }
 
         $user->setPassword($newHashedPassword);

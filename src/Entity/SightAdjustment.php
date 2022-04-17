@@ -10,17 +10,17 @@ class SightAdjustment
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: "integer")]
     private $id;
 
-    #[ORM\ManyToOne(targetEntity: Bow::class, inversedBy: 'sightAdjustments')]
+    #[ORM\ManyToOne(targetEntity: Bow::class, inversedBy: "sightAdjustments")]
     #[ORM\JoinColumn(nullable: false)]
     private $bow;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: "integer")]
     private $distance;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: "string", length: 255)]
     private $setting;
 
     public function getId(): ?int

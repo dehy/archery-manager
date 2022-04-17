@@ -6,16 +6,21 @@
  */
 
 // any CSS you import will output into a single css file (app.css in this case)
-import './styles/app.scss';
+import "./styles/app.scss";
 
 // start the Stimulus application
-import './bootstrap';
+import "./bootstrap";
 
 // Bootstrap Javascript
-import 'bootstrap';
+import "bootstrap";
 
-import { library, dom } from '@fortawesome/fontawesome-svg-core';
-import { faAddressCard, faArrowRightFromBracket, faBullseye, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
+import { library, dom } from "@fortawesome/fontawesome-svg-core";
+import {
+  faAddressCard,
+  faArrowRightFromBracket,
+  faBullseye,
+  faCalendarDays,
+} from "@fortawesome/free-solid-svg-icons";
 
 library.add(faAddressCard, faArrowRightFromBracket, faBullseye, faCalendarDays);
 dom.watch();
