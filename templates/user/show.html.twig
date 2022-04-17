@@ -1,45 +1,49 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Archer{% endblock %}
+{% block title %}{{ user.fullname }}{% endblock %}
 
 {% block body %}
-    <h1>
-        <em class="fa-solid fa-address-card fa-fw"></em>
-        {% if app.user == user %}
-            Mon Profil
-        {% else %}
-            {{ user.fullname }}
-        {% endif %}
-    </h1>
+    <div class="row">
+        <div class="col-7">
+            <img src="" style="width: 200px; height: 200px;" alt="Photo de profil" class="img-thumbnail float-start me-3" />
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ user.id }}</td>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <td>{{ user.email }}</td>
-            </tr>
-            <tr>
-                <th>Nom</th>
-                <td>{{ user.lastname }}</td>
-            </tr>
-            <tr>
-                <th>Prénom</th>
-                <td>{{ user.firstname }}</td>
-            </tr>
-            <tr>
-                <th>Date de naissance</th>
-                <td>{{ user.birthdate|format_datetime('long', 'none', locale='fr') }}</td>
-            </tr>
-        </tbody>
-    </table>
+            <h2 class="mb-0">{{ user.fullname }}</h2>
+            <em>{{ user.age }} ans</em>
+        </div>
+        <div class="col-5">
+            <h2>Équipement</h2>
 
-    <a href="{{ path('app_user_index') }}">retour à la liste</a>
+            <hr>
+            <h3 class="mt-3">
+                Arcs
+                <a href="" class="btn btn-link">
+                    <em class="fa-solid fa-plus"></em>
+                </a>
+            </h3>
+            {% if user.bows is not empty %}
+                {% for bow in user.bows %}
+                    Flèches {{ arrow.type|readable_enum("ArrowType") }}
+                {% endfor %}
+            {% else %}
+                <em>Aucun arc enregistré</em>
+            {% endif %}
 
-    <a href="{{ path('app_user_edit', {'id': user.id}) }}">modifier</a>
-
-    {{ include('user/_delete_form.html.twig') }}
+            <hr>
+            <h3 class="mt-3">
+                Flèches
+                <a href="" class="btn btn-link">
+                    <em class="fa-solid fa-plus"></em>
+                </a>
+            </h3>
+            {% if user.arrows is not empty %}
+                {% for arrow in user.arrows %}
+                    Flèches {{ arrow.type|readable_enum("ArrowType") }},
+                    Spin {{ arrow.spine }},
+                    Plumes {{ arrow.fletching|readable_enum("FletchingType") }}
+                {% endfor %}
+            {% else %}
+                <em>Aucune flèche enregistrée</em>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}

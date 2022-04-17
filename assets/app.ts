@@ -20,7 +20,14 @@ import {
   faArrowRightFromBracket,
   faBullseye,
   faCalendarDays,
+  faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 
-library.add(faAddressCard, faArrowRightFromBracket, faBullseye, faCalendarDays);
+library.add(
+  faAddressCard,
+  faArrowRightFromBracket,
+  faBullseye,
+  faCalendarDays,
+  faPlus
+);
 dom.watch();
