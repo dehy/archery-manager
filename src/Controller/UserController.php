@@ -25,6 +25,7 @@ class UserController extends AbstractController
 
     #[Route("/", name: "app_user_index", methods: ["GET"])]
     public function index(UserRepository $userRepository): Response {
+        $this->denyAccessUnlessGranted("ROLE_ADMIN");
         return $this->render("user/index.html.twig", [
             "users" => $userRepository->findAll(),
         ]);
@@ -64,6 +65,11 @@ class UserController extends AbstractController
 
     #[Route("/{id}", name: "app_user_show", methods: ["GET"])]
     public function show(User $user): Response {
+        if (
+            $user->getUserIdentifier() !== $this->getUser()->getUserIdentifier()
+        ) {
+            $this->denyAccessUnlessGranted("ROLE_ADMIN");
+        }
         return $this->render("user/show.html.twig", [
             "user" => $user,
         ]);
@@ -75,6 +81,11 @@ class UserController extends AbstractController
         User $user,
         UserRepository $userRepository
     ): Response {
+        if (
+            $user->getUserIdentifier() !== $this->getUser()->getUserIdentifier()
+        ) {
+            $this->denyAccessUnlessGranted("ROLE_ADMIN");
+        }
         $form = $this->createForm(UserType::class, $user);
         $form->handleRequest($request);
 
@@ -99,6 +110,11 @@ class UserController extends AbstractController
         User $user,
         UserRepository $userRepository
     ): Response {
+        if (
+            $user->getUserIdentifier() !== $this->getUser()->getUserIdentifier()
+        ) {
+            $this->denyAccessUnlessGranted("ROLE_ADMIN");
+        }
         if (
             $this->isCsrfTokenValid(
                 "delete" . $user->getId(),

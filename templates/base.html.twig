@@ -27,9 +27,11 @@
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="{{ path('app_homepage') }}">Tableau de bord</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_user_index') }}">Archers</a>
-                    </li>
+                    {% if is_granted("ROLE_ADMIN") %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_user_index') }}">Archers</a>
+                        </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="#">Évènements</a>
                     </li>
