@@ -41,7 +41,6 @@ apt-get install -y --no-install-recommends \
     php8.1-intl \
     php8.1-mbstring \
     php8.1-mysqlnd \
-    php8.1-pgsql \
     php8.1-pcov \
     php8.1-uuid \
     php8.1-xml \
