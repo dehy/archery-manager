@@ -17,6 +17,7 @@ import "bootstrap";
 import { library, dom } from "@fortawesome/fontawesome-svg-core";
 import {
   faAddressCard,
+  faArrowLeft,
   faArrowRightFromBracket,
   faBullseye,
   faCalendarDays,
@@ -25,6 +26,7 @@ import {
 
 library.add(
   faAddressCard,
+  faArrowLeft,
   faArrowRightFromBracket,
   faBullseye,
   faCalendarDays,

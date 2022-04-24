@@ -1,0 +1,26 @@
+{% extends 'unauthenticated.html.twig' %}
+{% form_theme requestForm 'bootstrap_5_layout.html.twig' %}
+
+{% block title %}Réinitialiser votre mot de passe{% endblock %}
+
+{% block body %}
+    <a href="{{ path('app_login') }}">
+        <em class="fa-solid fa-arrow-left"></em> retour
+    </a>
+    {% for flash_error in app.flashes('reset_password_error') %}
+        <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
+    {% endfor %}
+    <h1>Réinitialiser votre mot de passe</h1>
+
+    {{ form_start(requestForm) }}
+        {{ form_row(requestForm.email) }}
+        <div>
+            <small>
+                Entrez votre adresse e-mail et nous vous enverrons un
+                lien pour réinitialiser votre mot de passe.
+            </small>
+        </div>
+
+        <button class="btn btn-primary">Envoyer un e-mail de réinitialisation du mot de passe</button>
+    {{ form_end(requestForm) }}
+{% endblock %}

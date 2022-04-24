@@ -23,7 +23,7 @@ services:
   adminer:
     image: dehy/adminer
     ports:
-      - 8081:80
+      - "8081:80"
 
 volumes:
 ###> doctrine/doctrine-bundle ###

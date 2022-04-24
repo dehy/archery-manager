@@ -16,7 +16,16 @@
 </head>
 <body>
     <div class="container">
-        {% block body %}{% endblock %}
+        <div class="row justify-content-center align-content-center" style="height: 100vh">
+            <div class="col-3">
+                <img src="{{ asset('build/logo-archers-de-guyenne.svg') }}"
+                     alt="Les Archers de Bordeaux Guyenne"
+                     class="mx-auto d-block" />
+            </div>
+            <div class="col-3">
+                {% block body %}{% endblock %}
+            </div>
+        </div>
     </div>
 </body>
 </html>
