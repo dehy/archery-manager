@@ -21,7 +21,9 @@ import {
   faArrowRightFromBracket,
   faBullseye,
   faCalendarDays,
+  faMars,
   faPlus,
+  faVenus,
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -30,6 +32,8 @@ library.add(
   faArrowRightFromBracket,
   faBullseye,
   faCalendarDays,
-  faPlus
+  faMars,
+  faPlus,
+  faVenus
 );
 dom.watch();

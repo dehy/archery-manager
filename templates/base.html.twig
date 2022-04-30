@@ -33,7 +33,7 @@
                     </li>
                     {% if is_granted("ROLE_ADMIN") %}
                         <li class="nav-item">
-                            <a class="nav-link {{ _self.isActive('app_user_index') }}" href="{{ path('app_user_index') }}">Archers</a>
+                            <a class="nav-link {{ _self.isActive('app_user_') }}" href="{{ path('app_user_index') }}">Archers</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -69,5 +69,5 @@
 </html>
 
 {% macro isActive(path) %}
-    {% if app.request.attributes.get('_route') == path %}active{% endif %}
+    {% if app.request.attributes.get('_route') starts with path %}active{% endif %}
 {% endmacro %}

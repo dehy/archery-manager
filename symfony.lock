@@ -1,4 +1,10 @@
 {
+    "async-aws/core": {
+        "version": "1.14.0"
+    },
+    "async-aws/s3": {
+        "version": "1.11.0"
+    },
     "doctrine/annotations": {
         "version": "1.13",
         "recipe": {
@@ -97,6 +103,9 @@
     },
     "league/flysystem": {
         "version": "3.0.18"
+    },
+    "league/flysystem-async-aws-s3": {
+        "version": "3.0.12"
     },
     "league/flysystem-bundle": {
         "version": "2.2",

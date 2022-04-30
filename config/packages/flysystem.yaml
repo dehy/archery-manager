@@ -1,7 +1,8 @@
 # Read the documentation at https://github.com/thephpleague/flysystem-bundle/blob/master/docs/1-getting-started.md
 flysystem:
     storages:
-        default.storage:
-            adapter: 'local'
+        profile.pictures.storage:
+            adapter: 'asyncaws'
             options:
-                directory: '%kernel.project_dir%/var/storage/default'
+                client: 'scaleway_object_storage_client'
+                bucket: '%env(SCALEWAY_OBJECT_STORAGE_BUCKET)%'
