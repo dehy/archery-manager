@@ -2,8 +2,10 @@
 
 namespace App\Form;
 
+use App\DBAL\Types\UserRoleType;
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -30,6 +32,12 @@ class UserType extends AbstractType
             ->add("birthdate", DateType::class, [
                 "widget" => "single_text",
                 "label" => "Date de naissance",
+            ])
+            ->add("roles", ChoiceType::class, [
+                "choices" => UserRoleType::getChoices(),
+                "multiple" => true,
+                "expanded" => true,
+                "label" => "Roles",
             ]);
     }
 
