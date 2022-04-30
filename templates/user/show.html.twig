@@ -4,13 +4,14 @@
 
 {% block body %}
     <div class="row">
-        <div class="col-7">
-            <img src="" style="width: 200px; height: 200px;" alt="Photo de profil" class="img-thumbnail float-start me-3" />
+        <div class="col-md-7 col-xs-12 mb-md-3">
+            <img src="" alt="Photo de profil" class="img-thumbnail float-start me-3 ratio ratio-1x1" style="width: 300px" />
 
             <h2 class="mb-0">{{ user.fullname }}</h2>
             <em>{{ user.age }} ans</em>
+            <span class="clearfix"></span>
         </div>
-        <div class="col-5">
+        <div class="col-md-5 col-xs-12">
             <h2>Équipement</h2>
 
             <hr>
