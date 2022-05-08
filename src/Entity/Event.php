@@ -15,6 +15,9 @@ class Event
     #[ORM\Column(type: "integer")]
     private $id;
 
+    #[ORM\Column(type: "string", length: 255)]
+    private $name;
+
     #[ORM\Column(type: "datetime_immutable")]
     private $startsAt;
 
@@ -36,14 +39,39 @@ class Event
     ]
     private $participations;
 
+    #[ORM\OneToMany(mappedBy: "event", targetEntity: Result::class)]
+    private $results;
+
     public function __construct()
     {
         $this->participations = new ArrayCollection();
+        $this->results = new ArrayCollection();
+    }
+
+    public function __toString(): string
+    {
+        return sprintf(
+            "%s - %s",
+            $this->getStartsAt()->format("d/m/Y H:i"),
+            $this->getName()
+        );
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
     }
 
     public function getStartsAt(): ?\DateTimeImmutable
@@ -118,6 +146,36 @@ class Event
             // set the owning side to null (unless already changed)
             if ($participation->getEvent() === $this) {
                 $participation->setEvent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Result>
+     */
+    public function getResults(): Collection
+    {
+        return $this->results;
+    }
+
+    public function addResult(Result $result): self
+    {
+        if (!$this->results->contains($result)) {
+            $this->results[] = $result;
+            $result->setEvent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeResult(Result $result): self
+    {
+        if ($this->results->removeElement($result)) {
+            // set the owning side to null (unless already changed)
+            if ($result->getEvent() === $this) {
+                $result->setEvent(null);
             }
         }
 

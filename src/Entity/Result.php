@@ -13,6 +13,13 @@ class Result
     #[ORM\Column(type: "integer")]
     private $id;
 
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "results")]
+    #[ORM\JoinColumn(nullable: false)]
+    private $user;
+
+    #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: "results")]
+    private $event;
+
     #[ORM\Column(type: "DisciplineType")]
     private $discipline;
 
@@ -25,6 +32,30 @@ class Result
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function getEvent(): ?Event
+    {
+        return $this->event;
+    }
+
+    public function setEvent(?Event $event): self
+    {
+        $this->event = $event;
+
+        return $this;
     }
 
     public function getDiscipline()

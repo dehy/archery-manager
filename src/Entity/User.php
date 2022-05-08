@@ -86,12 +86,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: "boolean")]
     private $isVerified = false;
 
+    #[
+        ORM\OneToMany(
+            mappedBy: "user",
+            targetEntity: Result::class,
+            orphanRemoval: true
+        )
+    ]
+    private $results;
+
     public function __construct()
     {
         $this->arrows = new ArrayCollection();
         $this->bows = new ArrayCollection();
         $this->licenses = new ArrayCollection();
         $this->eventParticipations = new ArrayCollection();
+        $this->results = new ArrayCollection();
+    }
+
+    public function __toString(): string
+    {
+        return $this->getFullname();
     }
 
     public function getId(): ?int
@@ -352,6 +367,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsVerified(bool $isVerified): self
     {
         $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Result>
+     */
+    public function getResults(): Collection
+    {
+        return $this->results;
+    }
+
+    public function addResult(Result $result): self
+    {
+        if (!$this->results->contains($result)) {
+            $this->results[] = $result;
+            $result->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeResult(Result $result): self
+    {
+        if ($this->results->removeElement($result)) {
+            // set the owning side to null (unless already changed)
+            if ($result->getUser() === $this) {
+                $result->setUser(null);
+            }
+        }
 
         return $this;
     }
