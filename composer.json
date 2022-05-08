@@ -11,6 +11,7 @@
         "doctrine/doctrine-bundle": "^2.5",
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.11",
+        "easycorp/easyadmin-bundle": "^4.1",
         "fresh/doctrine-enum-bundle": "~8.1",
         "league/flysystem-async-aws-s3": "^3.0",
         "league/flysystem-bundle": "^2.2",
