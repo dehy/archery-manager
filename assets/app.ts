@@ -20,9 +20,13 @@ import {
   faArrowLeft,
   faArrowRightFromBracket,
   faBullseye,
+  faCalendar,
   faCalendarDays,
+  faGaugeHigh,
   faMars,
   faPlus,
+  faScrewdriverWrench,
+  faUser,
   faVenus,
 } from "@fortawesome/free-solid-svg-icons";
 
@@ -31,9 +35,13 @@ library.add(
   faArrowLeft,
   faArrowRightFromBracket,
   faBullseye,
+  faCalendar,
   faCalendarDays,
+  faGaugeHigh,
   faMars,
   faPlus,
+  faScrewdriverWrench,
+  faUser,
   faVenus
 );
 dom.watch();

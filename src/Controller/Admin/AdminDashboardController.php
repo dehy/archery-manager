@@ -9,11 +9,17 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class AdminDashboardController extends AbstractDashboardController
 {
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     #[Route("/admin", name: "admin")]
     public function index(): Response
     {
@@ -47,7 +53,12 @@ class AdminDashboardController extends AbstractDashboardController
 
     public function configureMenuItems(): iterable
     {
-        yield MenuItem::linkToDashboard("Dashboard", "fa-solid fa-house");
+        yield MenuItem::linkToDashboard(
+            "Tableau de bord",
+            "fa-solid fa-gauge-high"
+        );
+
+        yield MenuItem::section();
 
         yield MenuItem::linkToCrud(
             "Archers",
@@ -64,6 +75,16 @@ class AdminDashboardController extends AbstractDashboardController
             "fa-solid fa-square-poll-vertical",
             Result::class
         );
+
+        yield MenuItem::section();
+
+        yield MenuItem::linkToRoute(
+            "Retour au site",
+            "fa-solid fa-arrow-left",
+            "app_homepage"
+        );
+
+        yield MenuItem::section();
 
         yield MenuItem::linkToLogout(
             "Déconnexion",
