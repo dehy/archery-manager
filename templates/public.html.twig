@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {% block stylesheets %}
+        {{ encore_entry_link_tags('public') }}
+    {% endblock %}
+
+    {% block javascripts %}
+        {{ encore_entry_script_tags('public') }}
+    {% endblock %}
+
+    <title>{% block title %}Les Archers de Bordeaux Guyenne{% endblock %}</title>
+</head>
+<body>
+    <div class="container">
+        {% block body %}{% endblock %}
+    </div>
+
+    <div class="text-center mb-3 mt-5">
+        © 2022 - Les Archers de Bordeaux Guyenne
+    </div>
+</body>
+</html>

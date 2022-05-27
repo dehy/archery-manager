@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Applicant;
 use App\Entity\Event;
 use App\Entity\Result;
 use App\Entity\User;
@@ -74,6 +75,14 @@ class AdminDashboardController extends AbstractDashboardController
             "Résultats",
             "fa-solid fa-square-poll-vertical",
             Result::class
+        );
+
+        yield MenuItem::section();
+
+        yield MenuItem::linkToCrud(
+            "Pré-inscriptions",
+            "fa-solid fa-user-plus",
+            Applicant::class
         );
 
         yield MenuItem::section();
