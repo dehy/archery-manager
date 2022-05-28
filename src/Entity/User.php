@@ -3,13 +3,13 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: "`user`")]
@@ -27,6 +27,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $id;
 
     #[ORM\Column(type: "string", length: 180, unique: true)]
+    #[Assert\Email]
     private $email;
 
     #[ORM\Column(type: "json")]
@@ -44,64 +45,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: "string", length: 255)]
     private $firstname;
 
-    #[ORM\Column(type: "date")]
-    private $birthdate;
+    #[ORM\Column(type: "string", length: 12, nullable: true)]
+    private $phoneNumber;
 
-    #[
-        ORM\OneToMany(
-            mappedBy: "owner",
-            targetEntity: License::class,
-            orphanRemoval: true
-        )
-    ]
-    private $licenses;
-
-    #[
-        ORM\OneToMany(
-            mappedBy: "owner",
-            targetEntity: Bow::class,
-            orphanRemoval: true
-        )
-    ]
-    private $bows;
-
-    #[
-        ORM\OneToMany(
-            mappedBy: "owner",
-            targetEntity: Arrow::class,
-            orphanRemoval: true
-        )
-    ]
-    private $arrows;
-
-    #[
-        ORM\OneToMany(
-            mappedBy: "participant",
-            targetEntity: EventParticipation::class,
-            orphanRemoval: true
-        )
-    ]
-    private $eventParticipations;
-
-    #[ORM\Column(type: "boolean")]
-    private $isVerified = false;
-
-    #[
-        ORM\OneToMany(
-            mappedBy: "user",
-            targetEntity: Result::class,
-            orphanRemoval: true
-        )
-    ]
-    private $results;
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: Licensee::class)]
+    private $licensees;
 
     public function __construct()
     {
-        $this->arrows = new ArrayCollection();
-        $this->bows = new ArrayCollection();
-        $this->licenses = new ArrayCollection();
-        $this->eventParticipations = new ArrayCollection();
-        $this->results = new ArrayCollection();
+        $this->licensees = new ArrayCollection();
     }
 
     public function __toString(): string
@@ -220,181 +172,42 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getBirthdate(): ?DateTimeInterface
+    public function getPhoneNumber(): ?string
     {
-        return $this->birthdate;
+        return $this->phoneNumber;
     }
 
-    public function getAge(): int
+    public function setPhoneNumber(?string $phoneNumber): self
     {
-        return $this->getBirthdate()->diff(new \DateTime())->y;
-    }
-
-    public function setBirthdate(DateTimeInterface $birthdate): self
-    {
-        $this->birthdate = $birthdate;
+        $this->phoneNumber = $phoneNumber;
 
         return $this;
     }
 
     /**
-     * @return Collection<int, License>
+     * @return Collection<int, Licensee>
      */
-    public function getLicenses(): Collection
+    public function getLicensees(): Collection
     {
-        return $this->licenses;
+        return $this->licensees;
     }
 
-    public function addLicense(License $license): self
+    public function addLicensee(Licensee $licensee): self
     {
-        if (!$this->licenses->contains($license)) {
-            $this->licenses[] = $license;
-            $license->setOwner($this);
+        if (!$this->licensees->contains($licensee)) {
+            $this->licensees[] = $licensee;
+            $licensee->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeLicense(License $license): self
+    public function removeLicensee(Licensee $licensee): self
     {
-        if ($this->licenses->removeElement($license)) {
+        if ($this->licensees->removeElement($licensee)) {
             // set the owning side to null (unless already changed)
-            if ($license->getOwner() === $this) {
-                $license->setOwner(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Bow>
-     */
-    public function getBows(): Collection
-    {
-        return $this->bows;
-    }
-
-    public function addBow(Bow $bow): self
-    {
-        if (!$this->bows->contains($bow)) {
-            $this->bows[] = $bow;
-            $bow->setOwner($this);
-        }
-
-        return $this;
-    }
-
-    public function removeBow(Bow $bow): self
-    {
-        if ($this->bows->removeElement($bow)) {
-            // set the owning side to null (unless already changed)
-            if ($bow->getOwner() === $this) {
-                $bow->setOwner(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Arrow>
-     */
-    public function getArrows(): Collection
-    {
-        return $this->arrows;
-    }
-
-    public function addArrow(Arrow $arrow): self
-    {
-        if (!$this->arrows->contains($arrow)) {
-            $this->arrows[] = $arrow;
-            $arrow->setOwner($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArrow(Arrow $arrow): self
-    {
-        if ($this->arrows->removeElement($arrow)) {
-            // set the owning side to null (unless already changed)
-            if ($arrow->getOwner() === $this) {
-                $arrow->setOwner(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, EventParticipation>
-     */
-    public function getEventParticipations(): Collection
-    {
-        return $this->eventParticipations;
-    }
-
-    public function addEventParticipation(
-        EventParticipation $eventParticipation
-    ): self {
-        if (!$this->eventParticipations->contains($eventParticipation)) {
-            $this->eventParticipations[] = $eventParticipation;
-            $eventParticipation->setParticipant($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEventParticipation(
-        EventParticipation $eventParticipation
-    ): self {
-        if ($this->eventParticipations->removeElement($eventParticipation)) {
-            // set the owning side to null (unless already changed)
-            if ($eventParticipation->getParticipant() === $this) {
-                $eventParticipation->setParticipant(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function isVerified(): bool
-    {
-        return $this->isVerified;
-    }
-
-    public function setIsVerified(bool $isVerified): self
-    {
-        $this->isVerified = $isVerified;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Result>
-     */
-    public function getResults(): Collection
-    {
-        return $this->results;
-    }
-
-    public function addResult(Result $result): self
-    {
-        if (!$this->results->contains($result)) {
-            $this->results[] = $result;
-            $result->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeResult(Result $result): self
-    {
-        if ($this->results->removeElement($result)) {
-            // set the owning side to null (unless already changed)
-            if ($result->getUser() === $this) {
-                $result->setUser(null);
+            if ($licensee->getUser() === $this) {
+                $licensee->setUser(null);
             }
         }
 

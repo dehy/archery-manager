@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Admin\Field\EnumTypeField;
 use App\DBAL\Types\EventType;
 use App\Entity\Event;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
@@ -28,5 +29,10 @@ class EventCrudController extends AbstractCrudController
                 ->renderExpanded(),
             TextField::new("address"),
         ];
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud->setDefaultSort(["startsAt" => "ASC", "endsAt" => "DESC"]);
     }
 }

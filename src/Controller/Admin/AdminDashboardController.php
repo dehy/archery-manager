@@ -2,10 +2,14 @@
 
 namespace App\Controller\Admin;
 
+use App\DBAL\Types\GenderType;
 use App\Entity\Applicant;
 use App\Entity\Event;
+use App\Entity\Licensee;
 use App\Entity\Result;
 use App\Entity\User;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
@@ -17,10 +21,11 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AdminDashboardController extends AbstractDashboardController
 {
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
+    public function __construct(
+        protected readonly EntityManagerInterface $entityManager
+    ) {
+    }
+
     #[Route("/admin", name: "admin")]
     public function index(): Response
     {
@@ -28,12 +33,12 @@ class AdminDashboardController extends AbstractDashboardController
 
         // Option 1. You can make your dashboard redirect to some common page of your backend
         //
-        $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
-        return $this->redirect(
-            $adminUrlGenerator
-                ->setController(UserCrudController::class)
-                ->generateUrl()
-        );
+        //$adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
+        //return $this->redirect(
+        //    $adminUrlGenerator
+        //        ->setController(UserCrudController::class)
+        //        ->generateUrl()
+        //);
 
         // Option 2. You can make your dashboard redirect to different pages depending on the user
         //
@@ -44,7 +49,30 @@ class AdminDashboardController extends AbstractDashboardController
         // Option 3. You can render some custom template to display a proper dashboard with widgets, etc.
         // (tip: it's easier if your template extends from @EasyAdmin/page/content.html.twig)
         //
-        // return $this->render('some/path/my-dashboard.html.twig');
+        $licenseeRepository = $this->entityManager->getRepository(
+            Licensee::class
+        );
+        /** @var ArrayCollection<Licensee> $licensees */
+        $licensees = new ArrayCollection($licenseeRepository->findAll());
+
+        $usersCount = $licensees->count();
+        $womenCount = 0;
+        $menCount = 0;
+        foreach ($licensees as $licensee) {
+            if ($licensee->getGender() === GenderType::FEMALE) {
+                $womenCount += 1;
+            } else {
+                $menCount += 1;
+            }
+        }
+
+        return $this->render("admin/dashboard.html.twig", [
+            "licensees" => [
+                "women" => $womenCount,
+                "men" => $menCount,
+                "total" => $usersCount,
+            ],
+        ]);
     }
 
     public function configureDashboard(): Dashboard
@@ -61,10 +89,11 @@ class AdminDashboardController extends AbstractDashboardController
 
         yield MenuItem::section();
 
+        yield MenuItem::linkToCrud("Comptes", "fa-regular fa-at", User::class);
         yield MenuItem::linkToCrud(
-            "Archers",
+            "Licenciés",
             "fa-regular fa-user",
-            User::class
+            Licensee::class
         );
         yield MenuItem::linkToCrud(
             "Évènements",

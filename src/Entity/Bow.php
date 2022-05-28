@@ -15,7 +15,7 @@ class Bow
     #[ORM\Column(type: "integer")]
     private $id;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "bows")]
+    #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: "bows")]
     #[ORM\JoinColumn(nullable: false)]
     private $owner;
 
@@ -59,12 +59,12 @@ class Bow
         return $this->id;
     }
 
-    public function getOwner(): ?User
+    public function getOwner(): ?Licensee
     {
         return $this->owner;
     }
 
-    public function setOwner(?User $owner): self
+    public function setOwner(?Licensee $owner): self
     {
         $this->owner = $owner;
 

@@ -22,18 +22,15 @@ class License
     #[DoctrineAssert\EnumType(entity: LicenseType::class)]
     private $type;
 
-    #[ORM\Column(type: "string", length: 7, nullable: true)]
-    private $number;
-
     #[ORM\Column(type: "LicenseCategoryType", nullable: true)]
     private $category;
 
     #[ORM\Column(type: "LicenseAgeCategoryType", nullable: true)]
     private $ageCategory;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "licenses")]
+    #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: "licenses")]
     #[ORM\JoinColumn(nullable: false)]
-    private $owner;
+    private $licensee;
 
     public function getId(): ?int
     {
@@ -64,18 +61,6 @@ class License
         return $this;
     }
 
-    public function getNumber(): ?string
-    {
-        return $this->number;
-    }
-
-    public function setNumber(?string $number): self
-    {
-        $this->number = $number;
-
-        return $this;
-    }
-
     public function getCategory()
     {
         return $this->category;
@@ -100,14 +85,14 @@ class License
         return $this;
     }
 
-    public function getOwner(): ?User
+    public function getLicensee(): ?Licensee
     {
-        return $this->owner;
+        return $this->licensee;
     }
 
-    public function setOwner(?User $owner): self
+    public function setLicensee(?Licensee $licensee): self
     {
-        $this->owner = $owner;
+        $this->licensee = $licensee;
 
         return $this;
     }

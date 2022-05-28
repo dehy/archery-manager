@@ -92,6 +92,9 @@
     "egulias/email-validator": {
         "version": "3.1.2"
     },
+    "fabpot/goutte": {
+        "version": "v4.0.2"
+    },
     "fresh/doctrine-enum-bundle": {
         "version": "8.1",
         "recipe": {
@@ -180,6 +183,9 @@
     "symfony/asset": {
         "version": "v6.0.3"
     },
+    "symfony/browser-kit": {
+        "version": "v6.0.3"
+    },
     "symfony/cache": {
         "version": "v6.0.3"
     },
@@ -200,6 +206,9 @@
         "files": [
             "bin/console"
         ]
+    },
+    "symfony/css-selector": {
+        "version": "v6.0.3"
     },
     "symfony/debug-bundle": {
         "version": "6.0",
@@ -224,6 +233,9 @@
     },
     "symfony/doctrine-messenger": {
         "version": "v6.0.3"
+    },
+    "symfony/dom-crawler": {
+        "version": "v6.0.9"
     },
     "symfony/dotenv": {
         "version": "v6.0.3"

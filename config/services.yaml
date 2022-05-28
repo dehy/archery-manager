@@ -20,6 +20,11 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    App\Scrapper\FftaScrapper:
+        arguments:
+            $username: '%env(FFTA_USERNAME)%'
+            $password: '%env(FFTA_PASSWORD)%'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 

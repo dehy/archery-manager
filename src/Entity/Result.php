@@ -13,9 +13,9 @@ class Result
     #[ORM\Column(type: "integer")]
     private $id;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "results")]
+    #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: "results")]
     #[ORM\JoinColumn(nullable: false)]
-    private $user;
+    private $licensee;
 
     #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: "results")]
     private $event;
@@ -34,14 +34,14 @@ class Result
         return $this->id;
     }
 
-    public function getUser(): ?User
+    public function getLicensee(): ?Licensee
     {
-        return $this->user;
+        return $this->licensee;
     }
 
-    public function setUser(?User $user): self
+    public function setLicensee(?Licensee $licensee): self
     {
-        $this->user = $user;
+        $this->licensee = $licensee;
 
         return $this;
     }

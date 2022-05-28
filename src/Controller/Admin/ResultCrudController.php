@@ -23,7 +23,7 @@ class ResultCrudController extends AbstractCrudController
     {
         return [
             IdField::new("id")->onlyOnIndex(),
-            AssociationField::new("user"),
+            AssociationField::new("licensee"),
             AssociationField::new("event"),
             ChoiceField::new("discipline")->setChoices(
                 DisciplineType::getChoices()
@@ -36,7 +36,7 @@ class ResultCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
-            ->add("user")
+            ->add("licensee")
             ->add("event")
             ->add(
                 ChoiceFilter::new("discipline")->setChoices(

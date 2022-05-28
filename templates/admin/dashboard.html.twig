@@ -1,0 +1,38 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Dashboard{% endblock %}
+
+{% block page_actions %}
+{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-4">
+            <h3>Licenciés</h3>
+            <table class="table table-dark">
+                <tbody>
+                <tr>
+                    <th>Hommes</th>
+                    <td>
+                        {{ licensees.men }}
+                        <span class="text-muted">({{ (licensees.men/licensees.total*100)|round }}%)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Femmes</th>
+                    <td>
+                        {{ licensees.women }}
+                        <span class="text-muted">({{ (licensees.women/licensees.total*100)|round }}%)</span>
+                    </td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th>Total</th>
+                    <td>{{ licensees.total }}</td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+{% endblock %}

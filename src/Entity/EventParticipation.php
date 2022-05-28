@@ -19,7 +19,7 @@ class EventParticipation
 
     #[
         ORM\ManyToOne(
-            targetEntity: User::class,
+            targetEntity: Licensee::class,
             inversedBy: "eventParticipations"
         )
     ]
@@ -49,12 +49,12 @@ class EventParticipation
         return $this;
     }
 
-    public function getParticipant(): ?User
+    public function getParticipant(): ?Licensee
     {
         return $this->participant;
     }
 
-    public function setParticipant(?User $participant): self
+    public function setParticipant(?Licensee $participant): self
     {
         $this->participant = $participant;
 
