@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\DBAL\Types\GenderType;
 use App\Entity\Applicant;
 use App\Entity\Event;
+use App\Entity\Group;
 use App\Entity\Licensee;
 use App\Entity\Result;
 use App\Entity\User;
@@ -92,8 +93,13 @@ class AdminDashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud("Comptes", "fa-regular fa-at", User::class);
         yield MenuItem::linkToCrud(
             "Licenciés",
-            "fa-regular fa-user",
+            "fa-solid fa-user",
             Licensee::class
+        );
+        yield MenuItem::linkToCrud(
+            "Groupes",
+            "fa-solid fa-users",
+            Group::class
         );
         yield MenuItem::linkToCrud(
             "Évènements",
