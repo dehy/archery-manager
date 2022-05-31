@@ -12,6 +12,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TelephoneField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Uid\Uuid;
 
@@ -33,7 +34,7 @@ class UserCrudController extends AbstractCrudController
             TextField::new("firstname"),
             TextField::new("lastname"),
             EmailField::new("email"),
-            EmailField::new("phoneNumber"),
+            TelephoneField::new("phoneNumber"),
             AssociationField::new("licensees"),
         ];
     }
