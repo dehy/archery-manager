@@ -17,6 +17,11 @@ final class LicenseAgeCategoryType extends AbstractEnumType
     public const SENIOR_2 = "S2";
     public const SENIOR_3 = "S3";
 
+    // Old categories from previous seasons
+    public const SENIOR = "S";
+    public const VETERAN = "V";
+    public const SUPER_VETERAN = "SV";
+
     protected static array $choices = [
         self::POUSSIN => "Poussin",
         self::BENJAMIN => "Benjamin",
@@ -26,6 +31,9 @@ final class LicenseAgeCategoryType extends AbstractEnumType
         self::SENIOR_1 => "Senior 1",
         self::SENIOR_2 => "Senior 2",
         self::SENIOR_3 => "Senior 3",
+        self::SENIOR => "Senior",
+        self::VETERAN => "Vétéran",
+        self::SUPER_VETERAN => "Super Vétéran",
     ];
 
     public static function ageCategoryFromDate(DateTimeInterface $date): string

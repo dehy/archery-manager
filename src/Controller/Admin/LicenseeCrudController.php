@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Controller\Admin\Filter\LicenseSeasonFilter;
 use App\DBAL\Types\GenderType;
 use App\Entity\Licensee;
 use App\Entity\User;
@@ -11,6 +12,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
 class LicenseeCrudController extends AbstractCrudController
@@ -32,15 +34,12 @@ class LicenseeCrudController extends AbstractCrudController
             TextField::new("lastname"),
             DateField::new("birthdate"),
             TextField::new("fftaMemberCode"),
-            TextField::new("fftaId")->hideOnIndex(),
+            IntegerField::new("fftaId")->hideOnIndex(),
         ];
     }
 
     public function configureFilters(Filters $filters): Filters
     {
-        return $filters
-            ->add("lastname")
-            ->add("firstname")
-            ->add("fftaMemberCode");
+        return $filters->add(LicenseSeasonFilter::new());
     }
 }

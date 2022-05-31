@@ -86,7 +86,7 @@ class Licensee
     ]
     private $results;
 
-    #[ORM\ManyToMany(targetEntity: Group::class, mappedBy: 'licensees')]
+    #[ORM\ManyToMany(targetEntity: Group::class, mappedBy: "licensees")]
     private $groups;
 
     public function __construct()
@@ -209,6 +209,16 @@ class Licensee
     public function getLicenses(): Collection
     {
         return $this->licenses;
+    }
+
+    public function getLicenseForSeason(int $year): ?License
+    {
+        $filteredLicenses = $this->licenses->filter(
+            fn(License $l) => $l->getSeason() === $year
+        );
+        return $filteredLicenses->count() > 0
+            ? $filteredLicenses->first()
+            : null;
     }
 
     public function addLicense(License $license): self

@@ -3,9 +3,12 @@
 namespace App\Controller\Admin;
 
 use App\DBAL\Types\GenderType;
+use App\DBAL\Types\LicenseAgeCategoryType;
+use App\DBAL\Types\LicenseType;
 use App\Entity\Applicant;
 use App\Entity\Event;
 use App\Entity\Group;
+use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\Result;
 use App\Entity\User;
@@ -59,13 +62,29 @@ class AdminDashboardController extends AbstractDashboardController
         $usersCount = $licensees->count();
         $womenCount = 0;
         $menCount = 0;
+
+        $licenseTypesCount = array_fill_keys(LicenseType::getValues(), 0);
+        $licenseAgeCategoryCount = array_fill_keys(
+            LicenseAgeCategoryType::getValues(),
+            0
+        );
+
         foreach ($licensees as $licensee) {
             if ($licensee->getGender() === GenderType::FEMALE) {
                 $womenCount += 1;
             } else {
                 $menCount += 1;
             }
+            if ($license = $licensee->getLicenseForSeason(intval(date("Y")))) {
+                $licenseTypesCount[$license->getType()] += 1;
+                $licenseAgeCategoryCount[$license->getAgeCategory()] += 1;
+            }
         }
+        $licenseTypesCount = array_filter($licenseTypesCount, fn($v) => $v > 0);
+        $licenseAgeCategoryCount = array_filter(
+            $licenseAgeCategoryCount,
+            fn($v) => $v > 0
+        );
 
         return $this->render("admin/dashboard.html.twig", [
             "licensees" => [
@@ -73,6 +92,8 @@ class AdminDashboardController extends AbstractDashboardController
                 "men" => $menCount,
                 "total" => $usersCount,
             ],
+            "licensesTypes" => $licenseTypesCount,
+            "licenseAgeCategories" => $licenseAgeCategoryCount,
         ]);
     }
 
@@ -97,10 +118,18 @@ class AdminDashboardController extends AbstractDashboardController
             Licensee::class
         );
         yield MenuItem::linkToCrud(
+            "Licences",
+            "fa-solid fa-id-card",
+            License::class
+        );
+        yield MenuItem::linkToCrud(
             "Groupes",
             "fa-solid fa-users",
             Group::class
         );
+
+        yield MenuItem::section();
+
         yield MenuItem::linkToCrud(
             "Évènements",
             "fa-regular fa-calendar",

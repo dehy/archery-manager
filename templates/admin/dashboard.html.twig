@@ -34,5 +34,51 @@
                 </tfoot>
             </table>
         </div>
+        <div class="col-4">
+            {% set licensesTypesTotal = licensesTypes|reduce((carry, v) => carry + v) %}
+            <h3>Types de licenses pour 2022</h3>
+            <table class="table">
+                <tbody>
+                {% for licenseType, count in licensesTypes %}
+                    <tr>
+                        <th>{{ licenseType|readable_enum('LicenseType') }}</th>
+                        <td>
+                            {{ count }}
+                            <span class="text-muted">({{ (count/licensesTypesTotal*100)|round }}%)</span>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th>Total</th>
+                    <td>{{ licensesTypesTotal }}</td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="col-4">
+            {% set licenseAgeCategoriesTotal = licenseAgeCategories|reduce((carry, v) => carry + v) %}
+            <h3>Catégories d'âge pour 2022</h3>
+            <table class="table">
+                <tbody>
+                {% for ageCategory, count in licenseAgeCategories %}
+                    <tr>
+                        <th>{{ ageCategory|readable_enum('LicenseAgeCategoryType') }}</th>
+                        <td>
+                            {{ count }}
+                            <span class="text-muted">({{ (count/licenseAgeCategoriesTotal*100)|round }}%)</span>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th>Total</th>
+                    <td>{{ licenseAgeCategoriesTotal }}</td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
     </div>
 {% endblock %}

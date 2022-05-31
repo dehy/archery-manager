@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Entity\Licensee;
 use App\Entity\User;
 use App\Scrapper\FftaScrapper;
 use Doctrine\ORM\EntityManagerInterface;
@@ -9,7 +10,6 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -39,14 +39,46 @@ class FftaFillMissingProfileCommand extends Command
     ): int {
         $io = new SymfonyStyle($input, $output);
 
-        $userRepository = $this->entityManager->getRepository(User::class);
+        $licenseeRepository = $this->entityManager->getRepository(
+            Licensee::class
+        );
         $fftaIds = $input->getArgument("fftaId");
 
         foreach ($fftaIds as $id) {
+            $id = (int) $id;
             $identity = $this->scrapper->fetchLicenceeIdentity($id);
-            $io->writeln(
-                sprintf("\"%s\",\"%s\"", $identity->email, $identity->mobile)
+            $fftaLicences = $this->scrapper->fetchLicenseeLicenses($id);
+            $licensee = $licenseeRepository->findOneBy(["fftaId" => $id]);
+            if ($licensee) {
+                foreach ($fftaLicences as $fftaLicence) {
+                    $existingLicence = $licensee->getLicenseForSeason(
+                        $fftaLicence->getSeason()
+                    );
+                    if ($existingLicence) {
+                        $io->warning(
+                            sprintf(
+                                "Existing license found for licensee #%s. Not merging.",
+                                $id
+                            )
+                        );
+                    } else {
+                        $fftaLicence->setLicensee($licensee);
+                        $this->entityManager->persist($fftaLicence);
+                    }
+                }
+            } else {
+                $io->warning(
+                    sprintf("User with FFTA id #%s not found in database", $id)
+                );
+            }
+
+            $io->success(
+                sprintf(
+                    "Saving licences for licensee %s",
+                    $licensee->getFullname()
+                )
             );
+            $this->entityManager->flush();
             sleep(1);
         }
 

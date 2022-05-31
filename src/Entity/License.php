@@ -2,12 +2,21 @@
 
 namespace App\Entity;
 
+use App\DBAL\Types\LicenseAgeCategoryType;
+use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\Repository\LicenseRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: LicenseRepository::class)]
+#[
+    UniqueEntity(
+        fields: ["licensee", "season"],
+        message: "There is already an license for this season for this licensee"
+    )
+]
 class License
 {
     #[ORM\Id]
@@ -23,9 +32,11 @@ class License
     private $type;
 
     #[ORM\Column(type: "LicenseCategoryType", nullable: true)]
+    #[DoctrineAssert\EnumType(entity: LicenseCategoryType::class)]
     private $category;
 
     #[ORM\Column(type: "LicenseAgeCategoryType", nullable: true)]
+    #[DoctrineAssert\EnumType(entity: LicenseAgeCategoryType::class)]
     private $ageCategory;
 
     #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: "licenses")]
