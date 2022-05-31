@@ -19,7 +19,7 @@ class Licensee
     private $id;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "licensees")]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private $user;
 
     #[ORM\Column(type: "GenderType")]
@@ -34,11 +34,11 @@ class Licensee
     #[ORM\Column(type: "date")]
     private $birthdate;
 
-    #[ORM\Column(type: "string", length: 7, nullable: true)]
+    #[ORM\Column(type: "string", length: 7, unique: true, nullable: true)]
     #[Assert\Length(min: 7, max: 7)]
     private $fftaMemberCode;
 
-    #[ORM\Column(type: "integer", nullable: true)]
+    #[ORM\Column(type: "integer", unique: true, nullable: true)]
     private $fftaId;
 
     #[
