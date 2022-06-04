@@ -2,10 +2,14 @@
 
 namespace App\Scrapper;
 
+use App\DBAL\Types\GenderType;
+use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\Entity\License;
+use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Exception;
 use Goutte\Client;
 use Symfony\Component\BrowserKit\Response;
@@ -22,10 +26,50 @@ class FftaScrapper
         private readonly string $password
     ) {
         if (!$this->username || !$this->password) {
-            throw new \Exception("FFTA Credentials not set");
+            throw new Exception("FFTA Credentials not set");
         }
         $this->client = new Client();
         $this->login();
+    }
+
+    public function fetchLicenseeList(int $season): array
+    {
+        $url = sprintf(
+            "%s/licences/afficherlistelicencies?editionAttestation=&idSaison=%s&actifs=false",
+            $this->baseUrl,
+            $season
+        );
+        $this->client->xmlHttpRequest(
+            "GET",
+            $url,
+            [],
+            [],
+            [
+                "HTTP_ACCEPT" =>
+                    "application/json, text/javascript, */*; q=0.01",
+            ]
+        );
+
+        $licensesData = json_decode(
+            $this->client->getResponse()->getContent(),
+            true
+        );
+        $fftaIdentities = [];
+        foreach ($licensesData["licences"] as $licenseData) {
+            $html = $licenseData[9];
+            $identity = [
+                "code" => $licenseData[0],
+                "name" => $licenseData[1],
+                "id" => preg_replace(
+                    "/.*FichePersonne_(\d+)'.*/",
+                    "\\1",
+                    $html
+                ),
+            ];
+            $fftaIdentities[] = $identity;
+        }
+
+        return $fftaIdentities;
     }
 
     public function fetchLicenceeIdentity(string $fftaId): FftaIdentity
@@ -80,6 +124,22 @@ class FftaScrapper
             );
         }
         $identity->mobile = $phone;
+
+        $dateNaissanceNode = $crawler->filterXPath(
+            "descendant-or-self::*[@id = 'identite.dateNaissance']"
+        );
+        $identity->dateNaissance = DateTime::createFromFormat(
+            "d/m/Y",
+            $this->clean($dateNaissanceNode->text())
+        );
+
+        $sexeNode = $crawler->filterXPath(
+            "descendant-or-self::*[@id = 'identite.sexe']"
+        );
+        $identity->sexe =
+            $this->clean($sexeNode->text()) === "Homme"
+                ? GenderType::MALE
+                : GenderType::FEMALE;
 
         return $identity;
     }
@@ -245,6 +305,36 @@ class FftaScrapper
                 }
 
                 $licences[] = $licence;
+            }
+
+            $activites = $season->filterXPath(
+                sprintf(
+                    "descendant-or-self::*[@id = 'licence%s.activite']",
+                    $seasonIdx + 1
+                )
+            );
+            if ($activites->count() > 0) {
+                $licenseActivities = new ArrayCollection(
+                    $licence->getActivities()
+                );
+                $listeActivites = explode(",", $activites->text());
+                foreach ($listeActivites as $activite) {
+                    $activiteStr = $this->clean($activite);
+                    $activity = match ($activiteStr) {
+                        "Arc Classique" => LicenseActivityType::CLASSIC,
+                        "Arc Nu" => LicenseActivityType::BARE,
+                        "Arc à Poulies" => LicenseActivityType::COMPOUND,
+                    };
+                    if (!$activity) {
+                        throw new Exception(
+                            sprintf("Unknown Activity '%s'", $activiteStr)
+                        );
+                    }
+                    if (!$licenseActivities->contains($activity)) {
+                        $licenseActivities->add($activity);
+                    }
+                }
+                $licence->setActivities($licenseActivities->toArray());
             }
 
             $seasonIdx += 1;
