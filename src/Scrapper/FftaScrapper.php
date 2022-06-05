@@ -10,10 +10,12 @@ use App\DBAL\Types\LicenseType;
 use App\Entity\License;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use ErrorException;
 use Exception;
 use Goutte\Client;
 use Symfony\Component\BrowserKit\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class FftaScrapper
 {
@@ -70,6 +72,40 @@ class FftaScrapper
         }
 
         return $fftaIdentities;
+    }
+
+    public function findLicenseeIdFromCode(string $memberCode): int
+    {
+        $formUrl = sprintf(
+            "%s/recherchesmulticriteres/rechercherpersonnes",
+            $this->baseUrl
+        );
+        $crawler = $this->client->request("GET", $formUrl);
+
+        $form = $crawler
+            ->filter("#formSearchPersonne")
+            ->form(["inputAdherent" => $memberCode]);
+        $crawler = $this->client->submit($form);
+
+        $requestUriComponents = parse_url(
+            $this->client->getRequest()->getUri()
+        );
+        if ($requestUriComponents["path"] === "/personnes/show") {
+            parse_str($requestUriComponents["query"], $queryParameters);
+            $idPersonne = $queryParameters["idPersonne"] ?? null;
+            if ($idPersonne) {
+                return $idPersonne;
+            }
+        }
+        $feedbackPanel = $crawler->filter("#feedbackPanel");
+        if (
+            $feedbackPanel->count() > 0 &&
+            str_contains($feedbackPanel->text(), "Aucune personne trouv")
+        ) {
+            throw new NotFoundHttpException();
+        }
+
+        throw new ErrorException("Something went wrong during the request");
     }
 
     public function fetchLicenceeIdentity(string $fftaId): FftaIdentity
