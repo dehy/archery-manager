@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\DBAL\Types\DisciplineType;
 use App\Entity\Result;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
@@ -29,6 +30,7 @@ class ResultCrudController extends AbstractCrudController
                 DisciplineType::getChoices()
             ),
             IntegerField::new("distance"),
+            IntegerField::new("targetSize"),
             IntegerField::new("score"),
         ];
     }

@@ -43,6 +43,9 @@ class License
     #[ORM\JoinColumn(nullable: false)]
     private $licensee;
 
+    #[ORM\Column(type: "simple_array")]
+    private $activities = [];
+
     public function getId(): ?int
     {
         return $this->id;
@@ -106,5 +109,26 @@ class License
         $this->licensee = $licensee;
 
         return $this;
+    }
+
+    public function getActivities(): ?array
+    {
+        return $this->activities;
+    }
+
+    public function setActivities(array $activities): self
+    {
+        $this->activities = $activities;
+
+        return $this;
+    }
+
+    public function merge(License $license): void
+    {
+        $this->setType($license->getType());
+        $this->setSeason($license->getSeason());
+        $this->setCategory($license->getCategory());
+        $this->setAgeCategory($license->getAgeCategory());
+        $this->setActivities($license->getActivities());
     }
 }

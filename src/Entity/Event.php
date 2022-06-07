@@ -42,6 +42,12 @@ class Event
     #[ORM\OneToMany(mappedBy: "event", targetEntity: Result::class)]
     private $results;
 
+    #[ORM\Column(type: 'ContestType', nullable: true)]
+    private $contestType;
+
+    #[ORM\Column(type: 'DisciplineType')]
+    private $discipline;
+
     public function __construct()
     {
         $this->participations = new ArrayCollection();
@@ -178,6 +184,30 @@ class Event
                 $result->setEvent(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getContestType()
+    {
+        return $this->contestType;
+    }
+
+    public function setContestType($contestType): self
+    {
+        $this->contestType = $contestType;
+
+        return $this;
+    }
+
+    public function getDiscipline()
+    {
+        return $this->discipline;
+    }
+
+    public function setDiscipline($discipline): self
+    {
+        $this->discipline = $discipline;
 
         return $this;
     }

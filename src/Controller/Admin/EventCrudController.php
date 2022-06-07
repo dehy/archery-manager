@@ -3,12 +3,15 @@
 namespace App\Controller\Admin;
 
 use App\Admin\Field\EnumTypeField;
+use App\DBAL\Types\ContestType;
+use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventType;
 use App\Entity\Event;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
 class EventCrudController extends AbstractCrudController
@@ -21,12 +24,19 @@ class EventCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
+            IdField::new("id")->hideOnForm(),
             TextField::new("name"),
             DateTimeField::new("startsAt"),
             DateTimeField::new("endsAt"),
             ChoiceField::new("type")
                 ->setChoices(EventType::getChoices())
                 ->renderExpanded(),
+            ChoiceField::new("discipline")->setChoices(
+                DisciplineType::getChoices()
+            ),
+            ChoiceField::new("contestType")->setChoices(
+                ContestType::getChoices()
+            ),
             TextField::new("address"),
         ];
     }

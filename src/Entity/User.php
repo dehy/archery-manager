@@ -213,4 +213,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function hasLicenseeWithCode(string $fftaCode): bool
+    {
+        return $this->getLicensees()->exists(
+            fn(Licensee $licensee) => $licensee->getFftaMemberCode() ===
+                $fftaCode
+        );
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\DBAL\Types\EventType;
+use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
@@ -10,6 +11,7 @@ use App\Entity\License;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
@@ -33,6 +35,9 @@ class LicenseCrudController extends AbstractCrudController
             ChoiceField::new("ageCategory")->setChoices(
                 LicenseAgeCategoryType::getChoices()
             ),
+            ChoiceField::new("activities")
+                ->setChoices(LicenseActivityType::getChoices())
+                ->allowMultipleChoices(),
         ];
     }
 

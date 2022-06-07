@@ -3,13 +3,15 @@
 namespace App\Command;
 
 use App\Entity\Licensee;
-use App\Entity\User;
 use App\Scrapper\FftaScrapper;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -30,9 +32,35 @@ class FftaFillMissingProfileCommand extends Command
 
     protected function configure(): void
     {
-        $this->addArgument("fftaId", InputArgument::IS_ARRAY, "FFTA ID");
+        $this->addOption(
+            "season",
+            null,
+            InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
+            "Season Filter"
+        );
+        $this->addOption(
+            "all",
+            null,
+            InputOption::VALUE_REQUIRED,
+            "Fetch for all licensee"
+        );
+        $this->addOption(
+            "id",
+            null,
+            InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
+            "FFTA ID"
+        );
+        $this->addOption(
+            "code",
+            null,
+            InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
+            "FFTA Member Code"
+        );
     }
 
+    /**
+     * @throws Exception
+     */
     protected function execute(
         InputInterface $input,
         OutputInterface $output
@@ -42,25 +70,45 @@ class FftaFillMissingProfileCommand extends Command
         $licenseeRepository = $this->entityManager->getRepository(
             Licensee::class
         );
-        $fftaIds = $input->getArgument("fftaId");
+        $seasons = new ArrayCollection($input->getOption("season"));
+        $all = $input->getOption("all");
+        $fftaIds = new ArrayCollection($input->getOption("id"));
+        $fftaCodes = new ArrayCollection($input->getOption("code"));
 
         foreach ($fftaIds as $id) {
             $id = (int) $id;
             $identity = $this->scrapper->fetchLicenceeIdentity($id);
             $fftaLicences = $this->scrapper->fetchLicenseeLicenses($id);
             $licensee = $licenseeRepository->findOneBy(["fftaId" => $id]);
+            if (!$licensee) {
+                $licensee = new Licensee();
+                $licensee->setFirstname($identity->prenom);
+                $licensee->setLastname($identity->nom);
+                $licensee->setGender($identity->sexe);
+                $licensee->setFftaId($id);
+                $licensee->setFftaMemberCode($identity->codeAdherent);
+                $licensee->setBirthdate($identity->dateNaissance);
+            }
             if ($licensee) {
                 foreach ($fftaLicences as $fftaLicence) {
-                    $existingLicence = $licensee->getLicenseForSeason(
-                        $fftaLicence->getSeason()
-                    );
+                    if (
+                        !$seasons->isEmpty() &&
+                        !$seasons->contains((string) $fftaLicence->getSeason())
+                    ) {
+                        continue;
+                    }
+
+                    $season = $fftaLicence->getSeason();
+                    $existingLicence = $licensee->getLicenseForSeason($season);
                     if ($existingLicence) {
                         $io->warning(
                             sprintf(
-                                "Existing license found for licensee #%s. Not merging.",
-                                $id
+                                "Found for licensee #%s in %s. Merging.",
+                                $id,
+                                $season
                             )
                         );
+                        $existingLicence->merge($fftaLicence);
                     } else {
                         $fftaLicence->setLicensee($licensee);
                         $this->entityManager->persist($fftaLicence);

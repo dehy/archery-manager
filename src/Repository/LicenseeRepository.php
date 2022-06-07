@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Licensee;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -33,16 +34,24 @@ class LicenseeRepository extends ServiceEntityRepository
         }
     }
 
-    /**
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
     public function remove(Licensee $entity, bool $flush = true): void
     {
         $this->_em->remove($entity);
         if ($flush) {
             $this->_em->flush();
         }
+    }
+
+    /**
+     * @throws NonUniqueResultException
+     */
+    public function findByCode(string $fftaCode): ?Licensee
+    {
+        return $this->createQueryBuilder("l")
+            ->andWhere("l.fftaMemberCode = :fftaCode")
+            ->setParameter("fftaCode", $fftaCode)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     // /**
