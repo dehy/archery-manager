@@ -42,10 +42,10 @@ class Event
     #[ORM\OneToMany(mappedBy: "event", targetEntity: Result::class)]
     private $results;
 
-    #[ORM\Column(type: 'ContestType', nullable: true)]
+    #[ORM\Column(type: "ContestType", nullable: true)]
     private $contestType;
 
-    #[ORM\Column(type: 'DisciplineType')]
+    #[ORM\Column(type: "DisciplineType")]
     private $discipline;
 
     public function __construct()
@@ -210,5 +210,10 @@ class Event
         $this->discipline = $discipline;
 
         return $this;
+    }
+
+    public function canImportResults(): bool
+    {
+        return $this->getDiscipline() && $this->getContestType();
     }
 }

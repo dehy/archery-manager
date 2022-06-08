@@ -1,0 +1,16 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Import Result'Arc scores{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col">
+            {% if not event.canImportResults %}
+                <div class="alert alert-danger mb-3" role="alert">
+                    You must set the contest type  and discipline values of the event before importing results.
+                </div>
+            {% endif %}
+            {{ form(form) }}
+        </div>
+    </div>
+{% endblock %}
