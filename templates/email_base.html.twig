@@ -1,0 +1,78 @@
+{% apply inky_to_html|inline_css(source('@styles/foundation-emails.css')) %}
+    <style type="text/css">
+        body,
+        html,
+        .body {
+            background: #f3f3f3 !important;
+        }
+
+        .container.header {
+            background: #f3f3f3;
+        }
+
+        a {
+            color: #e31d02;
+        }
+
+        .body-drip {
+            border-top: 8px solid #e31d02;
+        }
+    </style>
+    <!-- move the above styles into your custom stylesheet -->
+
+
+    <spacer size="16"></spacer>
+
+    <container class="header">
+        <row class="collapse">
+            <columns>
+                <center>
+                    <img src="{{ asset('build/logo-archers-de-guyenne-160.png') }}" alt="Les Archers de Guyenne">
+                </center>
+            </columns>
+        </row>
+    </container>
+
+    <container class="body-drip">
+
+        <spacer size="24"></spacer>
+
+        {% if block('header') is defined %}
+            {{ block('header') }}
+
+            <hr/>
+
+            <spacer size="24"></spacer>
+        {% endif %}
+
+        {{ block('content') }}
+
+        <row class="collapsed footer">
+            <columns>
+                <spacer size="16"></spacer>
+                <p class="text-center">Les Archers de Guyenne<br/>
+                    <a href="mailto:lesarchersdeguyenne@gmail.com">lesarchersdeguyenne@gmail.com</a></p>
+                <center>
+                    <menu>
+                        <item>
+                            <a href="https://www.facebook.com/LesArchersdeGuyenne/">
+                                <img src="{{ asset('build/facebook-square-brands.png') }}" alt="Facebook">
+                            </a>
+                        </item>
+                        <item>
+                            <a href="https://www.instagram.com/archersdebordeaux/?hl=fr">
+                                <img src="{{ asset('build/instagram-square-brands.png') }}" alt="Instagram">
+                            </a>
+                        </item>
+                        <item>
+                            <a href="https://www.archersdebordeaux-guyenne.com/">
+                                <img src="{{ asset('build/w-solid.png') }}" alt="Site Internet">
+                            </a>
+                        </item>
+                    </menu>
+                </center>
+            </columns>
+        </row>
+
+    </container>
+{% endapply %}

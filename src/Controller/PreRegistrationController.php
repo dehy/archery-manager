@@ -6,10 +6,14 @@ use App\Entity\Applicant;
 use App\Form\ApplicantType;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 
 class PreRegistrationController extends AbstractController
@@ -17,7 +21,8 @@ class PreRegistrationController extends AbstractController
     #[Route("/pre-inscription", name: "app_pre_registration")]
     public function form(
         Request $request,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        MailerInterface $mailer
     ): Response {
         $applicant = new Applicant();
 
@@ -34,6 +39,14 @@ class PreRegistrationController extends AbstractController
             $applicant->setRegisteredAt(new DateTimeImmutable());
             $entityManager->persist($applicant);
             $entityManager->flush();
+
+            $email = (new TemplatedEmail())
+                ->to($applicant->getEmail())
+                ->replyTo("lesarchersdeguyenne@gmail.com")
+                ->subject("Votre pré-inscription aux Archers de Guyenne")
+                ->htmlTemplate("pre_registration/mail_confirmation.html.twig");
+
+            $mailer->send($email);
 
             return $this->redirectToRoute("app_pre_registration_thank_you");
         }
