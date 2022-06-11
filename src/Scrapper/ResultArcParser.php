@@ -32,7 +32,6 @@ class ResultArcParser
         $re = "/" . $this->searchPattern() . "/m";
         foreach (explode(PHP_EOL, $pdf->getText()) as $line) {
             if (1 === preg_match($re, $line, $matches)) {
-                list($foundLine, $score, $category, $fftaCode) = $matches;
                 $score = intval($matches[1]);
                 $ageCategory = $matches[3];
                 $activity = $matches[4];
@@ -79,7 +78,7 @@ class ResultArcParser
     private function searchPattern(): string
     {
         return sprintf(
-            '^[A-Z ]+ (\d{1,3})( +\d+)?%s .* (\d{6}\w)$',
+            "^[-'A-Z0-9À-ž ]+ (\d{1,3})( +\d+)?%s .* (\d{6}\w)( \d)?$",
             $this->categoryPattern()
         );
     }

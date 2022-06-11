@@ -5,17 +5,12 @@ namespace App\Command;
 use App\Entity\Event;
 use App\Entity\Licensee;
 use App\Entity\Result;
-use App\Entity\Season;
-use App\Repository\LicenseeRepository;
-use App\Scrapper\FftaScrapper;
 use App\Scrapper\ResultArcParser;
 use Doctrine\ORM\EntityManagerInterface;
-use EasyCorp\Bundle\EasyAdminBundle\Contracts\Orm\EntityRepositoryInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -52,6 +47,11 @@ class ResultArcImportCommand extends Command
         $eventRepository = $this->entityManager->getRepository(Event::class);
         $event = $eventRepository->find($eventId);
 
+        if (!$event) {
+            $io->error(sprintf("Event #%s not found", $eventId));
+            return Command::INVALID;
+        }
+
         if (!$event->getContestType()) {
             $io->error(
                 "You must set the contest type value of the event before importing results"
@@ -62,11 +62,6 @@ class ResultArcImportCommand extends Command
             $io->error(
                 "You must set the event discipline before importing results"
             );
-            return Command::INVALID;
-        }
-
-        if (!$event) {
-            $io->error(sprintf("Event #%s not found", $eventId));
             return Command::INVALID;
         }
 
