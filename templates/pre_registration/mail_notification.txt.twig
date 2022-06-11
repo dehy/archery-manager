@@ -1,0 +1,19 @@
+👋
+
+Nouvelle pré-inscription le {{ applicant.registeredAt|date }}
+
+{{ applicant.firstname }} {{ applicant.lastname }}
+Né le {{ applicant.birthdate|date('j F Y') }} ({{ applicant.age }} ans)
+
+- Niveau : {{ applicant.practiceLevel|readable_enum('PracticeLevelType') }}
+- Numéro de licence : {{ applicant.licenseNumber ?? '-' }}
+- Mail : {{ applicant.email }}
+- Téléphone : {{ applicant.phoneNumber }}
+
+Commentaire : {{ applicant.comment ?? '-' }}
+
+{% set url = ea_url()
+    .setController('App\\Controller\\Admin\\ApplicantCrudController')
+    .setAction('detail')
+    .setEntityId(applicant.id) %}
+{{ absolute_url(url) }}

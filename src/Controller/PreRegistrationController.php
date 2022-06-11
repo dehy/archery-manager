@@ -48,6 +48,14 @@ class PreRegistrationController extends AbstractController
 
             $mailer->send($email);
 
+            $notificationEmail = (new TemplatedEmail())
+                ->to("lesarchersdeguyenne@gmail.com")
+                ->subject("Nouvelle pré-inscription")
+                ->textTemplate("pre_registration/mail_notification.txt.twig")
+                ->context(["applicant" => $applicant]);
+
+            $mailer->send($notificationEmail);
+
             return $this->redirectToRoute("app_pre_registration_thank_you");
         }
 

@@ -39,14 +39,14 @@ class Applicant
     private string $practiceLevel;
 
     #[ORM\Column(type: "string", length: 7, nullable: true)]
-    private ?string $licenseNumber;
+    private ?string $licenseNumber = null;
 
     #[ORM\Column(type: "string", length: 12)]
     #[Assert\NotBlank]
     private string $phoneNumber;
 
     #[ORM\Column(type: "text", nullable: true)]
-    private ?string $comment;
+    private ?string $comment = null;
 
     #[ORM\Column(type: "datetime_immutable")]
     private DateTimeImmutable $registeredAt;
@@ -95,6 +95,11 @@ class Applicant
     public function getBirthdate(): ?DateTimeImmutable
     {
         return $this->birthdate;
+    }
+
+    public function getAge(): ?int
+    {
+        return $this->birthdate->diff(new DateTimeImmutable())->y;
     }
 
     public function setBirthdate(DateTimeImmutable $birthdate): self
