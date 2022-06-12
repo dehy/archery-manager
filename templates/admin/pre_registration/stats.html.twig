@@ -1,0 +1,53 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Statistiques sur les pré-inscriptions{% endblock %}
+
+{% block page_actions %}
+{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-4">
+            <h3>Nouveaux/Renouvellements</h3>
+            <table class="table">
+                <tbody>
+                <tr>
+                    <th>Nouveaux</th>
+                    <td>
+                        {{ stats.new }}
+                        <span class="text-muted">({{ (stats.new/stats.total*100)|round }}%)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Renouvellements</th>
+                    <td>
+                        {{ stats.renewal }}
+                        <span class="text-muted">({{ (stats.renewal/stats.total*100)|round }}%)</span>
+                    </td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th>Total</th>
+                    <td>{{ stats.total }}</td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="col-4">
+            <h3>Âge des nouveaux</h3>
+            <table class="table">
+                <tbody>
+                {% for category, count in stats.newAges %}
+                <tr>
+                    <th>{{ category }}</th>
+                    <td>
+                        {{ count }}
+                        <span class="text-muted">({{ (count/stats.new*100)|round }}%)</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}

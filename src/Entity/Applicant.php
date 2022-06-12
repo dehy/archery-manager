@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\DBAL\Types\LicenseType;
 use App\DBAL\Types\PracticeLevelType;
 use App\Repository\ApplicantRepository;
 use DateTimeImmutable;
@@ -30,26 +31,33 @@ class Applicant
     private string $firstname;
 
     #[ORM\Column(type: "date_immutable")]
-    #[Assert\NotBlank]
     #[Assert\LessThanOrEqual("2022/09/24 -8 years")]
     private DateTimeImmutable $birthdate;
 
-    #[ORM\Column(type: "PracticeLevelType")]
+    #[ORM\Column(type: "PracticeLevelType", nullable: true)]
     #[DoctrineAssert\EnumType(entity: PracticeLevelType::class)]
     private string $practiceLevel;
 
     #[ORM\Column(type: "string", length: 7, nullable: true)]
     private ?string $licenseNumber = null;
 
-    #[ORM\Column(type: "string", length: 12)]
-    #[Assert\NotBlank]
-    private string $phoneNumber;
+    #[ORM\Column(type: "string", length: 12, nullable: true)]
+    private ?string $phoneNumber;
 
     #[ORM\Column(type: "text", nullable: true)]
     private ?string $comment = null;
 
     #[ORM\Column(type: "datetime_immutable")]
     private DateTimeImmutable $registeredAt;
+
+    #[ORM\Column(type: "integer")]
+    private int $season = 2023;
+
+    #[ORM\Column(type: "boolean")]
+    private bool $renewal = false;
+
+    #[ORM\Column(type: "string", length: 32, nullable: true)]
+    private string $licenseType;
 
     public function getId(): ?int
     {
@@ -114,7 +122,7 @@ class Applicant
         return $this->practiceLevel;
     }
 
-    public function setPracticeLevel(string $practiceLevel): self
+    public function setPracticeLevel(?string $practiceLevel): self
     {
         $this->practiceLevel = $practiceLevel;
 
@@ -138,7 +146,7 @@ class Applicant
         return $this->phoneNumber;
     }
 
-    public function setPhoneNumber(string $phoneNumber): self
+    public function setPhoneNumber(?string $phoneNumber): self
     {
         $this->phoneNumber = $phoneNumber;
 
@@ -165,6 +173,42 @@ class Applicant
     public function setRegisteredAt(DateTimeImmutable $registeredAt): self
     {
         $this->registeredAt = $registeredAt;
+
+        return $this;
+    }
+
+    public function getSeason(): ?int
+    {
+        return $this->season;
+    }
+
+    public function setSeason(int $season): self
+    {
+        $this->season = $season;
+
+        return $this;
+    }
+
+    public function isRenewal(): bool
+    {
+        return $this->renewal;
+    }
+
+    public function setRenewal(bool $renewal): self
+    {
+        $this->renewal = $renewal;
+
+        return $this;
+    }
+
+    public function getLicenseType(): string
+    {
+        return $this->licenseType;
+    }
+
+    public function setLicenseType(string $licenseType): self
+    {
+        $this->licenseType = $licenseType;
 
         return $this;
     }

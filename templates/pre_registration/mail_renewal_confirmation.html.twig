@@ -1,0 +1,24 @@
+{% extends 'email_base.html.twig' %}
+
+{% block header %}
+    <row>
+        <columns>
+            <h4 class="text-center">Merci</h4>
+            <h6 class="text-center">Votre demande de renouvellement a bien été enregistrée.</h6>
+        </columns>
+    </row>
+{% endblock %}
+
+{% block content %}
+    <row>
+        <columns>
+            <p>À bientôt !</p>
+
+            <p>
+                —<br>
+                <strong>Gilles</strong><br>
+                <em>Président des Archers de Guyenne</em>
+            </p>
+        </columns>
+    </row>
+{% endblock %}

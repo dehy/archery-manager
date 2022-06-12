@@ -143,6 +143,12 @@ class AdminDashboardController extends AbstractDashboardController
 
         yield MenuItem::section();
 
+        yield MenuItem::linkToRoute(
+            "Stats Pré-inscriptions",
+            "fa-solid fa-chart-simple",
+            "app_admin_applicants_stats"
+        );
+
         yield MenuItem::linkToCrud(
             "Pré-inscriptions",
             "fa-solid fa-user-plus",

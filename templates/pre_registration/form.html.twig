@@ -11,6 +11,18 @@
         </div>
     </div>
 
+    {% if error %}
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger">
+                    Il semble que tu sois déjà licencié aux Archers de Guyenne. Ce n'est pas le bon formulaire
+                    de pré-inscription. Rendez-vous sur ce formulaire pour renouveler ton adhésion :
+                    <a href="{{ path('app_registration_renewal') }}">Pré-inscription Renouvellement</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
     <div class="row">
         <div class="col-md-5">
             <div class="alert alert-info">

@@ -2,13 +2,14 @@
 
 namespace App\Form;
 
+use App\DBAL\Types\LicenseType;
 use App\Entity\Applicant;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class ApplicantType extends AbstractType
+class ApplicantRenewalType extends AbstractType
 {
     public function buildForm(
         FormBuilderInterface $builder,
@@ -17,33 +18,25 @@ class ApplicantType extends AbstractType
         $builder
             ->add("lastname", null, [
                 "label" => "Nom *",
+                "help" => "Nom de famille du pratiquant",
                 "required" => true,
             ])
             ->add("firstname", null, [
                 "label" => "Prénom *",
-                "required" => true,
-            ])
-            ->add("birthdate", DateType::class, [
-                "label" => "Date de naissance *",
-                "widget" => "single_text",
-                "help" => "L'âge minimum est de 8 ans à la date d'inscription.",
-                "input" => "datetime_immutable",
-                "required" => true,
-            ])
-            ->add("practiceLevel", null, [
-                "label" => "Quel est votre niveau de pratique ?",
-                "expanded" => true,
+                "help" => "Prénom du pratiquant",
                 "required" => true,
             ])
             ->add("licenseNumber", null, [
-                "label" => "Si vous en avez déjà un, n° licence FFTA ?",
-            ])
-            ->add("email", null, [
-                "label" => "Email *",
+                "label" => "N° licence FFTA *",
                 "required" => true,
             ])
-            ->add("phoneNumber", null, [
-                "label" => "N° de téléphone *",
+            ->add("licenseType", ChoiceType::class, [
+                "label" => "Type de Licence *",
+                "choices" => [
+                    "LOISIR" => "LOISIR",
+                    "COMPÉTITION" => "COMPÉTITION",
+                ],
+                "expanded" => true,
                 "required" => true,
             ])
             ->add("comment", null, [

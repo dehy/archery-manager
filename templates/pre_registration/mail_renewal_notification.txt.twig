@@ -1,0 +1,17 @@
+Nouveau renouvellement enregistré le {{ applicant.registeredAt|date }}
+
+{{ applicant.firstname }} {{ applicant.lastname }} ({{ applicant.licenseNumber }})
+
+- Type de license demandée : {{ applicant.licenseType }}
+
+Rappels :
+- Mail : {{ applicant.email }}
+- Téléphone : {{ applicant.phoneNumber }}
+
+Commentaire : {{ applicant.comment ?? '-' }}
+
+{% set url = ea_url()
+    .setController('App\\Controller\\Admin\\ApplicantCrudController')
+    .setAction('detail')
+    .setEntityId(applicant.id) %}
+{{ absolute_url(url) }}
