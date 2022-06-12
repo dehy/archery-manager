@@ -50,4 +50,27 @@
             </table>
         </div>
     </div>
+    <div class="row">
+        <div class="col-12">
+            <h3>Emails des nouveaux</h3>
+            <p>
+                {% for applicant in applicants|filter(a => not a.renewal) %}
+                    {{ _self.liste_emails(applicant) }},
+                {% endfor %}
+            </p>
+
+            <h3>Emails des renouvellements</h3>
+            <p>
+                {% for applicant in applicants|filter(a => a.renewal) %}
+                    {{ _self.liste_emails(applicant) }},
+                {% endfor %}
+            </p>
+        </div>
+    </div>
 {% endblock %}
+
+{% macro liste_emails(applicant) %}
+    {% apply spaceless %}
+    {{ applicant.firstname }} {{ applicant.lastname }} &lt;{{ applicant.email }}&gt;
+    {% endapply %}
+{% endmacro %}

@@ -121,6 +121,7 @@ class ApplicantCrudController extends AbstractCrudController
 
         return $this->render("admin/pre_registration/stats.html.twig", [
             "stats" => $stats,
+            "applicants" => $applicants,
         ]);
     }
 }
