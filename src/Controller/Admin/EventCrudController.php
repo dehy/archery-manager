@@ -12,10 +12,10 @@ use App\Repository\LicenseeRepository;
 use App\Repository\ResultRepository;
 use App\Scrapper\ResultArcParser;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
@@ -23,9 +23,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use League\Flysystem\FilesystemException;
+use League\Flysystem\FilesystemOperator;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -90,11 +93,16 @@ class EventCrudController extends AbstractCrudController
             ->add(Crud::PAGE_DETAIL, $importResultArcScoresAction);
     }
 
+    /**
+     * @throws FilesystemException
+     * @throws NonUniqueResultException
+     */
     public function importResults(
         AdminContext $context,
         Request $request,
         ResultArcParser $resultArcParser,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        FilesystemOperator $eventsStorage
     ): Response {
         /** @var Event $event */
         $event = $context->getEntity()->getInstance();
@@ -114,9 +122,24 @@ class EventCrudController extends AbstractCrudController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $resultLines = $resultArcParser->parseFile(
-                $form->get("file")->getData()
+            /** @var UploadedFile $file */
+            $file = $form->get("file")->getData();
+            $sanitizedEventName = mb_ereg_replace(
+                "([^\w\s\d\-_~,;\[\]\(\).])",
+                "-",
+                $event->getName()
             );
+            $filepath = sprintf(
+                "%s/%s - %s - Résultats.pdf",
+                $event->getId(),
+                $event->getStartsAt()->format("Y-m-d"),
+                $sanitizedEventName
+            );
+            $eventsStorage->write($filepath, $file->getContent());
+            $event->setResultFilepath($filepath);
+            $entityManager->flush();
+
+            $resultLines = $resultArcParser->parseFile($file);
 
             /** @var LicenseeRepository $licenseeRepository */
             $licenseeRepository = $entityManager->getRepository(

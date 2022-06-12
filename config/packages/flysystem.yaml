@@ -5,4 +5,9 @@ flysystem:
             adapter: 'asyncaws'
             options:
                 client: 'scaleway_object_storage_client'
-                bucket: '%env(SCALEWAY_OBJECT_STORAGE_BUCKET)%'
+                bucket: '%env(STORAGE_BUCKET_PROFILE_PICTURES)%'
+        events.storage:
+            adapter: 'asyncaws'
+            options:
+                client: 'scaleway_object_storage_client'
+                bucket: '%env(STORAGE_BUCKET_EVENTS)%'

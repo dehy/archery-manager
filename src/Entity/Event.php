@@ -48,6 +48,12 @@ class Event
     #[ORM\Column(type: "DisciplineType")]
     private $discipline;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private $mandateFilepath;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private $resultFilepath;
+
     public function __construct()
     {
         $this->participations = new ArrayCollection();
@@ -215,5 +221,29 @@ class Event
     public function canImportResults(): bool
     {
         return $this->getDiscipline() && $this->getContestType();
+    }
+
+    public function getMandateFilepath(): ?string
+    {
+        return $this->mandateFilepath;
+    }
+
+    public function setMandateFilepath(?string $mandateFilepath): self
+    {
+        $this->mandateFilepath = $mandateFilepath;
+
+        return $this;
+    }
+
+    public function getResultFilepath(): ?string
+    {
+        return $this->resultFilepath;
+    }
+
+    public function setResultFilepath(?string $resultFilepath): self
+    {
+        $this->resultFilepath = $resultFilepath;
+
+        return $this;
     }
 }
