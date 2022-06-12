@@ -7,7 +7,7 @@
 
 {% block main %}
     <div class="row">
-        <div class="col-4">
+        <div class="col-md-4 col-sm-12">
             <h3>Licenciés</h3>
             <table class="table">
                 <tbody>
@@ -34,7 +34,7 @@
                 </tfoot>
             </table>
         </div>
-        <div class="col-4">
+        <div class="col-md-4 col-sm-12">
             {% set licensesTypesTotal = licensesTypes|reduce((carry, v) => carry + v) %}
             <h3>Types de licenses pour 2022</h3>
             <table class="table">
@@ -57,7 +57,7 @@
                 </tfoot>
             </table>
         </div>
-        <div class="col-4">
+        <div class="col-md-4 col-sm-12">
             {% set licenseAgeCategoriesTotal = licenseAgeCategories|reduce((carry, v) => carry + v) %}
             <h3>Catégories d'âge pour 2022</h3>
             <table class="table">
