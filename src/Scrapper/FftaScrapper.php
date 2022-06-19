@@ -2,6 +2,7 @@
 
 namespace App\Scrapper;
 
+use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\GenderType;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
@@ -9,19 +10,26 @@ use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\Entity\License;
 use DateTime;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use ErrorException;
 use Exception;
 use Goutte\Client;
 use Symfony\Component\BrowserKit\Response;
+use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class FftaScrapper
 {
-    private string $baseUrl = "https://ffta-goal.multimediabs.com";
+    private string $goalBaseUrl = "https://ffta-goal.multimediabs.com";
+    private string $extranetBaseUrl = "https://extranet.ffta.fr";
 
-    protected Client $client;
+    protected Client $fftaGoalClient;
+    protected bool $fftaGoalIsConnected = false;
+
+    protected Client $fftaExtranetClient;
+    protected bool $fftaExtranetIsConnected = false;
 
     public function __construct(
         private readonly string $username,
@@ -30,18 +38,18 @@ class FftaScrapper
         if (!$this->username || !$this->password) {
             throw new Exception("FFTA Credentials not set");
         }
-        $this->client = new Client();
-        $this->login();
     }
 
     public function fetchLicenseeList(int $season): array
     {
+        $this->loginFftaGoal();
+
         $url = sprintf(
             "%s/licences/afficherlistelicencies?editionAttestation=&idSaison=%s&actifs=false",
-            $this->baseUrl,
+            $this->goalBaseUrl,
             $season
         );
-        $this->client->xmlHttpRequest(
+        $this->fftaGoalClient->xmlHttpRequest(
             "GET",
             $url,
             [],
@@ -53,7 +61,7 @@ class FftaScrapper
         );
 
         $licensesData = json_decode(
-            $this->client->getResponse()->getContent(),
+            $this->fftaGoalClient->getResponse()->getContent(),
             true
         );
         $fftaIdentities = [];
@@ -76,19 +84,21 @@ class FftaScrapper
 
     public function findLicenseeIdFromCode(string $memberCode): int
     {
+        $this->loginFftaGoal();
+
         $formUrl = sprintf(
             "%s/recherchesmulticriteres/rechercherpersonnes",
-            $this->baseUrl
+            $this->goalBaseUrl
         );
-        $crawler = $this->client->request("GET", $formUrl);
+        $crawler = $this->fftaGoalClient->request("GET", $formUrl);
 
         $form = $crawler
             ->filter("#formSearchPersonne")
             ->form(["inputAdherent" => $memberCode]);
-        $crawler = $this->client->submit($form);
+        $crawler = $this->fftaGoalClient->submit($form);
 
         $requestUriComponents = parse_url(
-            $this->client->getRequest()->getUri()
+            $this->fftaGoalClient->getRequest()->getUri()
         );
         if ($requestUriComponents["path"] === "/personnes/show") {
             parse_str($requestUriComponents["query"], $queryParameters);
@@ -110,12 +120,14 @@ class FftaScrapper
 
     public function fetchLicenceeIdentity(string $fftaId): FftaIdentity
     {
+        $this->loginFftaGoal();
+
         $url = sprintf(
             "%s/personnes/gettabpanel?personne.id=%s&tabId=Coordonnees_Personne",
-            $this->baseUrl,
+            $this->goalBaseUrl,
             $fftaId
         );
-        $crawler = $this->client->request("GET", $url);
+        $crawler = $this->fftaGoalClient->request("GET", $url);
 
         $identity = new FftaIdentity();
         $identity->codeAdherent = $this->clean(
@@ -186,14 +198,16 @@ class FftaScrapper
      */
     public function fetchLicenseeLicenses(int $fftaId): array
     {
+        $this->loginFftaGoal();
+
         $licences = [];
 
         $url = sprintf(
             "%s/personnes/gettabpanel?personne.id=%s&tabId=Licences_Personne",
-            $this->baseUrl,
+            $this->goalBaseUrl,
             $fftaId
         );
-        $crawler = $this->client->request("GET", $url);
+        $crawler = $this->fftaGoalClient->request("GET", $url);
         $seasons = $crawler->filter(".dd-item.dd2-item");
         $seasonIdx = 0;
         $seasons->each(function ($season) use (&$seasonIdx, &$licences) {
@@ -395,19 +409,104 @@ class FftaScrapper
         return preg_replace("/^0/", "+33", $number);
     }
 
-    protected function login(): void
+    protected function loginFftaGoal(): void
     {
-        $crawler = $this->client->request(
+        if ($this->fftaGoalIsConnected) {
+            return;
+        }
+        $this->fftaGoalClient = new Client();
+        $crawler = $this->fftaGoalClient->request(
             "GET",
-            sprintf("%s/login", $this->baseUrl)
+            sprintf("%s/login", $this->goalBaseUrl)
         );
         $form = $crawler->selectButton("CONNEXION")->form();
-        $this->client->submit($form, [
+        $this->fftaGoalClient->submit($form, [
             "username" => $this->username,
             "password" => $this->password,
         ]);
         /** @var Response $response */
-        $response = $this->client->getResponse();
+        $response = $this->fftaGoalClient->getResponse();
+        if ($response->getStatusCode() !== 200) {
+            throw new BadRequestHttpException(
+                "Bad response from FFTA login procedure"
+            );
+        }
+    }
+
+    public function fetchEvents($season): array
+    {
+        $this->loginFftaExtranet();
+
+        $events = [];
+
+        $crawler = $this->fftaExtranetClient->request(
+            "POST",
+            sprintf(
+                "%s/gsportive/resultats-mesarchers.html",
+                $this->extranetBaseUrl
+            ),
+            [],
+            [],
+            [
+                "HTTP_CONTENT_TYPE" => "application/x-www-form-urlencoded",
+            ],
+            sprintf("filtres[SaisonAnnee]=%s", $season)
+        );
+        $tableCrawler = $crawler->filter("table.orbe3");
+        $eventLinesCrawler = $tableCrawler->filter("tbody tr");
+        $eventLinesCrawler->each(function (Crawler $row) use (&$events) {
+            $dateCell = $row->filter("td:nth-child(2)")->text();
+            preg_match(
+                "#(du|le) (\d+/\d+/\d+)(au (\d+/\d+/\d+))?#",
+                $dateCell,
+                $dateMatches
+            );
+            $fromDate = $dateMatches[2];
+            $toDate = $dateMatches[4] ?? $fromDate;
+
+            $name = $row->filter("td:nth-child(3)")->text();
+            $location = $row->filter("td:nth-child(4)")->text();
+            $url = $row->attr("data-modal");
+            $disciplineStr = $row->filter("td:nth-child(5) strong")->text();
+            $discipline = DisciplineType::disciplineFromFftaExtranet(
+                $disciplineStr
+            );
+
+            $event = [
+                "from" => DateTimeImmutable::createFromFormat(
+                    "!d/m/Y",
+                    $fromDate
+                ),
+                "to" => DateTimeImmutable::createFromFormat("!d/m/Y", $toDate),
+                "name" => $name,
+                "location" => $location,
+                "discipline" => $discipline,
+                "url" => $url,
+            ];
+            $events[] = $event;
+        });
+
+        return $events;
+    }
+
+    protected function loginFftaExtranet(): void
+    {
+        if ($this->fftaExtranetIsConnected) {
+            return;
+        }
+        $this->fftaExtranetClient = new Client();
+        $crawler = $this->fftaExtranetClient->request(
+            "GET",
+            sprintf("%s", $this->extranetBaseUrl)
+        );
+
+        $form = $crawler->filter("form[name=identification]")->form();
+        $this->fftaExtranetClient->submit($form, [
+            "login[identifiant]" => $this->username,
+            "login[idpassword]" => $this->password,
+        ]);
+        /** @var Response $response */
+        $response = $this->fftaExtranetClient->getResponse();
         if ($response->getStatusCode() !== 200) {
             throw new BadRequestHttpException(
                 "Bad response from FFTA login procedure"

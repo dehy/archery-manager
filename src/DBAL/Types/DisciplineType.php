@@ -2,6 +2,7 @@
 namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
+use LogicException;
 
 final class DisciplineType extends AbstractEnumType
 {
@@ -22,4 +23,18 @@ final class DisciplineType extends AbstractEnumType
         self::PARA => "Handi",
         self::RUN => "Run Archery",
     ];
+
+    public static function disciplineFromFftaExtranet(
+        string $extranetName
+    ): string {
+        return match ($extranetName) {
+            "Tir à l'Arc Extérieur" => self::TARGET,
+            "Tir 3D" => self::THREE_D,
+            "Tir Nature" => self::NATURE,
+            "Tir en Salle" => self::INDOOR,
+            default => throw new LogicException(
+                "Unknown value \"$extranetName\""
+            ),
+        };
+    }
 }
