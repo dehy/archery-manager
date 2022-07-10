@@ -77,7 +77,7 @@ class FftaFillMissingProfileCommand extends Command
 
         foreach ($fftaIds as $id) {
             $id = (int) $id;
-            $identity = $this->scrapper->fetchLicenceeIdentity($id);
+            $identity = $this->scrapper->fetchLicenseeProfile($id);
             $fftaLicences = $this->scrapper->fetchLicenseeLicenses($id);
             $licensee = $licenseeRepository->findOneBy(["fftaId" => $id]);
             if (!$licensee) {

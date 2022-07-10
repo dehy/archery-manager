@@ -42,7 +42,7 @@ class FftaFetchProfileCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $fftaId = $input->getArgument("fftaId");
 
-        $identity = $this->scrapper->fetchLicenceeIdentity($fftaId);
+        $identity = $this->scrapper->fetchLicenseeProfile($fftaId);
 
         var_dump($identity);
 

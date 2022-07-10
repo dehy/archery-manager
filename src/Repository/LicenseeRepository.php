@@ -54,6 +54,18 @@ class LicenseeRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    /**
+     * @throws NonUniqueResultException
+     */
+    public function findOneByFftaId(int $fftaId): ?Licensee
+    {
+        return $this->createQueryBuilder("l")
+            ->andWhere("l.fftaId = :fftaId")
+            ->setParameter("fftaId", $fftaId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     // /**
     //  * @return Licensee[] Returns an array of Licensee objects
     //  */

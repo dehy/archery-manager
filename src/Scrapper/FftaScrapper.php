@@ -8,6 +8,8 @@ use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
+use App\Entity\FftaEvent;
+use App\Entity\FftaLicensee;
 use App\Entity\License;
 use DateTime;
 use DateTimeImmutable;
@@ -19,6 +21,7 @@ use Symfony\Component\BrowserKit\Response;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Validator\Constraints\Date;
 
 class FftaScrapper
 {
@@ -40,7 +43,10 @@ class FftaScrapper
         }
     }
 
-    public function fetchLicenseeList(int $season): array
+    /**
+     * @return int[]
+     */
+    public function fetchLicenseeIdList(int $season): array
     {
         $this->loginFftaGoal();
 
@@ -64,22 +70,13 @@ class FftaScrapper
             $this->fftaGoalClient->getResponse()->getContent(),
             true
         );
-        $fftaIdentities = [];
+        $ids = [];
         foreach ($licensesData["licences"] as $licenseData) {
             $html = $licenseData[9];
-            $identity = [
-                "code" => $licenseData[0],
-                "name" => $licenseData[1],
-                "id" => preg_replace(
-                    "/.*FichePersonne_(\d+)'.*/",
-                    "\\1",
-                    $html
-                ),
-            ];
-            $fftaIdentities[] = $identity;
+            $ids[] = preg_replace("/.*FichePersonne_(\d+)'.*/", "\\1", $html);
         }
 
-        return $fftaIdentities;
+        return $ids;
     }
 
     public function findLicenseeIdFromCode(string $memberCode): int
@@ -118,7 +115,7 @@ class FftaScrapper
         throw new ErrorException("Something went wrong during the request");
     }
 
-    public function fetchLicenceeIdentity(string $fftaId): FftaIdentity
+    public function fetchLicenseeProfile(string $fftaId): FftaProfile
     {
         $this->loginFftaGoal();
 
@@ -129,31 +126,45 @@ class FftaScrapper
         );
         $crawler = $this->fftaGoalClient->request("GET", $url);
 
-        $identity = new FftaIdentity();
-        $identity->codeAdherent = $this->clean(
-            $crawler
-                ->filterXPath(
-                    "descendant-or-self::*[@id = 'identite.codeAdherent']"
+        $identity = new FftaProfile();
+        $identity
+            ->setId($fftaId)
+            ->setCodeAdherent(
+                $this->clean(
+                    $crawler
+                        ->filterXPath(
+                            "descendant-or-self::*[@id = 'identite.codeAdherent']"
+                        )
+                        ->text()
                 )
-                ->text()
-        );
-        $identity->email = $this->clean(
-            $crawler
-                ->filterXPath("descendant-or-self::*[@id = 'email']")
-                ->text()
-        );
-        $identity->nom = $this->clean(
-            $crawler
-                ->filterXPath("descendant-or-self::*[@id = 'identite.nom']")
-                ->text(),
-            true
-        );
-        $identity->prenom = $this->clean(
-            $crawler
-                ->filterXPath("descendant-or-self::*[@id = 'identite.prenom']")
-                ->text(),
-            true
-        );
+            )
+            ->setEmail(
+                $this->clean(
+                    $crawler
+                        ->filterXPath("descendant-or-self::*[@id = 'email']")
+                        ->text()
+                )
+            )
+            ->setNom(
+                $this->clean(
+                    $crawler
+                        ->filterXPath(
+                            "descendant-or-self::*[@id = 'identite.nom']"
+                        )
+                        ->text(),
+                    true
+                )
+            )
+            ->setPrenom(
+                $this->clean(
+                    $crawler
+                        ->filterXPath(
+                            "descendant-or-self::*[@id = 'identite.prenom']"
+                        )
+                        ->text(),
+                    true
+                )
+            );
 
         $mobileNode = $crawler->filterXPath(
             "descendant-or-self::*[@id = 'mobile']"
@@ -171,33 +182,38 @@ class FftaScrapper
                 $this->clean($telephoneNode->text(), true)
             );
         }
-        $identity->mobile = $phone;
+        $identity->setMobile($phone);
 
         $dateNaissanceNode = $crawler->filterXPath(
             "descendant-or-self::*[@id = 'identite.dateNaissance']"
         );
-        $identity->dateNaissance = DateTime::createFromFormat(
-            "d/m/Y",
-            $this->clean($dateNaissanceNode->text())
+        $identity->setDateNaissance(
+            DateTime::createFromFormat(
+                "d/m/Y",
+                $this->clean($dateNaissanceNode->text())
+            )
         );
 
         $sexeNode = $crawler->filterXPath(
             "descendant-or-self::*[@id = 'identite.sexe']"
         );
-        $identity->sexe =
+        $identity->setSexe(
             $this->clean($sexeNode->text()) === "Homme"
                 ? GenderType::MALE
-                : GenderType::FEMALE;
+                : GenderType::FEMALE
+        );
 
         return $identity;
     }
 
     /**
-     * @return License[]
+     * @return array<int, License>
      * @throws Exception
      */
-    public function fetchLicenseeLicenses(int $fftaId): array
-    {
+    public function fetchLicenseeLicenses(
+        int $fftaId,
+        ?int $requestedSeason = null
+    ): array {
         $this->loginFftaGoal();
 
         $licences = [];
@@ -210,13 +226,21 @@ class FftaScrapper
         $crawler = $this->fftaGoalClient->request("GET", $url);
         $seasons = $crawler->filter(".dd-item.dd2-item");
         $seasonIdx = 0;
-        $seasons->each(function ($season) use (&$seasonIdx, &$licences) {
+        $seasons->each(function ($season) use (
+            &$seasonIdx,
+            &$licences,
+            $requestedSeason
+        ) {
             $blockContent = $season->filter(".dd2-content");
             if ($blockContent->count() == 0) {
                 return;
             }
             $blockTitle = $blockContent->text();
             $year = intval(str_replace("Saison ", "", $blockTitle));
+
+            if ($requestedSeason && $requestedSeason !== $year) {
+                return;
+            }
 
             $structure = $season->filterXPath(
                 sprintf(
@@ -238,14 +262,14 @@ class FftaScrapper
             $licence = new License();
             $licence->setSeason($year);
 
-            $libelle = $season->filterXPath(
+            $libelleCrawler = $season->filterXPath(
                 sprintf(
                     "descendant-or-self::*[@id = 'licence.libelle_%s']",
                     $seasonIdx
                 )
             );
-            if ($libelle->count() > 0) {
-                $libelleStr = $this->clean($libelle->text());
+            if ($libelleCrawler->count() > 0) {
+                $libelleStr = $this->clean($libelleCrawler->text());
                 switch ($libelleStr) {
                     case "ADULTE Pratique en compétition":
                         $licence->setType(LicenseType::ADULTES_COMPETITION);
@@ -269,14 +293,14 @@ class FftaScrapper
                 }
             }
 
-            $categorieAge = $season->filterXPath(
+            $categorieAgeCrawler = $season->filterXPath(
                 sprintf(
                     "descendant-or-self::*[@id = 'licence.categorieAge_%s']",
                     $seasonIdx
                 )
             );
-            if ($categorieAge->count() > 0) {
-                $categorieAgeStr = $this->clean($categorieAge->text());
+            if ($categorieAgeCrawler->count() > 0) {
+                $categorieAgeStr = $this->clean($categorieAgeCrawler->text());
                 switch ($categorieAgeStr) {
                     case "Poussin":
                         $licence->setCategory(LicenseCategoryType::POUSSINS);
@@ -353,27 +377,27 @@ class FftaScrapper
                             )
                         );
                 }
-
-                $licences[] = $licence;
             }
 
-            $activites = $season->filterXPath(
+            $activitesCrawler = $season->filterXPath(
                 sprintf(
                     "descendant-or-self::*[@id = 'licence%s.activite']",
                     $seasonIdx + 1
                 )
             );
-            if ($activites->count() > 0) {
+            if ($activitesCrawler->count() > 0) {
                 $licenseActivities = new ArrayCollection(
                     $licence->getActivities()
                 );
-                $listeActivites = explode(",", $activites->text());
+                $listeActivites = explode(",", $activitesCrawler->text());
                 foreach ($listeActivites as $activite) {
                     $activiteStr = $this->clean($activite);
                     $activity = match ($activiteStr) {
-                        "Arc Classique" => LicenseActivityType::CLASSIC,
-                        "Arc Nu" => LicenseActivityType::BARE,
-                        "Arc à Poulies" => LicenseActivityType::COMPOUND,
+                        "Arc Chasse" => LicenseActivityType::AC,
+                        "Arc Classique" => LicenseActivityType::CL,
+                        "Arc Droit" => LicenseActivityType::AD,
+                        "Arc Nu" => LicenseActivityType::BB,
+                        "Arc à Poulies" => LicenseActivityType::CO,
                     };
                     if (!$activity) {
                         throw new Exception(
@@ -387,6 +411,7 @@ class FftaScrapper
                 $licence->setActivities($licenseActivities->toArray());
             }
 
+            $licences[$year] = $licence;
             $seasonIdx += 1;
         });
 
