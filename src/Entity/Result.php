@@ -7,44 +7,80 @@ use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\Repository\ResultRepository;
+use App\Scrapper\CategoryParser;
+use App\Scrapper\FftaResult;
 use Doctrine\ORM\Mapping as ORM;
 use LogicException;
 
 #[ORM\Entity(repositoryClass: ResultRepository::class)]
 class Result
 {
-    private $distanceMatrice = [
-        ContestType::CHALLENGE33 => [],
-        ContestType::FEDERAL => [],
-        ContestType::INTERNATIONAL => [],
-    ];
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: "results")]
     #[ORM\JoinColumn(nullable: false)]
-    private $licensee;
+    private Licensee $licensee;
 
     #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: "results")]
-    private $event;
+    private Event $event;
 
     #[ORM\Column(type: "DisciplineType")]
-    private $discipline;
+    private string $discipline;
 
-    #[ORM\Column(type: "integer", nullable: true)]
-    private $distance;
-
-    #[ORM\Column(type: "integer")]
-    private $score;
+    #[ORM\Column(type: "LicenseAgeCategoryType")]
+    private string $ageCategory;
 
     #[ORM\Column(type: "LicenseActivityType")]
-    private $activity;
+    private string $activity;
 
-    #[ORM\Column(type: 'integer')]
-    private $targetSize;
+    #[ORM\Column(type: "integer", nullable: true)]
+    private int $distance;
+
+    #[ORM\Column(type: "integer")]
+    private int $targetSize;
+
+    #[ORM\Column(type: "integer", nullable: true)]
+    private ?int $score1 = null;
+
+    #[ORM\Column(type: "integer", nullable: true)]
+    private ?int $score2 = null;
+
+    #[ORM\Column(type: "integer")]
+    private int $total;
+
+    #[ORM\Column(type: "integer", nullable: true)]
+    private ?int $nb10 = null;
+
+    #[ORM\Column(type: "integer", nullable: true)]
+    private ?int $nb10p = null;
+
+    #[ORM\Column(type: "integer", nullable: true)]
+    private ?int $position = null;
+
+    public static function fromFftaResult(
+        FftaResult $fftaResult,
+        Event $event,
+        Licensee $licensee,
+        string $discipline
+    ): Result {
+        list($ageCategory, $activity) = CategoryParser::parseString(
+            $fftaResult->getCategory()
+        );
+
+        return (new Result())
+            ->setEvent($event)
+            ->setLicensee($licensee)
+            ->setDiscipline($discipline)
+            ->setActivity($activity)
+            ->setScore1($fftaResult->getScore1())
+            ->setScore2($fftaResult->getScore2())
+            ->setTotal($fftaResult->getTotal())
+            ->setNb10($fftaResult->getNb10())
+            ->setNb10p($fftaResult->getNb10p());
+    }
 
     public function getId(): ?int
     {
@@ -75,14 +111,41 @@ class Result
         return $this;
     }
 
-    public function getDiscipline()
+    public function getDiscipline(): string
     {
         return $this->discipline;
     }
 
-    public function setDiscipline($discipline): self
+    public function setDiscipline(string $discipline): self
     {
+        DisciplineType::assertValidChoice($discipline);
         $this->discipline = $discipline;
+
+        return $this;
+    }
+
+    public function getAgeCategory(): string
+    {
+        return $this->ageCategory;
+    }
+
+    public function setAgeCategory(string $ageCategory): Result
+    {
+        LicenseAgeCategoryType::assertValidChoice($ageCategory);
+        $this->ageCategory = $ageCategory;
+
+        return $this;
+    }
+
+    public function getActivity(): string
+    {
+        return $this->activity;
+    }
+
+    public function setActivity(string $activity): self
+    {
+        LicenseActivityType::assertValidChoice($activity);
+        $this->activity = $activity;
 
         return $this;
     }
@@ -99,26 +162,86 @@ class Result
         return $this;
     }
 
-    public function getScore(): ?int
+    public function getTargetSize(): ?int
     {
-        return $this->score;
+        return $this->targetSize;
     }
 
-    public function setScore(int $score): self
+    public function setTargetSize(int $targetSize): self
     {
-        $this->score = $score;
+        $this->targetSize = $targetSize;
 
         return $this;
     }
 
-    public function getActivity()
+    public function getScore1(): ?int
     {
-        return $this->activity;
+        return $this->score1;
     }
 
-    public function setActivity($activity): self
+    public function setScore1(?int $score1): self
     {
-        $this->activity = $activity;
+        $this->score1 = $score1;
+
+        return $this;
+    }
+
+    public function getScore2(): ?int
+    {
+        return $this->score2;
+    }
+
+    public function setScore2(?int $score2): self
+    {
+        $this->score2 = $score2;
+
+        return $this;
+    }
+
+    public function getTotal(): ?int
+    {
+        return $this->total;
+    }
+
+    public function setTotal(int $total): self
+    {
+        $this->total = $total;
+
+        return $this;
+    }
+
+    public function getNb10(): ?int
+    {
+        return $this->nb10;
+    }
+
+    public function setNb10(?int $nb10): self
+    {
+        $this->nb10 = $nb10;
+
+        return $this;
+    }
+
+    public function getNb10p(): ?int
+    {
+        return $this->nb10p;
+    }
+
+    public function setNb10p(?int $nb10p): self
+    {
+        $this->nb10p = $nb10p;
+
+        return $this;
+    }
+
+    public function getPosition(): ?int
+    {
+        return $this->position;
+    }
+
+    public function setPosition(?int $position): self
+    {
+        $this->position = $position;
 
         return $this;
     }
@@ -137,7 +260,14 @@ class Result
         string $ageCategory
     ): array {
         if ($contestType === ContestType::CHALLENGE33) {
-            return self::distanceForChallenge33(
+            return self::distanceAndSizeForChallenge33(
+                $discipline,
+                $activity,
+                $ageCategory
+            );
+        }
+        if ($contestType === ContestType::FEDERAL) {
+            return self::distanceAndSizeForFederal(
                 $discipline,
                 $activity,
                 $ageCategory
@@ -147,51 +277,67 @@ class Result
         throw new LogicException();
     }
 
-    private static function distanceForChallenge33(
+    private static function distanceAndSizeForChallenge33(
         string $discipline,
         string $activity,
         string $ageCategory
-    ) {
+    ): array {
         if ($discipline === DisciplineType::INDOOR) {
             if ($activity === LicenseActivityType::CO) {
                 return [18, 60];
             }
-            switch ($ageCategory) {
-                case LicenseAgeCategoryType::POUSSIN:
-                    return [10, 80];
-                case LicenseAgeCategoryType::BENJAMIN:
-                    return [15, 80];
-                case LicenseAgeCategoryType::MINIME:
-                    return [15, 60];
-                default:
-                    return [18, 60];
-            }
+            return match ($ageCategory) {
+                LicenseAgeCategoryType::POUSSIN => [10, 80],
+                LicenseAgeCategoryType::BENJAMIN => [15, 80],
+                LicenseAgeCategoryType::MINIME => [15, 60],
+                default => [18, 60],
+            };
         }
         if ($discipline === DisciplineType::TARGET) {
             if ($activity === LicenseActivityType::CO) {
                 return [30, 80];
             }
-            switch ($ageCategory) {
-                case LicenseAgeCategoryType::POUSSIN:
-                case LicenseAgeCategoryType::BENJAMIN:
-                    return [15, 80];
-                case LicenseAgeCategoryType::MINIME:
-                    return [25, 80];
-                default:
-                    return [30, 122];
-            }
+            return match ($ageCategory) {
+                LicenseAgeCategoryType::POUSSIN,
+                LicenseAgeCategoryType::BENJAMIN => [15, 80],
+                LicenseAgeCategoryType::MINIME => [25, 80],
+                default => [30, 122],
+            };
         }
+        throw new LogicException("Missing handling of discipline $discipline");
     }
 
-    public function getTargetSize(): ?int
-    {
-        return $this->targetSize;
-    }
-
-    public function setTargetSize(int $targetSize): self
-    {
-        $this->targetSize = $targetSize;
-
-        return $this;
+    private static function distanceAndSizeForFederal(
+        string $discipline,
+        string $activity,
+        string $ageCategory
+    ): array {
+        if ($discipline === DisciplineType::INDOOR) {
+            if ($activity === LicenseActivityType::CO) {
+                return [18, 20];
+            }
+            return match ($ageCategory) {
+                LicenseAgeCategoryType::POUSSIN => [18, 80],
+                LicenseAgeCategoryType::BENJAMIN,
+                LicenseAgeCategoryType::MINIME => [18, 60],
+                default => [18, 40],
+            };
+        }
+        if ($discipline === DisciplineType::TARGET) {
+            if ($activity === LicenseActivityType::CO) {
+                return [50, 80];
+            }
+            return match ($ageCategory) {
+                LicenseAgeCategoryType::POUSSIN => [20, 80],
+                LicenseAgeCategoryType::BENJAMIN => [30, 80],
+                LicenseAgeCategoryType::MINIME => [40, 80],
+                LicenseAgeCategoryType::CADET,
+                LicenseAgeCategoryType::SENIOR_3 => [60, 122],
+                LicenseAgeCategoryType::JUNIOR,
+                LicenseAgeCategoryType::SENIOR_1,
+                LicenseAgeCategoryType::SENIOR_2 => [70, 122],
+            };
+        }
+        throw new LogicException("Missing handling of discipline $discipline");
     }
 }

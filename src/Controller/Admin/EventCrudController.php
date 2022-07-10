@@ -180,7 +180,7 @@ class EventCrudController extends AbstractCrudController
                 $result
                     ->setActivity($line->activity)
                     ->setDiscipline($event->getDiscipline())
-                    ->setScore($line->score)
+                    ->setTotal($line->score)
                     ->setDistance($distance)
                     ->setTargetSize($targetSize);
             }

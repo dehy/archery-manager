@@ -2,15 +2,16 @@
 
 namespace App\Scrapper;
 
+use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\GenderType;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
-use App\Entity\FftaEvent;
 use App\Entity\FftaLicensee;
 use App\Entity\License;
+use App\Entity\Result;
 use DateTime;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -21,7 +22,6 @@ use Symfony\Component\BrowserKit\Response;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Validator\Constraints\Date;
 
 class FftaScrapper
 {
@@ -458,6 +458,9 @@ class FftaScrapper
         }
     }
 
+    /**
+     * @return FftaEvent[]
+     */
     public function fetchEvents($season): array
     {
         $this->loginFftaExtranet();
@@ -492,26 +495,100 @@ class FftaScrapper
             $name = $row->filter("td:nth-child(3)")->text();
             $location = $row->filter("td:nth-child(4)")->text();
             $url = $row->attr("data-modal");
-            $disciplineStr = $row->filter("td:nth-child(5) strong")->text();
+
+            $characteristicsCell = $row->filter("td:nth-child(5)")->html();
+            $characteristics = preg_match(
+                "/^<strong>(.*)<\/strong>( - (.*))?<br>Saison \d+<br>(.*<br>)+$/",
+                $characteristicsCell,
+                $characteristicsMatches
+            );
+            $disciplineStr = $characteristicsMatches[1];
+            $specifics = $characteristicsMatches[3];
+
             $discipline = DisciplineType::disciplineFromFftaExtranet(
                 $disciplineStr
             );
 
-            $event = [
-                "from" => DateTimeImmutable::createFromFormat(
-                    "!d/m/Y",
-                    $fromDate
-                ),
-                "to" => DateTimeImmutable::createFromFormat("!d/m/Y", $toDate),
-                "name" => $name,
-                "location" => $location,
-                "discipline" => $discipline,
-                "url" => $url,
-            ];
+            $event = (new FftaEvent())
+                ->setFrom(
+                    DateTimeImmutable::createFromFormat("!d/m/Y", $fromDate)
+                )
+                ->setTo(
+                    DateTimeImmutable::createFromFormat(
+                        "!d/m/Y",
+                        $toDate
+                    )->setTime(23, 59, 59)
+                )
+                ->setName($name)
+                ->setLocation($location)
+                ->setDiscipline($discipline)
+                ->setSpecifics($specifics)
+                ->setUrl($url);
             $events[] = $event;
         });
 
         return $events;
+    }
+
+    /**
+     * @return FftaResult[]
+     */
+    public function fetchFftaResultsForFftaEvent(FftaEvent $fftaEvent): array
+    {
+        /** @var ?int $size */
+        $size = null;
+        /** @var ?int $distance */
+        $distance = null;
+        /** @var FftaResult[] $fftaResults */
+        $fftaResults = [];
+
+        $crawler = $this->fftaExtranetClient->request(
+            "GET",
+            $fftaEvent->getUrl()
+        );
+        $tableCrawler = $crawler->filter("table.orbe3");
+        $rowsCrawler = $tableCrawler->filter("tbody tr");
+        $rowsCrawler->each(function (Crawler $row) use (
+            &$fftaResults,
+            $fftaEvent,
+            &$distance,
+            &$size
+        ) {
+            $col = $row->filter("td:first-child");
+
+            if ($col->attr("class") === "ar al") {
+                return;
+            }
+
+            $category = $row->filter("td:nth-child(5)")->text();
+            list($ageCategory, $activity) = CategoryParser::parseString(
+                $category
+            );
+            list($distance, $size) = Result::distanceForContestTypeAndActivity(
+                ContestType::FEDERAL,
+                $fftaEvent->getDiscipline(),
+                $activity,
+                $ageCategory
+            );
+
+            $fftaResult = (new FftaResult())
+                ->setPosition((int) $row->filter("td:nth-child(1)")->text())
+                ->setName($row->filter("td:nth-child(2)")->text())
+                ->setClub($row->filter("td:nth-child(3)")->text())
+                ->setLicense($row->filter("td:nth-child(4)")->text())
+                ->setCategory($row->filter("td:nth-child(5)")->text())
+                ->setDistance($distance)
+                ->setSize($size)
+                ->setScore1((int) $row->filter("td:nth-child(6)")->text())
+                ->setScore2((int) $row->filter("td:nth-child(7)")->text())
+                ->setTotal((int) $row->filter("td:nth-child(8)")->text())
+                ->setNb10((int) $row->filter("td:nth-child(9)")->text())
+                ->setNb10p((int) $row->filter("td:nth-child(10)")->text());
+
+            $fftaResults[] = $fftaResult;
+        });
+
+        return $fftaResults;
     }
 
     protected function loginFftaExtranet(): void

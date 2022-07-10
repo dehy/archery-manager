@@ -2,16 +2,20 @@
 
 namespace App\Command;
 
-use App\DBAL\Types\EventType;
+use App\DBAL\Types\DisciplineType;
 use App\Entity\Event;
+use App\Entity\Licensee;
+use App\Entity\Result;
+use App\Factory\ResultFactory;
 use App\Repository\EventRepository;
+use App\Repository\LicenseeRepository;
+use App\Repository\ResultRepository;
 use App\Scrapper\FftaScrapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -48,37 +52,99 @@ class FftaFetchParticipatingEvent extends Command
 
         $season = $input->getArgument("season");
 
-        $fftaEvent = $this->scrapper->fetchEvents($season);
+        $fftaEvents = $this->scrapper->fetchEvents($season);
 
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->entityManager->getRepository(Event::class);
-        foreach ($fftaEvent as $fftaEvent) {
+        /** @var LicenseeRepository $licenseeRepository */
+        $licenseeRepository = $this->entityManager->getRepository(
+            Licensee::class
+        ); /** @var ResultRepository $resultRepository */
+        $resultRepository = $this->entityManager->getRepository(Result::class);
+        foreach ($fftaEvents as $fftaEvent) {
             $io->text(
                 sprintf(
-                    "%s à %s du %s au %s",
-                    $fftaEvent["name"],
-                    $fftaEvent["location"],
-                    $fftaEvent["from"]->format("d/m/Y"),
-                    $fftaEvent["to"]->format("d/m/Y")
+                    "[%s%s] %s à %s du %s au %s",
+                    DisciplineType::getReadableValue(
+                        $fftaEvent->getDiscipline()
+                    ),
+                    $fftaEvent->getSpecifics()
+                        ? "/" . $fftaEvent->getSpecifics()
+                        : "",
+                    $fftaEvent->getName(),
+                    $fftaEvent->getLocation(),
+                    $fftaEvent->getFrom()->format("d/m/Y"),
+                    $fftaEvent->getTo()->format("d/m/Y")
                 )
             );
-            $event = $eventRepository->findOneBy([
-                "startsAt" => $fftaEvent["from"],
-                "endsAt" => $fftaEvent["to"],
-            ]);
-            if (!$event) {
-                $event = (new Event())
-                    ->setName($fftaEvent["name"])
-                    ->setStartsAt($fftaEvent["from"])
-                    ->setEndsAt($fftaEvent["to"])
-                    ->setAddress($fftaEvent["location"])
-                    ->setType(EventType::CONTEST_OFFICIAL)
-                    ->setDiscipline($fftaEvent["discipline"]);
 
+            if (
+                !in_array($fftaEvent->getDiscipline(), [
+                    DisciplineType::INDOOR,
+                    DisciplineType::TARGET,
+                ])
+            ) {
+                $io->text("  /!\ Event type is not supported. Skipping.");
+                continue;
+            }
+            $supportedSpecifics = ["2X18M"];
+            if (
+                $fftaEvent->getSpecifics() &&
+                !in_array($fftaEvent->getSpecifics(), $supportedSpecifics)
+            ) {
+                $io->text(
+                    sprintf(
+                        "  /!\ Event has some not supported specifics (%s). Skipping",
+                        $fftaEvent->getSpecifics()
+                    )
+                );
+                continue;
+            }
+
+            $event = $eventRepository
+                ->createQueryBuilder("e")
+                ->where("e.startsAt >= :fromMorning")
+                ->andWhere("e.startsAt <= :fromNight")
+                ->andWhere("e.endsAt >= :toMorning")
+                ->andWhere("e.endsAt <= :toNight")
+                ->setParameters([
+                    "fromMorning" => $fftaEvent->getFrom()->setTime(0, 0, 0),
+                    "fromNight" => $fftaEvent->getFrom()->setTime(23, 59, 59),
+                    "toMorning" => $fftaEvent->getTo()->setTime(0, 0, 0),
+                    "toNight" => $fftaEvent->getTo()->setTime(23, 59, 59),
+                ])
+                ->getQuery()
+                ->getOneOrNullResult();
+            if (!$event) {
+                $event = Event::fromFftaEvent($fftaEvent);
                 $this->entityManager->persist($event);
             }
+            // Fetch results
+            $fftaResults = $this->scrapper->fetchFftaResultsForFftaEvent(
+                $fftaEvent
+            );
+
+            foreach ($fftaResults as $fftaResult) {
+                $licensee = $licenseeRepository->findByCode(
+                    $fftaResult->getLicense()
+                );
+                $io->text(sprintf("  + %s", $licensee->getFullname()));
+                $result = $resultRepository->findOneBy([
+                    "licensee" => $licensee,
+                    "event" => $event,
+                ]);
+                if (!$result) {
+                    $result = ResultFactory::createFromEventLicenseeAndFftaResult(
+                        $event,
+                        $licensee,
+                        $fftaResult
+                    );
+                    $this->entityManager->persist($result);
+                }
+            }
+
+            $this->entityManager->flush();
         }
-        $this->entityManager->flush();
 
         return Command::SUCCESS;
     }

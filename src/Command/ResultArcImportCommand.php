@@ -102,7 +102,7 @@ class ResultArcImportCommand extends Command
                 ->setDiscipline($event->getDiscipline())
                 ->setDistance($distance)
                 ->setTargetSize($targetSize)
-                ->setScore($resultLine->score);
+                ->setTotal($resultLine->score);
 
             $this->entityManager->persist($result);
         }
