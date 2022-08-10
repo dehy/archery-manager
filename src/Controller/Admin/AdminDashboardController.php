@@ -10,6 +10,7 @@ use App\Entity\Event;
 use App\Entity\Group;
 use App\Entity\License;
 use App\Entity\Licensee;
+use App\Entity\PracticeAdvice;
 use App\Entity\Result;
 use App\Entity\User;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -126,6 +127,11 @@ class AdminDashboardController extends AbstractDashboardController
             "Groupes",
             "fa-solid fa-users",
             Group::class
+        );
+        yield MenuItem::linkToCrud(
+            "Conseils",
+            "fa-regular fa-comment",
+            PracticeAdvice::class
         );
 
         yield MenuItem::section();

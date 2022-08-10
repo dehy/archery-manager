@@ -7,6 +7,7 @@ use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -89,6 +90,12 @@ class Licensee
     #[ORM\ManyToMany(targetEntity: Group::class, mappedBy: "licensees")]
     private $groups;
 
+    #[ORM\OneToMany(mappedBy: 'licensee', targetEntity: PracticeAdvice::class, orphanRemoval: true)]
+    private $practiceAdvices;
+
+    #[ORM\OneToMany(mappedBy: 'author', targetEntity: PracticeAdvice::class)]
+    private $givenPracticeAdvices;
+
     public function __construct()
     {
         $this->arrows = new ArrayCollection();
@@ -97,6 +104,8 @@ class Licensee
         $this->eventParticipations = new ArrayCollection();
         $this->results = new ArrayCollection();
         $this->groups = new ArrayCollection();
+        $this->practiceAdvices = new ArrayCollection();
+        $this->givenPracticeAdvices = new ArrayCollection();
     }
 
     public function __toString(): string
@@ -387,6 +396,66 @@ class Licensee
     {
         if ($this->groups->removeElement($group)) {
             $group->removeLicensee($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PracticeAdvice>
+     */
+    public function getPracticeAdvices(): Collection
+    {
+        return $this->practiceAdvices;
+    }
+
+    public function addPracticeAdvice(PracticeAdvice $practiceAdvice): self
+    {
+        if (!$this->practiceAdvices->contains($practiceAdvice)) {
+            $this->practiceAdvices[] = $practiceAdvice;
+            $practiceAdvice->setLicensee($this);
+        }
+
+        return $this;
+    }
+
+    public function removePracticeAdvice(PracticeAdvice $practiceAdvice): self
+    {
+        if ($this->practiceAdvices->removeElement($practiceAdvice)) {
+            // set the owning side to null (unless already changed)
+            if ($practiceAdvice->getLicensee() === $this) {
+                $practiceAdvice->setLicensee(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PracticeAdvice>
+     */
+    public function getGivenPracticeAdvices(): Collection
+    {
+        return $this->givenPracticeAdvices;
+    }
+
+    public function addGivenPracticeAdvice(PracticeAdvice $givenPracticeAdvice): self
+    {
+        if (!$this->givenPracticeAdvices->contains($givenPracticeAdvice)) {
+            $this->givenPracticeAdvices[] = $givenPracticeAdvice;
+            $givenPracticeAdvice->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGivenPracticeAdvice(PracticeAdvice $givenPracticeAdvice): self
+    {
+        if ($this->givenPracticeAdvices->removeElement($givenPracticeAdvice)) {
+            // set the owning side to null (unless already changed)
+            if ($givenPracticeAdvice->getAuthor() === $this) {
+                $givenPracticeAdvice->setAuthor(null);
+            }
         }
 
         return $this;
