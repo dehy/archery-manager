@@ -13,6 +13,7 @@ use App\Entity\Licensee;
 use App\Entity\PracticeAdvice;
 use App\Entity\Result;
 use App\Entity\User;
+use Dmishh\SettingsBundle\Entity\Setting;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -159,6 +160,14 @@ class AdminDashboardController extends AbstractDashboardController
             "Pré-inscriptions",
             "fa-solid fa-user-plus",
             Applicant::class
+        );
+
+        yield MenuItem::section();
+
+        yield MenuItem::linkToCrud(
+            "Paramètres",
+            "fa-solid fa-wrench",
+            Setting::class
         );
 
         yield MenuItem::section();

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d2833b2a49e475806892b6ec6635aacb",
+    "content-hash": "2fc7f8093aee23f963f72a76182a9d27",
     "packages": [
         {
             "name": "async-aws/core",
@@ -198,6 +198,84 @@
                 }
             ],
             "time": "2022-02-21T13:15:14+00:00"
+        },
+        {
+            "name": "dmishh/settings-bundle",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dehy/SettingsBundle.git",
+                "reference": "0578349b692bd36b9abe5520b48849cb36b43947"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dehy/SettingsBundle/zipball/0578349b692bd36b9abe5520b48849cb36b43947",
+                "reference": "0578349b692bd36b9abe5520b48849cb36b43947",
+                "shasum": ""
+            },
+            "require": {
+                "doctrine/orm": "^2.6.3|^2.7|^2.11",
+                "php": "^7.2|^8.0",
+                "psr/cache": "^3.0",
+                "symfony/form": "^3.4 || ^4.3 || ^5.0 || ^6.0",
+                "symfony/framework-bundle": "^3.4 || ^4.3 || ^5.0 || ^6.0"
+            },
+            "require-dev": {
+                "doctrine/doctrine-bundle": "^1.12 || ^2.0",
+                "matthiasnoback/symfony-dependency-injection-test": "^4.1",
+                "mockery/mockery": "^1.3",
+                "nyholm/symfony-bundle-test": "^1.6",
+                "phpunit/phpunit": "^8.5",
+                "polishsymfonycommunity/symfony-mocker-container": "^1.0",
+                "symfony/security-core": "^4.4 || ^5.0 || ^6.0",
+                "symfony/translation": "^4.4 || ^5.0 || ^6.0",
+                "twig/twig": "^2.0 || ^3.0"
+            },
+            "suggest": {
+                "cache/adapter-bundle": "This bundle will help you to add your PSR-6 cache implementations as Symfony services"
+            },
+            "default-branch": true,
+            "type": "symfony-bundle",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Dmishh\\SettingsBundle\\": ""
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dmitriy Scherbina",
+                    "homepage": "http://dmishh.com"
+                },
+                {
+                    "name": "Tobias Nyholm",
+                    "homepage": "https://github.com/Nyholm"
+                },
+                {
+                    "name": "Richard van Laak",
+                    "homepage": "https://github.com/rvanlaak"
+                }
+            ],
+            "description": "Database centric Symfony configuration management. Global and per-user settings supported.",
+            "homepage": "https://github.com/dmishh/SettingsBundle",
+            "keywords": [
+                "bundle",
+                "config",
+                "configuration",
+                "settings",
+                "symfony"
+            ],
+            "support": {
+                "source": "https://github.com/dehy/SettingsBundle/tree/master"
+            },
+            "time": "2022-08-24T18:54:18+00:00"
         },
         {
             "name": "doctrine/annotations",
@@ -10870,7 +10948,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "dmishh/settings-bundle": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

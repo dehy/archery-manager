@@ -19,4 +19,5 @@ return [
     League\FlysystemBundle\FlysystemBundle::class => ['all' => true],
     EasyCorp\Bundle\EasyAdminBundle\EasyAdminBundle::class => ['all' => true],
     Sentry\SentryBundle\SentryBundle::class => ['all' => true],
+    Dmishh\SettingsBundle\DmishhSettingsBundle::class => ['all' => true],
 ];

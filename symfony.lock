@@ -8,6 +8,9 @@
     "clue/stream-filter": {
         "version": "v1.6.0"
     },
+    "dmishh/settings-bundle": {
+        "version": "dev-master"
+    },
     "doctrine/annotations": {
         "version": "1.13",
         "recipe": {
