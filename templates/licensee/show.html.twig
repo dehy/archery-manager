@@ -14,30 +14,19 @@
                         <h2 class="mb-3">{{ licensee.fullname }}</h2>
                     </div>
                     <div class="mb-3">
-                        <img src="{{ path('app_licensee_picture', {'fftaCode': licensee.fftaMemberCode}) }}" alt="Photo de profil" class="img-thumbnail ratio ratio-1x1" style="width: 150px" />
+                        <img src="{{ path('app_licensee_picture', {'fftaCode': licensee.fftaMemberCode}) }}" alt="Photo de profil" class="img-thumbnail" style="height: 220px; width: 150px" />
                     </div>
                 </div>
 
                 <div class="p-3">
-                    <em>
-                        {% if licensee.gender == constant('App\\DBAL\\Types\\GenderType::FEMALE') %}
-                            <em class="fa-solid fa-venus"></em>
-                        {% elseif licensee.gender == constant('App\\DBAL\\Types\\GenderType::MALE') %}
-                            <em class="fa-solid fa-mars"></em>
-                        {% endif %}
-                        {{ licensee.age }} ans
-                    </em>
-
-                    <h4 class="mt-3">Licence 2022</h4>
+                    <h4>Licence 2022</h4>
                     {% set license = licensee.licenseForSeason(2022) %}
                     {% if not licensee.licenseForSeason(2022) %}
                         <em>Aucune license</em>
                     {% else %}
-                        <ul>
-                            <li>
-                                {{ license.ageCategory|readable_enum }} -
-                                {{ license.type|readable_enum }}
-                            </li>
+                        <ul class="list-unstyled mb-0">
+                            <li>{{ license.ageCategory|readable_enum }}</li>
+                            <li>{{ license.type|readable_enum('LicenseType') }}</li>
                         </ul>
                     {% endif %}
                 </div>
