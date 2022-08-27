@@ -11,20 +11,20 @@ class Arrow
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: "arrows")]
     #[ORM\JoinColumn(nullable: false)]
-    private $owner;
+    private Licensee $owner;
 
     #[ORM\Column(type: "ArrowType")]
-    private $type;
+    private string $type;
 
     #[ORM\Column(type: "integer")]
-    private $spine;
+    private int $spine;
 
     #[ORM\Column(type: "FletchingType")]
-    private $fletching;
+    private string $fletching;
 
     public function getId(): ?int
     {
@@ -43,7 +43,7 @@ class Arrow
         return $this;
     }
 
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
@@ -67,7 +67,7 @@ class Arrow
         return $this;
     }
 
-    public function getFletching()
+    public function getFletching(): string
     {
         return $this->fletching;
     }

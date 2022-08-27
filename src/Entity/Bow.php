@@ -13,32 +13,32 @@ class Bow
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: "bows")]
     #[ORM\JoinColumn(nullable: false)]
-    private $owner;
+    private Licensee $owner;
 
     #[ORM\Column(type: "BowType")]
-    private $type;
+    private string $type;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
-    private $brand;
+    private ?string $brand;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
-    private $model;
+    private ?string $model;
 
     #[ORM\Column(type: "integer", nullable: true)]
-    private $limbSize;
+    private ?int $limbSize;
 
     #[ORM\Column(type: "integer", nullable: true)]
-    private $limbStrength;
+    private ?int $limbStrength;
 
     #[ORM\Column(type: "float", nullable: true)]
-    private $braceHeight;
+    private ?float $braceHeight;
 
     #[ORM\Column(type: "integer", nullable: true)]
-    private $drawLength;
+    private ?int $drawLength;
 
     #[
         ORM\OneToMany(
@@ -47,7 +47,7 @@ class Bow
             orphanRemoval: true
         )
     ]
-    private $sightAdjustments;
+    private Collection $sightAdjustments;
 
     public function __construct()
     {

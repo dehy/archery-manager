@@ -3,6 +3,9 @@ namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 
+/**
+ * @extends AbstractEnumType<string, string>
+ */
 final class ArrowType extends AbstractEnumType
 {
     public const WOOD = "wood";

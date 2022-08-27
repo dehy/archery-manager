@@ -4,6 +4,9 @@ namespace App\DBAL\Types;
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 use LogicException;
 
+/**
+ * @extends AbstractEnumType<string, string>
+ */
 final class DisciplineType extends AbstractEnumType
 {
     public const TARGET = "target";

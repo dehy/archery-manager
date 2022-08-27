@@ -3,6 +3,9 @@ namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 
+/**
+ * @extends AbstractEnumType<string, string>
+ */
 final class LicenseType extends AbstractEnumType
 {
     public const POUSSINS = "P";

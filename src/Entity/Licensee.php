@@ -7,7 +7,6 @@ use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -90,10 +89,16 @@ class Licensee
     #[ORM\ManyToMany(targetEntity: Group::class, mappedBy: "licensees")]
     private $groups;
 
-    #[ORM\OneToMany(mappedBy: 'licensee', targetEntity: PracticeAdvice::class, orphanRemoval: true)]
+    #[
+        ORM\OneToMany(
+            mappedBy: "licensee",
+            targetEntity: PracticeAdvice::class,
+            orphanRemoval: true
+        )
+    ]
     private $practiceAdvices;
 
-    #[ORM\OneToMany(mappedBy: 'author', targetEntity: PracticeAdvice::class)]
+    #[ORM\OneToMany(mappedBy: "author", targetEntity: PracticeAdvice::class)]
     private $givenPracticeAdvices;
 
     public function __construct()
@@ -439,8 +444,9 @@ class Licensee
         return $this->givenPracticeAdvices;
     }
 
-    public function addGivenPracticeAdvice(PracticeAdvice $givenPracticeAdvice): self
-    {
+    public function addGivenPracticeAdvice(
+        PracticeAdvice $givenPracticeAdvice
+    ): self {
         if (!$this->givenPracticeAdvices->contains($givenPracticeAdvice)) {
             $this->givenPracticeAdvices[] = $givenPracticeAdvice;
             $givenPracticeAdvice->setAuthor($this);
@@ -449,8 +455,9 @@ class Licensee
         return $this;
     }
 
-    public function removeGivenPracticeAdvice(PracticeAdvice $givenPracticeAdvice): self
-    {
+    public function removeGivenPracticeAdvice(
+        PracticeAdvice $givenPracticeAdvice
+    ): self {
         if ($this->givenPracticeAdvices->removeElement($givenPracticeAdvice)) {
             // set the owning side to null (unless already changed)
             if ($givenPracticeAdvice->getAuthor() === $this) {

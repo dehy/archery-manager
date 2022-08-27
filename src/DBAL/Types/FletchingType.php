@@ -3,6 +3,9 @@ namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 
+/**
+ * @extends AbstractEnumType<string, string>
+ */
 final class FletchingType extends AbstractEnumType
 {
     public const PLASTIC = "plastic";

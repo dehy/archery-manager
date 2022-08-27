@@ -6,6 +6,9 @@ use DateTimeInterface;
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 use LogicException;
 
+/**
+ * @extends AbstractEnumType<string, string>
+ */
 final class LicenseCategoryType extends AbstractEnumType
 {
     public const POUSSINS = "P";
