@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\DBAL\Types\ContestType;
+use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventType;
 use App\Repository\EventRepository;
 use App\Scrapper\FftaEvent;
@@ -66,9 +67,10 @@ class Event
     public function __toString(): string
     {
         return sprintf(
-            "%s - %s",
-            $this->getStartsAt()->format("d/m/Y H:i"),
-            $this->getName()
+            "%s - %s - %s",
+            $this->getStartsAt()->format("d/m/Y"),
+            DisciplineType::getReadableValue($this->getDiscipline()),
+            $this->getAddress()
         );
     }
 

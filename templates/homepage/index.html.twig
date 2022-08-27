@@ -9,11 +9,39 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-6 col-xs-12">
+        <div class="col-md-4 col-xs-12">
             <h2><em class="fa-solid fa-calendar-days"></em> Prochains évènements</h2>
-            <p><em>Aucun évènement prévu</em></p>
+            {% if events is empty %}
+                <p><em>Aucun évènement prévu</em></p>
+            {% else %}
+                <ul class="list-group">
+                    {% for event in events %}
+                        <li class="list-group-item">
+                            <div class="btn-group-sm">
+
+                            </div>
+                            {{ event.name }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         </div>
-        <div class="col-md-6 col-xs-12">
+        <div class="col-md-4 col-xs-12">
+            <h2><em class="fa-solid fa-comment"></em> Conseils de pratique</h2>
+            {% if advices is empty %}
+                <p><em>Aucun conseil pour le moment</em></p>
+            {% else %}
+                <ul class="list-group">
+                    {% for advice in advices %}
+                            <li class="list-group-item">
+                                <strong>{{ advice.title }}</strong><br/>
+                                <em>par {{ advice.author.firstname }}</em>
+                            </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="col-md-4 col-xs-12">
             <h2><em class="fa-solid fa-bullseye"></em> Mes résultats</h2>
             <p><em>Aucun résultat enregistré</em></p>
         </div>

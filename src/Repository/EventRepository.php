@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Event;
+use App\Entity\Licensee;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -45,32 +47,19 @@ class EventRepository extends ServiceEntityRepository
         }
     }
 
-    // /**
-    //  * @return Event[] Returns an array of Event objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('e')
-            ->andWhere('e.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('e.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
+    public function findNextForLicensee(
+        Licensee $licensee,
+        ?int $limit = null
+    ): ArrayCollection {
+        return new ArrayCollection(
+            $this->createQueryBuilder("e")
+                ->where("e IN :discipline")
+                ->setParameter(
+                    "discipline",
+                    $licensee->getLicenseForSeason(2022)
+                )
+                ->getQuery()
+                ->getResult()
+        );
     }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Event
-    {
-        return $this->createQueryBuilder('e')
-            ->andWhere('e.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }
