@@ -4,7 +4,7 @@
     <row>
         <columns>
             <h4 class="text-center">Merci</h4>
-            <h6 class="text-center">Votre demande de pré-inscription a bien été enregistrée.</h6>
+            <h6 class="text-center">Votre pré-inscription a bien été enregistrée.</h6>
         </columns>
     </row>
 {% endblock %}
@@ -12,28 +12,34 @@
 {% block content %}
     <row>
         <columns>
-            <callout class="warning">
-                Attention, si vous êtes nouvel apprenant, votre inscription ne sera prise en compte qu'après la réception des 20€ pour les 2 séances d'essai.
-            </callout>
+            {% if waitingListActivated %}
+                <callout class="warning">
+                    Vous êtes inscrit sur notre liste d'attente. Nous reviendrons vers vous dès qu'une place se libèrera.
+                </callout>
+            {% else %}
+                <callout class="warning">
+                    Attention, si vous êtes nouvel apprenant, votre inscription ne sera prise en compte qu'après la réception des 20€ pour les 2 séances d'essai.
+                </callout>
 
-            <p>
-                Pour rappel, <strong>deux séances d'essai (20€) sont obligatoires pour les nouveaux apprenants</strong>. Si vous
-                souhaitez réserver vos séances d'essai qui auront lieu <strong>les matinées des 10 et 17 septembre 2022</strong>,
-                merci de bien vouloir effectuer un virement sur le compte de l'association :
-            </p>
+                <p>
+                    Pour rappel, <strong>deux séances d'essai (20€) sont obligatoires pour les nouveaux apprenants</strong>. Si vous
+                    souhaitez réserver vos séances d'essai qui auront lieu <strong>les matinées des 10 et 17 septembre 2022</strong>,
+                    merci de bien vouloir effectuer un virement sur le compte de l'association :
+                </p>
 
-            <dl>
-                <dt><em>Titulaire du compte</em></dt>
-                <dd>ASS ARCHERS DE GUYENNE</dd>
-                <dt><em>IBAN</em></dt>
-                <dd>FR76 1090 7000 0112 0218 7849 528</dd>
-                <dt><em>BIC/SWIFT</em></dt>
-                <dd>CCBPFRPPBDX</dd>
-            </dl>
+                <dl>
+                    <dt><em>Titulaire du compte</em></dt>
+                    <dd>ASS ARCHERS DE GUYENNE</dd>
+                    <dt><em>IBAN</em></dt>
+                    <dd>FR76 1090 7000 0112 0218 7849 528</dd>
+                    <dt><em>BIC/SWIFT</em></dt>
+                    <dd>CCBPFRPPBDX</dd>
+                </dl>
 
-            <callout class="warning">
-                Merci d'indiquer le nom et prénom du pratiquant dans le libellé de votre virement.
-            </callout>
+                <callout class="warning">
+                    Merci d'indiquer le nom et prénom du pratiquant dans le libellé de votre virement.
+                </callout>
+            {% endif %}
 
             <p>À bientôt !</p>
 

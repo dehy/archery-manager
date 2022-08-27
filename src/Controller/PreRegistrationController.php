@@ -8,29 +8,49 @@ use App\Form\ApplicantType;
 use App\Repository\ApplicantRepository;
 use App\Repository\LicenseeRepository;
 use DateTimeImmutable;
+use Dmishh\SettingsBundle\Manager\SettingsManager;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\Exception\ORMException;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class PreRegistrationController extends AbstractController
 {
+    /**
+     * @throws OptimisticLockException
+     * @throws TransportExceptionInterface
+     * @throws ORMException
+     * @throws \Doctrine\ORM\ORMException
+     */
     #[Route("/pre-inscription", name: "app_pre_registration")]
     public function form(
         Request $request,
         ApplicantRepository $applicantRepository,
         LicenseeRepository $licenseeRepository,
-        MailerInterface $mailer
+        MailerInterface $mailer,
+        SettingsManager $settingsManager
     ): Response {
         $applicant = new Applicant();
         $error = null;
 
+        $waitingListActivated = (bool) $settingsManager->get(
+            "pre_registration_waiting_list_activated"
+        );
+
+        $buttonLabel =
+            "Enregistrer ma pré-inscription" .
+            ($waitingListActivated ? " sur liste d'attente" : "");
+
         $form = $this->createForm(ApplicantType::class, $applicant);
         $form->add("submit", SubmitType::class, [
-            "label" => "Enregistrer ma pré-inscription",
+            "label" => $buttonLabel,
             "attr" => [
                 "class" => "btn btn-primary mb-3",
             ],
@@ -46,6 +66,7 @@ class PreRegistrationController extends AbstractController
 
             if (!$licensee) {
                 $applicant->setRegisteredAt(new DateTimeImmutable());
+                $applicant->setOnWaitingList($waitingListActivated);
                 $applicantRepository->add($applicant);
 
                 $email = (new TemplatedEmail())
@@ -54,7 +75,10 @@ class PreRegistrationController extends AbstractController
                     ->subject("Votre pré-inscription aux Archers de Guyenne")
                     ->htmlTemplate(
                         "pre_registration/mail_confirmation.html.twig"
-                    );
+                    )
+                    ->context([
+                        "waitingListActivated" => $waitingListActivated,
+                    ]);
 
                 $mailer->send($email);
 
@@ -68,6 +92,8 @@ class PreRegistrationController extends AbstractController
 
                 $mailer->send($notificationEmail);
 
+                dd($email);
+
                 return $this->redirectToRoute("app_pre_registration_thank_you");
             }
             $error = "existing_licensee";
@@ -76,6 +102,7 @@ class PreRegistrationController extends AbstractController
         return $this->render("pre_registration/form.html.twig", [
             "form" => $form->createView(),
             "error" => $error,
+            "waitingListActivated" => $waitingListActivated,
         ]);
     }
 
@@ -85,6 +112,12 @@ class PreRegistrationController extends AbstractController
         return $this->render("pre_registration/thank_you.html.twig");
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws TransportExceptionInterface
+     * @throws \Doctrine\ORM\ORMException
+     * @throws NonUniqueResultException
+     */
     #[
         Route(
             "/pre-inscription-renouvellement",

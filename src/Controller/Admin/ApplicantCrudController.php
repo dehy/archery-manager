@@ -2,10 +2,11 @@
 
 namespace App\Controller\Admin;
 
-use App\DBAL\Types\LicenseType;
 use App\DBAL\Types\PracticeLevelType;
 use App\Entity\Applicant;
+use App\Form\PreRegistrationSettingsType;
 use App\Repository\ApplicantRepository;
+use Dmishh\SettingsBundle\Manager\SettingsManager;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -18,6 +19,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TelephoneField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -42,6 +46,10 @@ class ApplicantCrudController extends AbstractCrudController
             BooleanField::new("renewal", "Renouvellement")->renderAsSwitch(
                 false
             ),
+            BooleanField::new(
+                "onWaitingList",
+                "Liste d'attente"
+            )->renderAsSwitch(false),
             DateTimeField::new("registeredAt", "Soumis le"),
             TextField::new("lastname", "Nom"),
             TextField::new("firstname", "Prénom"),
@@ -63,16 +71,36 @@ class ApplicantCrudController extends AbstractCrudController
 
     public function configureFilters(Filters $filters): Filters
     {
-        return $filters->add("renewal")->add("season");
+        return $filters
+            ->add("renewal")
+            ->add("season")
+            ->add("onWaitingList");
     }
 
     /**
      * @Route("/admin/applicants/stats", name="app_admin_applicants_stats")
      */
     public function applicantStatistics(
-        ApplicantRepository $applicantRepository
+        Request $request,
+        ApplicantRepository $applicantRepository,
+        SettingsManager $settingsManager,
+        AdminUrlGenerator $adminUrlGenerator
     ): Response {
-        /** @var Applicant[] $applicants */
+        $settingsForm = $this->createForm(
+            PreRegistrationSettingsType::class
+        )->add("Enregistrer", SubmitType::class);
+
+        $settingsForm->handleRequest($request);
+        if ($settingsForm->isSubmitted() && $settingsForm->isValid()) {
+            $data = $settingsForm->getData();
+            $settingsManager->set(
+                "pre_registration_waiting_list_activated",
+                $data["waitingListActivated"] ?? false
+            );
+
+            return $this->redirect($adminUrlGenerator->generateUrl());
+        }
+
         $applicants = $applicantRepository->findBy(["season" => 2023]);
         $new = $renewal = 0;
         $newAges = [
@@ -122,6 +150,7 @@ class ApplicantCrudController extends AbstractCrudController
         return $this->render("admin/pre_registration/stats.html.twig", [
             "stats" => $stats,
             "applicants" => $applicants,
+            "form" => $settingsForm->createView(),
         ]);
     }
 }

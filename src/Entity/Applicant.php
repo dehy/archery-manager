@@ -59,6 +59,9 @@ class Applicant
     #[ORM\Column(type: "string", length: 32, nullable: true)]
     private string $licenseType;
 
+    #[ORM\Column]
+    private bool $onWaitingList = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -209,6 +212,18 @@ class Applicant
     public function setLicenseType(string $licenseType): self
     {
         $this->licenseType = $licenseType;
+
+        return $this;
+    }
+
+    public function isOnWaitingList(): ?bool
+    {
+        return $this->onWaitingList;
+    }
+
+    public function setOnWaitingList(bool $onWaitingList): self
+    {
+        $this->onWaitingList = $onWaitingList;
 
         return $this;
     }

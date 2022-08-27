@@ -1,0 +1,5 @@
+dmishh_settings:
+  serialization: json
+  settings:
+    pre_registration_waiting_list_activated:
+      type: Symfony\Component\Form\Extension\Core\Type\CheckboxType
