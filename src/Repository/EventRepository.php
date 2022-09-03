@@ -56,7 +56,7 @@ class EventRepository extends ServiceEntityRepository
                 ->where("e IN :discipline")
                 ->setParameter(
                     "discipline",
-                    $licensee->getLicenseForSeason(2022)
+                    $licensee->getLicenseForSeason(2023)
                 )
                 ->getQuery()
                 ->getResult()
