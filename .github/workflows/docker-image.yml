@@ -35,6 +35,8 @@ jobs:
           cache-to: type=gha, scope=${{ github.workflow }}
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
+      - name: Run tests
+        run: docker compose -p archery_test -f docker-compose.test.yml up --build --abort-on-container-exit --force-recreate
       - name: Generate Docker Image Tag
         id: docker_tag
         run: echo "::set-output name=tag::$(bash ./docker/tag_from_branch.sh)"

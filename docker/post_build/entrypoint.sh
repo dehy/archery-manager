@@ -60,10 +60,10 @@ if [[ "${APP_ENV}" == "dev" || "${APP_ENV}" == "test"  ]]; then
         apt-get update
         apt-get install -y --no-install-recommends php8.1-xdebug
         apt-get autoremove -y
-
-        ${GOSU} composer install
-        ${GOSU} yarn
     fi
+
+    ${GOSU} composer install --prefer-dist
+    [[ "${APP_ENV}" == "dev" ]] && ${GOSU} yarn
 fi
 
 DATABASE_URL_PARTS=$(php -r "echo json_encode(parse_url('${DATABASE_URL}'));")
@@ -92,7 +92,7 @@ if [[ "${1:-}" == "sut" ]]; then
     export GIT_DISCOVERY_ACROSS_FILESYSTEM
 
     # Prepare test environment
-    ${GOSU} php bin/console doctrine:fixtures:load -e "${APP_ENV}"
+    #${GOSU} php bin/console doctrine:fixtures:load -e "${APP_ENV}"
 
     # Install phpunit environment by executing a dummy command
     ${GOSU} php bin/phpunit --version

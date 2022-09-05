@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    environment:
+      - APP_ENV=test
+    command: sut
+
+  database:
+    image: mariadb:${MARIADB_VERSION:-10.8.2}
+    environment:
+      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+      MARIADB_DATABASE: app_test
+      MARIADB_PASSWORD: ChangeMe
+      MARIADB_USER: symfony
