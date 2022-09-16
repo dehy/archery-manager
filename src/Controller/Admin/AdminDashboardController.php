@@ -14,6 +14,7 @@ use App\Entity\PracticeAdvice;
 use App\Entity\Result;
 use App\Entity\User;
 use Dmishh\SettingsBundle\Entity\Setting;
+use Dmishh\SettingsBundle\Manager\SettingsManagerInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -28,38 +29,20 @@ use Symfony\Component\Routing\Annotation\Route;
 class AdminDashboardController extends AbstractDashboardController
 {
     public function __construct(
-        protected readonly EntityManagerInterface $entityManager
+        protected readonly EntityManagerInterface $entityManager,
+        protected readonly SettingsManagerInterface $settingsManager
     ) {
     }
 
     #[Route("/admin", name: "admin")]
     public function index(): Response
     {
-        //return parent::index();
-
-        // Option 1. You can make your dashboard redirect to some common page of your backend
-        //
-        //$adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
-        //return $this->redirect(
-        //    $adminUrlGenerator
-        //        ->setController(UserCrudController::class)
-        //        ->generateUrl()
-        //);
-
-        // Option 2. You can make your dashboard redirect to different pages depending on the user
-        //
-        // if ('jane' === $this->getUser()->getUsername()) {
-        //     return $this->redirect('...');
-        // }
-
-        // Option 3. You can render some custom template to display a proper dashboard with widgets, etc.
-        // (tip: it's easier if your template extends from @EasyAdmin/page/content.html.twig)
-        //
         $licenseeRepository = $this->entityManager->getRepository(
             Licensee::class
         );
-        /** @var ArrayCollection<Licensee> $licensees */
-        $licensees = new ArrayCollection($licenseeRepository->findAll());
+        $licensees = new ArrayCollection(
+            $licenseeRepository->findByLicenseYear(2023)
+        );
 
         $usersCount = $licensees->count();
         $womenCount = 0;
@@ -77,7 +60,7 @@ class AdminDashboardController extends AbstractDashboardController
             } else {
                 $menCount += 1;
             }
-            if ($license = $licensee->getLicenseForSeason(intval(date("Y")))) {
+            if ($license = $licensee->getLicenseForSeason(2023)) {
                 $licenseTypesCount[$license->getType()] += 1;
                 $licenseAgeCategoryCount[$license->getAgeCategory()] += 1;
             }

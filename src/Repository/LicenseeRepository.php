@@ -66,6 +66,16 @@ class LicenseeRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findByLicenseYear(int $year): array
+    {
+        return $this->createQueryBuilder("l")
+            ->leftJoin("l.licenses", "li")
+            ->where("li.season = :year")
+            ->setParameter("year", $year)
+            ->getQuery()
+            ->getResult();
+    }
+
     // /**
     //  * @return Licensee[] Returns an array of Licensee objects
     //  */
