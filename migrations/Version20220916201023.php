@@ -20,7 +20,6 @@ final class Version20220916201023 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE applicant DROP paid_at');
         $this->addSql('ALTER TABLE license CHANGE age_category age_category ENUM(\'U11\', \'U13\', \'U15\', \'U18\', \'U21\', \'S1\', \'S2\', \'S3\', \'P\', \'B\', \'M\', \'C\', \'J\', \'S\', \'V\', \'SV\') DEFAULT NULL COMMENT \'(DC2Type:LicenseAgeCategoryType)\'');
     }
 
@@ -28,6 +27,5 @@ final class Version20220916201023 extends AbstractMigration
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('ALTER TABLE license CHANGE age_category age_category VARCHAR(255) DEFAULT NULL');
-        $this->addSql('ALTER TABLE applicant ADD paid_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\'');
     }
 }
