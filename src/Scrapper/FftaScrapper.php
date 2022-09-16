@@ -355,6 +355,26 @@ class FftaScrapper
                             LicenseAgeCategoryType::SENIOR
                         );
                         break;
+                    case "U11":
+                        $licence->setCategory(LicenseCategoryType::POUSSINS);
+                        $licence->setAgeCategory(LicenseAgeCategoryType::U11);
+                        break;
+                    case "U13":
+                        $licence->setCategory(LicenseCategoryType::JEUNES);
+                        $licence->setAgeCategory(LicenseAgeCategoryType::U13);
+                        break;
+                    case "U15":
+                        $licence->setCategory(LicenseCategoryType::JEUNES);
+                        $licence->setAgeCategory(LicenseAgeCategoryType::U15);
+                        break;
+                    case "U18":
+                        $licence->setCategory(LicenseCategoryType::JEUNES);
+                        $licence->setAgeCategory(LicenseAgeCategoryType::U18);
+                        break;
+                    case "U21":
+                        $licence->setCategory(LicenseCategoryType::JEUNES);
+                        $licence->setAgeCategory(LicenseAgeCategoryType::U21);
+                        break;
                     case "Vétéran":
                     case "Veteran":
                         $licence->setCategory(LicenseCategoryType::ADULTES);
