@@ -67,7 +67,9 @@ php composer-setup.php --quiet --install-dir=/usr/local/bin --filename=composer 
 rm composer-setup.php
 ## End Composer
 
-useradd -s /bin/bash -d /app -m symfony
+mkdir /app
+useradd -s /bin/bash -d /app symfony
+chown symfony: /app
 
 apt-get -y autoremove
 apt-get clean
