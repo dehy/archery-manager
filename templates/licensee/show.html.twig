@@ -4,17 +4,17 @@
 
 {% block body %}
     <div class="row">
-        <div class="col-md-3 col-xs-12 mb-md-3">
+        <div class="col-md-3 col-12 mb-3">
             <div class="border border-1 rounded-3">
-                <div class="bg-primary text-light text-center pt-3 rounded-0 rounded-top d-flex flex-column">
-                    <div class="mb-3 d-flex justify-content-center">
+                <div class="bg-ffta text-light text-center pt-3 rounded-0 rounded-top d-flex flex-column">
+                    <div class="mb-1 d-flex justify-content-center">
                         <div class="bg-white rounded-3" style="width: 60px; height:15px"></div>
                     </div>
-                    <div>
-                        <h2 class="mb-3">{{ licensee.fullname }}</h2>
-                    </div>
-                    <div class="mb-3">
+                    <img src="{{ asset('/build/logo-ffta.svg') }}" alt="" class="mb-2" style="height: 40px">
+                    <h2 class="mb-3">{{ licensee.fullname }}</h2>
+                    <div class="mb-3 d-block position-relative">
                         <img src="{{ path('app_licensee_picture', {'fftaCode': licensee.fftaMemberCode}) }}" alt="Photo de profil" class="img-thumbnail" style="width: 175px; min-height: 275px" />
+                        <img src="{{ asset('/build/logo-archers-de-guyenne.svg') }}" class="profile-stamp" alt="">
                     </div>
                 </div>
 
@@ -25,14 +25,20 @@
                         <em>Aucune license</em>
                     {% else %}
                         <ul class="list-unstyled mb-0">
-                            <li>{{ license.ageCategory|readable_enum }}</li>
-                            <li>{{ license.type|readable_enum('LicenseType') }}</li>
+                            <li>
+                                <em class="fa-solid fa-people-group fa-fw"></em>
+                                {{ license.ageCategory|readable_enum }}
+                            </li>
+                            <li>
+                                <em class="fa-solid fa-bow-arrow fa-fw"></em>
+                                {{ license.activities|map(a => a|readable_enum('LicenseActivityType'))|join(', ') }}
+                            </li>
                         </ul>
                     {% endif %}
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-xs-12">
+        <div class="col-md-4 col-12 mb-3">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Équipement</h5>
@@ -41,7 +47,7 @@
             </div>
         </div>
 
-        <div class="col-md-4 col-xs-12">
+        <div class="col-md-4 col-12 mb-3">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Résultats</h5>

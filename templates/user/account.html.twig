@@ -3,23 +3,47 @@
 {% block title %}Mon compte{% endblock title %}
 
 {% block body %}
-    <h2>Mon compte</h2>
+    <h2 class="mb-3">Mon compte</h2>
 
-    Identifiant {{ user.email }}
-    Mot de passe ******** Changer mon mot de passe
-    Sexe {{ user.gender }}
-    Prénom {{ user.firstname }}
-    Nom {{ user.lastname }}
-    Numéro de téléphone {{ user.phoneNumber }}
+    <div class="row">
+        <div class="col-md-6">
+            <dl>
+                <dt>Identifiant</dt>
+                <dd>{{ user.email }}</dd>
 
-    <p>Ce compte gère {{ user.licensees|length }} licencié{{ user.licensees|length > 1 ? 's' }}:</p>
-    <ul>
-        {% for licensee in user.licensees %}
-        <li>{{ licensee.fullname }}</li>
-        {% endfor %}
-    </ul>
+                <dt>Mot de passe <a href="" class="fw-normal">Changer de mot de passe</a></dt>
+                <dd>••••••••••••</dd>
 
-    <p>
-        Une erreur ? Un changement ? Contacter le club à <a href="mailto:lesarchersdeguyenne@gmail.com">lesarchersdeguyenne@gmail.com</a>
-    </p>
+                <dt>Prénom</dt>
+                <dd>{{ user.firstname }}</dd>
+
+                <dt>Nom</dt>
+                <dd>{{ user.lastname }}</dd>
+
+                <dt>Numéro de téléphone</dt>
+                <dd>{{ user.phoneNumber }}</dd>
+            </dl>
+        </div>
+
+        <div class="col-md-6">
+            <p>Ce compte gère {{ user.licensees|length }} licencié{{ user.licensees|length > 1 ? 's' }}:</p>
+            <ul>
+                {% for licensee in user.licensees %}
+                    <li>
+                        <a href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}">
+                            {{ licensee.fullname }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <p>
+                Une erreur ? Un changement ? Contacter le club à <a href="mailto:lesarchersdeguyenne@gmail.com">lesarchersdeguyenne@gmail.com</a>
+            </p>
+        </div>
+    </div>
 {% endblock body %}

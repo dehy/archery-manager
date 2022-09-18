@@ -1,2 +1,16 @@
 @import "variables";
 @import "bootstrap";
+
+.profile-stamp {
+  display: block;
+  position: absolute;
+  width: 120px;
+  left: 180px;
+  top: 190px;
+  opacity: 0.5;
+}
+
+.bg-ffta {
+  background-color: #125f9b;
+  background-image: linear-gradient(90deg, #084276, #125f9b);
+}

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Event;
 use App\Entity\Licensee;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\OptimisticLockException;
@@ -23,10 +24,6 @@ class EventRepository extends ServiceEntityRepository
         parent::__construct($registry, Event::class);
     }
 
-    /**
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
     public function add(Event $entity, bool $flush = true): void
     {
         $this->_em->persist($entity);
@@ -35,10 +32,6 @@ class EventRepository extends ServiceEntityRepository
         }
     }
 
-    /**
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
     public function remove(Event $entity, bool $flush = true): void
     {
         $this->_em->remove($entity);
@@ -53,11 +46,9 @@ class EventRepository extends ServiceEntityRepository
     ): ArrayCollection {
         return new ArrayCollection(
             $this->createQueryBuilder("e")
-                ->where("e IN :discipline")
-                ->setParameter(
-                    "discipline",
-                    $licensee->getLicenseForSeason(2023)
-                )
+                ->where("e.endsAt >= :now")
+                ->setParameter("now", new DateTime())
+                ->setMaxResults($limit)
                 ->getQuery()
                 ->getResult()
         );

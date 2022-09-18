@@ -12,7 +12,7 @@ import "./styles/app.scss";
 import "./bootstrap";
 
 // Bootstrap Javascript
-import "bootstrap";
+import * as bootstrap from "bootstrap";
 
 import { library, dom } from "@fortawesome/fontawesome-svg-core";
 import {
@@ -23,17 +23,20 @@ import {
   faBullseye,
   faCalendar,
   faCalendarDays,
+  faCheck,
   faComment,
   faGaugeHigh,
   faMars,
   faPeopleGroup,
   faPlus,
   faScrewdriverWrench,
+  faTimes,
   faUser,
   faUserGear,
   faUsers,
   faVenus,
 } from "@fortawesome/free-solid-svg-icons";
+import { faDiscord } from "@fortawesome/free-brands-svg-icons";
 
 library.add(
   faAddressCard,
@@ -43,15 +46,27 @@ library.add(
   faBullseye,
   faCalendar,
   faCalendarDays,
+  faCheck,
   faComment,
+  faDiscord,
   faGaugeHigh,
   faMars,
   faPeopleGroup,
   faPlus,
   faScrewdriverWrench,
+  faTimes,
   faUser,
   faUsers,
   faUserGear,
   faVenus
 );
 dom.watch();
+
+(() => {
+  const tooltipTriggerList = document.querySelectorAll(
+    '[data-bs-toggle="tooltip"]'
+  );
+  const tooltipList = [...tooltipTriggerList].map(
+    (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
+  );
+})();

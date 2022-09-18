@@ -43,6 +43,12 @@
                             Évènements
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" target="_blank" href="https://discord.com/app">
+                            <em class="fa-brands fa-discord"></em>
+                            Serveur Discord
+                        </a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item dropdown">
@@ -99,6 +105,10 @@
     <div class="container">
         {% block body %}{% endblock %}
     </div>
+
+    <footer class="my-3 text-center">
+        © {{ "now"|date('Y') }} - Les Archers de Guyenne
+    </footer>
 </body>
 </html>
 

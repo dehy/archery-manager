@@ -9,25 +9,44 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-4 col-xs-12">
-            <h2><em class="fa-solid fa-calendar-days"></em> Prochains évènements</h2>
+        <div class="col-md-4 col-xs-12 mb-3">
+            <h2 class="mb-3"><em class="fa-solid fa-calendar-days"></em> Prochains évènements</h2>
             {% if events is empty %}
                 <p><em>Aucun évènement prévu</em></p>
             {% else %}
                 <ul class="list-group">
                     {% for event in events %}
-                        <li class="list-group-item">
-                            <div class="btn-group-sm">
-
+                        <li class="list-group-item d-flex justify-content-between">
+                            <div>
+                                <div class="fw-bold">{{ event.name }}</div>
+                                <small>
+                                    le {{ event.startsAt|format_date(locale='fr') }}
+                                    (dans {{ event.startsAt.diff(date()).days }} jours)
+                                </small>
                             </div>
-                            {{ event.name }}
+                            <div>
+                                <div class="btn-group btn-group-sm float-end" role="group">
+                                    <button type="button" class="btn btn-outline-danger"
+                                            data-bs-toggle="tooltip" data-bs-title="Je n'y vais pas"
+                                            disabled
+                                    >
+                                        <em class="fa-solid fa-times fa-fw"></em>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success"
+                                            data-bs-toggle="tooltip" data-bs-title="J'y vais"
+                                            disabled
+                                    >
+                                        <em class="fa-solid fa-check fa-fw"></em>
+                                    </button>
+                                </div>
+                            </div>
                         </li>
                     {% endfor %}
                 </ul>
             {% endif %}
         </div>
         <div class="col-md-4 col-xs-12">
-            <h2><em class="fa-solid fa-comment"></em> Mes conseils de pratique</h2>
+            <h2 class="mb-3"><em class="fa-solid fa-comment"></em> Mes conseils de pratique</h2>
             {% if advices is empty %}
                 <p><em>Aucun conseil pour le moment</em></p>
             {% else %}
@@ -42,7 +61,7 @@
             {% endif %}
         </div>
         <div class="col-md-4 col-xs-12">
-            <h2><em class="fa-solid fa-bullseye"></em> Mes résultats</h2>
+            <h2 class="mb-3"><em class="fa-solid fa-bullseye"></em> Mes résultats</h2>
             <p><em>Aucun résultat enregistré</em></p>
         </div>
     </div>
