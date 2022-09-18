@@ -17,8 +17,12 @@
                         <div class="col-9">
                             <div class="card-body">
                                 <h5 class="card-title mb-1">
-                                    <a href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}"></a>
-                                    {{ licensee.fullname }}
+                                    <a href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}"
+                                        class="text-reset text-decoration-none"
+                                    >
+                                        {{ licensee.fullname }}
+                                        <small><em class="fa-solid fa-circle-arrow-right text-muted"></em></small>
+                                    </a>
                                 </h5>
                                 <p class="card-text">
                                     <em class="fa-solid fa-people-group fa-fw"></em>
