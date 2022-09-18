@@ -3,6 +3,8 @@ twig:
     form_themes: ['bootstrap_5_horizontal_layout.html.twig']
     paths:
         '%kernel.project_dir%/assets/styles': styles
+    globals:
+        licenseeHelper: '@App\Helper\LicenseeHelper'
 
 
 when@test:

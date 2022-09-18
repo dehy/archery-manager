@@ -1,37 +1,36 @@
-{% extends 'base.html.twig' %}
+{% extends "base.html.twig" %}
 
-{% block title %}Index des archers{% endblock %}
+{% block title %}Trombinoscope{% endblock %}
 
 {% block body %}
-    <h1>Liste des archers</h1>
+    <h2 class="mb-3">Trombinoscope {{ year }}</h2>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Email</th>
-                <th>Nom</th>
-                <th>Prénom</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for user in users %}
-            <tr>
-                <td>{{ user.email }}</td>
-                <td>{{ user.lastname }}</td>
-                <td>{{ user.firstname }}</td>
-                <td>
-                    <a href="{{ path('app_user_show', {'id': user.id}) }}">voir</a>
-                    <a href="{{ path('app_user_edit', {'id': user.id}) }}">modifier</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="8">aucun archer</td>
-            </tr>
+    <div class="row">
+        {% for licensee in licensees %}
+            {% set license = licensee.licenseForSeason(year) %}
+            <div class="col-lg-3 col-md-6 col-xs-12 mb-3">
+                <div class="card">
+                    <div class="row g-0">
+                        <div class="col-md-3">
+                            <img src="{{ path('app_licensee_picture', {'fftaCode': licensee.fftaMemberCode}) }}" class="img-fluid rounded-start" alt="">
+                        </div>
+                        <div class="col-md-9">
+                            <div class="card-body">
+                                <h5 class="card-title mb-1">
+                                    <a href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}"></a>
+                                    {{ licensee.fullname }}
+                                </h5>
+                                <p class="card-text">
+                                    <em class="fa-solid fa-people-group fa-fw"></em>
+                                    {{ license.ageCategory|readable_enum('LicenseAgeCategoryType') }}<br>
+                                    <em class="fa-solid fa-bow-arrow fa-fw"></em>
+                                    {{ license.activities|map(a => a|readable_enum('LicenseActivityType'))|join(', ') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
-        </tbody>
-    </table>
-
-    <a href="{{ path('app_user_new') }}">Nouvel archer</a>
+    </div>
 {% endblock %}

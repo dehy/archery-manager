@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon compte{% endblock title %}
+
+{% block body %}
+    <h2>Mon compte</h2>
+
+    Identifiant {{ user.email }}
+    Mot de passe ******** Changer mon mot de passe
+    Sexe {{ user.gender }}
+    Prénom {{ user.firstname }}
+    Nom {{ user.lastname }}
+    Numéro de téléphone {{ user.phoneNumber }}
+
+    <p>Ce compte gère {{ user.licensees|length }} licencié{{ user.licensees|length > 1 ? 's' }}:</p>
+    <ul>
+        {% for licensee in user.licensees %}
+        <li>{{ licensee.fullname }}</li>
+        {% endfor %}
+    </ul>
+
+    <p>
+        Une erreur ? Un changement ? Contacter le club à <a href="mailto:lesarchersdeguyenne@gmail.com">lesarchersdeguyenne@gmail.com</a>
+    </p>
+{% endblock body %}

@@ -1,11 +1,11 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello HomepageController!{% endblock %}
+{% block title %}Tableau de bord{% endblock %}
 
 {% block body %}
     <div class="row mb-3">
         <div class="col">
-            <h1>Bonjour {{ app.user.firstname }} 👋</h1>
+            <h1>Bonjour {{ licenseeHelper.licenseeFromSession.firstname }} 👋</h1>
         </div>
     </div>
     <div class="row">
@@ -27,7 +27,7 @@
             {% endif %}
         </div>
         <div class="col-md-4 col-xs-12">
-            <h2><em class="fa-solid fa-comment"></em> Conseils de pratique</h2>
+            <h2><em class="fa-solid fa-comment"></em> Mes conseils de pratique</h2>
             {% if advices is empty %}
                 <p><em>Aucun conseil pour le moment</em></p>
             {% else %}

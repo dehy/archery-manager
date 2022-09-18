@@ -32,32 +32,57 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {{ _self.isActive('app_licensee_index') }}" href="{{ path('app_licensee_index') }}">
+                            <em class="fa-solid fa-users"></em>
+                            Trombinoscope
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link disabled">
                             <em class="fa-solid fa-calendar"></em>
                             Évènements
                         </a>
                     </li>
-                    {% if is_granted("ROLE_ADMIN") %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('admin') }}">
-                                <em class="fa-solid fa-screwdriver-wrench"></em>
-                                Administration
-                            </a>
-                        </li>
-                    {% endif %}
                 </ul>
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item dropdown">
-                        <a class="nav-link {{ _self.isActive('app_licensee_my_profile') }} dropdown-toggle" href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <em class="fa-solid fa-user"></em> {{ app.user.fullname }}
+                        <a class="nav-link {{ _self.isActive('app_licensee_my_profile') }} dropdown-toggle text-end" href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <em class="fa-solid fa-address-card fa-fw"></em> {{ licenseeHelper.licenseeFromSession.fullname }}
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                            {% if (is_granted("ROLE_ADMIN")) %}
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('admin') }}">
+                                        <em class="fa-solid fa-screwdriver-wrench fa-fw"></em>
+                                        Administration
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                            {% endif %}
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_user_account') }}">
+                                    <em class="fa-solid fa-user-gear fa-fw"></em>
+                                    Mon compte
+                                </a>
+                            </li>
                             <li>
                                 <a class="dropdown-item" href="{{ path('app_licensee_my_profile') }}">
                                     <em class="fa-solid fa-address-card fa-fw"></em>
                                     Mon profil
                                 </a>
                             </li>
+                            {% if app.user.licensees|length > 1 %}
+                                <li><hr class="dropdown-divider"></li>
+                                {% for licensee in app.user.licensees|filter(l => l.id is not same as(licenseeHelper.licenseeFromSession.id)) %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ path(app.request.get('_route'), {'_switch_licensee': licensee.fftaMemberCode }) }}">
+                                            <em class="fa-solid fa-arrows-rotate fa-fw"></em>
+                                            {{ licensee.fullname }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item" href="{{ path('app_logout') }}">
                                     <em class="fa-solid fa-arrow-right-from-bracket fa-fw"></em>

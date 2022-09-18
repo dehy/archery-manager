@@ -48,7 +48,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: "string", length: 12, nullable: true)]
     private $phoneNumber;
 
-    #[ORM\OneToMany(mappedBy: "user", targetEntity: Licensee::class)]
+    #[
+        ORM\OneToMany(
+            mappedBy: "user",
+            targetEntity: Licensee::class,
+            indexBy: "fftaMemberCode"
+        )
+    ]
     private $licensees;
 
     public function __construct()
@@ -216,9 +222,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function hasLicenseeWithCode(string $fftaCode): bool
     {
-        return $this->getLicensees()->exists(
-            fn(Licensee $licensee) => $licensee->getFftaMemberCode() ===
-                $fftaCode
-        );
+        return isset($this->getLicensees()[$fftaCode]);
+    }
+
+    public function getLicenseeWithCode(string $fftaCode): ?Licensee
+    {
+        return $this->getLicensees()[$fftaCode] ?? null;
     }
 }
