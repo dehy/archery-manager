@@ -27,7 +27,8 @@ class LicenseeHelper
         $user = $this->security->getUser();
         $licenseeCode = $this->requestStack
             ->getSession()
-            ->get(self::SESSION_KEY);
+            ->get(self::SESSION_KEY)
+        ;
         if (null === $licenseeCode) {
             $licensee = $user->getLicensees()->first();
             $this->setSelectedLicensee($licensee);
@@ -39,6 +40,7 @@ class LicenseeHelper
                 return $licensee;
             }
         }
+
         throw new LogicException('Should have get a licensee.');
     }
 
@@ -46,6 +48,7 @@ class LicenseeHelper
     {
         $this->requestStack
             ->getSession()
-            ->set(self::SESSION_KEY, $licensee->getFftaMemberCode());
+            ->set(self::SESSION_KEY, $licensee->getFftaMemberCode())
+        ;
     }
 }

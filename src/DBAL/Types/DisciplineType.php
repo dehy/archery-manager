@@ -36,7 +36,7 @@ final class DisciplineType extends AbstractEnumType
             'Tir 3D' => self::THREE_D,
             'Tir Nature' => self::NATURE,
             'Tir en Salle' => self::INDOOR,
-            default => throw new LogicException("Unknown value \"$extranetName\""),
+            default => throw new LogicException("Unknown value \"{$extranetName}\""),
         };
     }
 }

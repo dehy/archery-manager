@@ -11,6 +11,10 @@ class ApplicantHelper
     protected static int $season = 2023;
     protected static ?self $instance = null;
 
+    public function __construct(protected LicenseHelper $licenseHelper)
+    {
+    }
+
     public static function default(): self
     {
         if (null === self::$instance) {
@@ -18,10 +22,6 @@ class ApplicantHelper
         }
 
         return self::$instance;
-    }
-
-    public function __construct(protected LicenseHelper $licenseHelper)
-    {
     }
 
     public function licenseTypeForApplicant(Applicant $applicant): string

@@ -93,8 +93,8 @@ class LicenseHelper
             }
 
             if (
-                $birthdate > $after &&
-                ($birthdate < $before || null === $before)
+                $birthdate > $after
+                && ($birthdate < $before || null === $before)
             ) {
                 return $ageCategory;
             }

@@ -33,7 +33,8 @@ class RegistrationCrudController extends AbstractCrudController
         return $crud
             ->setEntityLabelInSingular('Inscription')
             ->setEntityLabelInPlural('Inscriptions')
-            ->setPaginatorPageSize(200);
+            ->setPaginatorPageSize(200)
+        ;
     }
 
     public function configureFields(string $pageName): iterable
@@ -64,14 +65,16 @@ class RegistrationCrudController extends AbstractCrudController
             ->add('season')
             ->add('docsRetrieved')
             ->add('paid')
-            ->add('licenseCreated');
+            ->add('licenseCreated')
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
     {
         return $actions
             ->remove(Crud::PAGE_INDEX, Action::NEW)
-            ->remove(Crud::PAGE_INDEX, Action::DELETE);
+            ->remove(Crud::PAGE_INDEX, Action::DELETE)
+        ;
     }
 
     public function createIndexQueryBuilder(
@@ -93,7 +96,8 @@ class RegistrationCrudController extends AbstractCrudController
                 ->addSelect(
                     'CONCAT(entity.lastname, \' \', entity.firstname) AS HIDDEN completeName',
                 )
-                ->addOrderBy('completeName', 'ASC');
+                ->addOrderBy('completeName', 'ASC')
+            ;
         }
 
         return $queryBuilder;

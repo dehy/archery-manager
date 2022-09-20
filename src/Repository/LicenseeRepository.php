@@ -10,8 +10,8 @@ use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @method Licensee|null find($id, $lockMode = null, $lockVersion = null)
- * @method Licensee|null findOneBy(array $criteria, array $orderBy = null)
+ * @method null|Licensee find($id, $lockMode = null, $lockVersion = null)
+ * @method null|Licensee findOneBy(array $criteria, array $orderBy = null)
  * @method Licensee[]    findAll()
  * @method Licensee[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
@@ -51,7 +51,8 @@ class LicenseeRepository extends ServiceEntityRepository
             ->andWhere('l.fftaMemberCode = :fftaCode')
             ->setParameter('fftaCode', $fftaCode)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
     }
 
     /**
@@ -63,7 +64,8 @@ class LicenseeRepository extends ServiceEntityRepository
             ->andWhere('l.fftaId = :fftaId')
             ->setParameter('fftaId', $fftaId)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
     }
 
     public function findByLicenseYear(int $year): array
@@ -73,7 +75,8 @@ class LicenseeRepository extends ServiceEntityRepository
             ->where('li.season = :year')
             ->setParameter('year', $year)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     // /**

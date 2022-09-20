@@ -4,10 +4,17 @@ namespace App\Tests;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 class SmokeTest extends WebTestCase
 {
     /**
      * @dataProvider publicUrlsProvider
+     *
+     * @param mixed $url
      */
     public function testPublicUrls($url): void
     {

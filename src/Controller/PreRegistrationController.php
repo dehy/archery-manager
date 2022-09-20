@@ -78,7 +78,8 @@ class PreRegistrationController extends AbstractController
                     )
                     ->context([
                         'waitingListActivated' => $waitingListActivated,
-                    ]);
+                    ])
+                ;
 
                 $mailer->send($email);
 
@@ -88,7 +89,8 @@ class PreRegistrationController extends AbstractController
                     ->textTemplate(
                         'pre_registration/mail_notification.txt.twig',
                     )
-                    ->context(['applicant' => $applicant]);
+                    ->context(['applicant' => $applicant])
+                ;
 
                 $mailer->send($notificationEmail);
 
@@ -170,7 +172,8 @@ class PreRegistrationController extends AbstractController
                     ->subject('Votre renouvellement aux Archers de Guyenne')
                     ->htmlTemplate(
                         'pre_registration/mail_renewal_confirmation.html.twig',
-                    );
+                    )
+                ;
 
                 $mailer->send($email);
 
@@ -180,7 +183,8 @@ class PreRegistrationController extends AbstractController
                     ->textTemplate(
                         'pre_registration/mail_renewal_notification.txt.twig',
                     )
-                    ->context(['applicant' => $applicant]);
+                    ->context(['applicant' => $applicant])
+                ;
 
                 $mailer->send($notificationEmail);
 

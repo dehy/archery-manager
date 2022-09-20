@@ -48,7 +48,8 @@ class ApplicantType extends AbstractType
             ])
             ->add('comment', null, [
                 'label' => 'Observations / Remarques',
-            ]);
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

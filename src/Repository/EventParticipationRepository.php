@@ -9,8 +9,8 @@ use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @method EventParticipation|null find($id, $lockMode = null, $lockVersion = null)
- * @method EventParticipation|null findOneBy(array $criteria, array $orderBy = null)
+ * @method null|EventParticipation find($id, $lockMode = null, $lockVersion = null)
+ * @method null|EventParticipation findOneBy(array $criteria, array $orderBy = null)
  * @method EventParticipation[]    findAll()
  * @method EventParticipation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */

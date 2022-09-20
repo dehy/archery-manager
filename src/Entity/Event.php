@@ -262,7 +262,8 @@ class Event
             ->setEndsAt($fftaEvent->getTo())
             ->setName($fftaEvent->getName())
             ->setStartsAt($fftaEvent->getFrom())
-            ->setType(EventType::CONTEST_OFFICIAL);
+            ->setType(EventType::CONTEST_OFFICIAL)
+        ;
     }
 
     public function getSeason(): int

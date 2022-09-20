@@ -96,21 +96,25 @@ class AdminDashboardController extends AbstractDashboardController
         yield MenuItem::section();
 
         yield MenuItem::linkToCrud('Comptes', 'fa-regular fa-at', User::class);
+
         yield MenuItem::linkToCrud(
             'Licenciés',
             'fa-solid fa-user',
             Licensee::class,
         );
+
         yield MenuItem::linkToCrud(
             'Licences',
             'fa-solid fa-id-card',
             License::class,
         );
+
         yield MenuItem::linkToCrud(
             'Groupes',
             'fa-solid fa-users',
             Group::class,
         );
+
         yield MenuItem::linkToCrud(
             'Conseils',
             'fa-regular fa-comment',
@@ -124,6 +128,7 @@ class AdminDashboardController extends AbstractDashboardController
             'fa-regular fa-calendar',
             Event::class,
         );
+
         yield MenuItem::linkToCrud(
             'Résultats',
             'fa-solid fa-square-poll-vertical',
@@ -143,6 +148,7 @@ class AdminDashboardController extends AbstractDashboardController
             'fa-solid fa-user-plus',
             Applicant::class,
         )->setController(ApplicantCrudController::class);
+
         yield MenuItem::linkToCrud(
             'Création des licenses',
             'fa-solid fa-id-badge',
@@ -156,6 +162,7 @@ class AdminDashboardController extends AbstractDashboardController
             'fa-solid fa-wrench',
             Setting::class,
         );
+
         yield MenuItem::linkToUrl(
             'Audit',
             'fa-solid fa-user-secret',

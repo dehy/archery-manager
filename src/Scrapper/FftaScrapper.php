@@ -24,14 +24,13 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class FftaScrapper
 {
-    private string $goalBaseUrl = 'https://ffta-goal.multimediabs.com';
-    private string $extranetBaseUrl = 'https://extranet.ffta.fr';
-
     protected Client $fftaGoalClient;
     protected bool $fftaGoalIsConnected = false;
 
     protected Client $fftaExtranetClient;
     protected bool $fftaExtranetIsConnected = false;
+    private string $goalBaseUrl = 'https://ffta-goal.multimediabs.com';
+    private string $extranetBaseUrl = 'https://extranet.ffta.fr';
 
     public function __construct(
         private readonly string $username,
@@ -71,7 +70,7 @@ class FftaScrapper
         $ids = [];
         foreach ($licensesData['licences'] as $licenseData) {
             $html = $licenseData[9];
-            $ids[] = preg_replace("/.*FichePersonne_(\d+)'.*/", '\\1', $html);
+            $ids[] = preg_replace("/.*FichePersonne_(\\d+)'.*/", '\\1', $html);
         }
 
         return $ids;
@@ -89,7 +88,8 @@ class FftaScrapper
 
         $form = $crawler
             ->filter('#formSearchPersonne')
-            ->form(['inputAdherent' => $memberCode]);
+            ->form(['inputAdherent' => $memberCode])
+        ;
         $crawler = $this->fftaGoalClient->submit($form);
 
         $requestUriComponents = parse_url(
@@ -104,8 +104,8 @@ class FftaScrapper
         }
         $feedbackPanel = $crawler->filter('#feedbackPanel');
         if (
-            $feedbackPanel->count() > 0 &&
-            str_contains($feedbackPanel->text(), 'Aucune personne trouv')
+            $feedbackPanel->count() > 0
+            && str_contains($feedbackPanel->text(), 'Aucune personne trouv')
         ) {
             throw new NotFoundHttpException();
         }
@@ -162,7 +162,8 @@ class FftaScrapper
                         ->text(),
                     true,
                 ),
-            );
+            )
+        ;
 
         $mobileNode = $crawler->filterXPath(
             "descendant-or-self::*[@id = 'mobile']",
@@ -269,22 +270,33 @@ class FftaScrapper
             );
             if ($libelleCrawler->count() > 0) {
                 $libelleStr = $this->clean($libelleCrawler->text());
+
                 switch ($libelleStr) {
                     case 'ADULTE Pratique en compétition':
                         $licence->setType(LicenseType::ADULTES_COMPETITION);
+
                         break;
+
                     case 'ADULTE Pratique en club':
                         $licence->setType(LicenseType::ADULTES_CLUB);
+
                         break;
+
                     case 'Jeune':
                         $licence->setType(LicenseType::JEUNES);
+
                         break;
+
                     case 'Poussin':
                         $licence->setType(LicenseType::POUSSINS);
+
                         break;
+
                     case 'Découverte':
                         $licence->setType(LicenseType::DECOUVERTE);
+
                         break;
+
                     default:
                         throw new Exception(sprintf("Unknown licence type '%s'", $libelleStr));
                 }
@@ -298,94 +310,127 @@ class FftaScrapper
             );
             if ($categorieAgeCrawler->count() > 0) {
                 $categorieAgeStr = $this->clean($categorieAgeCrawler->text());
+
                 switch ($categorieAgeStr) {
                     case 'Poussin':
                         $licence->setCategory(LicenseCategoryType::POUSSINS);
                         $licence->setAgeCategory(
                             LicenseAgeCategoryType::POUSSIN,
                         );
+
                         break;
+
                     case 'Benjamin':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(
                             LicenseAgeCategoryType::BENJAMIN,
                         );
+
                         break;
+
                     case 'Minime':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(
                             LicenseAgeCategoryType::MINIME,
                         );
+
                         break;
+
                     case 'Cadet':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(LicenseAgeCategoryType::CADET);
+
                         break;
+
                     case 'Junior':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(
                             LicenseAgeCategoryType::JUNIOR,
                         );
+
                         break;
+
                     case 'Sénior 1':
                         $licence->setCategory(LicenseCategoryType::ADULTES);
                         $licence->setAgeCategory(
                             LicenseAgeCategoryType::SENIOR_1,
                         );
+
                         break;
+
                     case 'Sénior 2':
                         $licence->setCategory(LicenseCategoryType::ADULTES);
                         $licence->setAgeCategory(
                             LicenseAgeCategoryType::SENIOR_2,
                         );
+
                         break;
+
                     case 'Sénior 3':
                         $licence->setCategory(LicenseCategoryType::ADULTES);
                         $licence->setAgeCategory(
                             LicenseAgeCategoryType::SENIOR_3,
                         );
+
                         break;
+
                     case 'Sénior':
                     case 'Senior':
                         $licence->setCategory(LicenseCategoryType::ADULTES);
                         $licence->setAgeCategory(
                             LicenseAgeCategoryType::SENIOR,
                         );
+
                         break;
+
                     case 'U11':
                         $licence->setCategory(LicenseCategoryType::POUSSINS);
                         $licence->setAgeCategory(LicenseAgeCategoryType::U11);
+
                         break;
+
                     case 'U13':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(LicenseAgeCategoryType::U13);
+
                         break;
+
                     case 'U15':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(LicenseAgeCategoryType::U15);
+
                         break;
+
                     case 'U18':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(LicenseAgeCategoryType::U18);
+
                         break;
+
                     case 'U21':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(LicenseAgeCategoryType::U21);
+
                         break;
+
                     case 'Vétéran':
                     case 'Veteran':
                         $licence->setCategory(LicenseCategoryType::ADULTES);
                         $licence->setAgeCategory(
                             LicenseAgeCategoryType::VETERAN,
                         );
+
                         break;
+
                     case 'Super Vétéran':
                     case 'Super Veteran':
                         $licence->setCategory(LicenseCategoryType::ADULTES);
                         $licence->setAgeCategory(
                             LicenseAgeCategoryType::SUPER_VETERAN,
                         );
+
                         break;
+
                     default:
                         throw new Exception(sprintf("Unknown Age Category '%s'", $categorieAgeStr));
                 }
@@ -428,46 +473,9 @@ class FftaScrapper
         return $licences;
     }
 
-    protected function clean(string $text, bool $ucwords = false): string
-    {
-        $text = trim($text, " \t\n\r\0\x0B\xC2\xA0");
-        if ($ucwords) {
-            $text = ucwords(mb_strtolower($text));
-        }
-
-        return $text;
-    }
-
-    protected function cleanPhoneNumber(string $number): string
-    {
-        $number = str_replace(' ', '', $number);
-
-        return preg_replace('/^0/', '+33', $number);
-    }
-
-    protected function loginFftaGoal(): void
-    {
-        if ($this->fftaGoalIsConnected) {
-            return;
-        }
-        $this->fftaGoalClient = new Client();
-        $crawler = $this->fftaGoalClient->request(
-            'GET',
-            sprintf('%s/login', $this->goalBaseUrl),
-        );
-        $form = $crawler->selectButton('CONNEXION')->form();
-        $this->fftaGoalClient->submit($form, [
-            'username' => $this->username,
-            'password' => $this->password,
-        ]);
-        /** @var Response $response */
-        $response = $this->fftaGoalClient->getResponse();
-        if (200 !== $response->getStatusCode()) {
-            throw new BadRequestHttpException('Bad response from FFTA login procedure');
-        }
-    }
-
     /**
+     * @param mixed $season
+     *
      * @return FftaEvent[]
      */
     public function fetchEvents($season): array
@@ -507,7 +515,7 @@ class FftaScrapper
 
             $characteristicsCell = $row->filter('td:nth-child(5)')->html();
             $characteristics = preg_match(
-                "/^<strong>(.*)<\/strong>( - (.*))?<br>Saison \d+<br>(.*<br>)+$/",
+                '/^<strong>(.*)<\\/strong>( - (.*))?<br>Saison \\d+<br>(.*<br>)+$/',
                 $characteristicsCell,
                 $characteristicsMatches,
             );
@@ -532,7 +540,8 @@ class FftaScrapper
                 ->setLocation($location)
                 ->setDiscipline($discipline)
                 ->setSpecifics($specifics)
-                ->setUrl($url);
+                ->setUrl($url)
+            ;
             $events[] = $event;
         });
 
@@ -546,8 +555,10 @@ class FftaScrapper
     {
         /** @var ?int $size */
         $size = null;
+
         /** @var ?int $distance */
         $distance = null;
+
         /** @var FftaResult[] $fftaResults */
         $fftaResults = [];
 
@@ -590,12 +601,53 @@ class FftaScrapper
                 ->setScore2((int) $row->filter('td:nth-child(7)')->text())
                 ->setTotal((int) $row->filter('td:nth-child(8)')->text())
                 ->setNb10((int) $row->filter('td:nth-child(9)')->text())
-                ->setNb10p((int) $row->filter('td:nth-child(10)')->text());
+                ->setNb10p((int) $row->filter('td:nth-child(10)')->text())
+            ;
 
             $fftaResults[] = $fftaResult;
         });
 
         return $fftaResults;
+    }
+
+    protected function clean(string $text, bool $ucwords = false): string
+    {
+        $text = trim($text, " \t\n\r\0\x0B\xC2\xA0");
+        if ($ucwords) {
+            $text = ucwords(mb_strtolower($text));
+        }
+
+        return $text;
+    }
+
+    protected function cleanPhoneNumber(string $number): string
+    {
+        $number = str_replace(' ', '', $number);
+
+        return preg_replace('/^0/', '+33', $number);
+    }
+
+    protected function loginFftaGoal(): void
+    {
+        if ($this->fftaGoalIsConnected) {
+            return;
+        }
+        $this->fftaGoalClient = new Client();
+        $crawler = $this->fftaGoalClient->request(
+            'GET',
+            sprintf('%s/login', $this->goalBaseUrl),
+        );
+        $form = $crawler->selectButton('CONNEXION')->form();
+        $this->fftaGoalClient->submit($form, [
+            'username' => $this->username,
+            'password' => $this->password,
+        ]);
+
+        /** @var Response $response */
+        $response = $this->fftaGoalClient->getResponse();
+        if (200 !== $response->getStatusCode()) {
+            throw new BadRequestHttpException('Bad response from FFTA login procedure');
+        }
     }
 
     protected function loginFftaExtranet(): void
@@ -614,6 +666,7 @@ class FftaScrapper
             'login[identifiant]' => $this->username,
             'login[idpassword]' => $this->password,
         ]);
+
         /** @var Response $response */
         $response = $this->fftaExtranetClient->getResponse();
         if (200 !== $response->getStatusCode()) {

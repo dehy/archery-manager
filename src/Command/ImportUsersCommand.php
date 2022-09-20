@@ -67,7 +67,8 @@ class ImportUsersCommand extends Command
                         ->setPassword('!!')
                         ->setGender($gender)
                         ->setLastname($lastname)
-                        ->setFirstname($firstname);
+                        ->setFirstname($firstname)
+                    ;
                     $this->entityManager->persist($user);
                 }
                 $user->setPhoneNumber($phone_number);
@@ -77,7 +78,8 @@ class ImportUsersCommand extends Command
                     ->filter(function (Licensee $l) use ($user) {
                         return $l->getFirstname() === $user->getFirstname();
                     })
-                    ->first();
+                    ->first()
+                ;
 
                 if (!$licensee) {
                     $licensee = new Licensee();
@@ -91,7 +93,8 @@ class ImportUsersCommand extends Command
                     ->setFirstname($firstname)
                     ->setBirthdate(new DateTime($birthdate))
                     ->setFftaMemberCode($ffta_member_code)
-                    ->setFftaId($ffta_id);
+                    ->setFftaId($ffta_id)
+                ;
 
                 $output->writeln(
                     sprintf(

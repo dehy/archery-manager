@@ -91,7 +91,8 @@ class ResultArcImportCommand extends Command
             } else {
                 $result = (new Result())
                     ->setEvent($event)
-                    ->setLicensee($licensee);
+                    ->setLicensee($licensee)
+                ;
             }
             [
                 $distance,
@@ -107,7 +108,8 @@ class ResultArcImportCommand extends Command
                 ->setDiscipline($event->getDiscipline())
                 ->setDistance($distance)
                 ->setTargetSize($targetSize)
-                ->setTotal($resultLine->score);
+                ->setTotal($resultLine->score)
+            ;
 
             $this->entityManager->persist($result);
         }

@@ -80,7 +80,7 @@ class ResultArcParser
     private function searchPattern(): string
     {
         return sprintf(
-            "^[-'A-ZÀ-ž ]+ (\d{2,3})(  \d{1,2})?%s .* (\d{6}\w)( \d+)?$",
+            "^[-'A-ZÀ-ž ]+ (\\d{2,3})(  \\d{1,2})?%s .* (\\d{6}\\w)( \\d+)?$",
             $this->categoryPattern(),
         );
     }

@@ -56,10 +56,13 @@ class FftaFetchParticipatingEvent extends Command
 
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->entityManager->getRepository(Event::class);
+
         /** @var LicenseeRepository $licenseeRepository */
         $licenseeRepository = $this->entityManager->getRepository(
             Licensee::class,
-        ); /** @var ResultRepository $resultRepository */
+        );
+
+/** @var ResultRepository $resultRepository */
         $resultRepository = $this->entityManager->getRepository(Result::class);
         foreach ($fftaEvents as $fftaEvent) {
             $io->text(
@@ -85,12 +88,13 @@ class FftaFetchParticipatingEvent extends Command
                 ])
             ) {
                 $io->text('  /!\ Event type is not supported. Skipping.');
+
                 continue;
             }
             $supportedSpecifics = ['2X18M'];
             if (
-                $fftaEvent->getSpecifics() &&
-                !in_array($fftaEvent->getSpecifics(), $supportedSpecifics)
+                $fftaEvent->getSpecifics()
+                && !in_array($fftaEvent->getSpecifics(), $supportedSpecifics)
             ) {
                 $io->text(
                     sprintf(
@@ -98,6 +102,7 @@ class FftaFetchParticipatingEvent extends Command
                         $fftaEvent->getSpecifics(),
                     ),
                 );
+
                 continue;
             }
 
@@ -114,7 +119,8 @@ class FftaFetchParticipatingEvent extends Command
                     'toNight' => $fftaEvent->getTo()->setTime(23, 59, 59),
                 ])
                 ->getQuery()
-                ->getOneOrNullResult();
+                ->getOneOrNullResult()
+            ;
             if (!$event) {
                 $event = Event::fromFftaEvent($fftaEvent);
                 $this->entityManager->persist($event);

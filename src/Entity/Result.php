@@ -79,7 +79,8 @@ class Result
             ->setScore2($fftaResult->getScore2())
             ->setTotal($fftaResult->getTotal())
             ->setNb10($fftaResult->getNb10())
-            ->setNb10p($fftaResult->getNb10p());
+            ->setNb10p($fftaResult->getNb10p())
+        ;
     }
 
     public function getId(): ?int
@@ -302,7 +303,8 @@ class Result
                 default => [30, 122],
             };
         }
-        throw new LogicException("Missing handling of discipline $discipline");
+
+        throw new LogicException("Missing handling of discipline {$discipline}");
     }
 
     private static function distanceAndSizeForFederal(
@@ -338,6 +340,7 @@ class Result
                 LicenseAgeCategoryType::SENIOR_2 => [70, 122],
             };
         }
-        throw new LogicException("Missing handling of discipline $discipline");
+
+        throw new LogicException("Missing handling of discipline {$discipline}");
     }
 }

@@ -25,6 +25,7 @@ class LicenseeController extends AbstractController
         $licensees = new ArrayCollection(
             $licenseeRepository->findByLicenseYear($year),
         );
+
         /** @var ArrayCollection<int, Licensee> $orderedLicensees */
         $orderedLicensees = $licensees->matching(
             Criteria::create()->orderBy([
@@ -62,9 +63,9 @@ class LicenseeController extends AbstractController
         }
 
         if (
-            !$licensee ||
-            ($user->getLicensees()->contains($licensee) &&
-                !$this->isGranted('ROLE_ADMIN'))
+            !$licensee
+            || ($user->getLicensees()->contains($licensee)
+                && !$this->isGranted('ROLE_ADMIN'))
         ) {
             throw new NotFoundHttpException();
         }
@@ -96,6 +97,7 @@ class LicenseeController extends AbstractController
 
         $lastModified = null;
         $imagePath = sprintf('%s.jpg', $fftaCode);
+
         try {
             $profilePicture = $profilePicturesStorage->read($imagePath);
             $lastModified = $profilePicturesStorage->lastModified($imagePath);

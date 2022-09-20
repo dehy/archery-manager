@@ -16,6 +16,7 @@ class LicenseeFactory
             ->setFirstname($profile->getPrenom())
             ->setFftaId($profile->getId())
             ->setFftaMemberCode($profile->getCodeAdherent())
-            ->setBirthdate($profile->getDateNaissance());
+            ->setBirthdate($profile->getDateNaissance())
+        ;
     }
 }

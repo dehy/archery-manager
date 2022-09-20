@@ -1,13 +1,9 @@
 <?php
 
-require_once __DIR__ . "/tools/PrettierPHPFixer.php";
-
-$finder = (new PhpCsFixer\Finder())->in(__DIR__)->exclude("var");
+$finder = (new PhpCsFixer\Finder())->in(__DIR__ . '/src')->in(__DIR__ . '/tests');
 
 return (new PhpCsFixer\Config())
-    ->registerCustomFixers([new PrettierPHPFixer()])
     ->setRules([
-        "Prettier/php" => true,
-        "@Symfony" => true,
+        '@PhpCsFixer' => true,
     ])
     ->setFinder($finder);
