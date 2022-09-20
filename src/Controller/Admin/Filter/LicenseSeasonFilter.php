@@ -2,7 +2,6 @@
 
 namespace App\Controller\Admin\Filter;
 
-use App\Form\Type\Admin\LicenseSeasonFilterType;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\Filter\FilterInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
@@ -19,7 +18,7 @@ class LicenseSeasonFilter implements FilterInterface
     {
         return (new self())
             ->setFilterFqcn(__CLASS__)
-            ->setProperty("season")
+            ->setProperty('season')
             ->setLabel($label)
             ->setFormType(IntegerType::class);
     }
@@ -28,14 +27,14 @@ class LicenseSeasonFilter implements FilterInterface
         QueryBuilder $queryBuilder,
         FilterDataDto $filterDataDto,
         ?FieldDto $fieldDto,
-        EntityDto $entityDto
+        EntityDto $entityDto,
     ): void {
         $queryBuilder
             ->join(
-                sprintf("%s.licenses", $filterDataDto->getEntityAlias()),
-                "license"
+                sprintf('%s.licenses', $filterDataDto->getEntityAlias()),
+                'license',
             )
-            ->andWhere("license.season = :season")
-            ->setParameter("season", $filterDataDto->getValue());
+            ->andWhere('license.season = :season')
+            ->setParameter('season', $filterDataDto->getValue());
     }
 }

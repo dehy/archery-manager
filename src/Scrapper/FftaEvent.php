@@ -18,6 +18,7 @@ class FftaEvent
     public function setName(string $name): FftaEvent
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -29,6 +30,7 @@ class FftaEvent
     public function setFrom(DateTimeImmutable $from): FftaEvent
     {
         $this->from = $from;
+
         return $this;
     }
 
@@ -40,6 +42,7 @@ class FftaEvent
     public function setTo(DateTimeImmutable $to): FftaEvent
     {
         $this->to = $to;
+
         return $this;
     }
 
@@ -51,6 +54,7 @@ class FftaEvent
     public function setLocation(string $location): FftaEvent
     {
         $this->location = $location;
+
         return $this;
     }
 
@@ -63,6 +67,7 @@ class FftaEvent
     {
         DisciplineType::assertValidChoice($discipline);
         $this->discipline = $discipline;
+
         return $this;
     }
 
@@ -79,12 +84,14 @@ class FftaEvent
     public function setSpecifics(string $specifics): FftaEvent
     {
         $this->specifics = $specifics;
+
         return $this;
     }
 
     public function setUrl(string $url): FftaEvent
     {
         $this->url = $url;
+
         return $this;
     }
 

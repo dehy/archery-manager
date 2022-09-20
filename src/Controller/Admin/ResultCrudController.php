@@ -7,7 +7,6 @@ use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\Entity\Result;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
@@ -25,44 +24,44 @@ class ResultCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new("id")->onlyOnIndex(),
-            AssociationField::new("licensee"),
-            AssociationField::new("event"),
-            ChoiceField::new("discipline")->setChoices(
-                DisciplineType::getChoices()
+            IdField::new('id')->onlyOnIndex(),
+            AssociationField::new('licensee'),
+            AssociationField::new('event'),
+            ChoiceField::new('discipline')->setChoices(
+                DisciplineType::getChoices(),
             ),
-            ChoiceField::new("ageCategory")->setChoices(
-                LicenseAgeCategoryType::getChoices()
+            ChoiceField::new('ageCategory')->setChoices(
+                LicenseAgeCategoryType::getChoices(),
             ),
-            ChoiceField::new("activity")->setChoices(
-                LicenseActivityType::getChoices()
+            ChoiceField::new('activity')->setChoices(
+                LicenseActivityType::getChoices(),
             ),
-            IntegerField::new("distance"),
-            IntegerField::new("targetSize"),
-            IntegerField::new("total"),
+            IntegerField::new('distance'),
+            IntegerField::new('targetSize'),
+            IntegerField::new('total'),
         ];
     }
 
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
-            ->add("licensee")
-            ->add("event")
+            ->add('licensee')
+            ->add('event')
             ->add(
-                ChoiceFilter::new("discipline")->setChoices(
-                    DisciplineType::getChoices()
-                )
+                ChoiceFilter::new('discipline')->setChoices(
+                    DisciplineType::getChoices(),
+                ),
             )
-            ->add("distance")
+            ->add('distance')
             ->add(
-                ChoiceFilter::new("ageCategory")->setChoices(
-                    LicenseAgeCategoryType::getChoices()
-                )
+                ChoiceFilter::new('ageCategory')->setChoices(
+                    LicenseAgeCategoryType::getChoices(),
+                ),
             )
             ->add(
-                ChoiceFilter::new("activity")->setChoices(
-                    LicenseActivityType::getChoices()
-                )
+                ChoiceFilter::new('activity')->setChoices(
+                    LicenseActivityType::getChoices(),
+                ),
             );
     }
 }

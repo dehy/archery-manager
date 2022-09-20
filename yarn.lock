@@ -1504,16 +1504,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prettier/plugin-php@npm:^0.18.4":
-  version: 0.18.4
-  resolution: "@prettier/plugin-php@npm:0.18.4"
+"@prettier/plugin-php@npm:^0.19.1":
+  version: 0.19.1
+  resolution: "@prettier/plugin-php@npm:0.19.1"
   dependencies:
-    linguist-languages: ^7.5.1
+    linguist-languages: ^7.21.0
     mem: ^8.0.0
-    php-parser: 3.1.0-beta.5
+    php-parser: ^3.1.1
   peerDependencies:
     prettier: ^1.15.0 || ^2.0.0
-  checksum: 5c4024e032e3284447d744cc7988d00cb5ffd4bdabb3c1815253801920f95e280b7f52b3132c58e6aefc07c986f3f37c4e64b2826152506bff25f95767519008
+  checksum: 9f8aa24a3f90c86fcf4ffa9055dc81bf919749800b7de3bef1376f836cce59136eea876e8271015c2b7f0216596f779a066f0088eb40a4bac73dcf7c036cb78f
   languageName: node
   linkType: hard
 
@@ -4254,10 +4254,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"linguist-languages@npm:^7.5.1":
-  version: 7.15.0
-  resolution: "linguist-languages@npm:7.15.0"
-  checksum: 2f930295a291997ecf30219246f1bdb915ea53820f37410aacd0effb5a94ab6b1076ab35fa792899ac86b196ab0a9b2c40f2cc021817ccbecd4bd2efc45a1df1
+"linguist-languages@npm:^7.21.0":
+  version: 7.21.0
+  resolution: "linguist-languages@npm:7.21.0"
+  checksum: b655daec0357ec5765a67c37441455d817a854ed1bba6875b379b4508fcf2376436827e4246dd049ce3de3a72dd1c149d42ceac8581deb79b76650a423fd1397
   languageName: node
   linkType: hard
 
@@ -4974,10 +4974,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"php-parser@npm:3.1.0-beta.5":
-  version: 3.1.0-beta.5
-  resolution: "php-parser@npm:3.1.0-beta.5"
-  checksum: a72c48dbca1208b69d97ee164e88b29a6e0d721594f611be2213687b8813866ee35679847e9f932b02d016422105a6a8123ae8732aa9d20734d6953782018698
+"php-parser@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "php-parser@npm:3.1.1"
+  checksum: 4aa62ddc1210a0b1a28fad1d3c1063ad6b1a1fe26d81008f97bc08a921d5188f59e27f2255fc9e4482c2ac7b5b1a857e97d02abf3d573e2f8059e6e2aa6ee12d
   languageName: node
   linkType: hard
 
@@ -5420,12 +5420,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^2.6.2":
-  version: 2.6.2
-  resolution: "prettier@npm:2.6.2"
+"prettier@npm:^2.7.1":
+  version: 2.7.1
+  resolution: "prettier@npm:2.7.1"
   bin:
     prettier: bin-prettier.js
-  checksum: 48d08dde8e9fb1f5bccdd205baa7f192e9fc8bc98f86e1b97d919de804e28c806b0e6cc685e4a88211aa7987fa9668f30baae19580d87ced3ed0f2ec6572106f
+  checksum: 55a4409182260866ab31284d929b3cb961e5fdb91fe0d2e099dac92eaecec890f36e524b4c19e6ceae839c99c6d7195817579cdffc8e2c80da0cb794463a748b
   languageName: node
   linkType: hard
 
@@ -5773,7 +5773,7 @@ __metadata:
     "@fortawesome/free-regular-svg-icons": ^6.2.0
     "@fortawesome/free-solid-svg-icons": ^6.2.0
     "@hotwired/stimulus": ^3.1.0
-    "@prettier/plugin-php": ^0.18.4
+    "@prettier/plugin-php": ^0.19.1
     "@symfony/stimulus-bridge": ^3.2.1
     "@symfony/stimulus-bridge-types": ^1.0.0
     "@symfony/webpack-encore": ^3.1.0
@@ -5781,7 +5781,7 @@ __metadata:
     bootstrap: ^5.2.1
     core-js: ^3.25.1
     file-loader: ^6.2.0
-    prettier: ^2.6.2
+    prettier: ^2.7.1
     regenerator-runtime: ^0.13.9
     sass: ^1.54.9
     sass-loader: ^13.0.2

@@ -31,40 +31,40 @@ class RegistrationCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular("Inscription")
-            ->setEntityLabelInPlural("Inscriptions")
+            ->setEntityLabelInSingular('Inscription')
+            ->setEntityLabelInPlural('Inscriptions')
             ->setPaginatorPageSize(200);
     }
 
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new("id")
+            IdField::new('id')
                 ->hideOnForm()
-                ->setTemplatePath("admin/crud/fields/id.html.twig"),
-            TextField::new("completeName", "Nom"),
-            BooleanField::new("docsRetrieved", "Documents en ordre"),
-            BooleanField::new("paid", "Payé"),
-            BooleanField::new("licenseCreated", "License faite"),
-            ChoiceField::new("realLicenseType", "Type de licence")->setChoices(
-                LicenseType::getChoices()
+                ->setTemplatePath('admin/crud/fields/id.html.twig'),
+            TextField::new('completeName', 'Nom'),
+            BooleanField::new('docsRetrieved', 'Documents en ordre'),
+            BooleanField::new('paid', 'Payé'),
+            BooleanField::new('licenseCreated', 'License faite'),
+            ChoiceField::new('realLicenseType', 'Type de licence')->setChoices(
+                LicenseType::getChoices(),
             ),
-            ChoiceField::new("ageCategory", "Catégorie d'âge")->setChoices(
-                LicenseAgeCategoryType::getChoices()
+            ChoiceField::new('ageCategory', "Catégorie d'âge")->setChoices(
+                LicenseAgeCategoryType::getChoices(),
             ),
-            MoneyField::new("toPay", "À payer")->onlyOnIndex(),
-            TextField::new("paymentObservations", "Observations"),
+            MoneyField::new('toPay', 'À payer')->onlyOnIndex(),
+            TextField::new('paymentObservations', 'Observations'),
         ];
     }
 
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
-            ->add("renewal")
-            ->add("season")
-            ->add("docsRetrieved")
-            ->add("paid")
-            ->add("licenseCreated");
+            ->add('renewal')
+            ->add('season')
+            ->add('docsRetrieved')
+            ->add('paid')
+            ->add('licenseCreated');
     }
 
     public function configureActions(Actions $actions): Actions
@@ -78,22 +78,22 @@ class RegistrationCrudController extends AbstractCrudController
         SearchDto $searchDto,
         EntityDto $entityDto,
         FieldCollection $fields,
-        FilterCollection $filters
+        FilterCollection $filters,
     ): QueryBuilder {
         $queryBuilder = parent::createIndexQueryBuilder(
             $searchDto,
             $entityDto,
             $fields,
-            $filters
+            $filters,
         );
 
         // if user defined sort is not set
         if (0 === count($searchDto->getSort())) {
             $queryBuilder
                 ->addSelect(
-                    'CONCAT(entity.lastname, \' \', entity.firstname) AS HIDDEN completeName'
+                    'CONCAT(entity.lastname, \' \', entity.firstname) AS HIDDEN completeName',
                 )
-                ->addOrderBy("completeName", "ASC");
+                ->addOrderBy('completeName', 'ASC');
         }
 
         return $queryBuilder;

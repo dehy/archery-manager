@@ -47,9 +47,9 @@ class LicenseeRepository extends ServiceEntityRepository
      */
     public function findByCode(string $fftaCode): ?Licensee
     {
-        return $this->createQueryBuilder("l")
-            ->andWhere("l.fftaMemberCode = :fftaCode")
-            ->setParameter("fftaCode", $fftaCode)
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.fftaMemberCode = :fftaCode')
+            ->setParameter('fftaCode', $fftaCode)
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -59,19 +59,19 @@ class LicenseeRepository extends ServiceEntityRepository
      */
     public function findOneByFftaId(int $fftaId): ?Licensee
     {
-        return $this->createQueryBuilder("l")
-            ->andWhere("l.fftaId = :fftaId")
-            ->setParameter("fftaId", $fftaId)
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.fftaId = :fftaId')
+            ->setParameter('fftaId', $fftaId)
             ->getQuery()
             ->getOneOrNullResult();
     }
 
     public function findByLicenseYear(int $year): array
     {
-        return $this->createQueryBuilder("l")
-            ->leftJoin("l.licenses", "li")
-            ->where("li.season = :year")
-            ->setParameter("year", $year)
+        return $this->createQueryBuilder('l')
+            ->leftJoin('l.licenses', 'li')
+            ->where('li.season = :year')
+            ->setParameter('year', $year)
             ->getQuery()
             ->getResult();
     }

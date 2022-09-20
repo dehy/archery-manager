@@ -8,21 +8,21 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GroupRepository::class)]
-#[ORM\Table(name: "`group`")]
+#[ORM\Table(name: '`group`')]
 class Group
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private $name;
 
-    #[ORM\Column(type: "text", nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $description;
 
-    #[ORM\ManyToMany(targetEntity: Licensee::class, inversedBy: "groups")]
+    #[ORM\ManyToMany(targetEntity: Licensee::class, inversedBy: 'groups')]
     private $licensees;
 
     public function __construct()

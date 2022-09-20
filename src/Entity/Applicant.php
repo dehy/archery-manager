@@ -18,48 +18,48 @@ class Applicant
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     #[Assert\Email]
     private string $email;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     private string $lastname;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     private string $firstname;
 
-    #[ORM\Column(type: "date_immutable")]
-    #[Assert\LessThanOrEqual("2022/09/24 -8 years")]
+    #[ORM\Column(type: 'date_immutable')]
+    #[Assert\LessThanOrEqual('2022/09/24 -8 years')]
     private DateTimeImmutable $birthdate;
 
-    #[ORM\Column(type: "PracticeLevelType", nullable: true)]
+    #[ORM\Column(type: 'PracticeLevelType', nullable: true)]
     #[DoctrineAssert\EnumType(entity: PracticeLevelType::class)]
     private string $practiceLevel;
 
-    #[ORM\Column(type: "string", length: 7, nullable: true)]
+    #[ORM\Column(type: 'string', length: 7, nullable: true)]
     private ?string $licenseNumber = null;
 
-    #[ORM\Column(type: "string", length: 12, nullable: true)]
+    #[ORM\Column(type: 'string', length: 12, nullable: true)]
     private ?string $phoneNumber;
 
-    #[ORM\Column(type: "text", nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\Column(type: "datetime_immutable")]
+    #[ORM\Column(type: 'datetime_immutable')]
     private DateTimeImmutable $registeredAt;
 
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private int $season = 2023;
 
-    #[ORM\Column(type: "boolean")]
+    #[ORM\Column(type: 'boolean')]
     private bool $renewal = false;
 
-    #[ORM\Column(type: "string", length: 32, nullable: true)]
+    #[ORM\Column(type: 'string', length: 32, nullable: true)]
     private string $licenseType;
 
     #[ORM\Column]
@@ -287,9 +287,9 @@ class Applicant
     public function getCompleteName(): string
     {
         return sprintf(
-            "%s %s",
+            '%s %s',
             mb_strtoupper($this->getLastname()),
-            ucfirst($this->getFirstname())
+            ucfirst($this->getFirstname()),
         );
     }
 
@@ -304,7 +304,7 @@ class Applicant
     public function getAgeCategory(): string
     {
         return ApplicantHelper::default()->licenseAgeCategoryForApplicant(
-            $this
+            $this,
         );
     }
 

@@ -16,13 +16,13 @@ class PreRegistrationSettingsType extends AbstractType
 
     public function buildForm(
         FormBuilderInterface $builder,
-        array $options
+        array $options,
     ): void {
-        $builder->add("waitingListActivated", CheckboxType::class, [
-            "required" => false,
-            "label" => "Liste d'attente",
-            "data" => (bool) $this->settingsManager->get(
-                "pre_registration_waiting_list_activated"
+        $builder->add('waitingListActivated', CheckboxType::class, [
+            'required' => false,
+            'label' => "Liste d'attente",
+            'data' => (bool) $this->settingsManager->get(
+                'pre_registration_waiting_list_activated',
             ),
         ]);
     }

@@ -8,8 +8,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\FieldTrait;
 use Money\Currencies\ISOCurrencies;
 use Money\Formatter\IntlMoneyFormatter;
 use NumberFormatter;
-use Symfony\Component\Form\Extension\Core\Type\MoneyType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class MoneyField implements FieldInterface
 {
@@ -23,23 +21,23 @@ class MoneyField implements FieldInterface
         $currencies = new ISOCurrencies();
 
         $numberFormatter = new NumberFormatter(
-            "fr_FR",
-            NumberFormatter::CURRENCY
+            'fr_FR',
+            NumberFormatter::CURRENCY,
         );
         self::$moneyFormatter = new IntlMoneyFormatter(
             $numberFormatter,
-            $currencies
+            $currencies,
         );
     }
 
     public static function new(
         string $propertyName,
-        ?string $label = null
+        ?string $label = null,
     ): self {
         return (new self())
             ->setProperty($propertyName)
             ->setLabel($label)
-            ->setTemplatePath("admin/crud/fields/money.html.twig")
+            ->setTemplatePath('admin/crud/fields/money.html.twig')
             ->formatValue(function ($property) {
                 return self::$moneyFormatter->format($property);
             });

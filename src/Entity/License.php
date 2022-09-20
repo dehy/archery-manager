@@ -14,38 +14,38 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 #[ORM\Entity(repositoryClass: LicenseRepository::class)]
 #[
     UniqueEntity(
-        fields: ["licensee", "season"],
-        message: "There is already an license for this season for this licensee"
-    )
+        fields: ['licensee', 'season'],
+        message: 'There is already an license for this season for this licensee',
+    ),
 ]
 #[Auditable]
 class License
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private $season;
 
-    #[ORM\Column(type: "LicenseType")]
+    #[ORM\Column(type: 'LicenseType')]
     #[DoctrineAssert\EnumType(entity: LicenseType::class)]
     private $type;
 
-    #[ORM\Column(type: "LicenseCategoryType", nullable: true)]
+    #[ORM\Column(type: 'LicenseCategoryType', nullable: true)]
     #[DoctrineAssert\EnumType(entity: LicenseCategoryType::class)]
     private $category;
 
-    #[ORM\Column(type: "LicenseAgeCategoryType", nullable: true)]
+    #[ORM\Column(type: 'LicenseAgeCategoryType', nullable: true)]
     #[DoctrineAssert\EnumType(entity: LicenseAgeCategoryType::class)]
     private $ageCategory;
 
-    #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: "licenses")]
+    #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: 'licenses')]
     #[ORM\JoinColumn(nullable: false)]
     private $licensee;
 
-    #[ORM\Column(type: "simple_array")]
+    #[ORM\Column(type: 'simple_array')]
     private $activities = [];
 
     public function getId(): ?int

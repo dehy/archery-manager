@@ -46,45 +46,45 @@ class EventCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new("id")->hideOnForm(),
-            TextField::new("name"),
-            DateTimeField::new("startsAt"),
-            DateTimeField::new("endsAt"),
-            ChoiceField::new("type")
+            IdField::new('id')->hideOnForm(),
+            TextField::new('name'),
+            DateTimeField::new('startsAt'),
+            DateTimeField::new('endsAt'),
+            ChoiceField::new('type')
                 ->setChoices(EventType::getChoices())
                 ->renderExpanded(),
-            ChoiceField::new("discipline")->setChoices(
-                DisciplineType::getChoices()
+            ChoiceField::new('discipline')->setChoices(
+                DisciplineType::getChoices(),
             ),
-            ChoiceField::new("contestType")->setChoices(
-                ContestType::getChoices()
+            ChoiceField::new('contestType')->setChoices(
+                ContestType::getChoices(),
             ),
-            TextField::new("address"),
+            TextField::new('address'),
         ];
     }
 
     public function configureCrud(Crud $crud): Crud
     {
-        return $crud->setDefaultSort(["startsAt" => "ASC", "endsAt" => "DESC"]);
+        return $crud->setDefaultSort(['startsAt' => 'ASC', 'endsAt' => 'DESC']);
     }
 
     public function configureActions(Actions $actions): Actions
     {
         $importResultArcScoresAction = Action::new(
-            "resultArcImport",
-            "Import results",
-            "fas fa-file-import"
-        )->linkToCrudAction("importResults");
+            'resultArcImport',
+            'Import results',
+            'fas fa-file-import',
+        )->linkToCrudAction('importResults');
 
         $seeResultsAction = Action::new(
-            "showEventResults",
-            "Results"
+            'showEventResults',
+            'Results',
         )->linkToUrl(function (Event $event) {
             return $this->urlGenerator
                 ->unsetAll()
                 ->setController(ResultCrudController::class)
-                ->set("filters[event][comparison]", "=")
-                ->set("filters[event][value]", $event->getId());
+                ->set('filters[event][comparison]', '=')
+                ->set('filters[event][value]', $event->getId());
         });
 
         return $actions
@@ -102,38 +102,38 @@ class EventCrudController extends AbstractCrudController
         Request $request,
         ResultArcParser $resultArcParser,
         EntityManagerInterface $entityManager,
-        FilesystemOperator $eventsStorage
+        FilesystemOperator $eventsStorage,
     ): Response {
         /** @var Event $event */
         $event = $context->getEntity()->getInstance();
 
         $form = $this->createFormBuilder()
-            ->add("event", TextType::class, [
-                "disabled" => true,
-                "data" => $event->__toString(),
+            ->add('event', TextType::class, [
+                'disabled' => true,
+                'data' => $event->__toString(),
             ])
-            ->add("file", FileType::class, [
-                "label" => "Result‘Arc file",
+            ->add('file', FileType::class, [
+                'label' => 'Result‘Arc file',
             ])
-            ->add("import", SubmitType::class, [
-                "disabled" => !$event->canImportResults(),
+            ->add('import', SubmitType::class, [
+                'disabled' => !$event->canImportResults(),
             ])
             ->getForm();
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var UploadedFile $file */
-            $file = $form->get("file")->getData();
+            $file = $form->get('file')->getData();
             $sanitizedEventName = mb_ereg_replace(
-                "([^\w\s\d\-_~,;\[\]\(\).])",
-                "-",
-                $event->getName()
+                '([^\w\s\d\-_~,;\[\]\(\).])',
+                '-',
+                $event->getName(),
             );
             $filepath = sprintf(
-                "%s/%s - %s - Résultats.pdf",
+                '%s/%s - %s - Résultats.pdf',
                 $event->getId(),
-                $event->getStartsAt()->format("Y-m-d"),
-                $sanitizedEventName
+                $event->getStartsAt()->format('Y-m-d'),
+                $sanitizedEventName,
             );
             $eventsStorage->write($filepath, $file->getContent());
             $event->setResultFilepath($filepath);
@@ -143,7 +143,7 @@ class EventCrudController extends AbstractCrudController
 
             /** @var LicenseeRepository $licenseeRepository */
             $licenseeRepository = $entityManager->getRepository(
-                Licensee::class
+                Licensee::class,
             );
             /** @var ResultRepository $resultRepository */
             $resultRepository = $entityManager->getRepository(Result::class);
@@ -154,19 +154,19 @@ class EventCrudController extends AbstractCrudController
                     continue;
                 }
 
-                list(
+                [
                     $distance,
                     $targetSize,
-                ) = Result::distanceForContestTypeAndActivity(
+                ] = Result::distanceForContestTypeAndActivity(
                     $event->getContestType(),
                     $event->getDiscipline(),
                     $line->activity,
-                    $line->ageCategory
+                    $line->ageCategory,
                 );
 
                 $existingResult = $resultRepository->findOneBy([
-                    "event" => $event->getId(),
-                    "licensee" => $licensee->getId(),
+                    'event' => $event->getId(),
+                    'licensee' => $licensee->getId(),
                 ]);
                 if ($existingResult) {
                     $result = $existingResult;
@@ -191,15 +191,15 @@ class EventCrudController extends AbstractCrudController
                     ->unsetAll()
                     ->setController(ResultCrudController::class)
                     ->setAction(Action::INDEX)
-                    ->generateUrl() .
-                    "&filters[event][comparison]==&filters[event][value]=" .
-                    $event->getId()
+                    ->generateUrl().
+                    '&filters[event][comparison]==&filters[event][value]='.
+                    $event->getId(),
             );
         }
 
-        return $this->render("admin/event/importResultArc.html.twig", [
-            "event" => $event,
-            "form" => $form->createView(),
+        return $this->render('admin/event/importResultArc.html.twig', [
+            'event' => $event,
+            'form' => $form->createView(),
         ]);
     }
 }

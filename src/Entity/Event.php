@@ -16,46 +16,46 @@ class Event
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private $name;
 
-    #[ORM\Column(type: "datetime_immutable")]
+    #[ORM\Column(type: 'datetime_immutable')]
     private $startsAt;
 
-    #[ORM\Column(type: "datetime_immutable")]
+    #[ORM\Column(type: 'datetime_immutable')]
     private $endsAt;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private $address;
 
-    #[ORM\Column(type: "EventType")]
+    #[ORM\Column(type: 'EventType')]
     private $type;
 
     #[
         ORM\OneToMany(
-            mappedBy: "event",
+            mappedBy: 'event',
             targetEntity: EventParticipation::class,
-            orphanRemoval: true
-        )
+            orphanRemoval: true,
+        ),
     ]
     private $participations;
 
-    #[ORM\OneToMany(mappedBy: "event", targetEntity: Result::class)]
+    #[ORM\OneToMany(mappedBy: 'event', targetEntity: Result::class)]
     private $results;
 
-    #[ORM\Column(type: "ContestType", nullable: true)]
+    #[ORM\Column(type: 'ContestType', nullable: true)]
     private $contestType;
 
-    #[ORM\Column(type: "DisciplineType")]
+    #[ORM\Column(type: 'DisciplineType')]
     private $discipline;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $mandateFilepath;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $resultFilepath;
 
     public function __construct()
@@ -67,10 +67,10 @@ class Event
     public function __toString(): string
     {
         return sprintf(
-            "%s - %s - %s",
-            $this->getStartsAt()->format("d/m/Y"),
+            '%s - %s - %s',
+            $this->getStartsAt()->format('d/m/Y'),
             DisciplineType::getReadableValue($this->getDiscipline()),
-            $this->getAddress()
+            $this->getAddress(),
         );
     }
 
@@ -157,8 +157,9 @@ class Event
         return $this;
     }
 
-    public function removeParticipation(EventParticipation $participation): self
-    {
+    public function removeParticipation(
+        EventParticipation $participation,
+    ): self {
         if ($this->participations->removeElement($participation)) {
             // set the owning side to null (unless already changed)
             if ($participation->getEvent() === $this) {
@@ -266,11 +267,12 @@ class Event
 
     public function getSeason(): int
     {
-        $month = (int) $this->getStartsAt()->format("m");
-        $year = (int) $this->getStartsAt()->format("Y");
+        $month = (int) $this->getStartsAt()->format('m');
+        $year = (int) $this->getStartsAt()->format('Y');
         if ($month >= 9 && $month <= 12) {
             return $year + 1;
         }
+
         return $year;
     }
 }

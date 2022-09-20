@@ -37,8 +37,10 @@ class EventParticipationRepository extends ServiceEntityRepository
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function remove(EventParticipation $entity, bool $flush = true): void
-    {
+    public function remove(
+        EventParticipation $entity,
+        bool $flush = true,
+    ): void {
         $this->_em->remove($entity);
         if ($flush) {
             $this->_em->flush();

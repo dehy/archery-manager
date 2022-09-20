@@ -6,8 +6,6 @@ use App\Entity\Event;
 use App\Entity\PracticeAdvice;
 use App\Helper\LicenseeHelper;
 use App\Repository\EventRepository;
-use DateTime;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,28 +13,28 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class HomepageController extends AbstractController
 {
-    #[Route("/", name: "app_homepage")]
+    #[Route('/', name: 'app_homepage')]
     public function index(
         EntityManagerInterface $entityManager,
-        LicenseeHelper $licenseeHelper
+        LicenseeHelper $licenseeHelper,
     ): Response {
         /** @var EventRepository $eventRepository */
         $eventRepository = $entityManager->getRepository(Event::class);
         $events = $eventRepository->findNextForLicensee(
             $licenseeHelper->getLicenseeFromSession(),
-            5
+            5,
         );
 
         $adviceRepository = $entityManager->getRepository(
-            PracticeAdvice::class
+            PracticeAdvice::class,
         );
         $advices = $adviceRepository->findBy([
-            "licensee" => $licenseeHelper->getLicenseeFromSession(),
+            'licensee' => $licenseeHelper->getLicenseeFromSession(),
         ]);
 
-        return $this->render("homepage/index.html.twig", [
-            "events" => $events,
-            "advices" => $advices,
+        return $this->render('homepage/index.html.twig', [
+            'events' => $events,
+            'advices' => $advices,
         ]);
     }
 }

@@ -15,21 +15,21 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[
     AsCommand(
-        name: "app:import:users",
-        description: "Add a short description for your command"
-    )
+        name: 'app:import:users',
+        description: 'Add a short description for your command',
+    ),
 ]
 class ImportUsersCommand extends Command
 {
     public function __construct(
-        protected readonly EntityManagerInterface $entityManager
+        protected readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
     }
 
     protected function configure(): void
     {
-        $this->addArgument("csvFile", InputArgument::OPTIONAL, "CSV file");
+        $this->addArgument('csvFile', InputArgument::OPTIONAL, 'CSV file');
     }
 
     /**
@@ -37,15 +37,15 @@ class ImportUsersCommand extends Command
      */
     protected function execute(
         InputInterface $input,
-        OutputInterface $output
+        OutputInterface $output,
     ): int {
         $io = new SymfonyStyle($input, $output);
-        $csvFile = $input->getArgument("csvFile");
+        $csvFile = $input->getArgument('csvFile');
 
         $userRepository = $this->entityManager->getRepository(User::class);
 
-        if (($handle = fopen($csvFile, "r")) !== false) {
-            while (($data = fgetcsv($handle, 1000, ";")) !== false) {
+        if (($handle = fopen($csvFile, 'r')) !== false) {
+            while (($data = fgetcsv($handle, 1000, ';')) !== false) {
                 $email = $data[0];
                 $roles = json_decode($data[1], true);
                 $password = $data[2];
@@ -58,13 +58,13 @@ class ImportUsersCommand extends Command
                 $ffta_member_code = $data[9];
                 $ffta_id = $data[10];
 
-                $user = $userRepository->findOneBy(["email" => $email]);
+                $user = $userRepository->findOneBy(['email' => $email]);
                 if (!$user) {
                     $user = new User();
                     $user
                         ->setEmail($email)
-                        ->setRoles(["ROLE_USER"])
-                        ->setPassword("!!")
+                        ->setRoles(['ROLE_USER'])
+                        ->setPassword('!!')
                         ->setGender($gender)
                         ->setLastname($lastname)
                         ->setFirstname($firstname);
@@ -95,10 +95,10 @@ class ImportUsersCommand extends Command
 
                 $output->writeln(
                     sprintf(
-                        "Importing %s %s",
+                        'Importing %s %s',
                         $user->getFirstname(),
-                        $user->getLastname()
-                    )
+                        $user->getLastname(),
+                    ),
                 );
                 $this->entityManager->flush();
             }

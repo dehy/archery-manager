@@ -14,14 +14,14 @@ class LicenseHelper
 
     protected array $mappingSeason = [
         2023 => [
-            "<1964-01-01" => LicenseAgeCategoryType::SENIOR_3,
-            ">1964-01-01_<1983-12-31" => LicenseAgeCategoryType::SENIOR_2,
-            ">1984-01-01_<2002-12-31" => LicenseAgeCategoryType::SENIOR_1,
-            ">2003-01-01_<2005-12-31" => LicenseAgeCategoryType::U21,
-            ">2006-01-01_<2008-12-31" => LicenseAgeCategoryType::U18,
-            ">2009-01-01_<2010-12-31" => LicenseAgeCategoryType::U15,
-            ">2011-01-01_<2012-12-31" => LicenseAgeCategoryType::U13,
-            ">2013-01-01" => LicenseAgeCategoryType::U11,
+            '<1964-01-01' => LicenseAgeCategoryType::SENIOR_3,
+            '>1964-01-01_<1983-12-31' => LicenseAgeCategoryType::SENIOR_2,
+            '>1984-01-01_<2002-12-31' => LicenseAgeCategoryType::SENIOR_1,
+            '>2003-01-01_<2005-12-31' => LicenseAgeCategoryType::U21,
+            '>2006-01-01_<2008-12-31' => LicenseAgeCategoryType::U18,
+            '>2009-01-01_<2010-12-31' => LicenseAgeCategoryType::U15,
+            '>2011-01-01_<2012-12-31' => LicenseAgeCategoryType::U13,
+            '>2013-01-01' => LicenseAgeCategoryType::U11,
         ],
     ];
 
@@ -32,24 +32,20 @@ class LicenseHelper
 
     public function licenseTypeForBirthdate(
         DateTimeInterface $birthdate,
-        bool $tournament
+        bool $tournament,
     ): string {
         $categoryType = $this->licenseCategoryTypeForBirthdate($birthdate);
 
         return match (true) {
-            $categoryType === LicenseCategoryType::ADULTES &&
-                $tournament => LicenseType::ADULTES_COMPETITION,
-            $categoryType === LicenseCategoryType::ADULTES &&
-                !$tournament => LicenseType::ADULTES_CLUB,
-            $categoryType ===
-                LicenseCategoryType::JEUNES => LicenseType::JEUNES,
-            $categoryType ===
-                LicenseCategoryType::POUSSINS => LicenseType::POUSSINS,
+            LicenseCategoryType::ADULTES === $categoryType && $tournament => LicenseType::ADULTES_COMPETITION,
+            LicenseCategoryType::ADULTES === $categoryType && !$tournament => LicenseType::ADULTES_CLUB,
+            LicenseCategoryType::JEUNES === $categoryType => LicenseType::JEUNES,
+            LicenseCategoryType::POUSSINS === $categoryType => LicenseType::POUSSINS,
         };
     }
 
     public function licenseCategoryTypeForBirthdate(
-        DateTimeInterface $birthdate
+        DateTimeInterface $birthdate,
     ): string {
         $ageCategory = $this->ageCategoryForBirthdate($birthdate);
 
@@ -62,31 +58,33 @@ class LicenseHelper
 
         return match ($ageCategory) {
             LicenseAgeCategoryType::U11 => LicenseCategoryType::POUSSINS,
-            LicenseAgeCategoryType::U13, LicenseAgeCategoryType::U15,
+            LicenseAgeCategoryType::U13,
+            LicenseAgeCategoryType::U15,
             LicenseAgeCategoryType::U18,
             LicenseAgeCategoryType::U21 => LicenseCategoryType::JEUNES,
-            LicenseAgeCategoryType::SENIOR_1, LicenseAgeCategoryType::SENIOR_2,
+            LicenseAgeCategoryType::SENIOR_1,
+            LicenseAgeCategoryType::SENIOR_2,
             LicenseAgeCategoryType::SENIOR_3 => LicenseCategoryType::ADULTES,
         };
     }
 
     public function ageCategoryForBirthdate(
-        DateTimeInterface $birthdate
+        DateTimeInterface $birthdate,
     ): string {
         $mapping = $this->mappingSeason[$this->season];
 
         foreach ($mapping as $dateKey => $ageCategory) {
-            $parts = explode("_", $dateKey);
+            $parts = explode('_', $dateKey);
             $leftPart = $parts[0];
             $rightPart = $parts[1] ?? null;
             $after = null;
             $before = null;
             if (!$rightPart) {
                 $sign = substr($leftPart, 0, 1);
-                if ($sign === ">") {
+                if ('>' === $sign) {
                     $after = $this->dateTimeFromKeyPart($leftPart);
                 }
-                if ($sign === "<") {
+                if ('<' === $sign) {
                     $before = $this->dateTimeFromKeyPart($leftPart);
                 }
             } else {
@@ -96,25 +94,20 @@ class LicenseHelper
 
             if (
                 $birthdate > $after &&
-                ($birthdate < $before || $before === null)
+                ($birthdate < $before || null === $before)
             ) {
                 return $ageCategory;
             }
         }
 
-        throw new \LogicException(
-            sprintf(
-                "Should have found a value. %s given",
-                $birthdate->format("Y-m-d")
-            )
-        );
+        throw new \LogicException(sprintf('Should have found a value. %s given', $birthdate->format('Y-m-d')));
     }
 
     private function dateTimeFromKeyPart(string $keyPart): DateTimeImmutable
     {
         return DateTimeImmutable::createFromFormat(
-            "Y-m-d",
-            substr($keyPart, 1, 10)
+            'Y-m-d',
+            substr($keyPart, 1, 10),
         );
     }
 }

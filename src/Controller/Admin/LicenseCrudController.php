@@ -2,16 +2,13 @@
 
 namespace App\Controller\Admin;
 
-use App\DBAL\Types\EventType;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\Entity\License;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
@@ -26,16 +23,16 @@ class LicenseCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            AssociationField::new("licensee"),
-            IntegerField::new("season"),
-            ChoiceField::new("type")->setChoices(LicenseType::getChoices()),
-            ChoiceField::new("category")->setChoices(
-                LicenseCategoryType::getChoices()
+            AssociationField::new('licensee'),
+            IntegerField::new('season'),
+            ChoiceField::new('type')->setChoices(LicenseType::getChoices()),
+            ChoiceField::new('category')->setChoices(
+                LicenseCategoryType::getChoices(),
             ),
-            ChoiceField::new("ageCategory")->setChoices(
-                LicenseAgeCategoryType::getChoices()
+            ChoiceField::new('ageCategory')->setChoices(
+                LicenseAgeCategoryType::getChoices(),
             ),
-            ChoiceField::new("activities")
+            ChoiceField::new('activities')
                 ->setChoices(LicenseActivityType::getChoices())
                 ->allowMultipleChoices(),
         ];
@@ -43,6 +40,6 @@ class LicenseCrudController extends AbstractCrudController
 
     public function configureFilters(Filters $filters): Filters
     {
-        return $filters->add("licensee")->add("season");
+        return $filters->add('licensee')->add('season');
     }
 }

@@ -2,11 +2,8 @@
 
 namespace App\Helper;
 
-use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\Entity\Applicant;
-use DateTimeImmutable;
-use DateTimeInterface;
 use Money\Money;
 
 class ApplicantHelper
@@ -19,6 +16,7 @@ class ApplicantHelper
         if (null === self::$instance) {
             self::$instance = new ApplicantHelper(new LicenseHelper());
         }
+
         return self::$instance;
     }
 
@@ -28,26 +26,27 @@ class ApplicantHelper
 
     public function licenseTypeForApplicant(Applicant $applicant): string
     {
-        $tournament = $applicant->getLicenseType() === "COMPÉTITION";
+        $tournament = 'COMPÉTITION' === $applicant->getLicenseType();
 
         return $this->licenseHelper->licenseTypeForBirthdate(
             $applicant->getBirthdate(),
-            $tournament
+            $tournament,
         );
     }
 
     public function licenseCategoryTypeForApplicant(
-        Applicant $applicant
+        Applicant $applicant,
     ): string {
         return $this->licenseHelper->licenseCategoryTypeForBirthdate(
-            $applicant->getBirthdate()
+            $applicant->getBirthdate(),
         );
     }
 
-    public function licenseAgeCategoryForApplicant(Applicant $applicant): string
-    {
+    public function licenseAgeCategoryForApplicant(
+        Applicant $applicant,
+    ): string {
         return $this->licenseHelper->ageCategoryForBirthdate(
-            $applicant->getBirthdate()
+            $applicant->getBirthdate(),
         );
     }
 
@@ -56,20 +55,20 @@ class ApplicantHelper
         $isRenewal = $applicant->isRenewal();
         $birthdate = $applicant->getBirthdate();
         $licenseCategory = $this->licenseHelper->licenseCategoryTypeForBirthdate(
-            $birthdate
+            $birthdate,
         );
         $isYoung = in_array($licenseCategory, [
             LicenseCategoryType::POUSSINS,
             LicenseCategoryType::JEUNES,
         ]);
 
-        $isAdult = $licenseCategory === LicenseCategoryType::ADULTES;
+        $isAdult = LicenseCategoryType::ADULTES === $licenseCategory;
 
         return match (true) {
-            $isRenewal && $isYoung => Money::EUR("13000"),
-            $isRenewal && $isAdult => Money::EUR("17000"),
-            !$isRenewal && $isYoung => Money::EUR("15000"),
-            !$isRenewal && $isAdult => Money::EUR("18000"),
+            $isRenewal && $isYoung => Money::EUR('13000'),
+            $isRenewal && $isAdult => Money::EUR('17000'),
+            !$isRenewal && $isYoung => Money::EUR('15000'),
+            !$isRenewal && $isAdult => Money::EUR('18000'),
         };
     }
 }

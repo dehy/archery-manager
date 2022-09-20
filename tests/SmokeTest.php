@@ -12,18 +12,18 @@ class SmokeTest extends WebTestCase
     public function testPublicUrls($url): void
     {
         $client = self::createClient();
-        $client->request("GET", $url);
+        $client->request('GET', $url);
         self::assertResponseIsSuccessful();
     }
 
     public function publicUrlsProvider(): array
     {
         return [
-            ["/login"],
-            ["/pre-inscription"],
-            ["/pre-inscription/merci"],
-            ["/pre-inscription-renouvellement"],
-            ["/pre-inscription-renouvellement/merci"],
+            ['/login'],
+            ['/pre-inscription'],
+            ['/pre-inscription/merci'],
+            ['/pre-inscription-renouvellement'],
+            ['/pre-inscription-renouvellement/merci'],
         ];
     }
 }

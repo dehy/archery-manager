@@ -30,8 +30,10 @@ class ResetPasswordRequestRepository extends ServiceEntityRepository implements 
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function add(ResetPasswordRequest $entity, bool $flush = true): void
-    {
+    public function add(
+        ResetPasswordRequest $entity,
+        bool $flush = true,
+    ): void {
         $this->_em->persist($entity);
         if ($flush) {
             $this->_em->flush();
@@ -42,16 +44,27 @@ class ResetPasswordRequestRepository extends ServiceEntityRepository implements 
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function remove(ResetPasswordRequest $entity, bool $flush = true): void
-    {
+    public function remove(
+        ResetPasswordRequest $entity,
+        bool $flush = true,
+    ): void {
         $this->_em->remove($entity);
         if ($flush) {
             $this->_em->flush();
         }
     }
 
-    public function createResetPasswordRequest(object $user, \DateTimeInterface $expiresAt, string $selector, string $hashedToken): ResetPasswordRequestInterface
-    {
-        return new ResetPasswordRequest($user, $expiresAt, $selector, $hashedToken);
+    public function createResetPasswordRequest(
+        object $user,
+        \DateTimeInterface $expiresAt,
+        string $selector,
+        string $hashedToken,
+    ): ResetPasswordRequestInterface {
+        return new ResetPasswordRequest(
+            $user,
+            $expiresAt,
+            $selector,
+            $hashedToken,
+        );
     }
 }

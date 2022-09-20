@@ -5,7 +5,6 @@ namespace App\Controller\Admin;
 use App\Controller\Admin\Filter\LicenseSeasonFilter;
 use App\DBAL\Types\GenderType;
 use App\Entity\Licensee;
-use App\Entity\User;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -25,16 +24,16 @@ class LicenseeCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new("id")->hideOnForm(),
-            AssociationField::new("user"),
-            ChoiceField::new("gender")
+            IdField::new('id')->hideOnForm(),
+            AssociationField::new('user'),
+            ChoiceField::new('gender')
                 ->setChoices(GenderType::getChoices())
                 ->renderExpanded(),
-            TextField::new("firstname"),
-            TextField::new("lastname"),
-            DateField::new("birthdate"),
-            TextField::new("fftaMemberCode"),
-            IntegerField::new("fftaId")->hideOnIndex(),
+            TextField::new('firstname'),
+            TextField::new('lastname'),
+            DateField::new('birthdate'),
+            TextField::new('fftaMemberCode'),
+            IntegerField::new('fftaId')->hideOnIndex(),
         ];
     }
 

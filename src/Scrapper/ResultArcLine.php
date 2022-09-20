@@ -8,7 +8,7 @@ class ResultArcLine
         public string $fftaCode,
         public string $ageCategory,
         public string $activity,
-        public int $score
+        public int $score,
     ) {
     }
 }

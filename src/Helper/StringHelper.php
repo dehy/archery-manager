@@ -14,12 +14,13 @@ class StringHelper
     public static function randomPassword(int $length): string
     {
         $characters =
-            "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!-.[]?*()";
-        $password = "";
-        $characterListLength = mb_strlen($characters, "8bit") - 1;
+            '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!-.[]?*()';
+        $password = '';
+        $characterListLength = mb_strlen($characters, '8bit') - 1;
         foreach (range(1, $length) as $index) {
             $password .= $characters[random_int(0, $characterListLength)];
         }
+
         return $password;
     }
 }

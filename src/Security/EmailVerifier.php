@@ -21,7 +21,7 @@ class EmailVerifier
     public function __construct(
         VerifyEmailHelperInterface $helper,
         MailerInterface $mailer,
-        EntityManagerInterface $manager
+        EntityManagerInterface $manager,
     ) {
         $this->verifyEmailHelper = $helper;
         $this->mailer = $mailer;
@@ -30,27 +30,28 @@ class EmailVerifier
 
     /**
      * @param User $user
+     *
      * @throws TransportExceptionInterface
      */
     public function sendEmailConfirmation(
         string $verifyEmailRouteName,
         UserInterface $user,
-        TemplatedEmail $email
+        TemplatedEmail $email,
     ): void {
         $signatureComponents = $this->verifyEmailHelper->generateSignature(
             $verifyEmailRouteName,
             $user->getId(),
             $user->getEmail(),
-            ["id" => $user->getId()]
+            ['id' => $user->getId()],
         );
 
         $context = $email->getContext();
-        $context["signedUrl"] = $signatureComponents->getSignedUrl();
+        $context['signedUrl'] = $signatureComponents->getSignedUrl();
         $context[
-            "expiresAtMessageKey"
+            'expiresAtMessageKey'
         ] = $signatureComponents->getExpirationMessageKey();
         $context[
-            "expiresAtMessageData"
+            'expiresAtMessageData'
         ] = $signatureComponents->getExpirationMessageData();
 
         $email->context($context);
@@ -60,16 +61,17 @@ class EmailVerifier
 
     /**
      * @param User $user
+     *
      * @throws VerifyEmailExceptionInterface
      */
     public function handleEmailConfirmation(
         Request $request,
-        UserInterface $user
+        UserInterface $user,
     ): void {
         $this->verifyEmailHelper->validateEmailConfirmation(
             $request->getUri(),
             $user->getId(),
-            $user->getEmail()
+            $user->getEmail(),
         );
 
         $user->setIsVerified(true);

@@ -13,37 +13,37 @@ class PracticeAdvice
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
     #[
         ORM\ManyToOne(
             targetEntity: Licensee::class,
-            inversedBy: "practiceAdvices"
-        )
+            inversedBy: 'practiceAdvices',
+        ),
     ]
     #[ORM\JoinColumn(nullable: false)]
     private Licensee $licensee;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private string $title;
 
-    #[ORM\Column(type: "text")]
+    #[ORM\Column(type: 'text')]
     private string $advice;
 
     #[
         ORM\ManyToOne(
             targetEntity: Licensee::class,
-            inversedBy: "givenPracticeAdvices"
-        )
+            inversedBy: 'givenPracticeAdvices',
+        ),
     ]
     #[ORM\JoinColumn(nullable: false)]
     private Licensee $author;
 
-    #[ORM\Column(type: "datetime_immutable")]
+    #[ORM\Column(type: 'datetime_immutable')]
     private DateTimeImmutable $createdAt;
 
-    #[ORM\Column(type: "datetime_immutable", nullable: true)]
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?DateTimeImmutable $archivedAt;
 
     public function __construct()

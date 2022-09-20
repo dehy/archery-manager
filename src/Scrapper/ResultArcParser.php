@@ -9,7 +9,7 @@ use Exception;
 use Smalot\PdfParser\Parser;
 
 /**
- * Parse Result'Arc PDF files to extract results
+ * Parse Result'Arc PDF files to extract results.
  */
 class ResultArcParser
 {
@@ -22,6 +22,7 @@ class ResultArcParser
 
     /**
      * @return ResultArcLine[]
+     *
      * @throws Exception
      */
     public function parseFile(string $filepath): array
@@ -29,7 +30,7 @@ class ResultArcParser
         $pdf = $this->parser->parseFile($filepath);
 
         $results = [];
-        $re = "/" . $this->searchPattern() . "/m";
+        $re = '/'.$this->searchPattern().'/m';
         foreach (explode(PHP_EOL, $pdf->getText()) as $line) {
             if (1 === preg_match($re, $line, $matches)) {
                 $score = intval($matches[1]);
@@ -40,7 +41,7 @@ class ResultArcParser
                     $fftaCode,
                     $ageCategory,
                     $activity,
-                    $score
+                    $score,
                 );
                 $results[$fftaCode] = $resultArcLine;
             }
@@ -51,6 +52,7 @@ class ResultArcParser
 
     /**
      * @return Result[]
+     *
      * @throws Exception
      */
     public function parseContent(string $fileContent): array
@@ -63,13 +65,13 @@ class ResultArcParser
     protected function parseCategory(string $category): array
     {
         $found = preg_match(
-            "/" . $this->categoryPattern() . "/",
+            '/'.$this->categoryPattern().'/',
             $category,
-            $matches
+            $matches,
         );
 
         if (!$found) {
-            throw new Exception("Cannot parse category");
+            throw new Exception('Cannot parse category');
         }
 
         return [$matches[1], $matches[2]];
@@ -79,15 +81,15 @@ class ResultArcParser
     {
         return sprintf(
             "^[-'A-ZÀ-ž ]+ (\d{2,3})(  \d{1,2})?%s .* (\d{6}\w)( \d+)?$",
-            $this->categoryPattern()
+            $this->categoryPattern(),
         );
     }
 
     private function categoryPattern(): string
     {
-        $ageCategories = implode("|", LicenseAgeCategoryType::getValues());
-        $activityTypes = implode("|", LicenseActivityType::getValues());
+        $ageCategories = implode('|', LicenseAgeCategoryType::getValues());
+        $activityTypes = implode('|', LicenseActivityType::getValues());
 
-        return sprintf("(%s)[HF](%s)", $ageCategories, $activityTypes);
+        return sprintf('(%s)[HF](%s)', $ageCategories, $activityTypes);
     }
 }

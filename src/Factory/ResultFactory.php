@@ -13,15 +13,15 @@ class ResultFactory
     public static function createFromEventLicenseeAndFftaResult(
         Event $event,
         Licensee $licensee,
-        FftaResult $fftaResult
+        FftaResult $fftaResult,
     ): Result {
         $category = $fftaResult->getCategory();
-        list($ageCategory, $activity) = CategoryParser::parseString($category);
-        list($distance, $size) = Result::distanceForContestTypeAndActivity(
+        [$ageCategory, $activity] = CategoryParser::parseString($category);
+        [$distance, $size] = Result::distanceForContestTypeAndActivity(
             $event->getContestType(),
             $event->getDiscipline(),
             $activity,
-            $ageCategory
+            $ageCategory,
         );
 
         $season = $event->getSeason();
@@ -31,7 +31,7 @@ class ResultFactory
             ->setLicensee($licensee)
             ->setDiscipline($event->getDiscipline())
             ->setAgeCategory(
-                $licensee->getLicenseForSeason($season)->getAgeCategory()
+                $licensee->getLicenseForSeason($season)->getAgeCategory(),
             )
             ->setActivity($activity)
             ->setDistance($distance)

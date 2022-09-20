@@ -7,8 +7,6 @@ use App\Entity\Licensee;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -42,15 +40,15 @@ class EventRepository extends ServiceEntityRepository
 
     public function findNextForLicensee(
         Licensee $licensee,
-        ?int $limit = null
+        ?int $limit = null,
     ): ArrayCollection {
         return new ArrayCollection(
-            $this->createQueryBuilder("e")
-                ->where("e.endsAt >= :now")
-                ->setParameter("now", new DateTime())
+            $this->createQueryBuilder('e')
+                ->where('e.endsAt >= :now')
+                ->setParameter('now', new DateTime())
                 ->setMaxResults($limit)
                 ->getQuery()
-                ->getResult()
+                ->getResult(),
         );
     }
 }

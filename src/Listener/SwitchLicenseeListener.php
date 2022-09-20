@@ -9,12 +9,12 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Security;
 
-#[AsEventListener(event: "kernel.request")]
+#[AsEventListener(event: 'kernel.request')]
 class SwitchLicenseeListener
 {
     public function __construct(
         protected Security $security,
-        protected LicenseeHelper $licenseeHelper
+        protected LicenseeHelper $licenseeHelper,
     ) {
     }
 
@@ -22,23 +22,23 @@ class SwitchLicenseeListener
     {
         $request = $event->getRequest();
 
-        $licenseeCode = $request->get("_switch_licensee");
+        $licenseeCode = $request->get('_switch_licensee');
 
-        if (null === $licenseeCode || "" === $licenseeCode) {
+        if (null === $licenseeCode || '' === $licenseeCode) {
             return;
         }
 
         /** @var User $user */
         $user = $this->security->getUser();
         $licensee = $user->getLicenseeWithCode($licenseeCode);
-        if ($licensee !== null) {
+        if (null !== $licensee) {
             $this->licenseeHelper->setSelectedLicensee($licensee);
         }
 
-        $request->query->remove("_switch_licensee");
+        $request->query->remove('_switch_licensee');
         $request->server->set(
-            "QUERY_STRING",
-            http_build_query($request->query->all(), "", "&")
+            'QUERY_STRING',
+            http_build_query($request->query->all(), '', '&'),
         );
         $response = new RedirectResponse($request->getUri(), 302);
 

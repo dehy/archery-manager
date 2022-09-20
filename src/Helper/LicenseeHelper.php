@@ -11,13 +11,13 @@ use Symfony\Component\Security\Core\Security;
 
 class LicenseeHelper
 {
-    const SESSION_KEY = "selectedLicensee";
+    public const SESSION_KEY = 'selectedLicensee';
 
     protected SessionInterface $session;
 
     public function __construct(
         protected RequestStack $requestStack,
-        protected Security $security
+        protected Security $security,
     ) {
     }
 
@@ -31,6 +31,7 @@ class LicenseeHelper
         if (null === $licenseeCode) {
             $licensee = $user->getLicensees()->first();
             $this->setSelectedLicensee($licensee);
+
             return $licensee;
         }
         foreach ($user->getLicensees() as $licensee) {
@@ -38,7 +39,7 @@ class LicenseeHelper
                 return $licensee;
             }
         }
-        throw new LogicException("Should have get a licensee.");
+        throw new LogicException('Should have get a licensee.');
     }
 
     public function setSelectedLicensee(Licensee $licensee): void

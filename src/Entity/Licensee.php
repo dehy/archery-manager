@@ -17,90 +17,90 @@ class Licensee
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "licensees")]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'licensees')]
     #[ORM\JoinColumn(nullable: true)]
     private $user;
 
-    #[ORM\Column(type: "GenderType")]
+    #[ORM\Column(type: 'GenderType')]
     private $gender;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private $lastname;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private $firstname;
 
-    #[ORM\Column(type: "date")]
+    #[ORM\Column(type: 'date')]
     private $birthdate;
 
-    #[ORM\Column(type: "string", length: 7, unique: true, nullable: true)]
+    #[ORM\Column(type: 'string', length: 7, unique: true, nullable: true)]
     #[Assert\Length(min: 7, max: 7)]
     private $fftaMemberCode;
 
-    #[ORM\Column(type: "integer", unique: true, nullable: true)]
+    #[ORM\Column(type: 'integer', unique: true, nullable: true)]
     private $fftaId;
 
     #[
         ORM\OneToMany(
-            mappedBy: "licensee",
+            mappedBy: 'licensee',
             targetEntity: License::class,
-            orphanRemoval: true
-        )
+            orphanRemoval: true,
+        ),
     ]
     private $licenses;
 
     #[
         ORM\OneToMany(
-            mappedBy: "owner",
+            mappedBy: 'owner',
             targetEntity: Bow::class,
-            orphanRemoval: true
-        )
+            orphanRemoval: true,
+        ),
     ]
     private $bows;
 
     #[
         ORM\OneToMany(
-            mappedBy: "owner",
+            mappedBy: 'owner',
             targetEntity: Arrow::class,
-            orphanRemoval: true
-        )
+            orphanRemoval: true,
+        ),
     ]
     private $arrows;
 
     #[
         ORM\OneToMany(
-            mappedBy: "participant",
+            mappedBy: 'participant',
             targetEntity: EventParticipation::class,
-            orphanRemoval: true
-        )
+            orphanRemoval: true,
+        ),
     ]
     private $eventParticipations;
 
     #[
         ORM\OneToMany(
-            mappedBy: "licensee",
+            mappedBy: 'licensee',
             targetEntity: Result::class,
-            orphanRemoval: true
-        )
+            orphanRemoval: true,
+        ),
     ]
     private $results;
 
-    #[ORM\ManyToMany(targetEntity: Group::class, mappedBy: "licensees")]
+    #[ORM\ManyToMany(targetEntity: Group::class, mappedBy: 'licensees')]
     private $groups;
 
     #[
         ORM\OneToMany(
-            mappedBy: "licensee",
+            mappedBy: 'licensee',
             targetEntity: PracticeAdvice::class,
-            orphanRemoval: true
-        )
+            orphanRemoval: true,
+        ),
     ]
     private $practiceAdvices;
 
-    #[ORM\OneToMany(mappedBy: "author", targetEntity: PracticeAdvice::class)]
+    #[ORM\OneToMany(mappedBy: 'author', targetEntity: PracticeAdvice::class)]
     private $givenPracticeAdvices;
 
     public function __construct()
@@ -175,7 +175,7 @@ class Licensee
 
     public function getFullname(): string
     {
-        return sprintf("%s %s", $this->getFirstname(), $this->getLastname());
+        return sprintf('%s %s', $this->getFirstname(), $this->getLastname());
     }
 
     public function getBirthdate(): ?DateTimeInterface
@@ -230,8 +230,9 @@ class Licensee
     public function getLicenseForSeason(int $year): ?License
     {
         $filteredLicenses = $this->licenses->filter(
-            fn(License $l) => $l->getSeason() === $year
+            fn (License $l) => $l->getSeason() === $year,
         );
+
         return $filteredLicenses->count() > 0
             ? $filteredLicenses->first()
             : null;
@@ -328,7 +329,7 @@ class Licensee
     }
 
     public function addEventParticipation(
-        EventParticipation $eventParticipation
+        EventParticipation $eventParticipation,
     ): self {
         if (!$this->eventParticipations->contains($eventParticipation)) {
             $this->eventParticipations[] = $eventParticipation;
@@ -339,7 +340,7 @@ class Licensee
     }
 
     public function removeEventParticipation(
-        EventParticipation $eventParticipation
+        EventParticipation $eventParticipation,
     ): self {
         if ($this->eventParticipations->removeElement($eventParticipation)) {
             // set the owning side to null (unless already changed)
@@ -447,7 +448,7 @@ class Licensee
     }
 
     public function addGivenPracticeAdvice(
-        PracticeAdvice $givenPracticeAdvice
+        PracticeAdvice $givenPracticeAdvice,
     ): self {
         if (!$this->givenPracticeAdvices->contains($givenPracticeAdvice)) {
             $this->givenPracticeAdvices[] = $givenPracticeAdvice;
@@ -458,7 +459,7 @@ class Licensee
     }
 
     public function removeGivenPracticeAdvice(
-        PracticeAdvice $givenPracticeAdvice
+        PracticeAdvice $givenPracticeAdvice,
     ): self {
         if ($this->givenPracticeAdvices->removeElement($givenPracticeAdvice)) {
             // set the owning side to null (unless already changed)

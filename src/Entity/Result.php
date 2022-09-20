@@ -17,57 +17,57 @@ class Result
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: "results")]
+    #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: 'results')]
     #[ORM\JoinColumn(nullable: false)]
     private Licensee $licensee;
 
-    #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: "results")]
+    #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: 'results')]
     private Event $event;
 
-    #[ORM\Column(type: "DisciplineType")]
+    #[ORM\Column(type: 'DisciplineType')]
     private string $discipline;
 
-    #[ORM\Column(type: "LicenseAgeCategoryType")]
+    #[ORM\Column(type: 'LicenseAgeCategoryType')]
     private string $ageCategory;
 
-    #[ORM\Column(type: "LicenseActivityType")]
+    #[ORM\Column(type: 'LicenseActivityType')]
     private string $activity;
 
-    #[ORM\Column(type: "integer", nullable: true)]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private int $distance;
 
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private int $targetSize;
 
-    #[ORM\Column(type: "integer", nullable: true)]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $score1 = null;
 
-    #[ORM\Column(type: "integer", nullable: true)]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $score2 = null;
 
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private int $total;
 
-    #[ORM\Column(type: "integer", nullable: true)]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $nb10 = null;
 
-    #[ORM\Column(type: "integer", nullable: true)]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $nb10p = null;
 
-    #[ORM\Column(type: "integer", nullable: true)]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $position = null;
 
     public static function fromFftaResult(
         FftaResult $fftaResult,
         Event $event,
         Licensee $licensee,
-        string $discipline
+        string $discipline,
     ): Result {
-        list($ageCategory, $activity) = CategoryParser::parseString(
-            $fftaResult->getCategory()
+        [$ageCategory, $activity] = CategoryParser::parseString(
+            $fftaResult->getCategory(),
         );
 
         return (new Result())
@@ -247,30 +247,26 @@ class Result
     }
 
     /**
-     * @param string $discipline
-     * @param string $ageCategory
-     * @param string $contestType
-     * @param string $activity
      * @return array<int>
      */
     public static function distanceForContestTypeAndActivity(
         string $contestType,
         string $discipline,
         string $activity,
-        string $ageCategory
+        string $ageCategory,
     ): array {
-        if ($contestType === ContestType::CHALLENGE33) {
+        if (ContestType::CHALLENGE33 === $contestType) {
             return self::distanceAndSizeForChallenge33(
                 $discipline,
                 $activity,
-                $ageCategory
+                $ageCategory,
             );
         }
-        if ($contestType === ContestType::FEDERAL) {
+        if (ContestType::FEDERAL === $contestType) {
             return self::distanceAndSizeForFederal(
                 $discipline,
                 $activity,
-                $ageCategory
+                $ageCategory,
             );
         }
 
@@ -280,12 +276,13 @@ class Result
     private static function distanceAndSizeForChallenge33(
         string $discipline,
         string $activity,
-        string $ageCategory
+        string $ageCategory,
     ): array {
-        if ($discipline === DisciplineType::INDOOR) {
-            if ($activity === LicenseActivityType::CO) {
+        if (DisciplineType::INDOOR === $discipline) {
+            if (LicenseActivityType::CO === $activity) {
                 return [18, 60];
             }
+
             return match ($ageCategory) {
                 LicenseAgeCategoryType::POUSSIN => [10, 80],
                 LicenseAgeCategoryType::BENJAMIN => [15, 80],
@@ -293,10 +290,11 @@ class Result
                 default => [18, 60],
             };
         }
-        if ($discipline === DisciplineType::TARGET) {
-            if ($activity === LicenseActivityType::CO) {
+        if (DisciplineType::TARGET === $discipline) {
+            if (LicenseActivityType::CO === $activity) {
                 return [30, 80];
             }
+
             return match ($ageCategory) {
                 LicenseAgeCategoryType::POUSSIN,
                 LicenseAgeCategoryType::BENJAMIN => [15, 80],
@@ -310,12 +308,13 @@ class Result
     private static function distanceAndSizeForFederal(
         string $discipline,
         string $activity,
-        string $ageCategory
+        string $ageCategory,
     ): array {
-        if ($discipline === DisciplineType::INDOOR) {
-            if ($activity === LicenseActivityType::CO) {
+        if (DisciplineType::INDOOR === $discipline) {
+            if (LicenseActivityType::CO === $activity) {
                 return [18, 20];
             }
+
             return match ($ageCategory) {
                 LicenseAgeCategoryType::POUSSIN => [18, 80],
                 LicenseAgeCategoryType::BENJAMIN,
@@ -323,10 +322,11 @@ class Result
                 default => [18, 40],
             };
         }
-        if ($discipline === DisciplineType::TARGET) {
-            if ($activity === LicenseActivityType::CO) {
+        if (DisciplineType::TARGET === $discipline) {
+            if (LicenseActivityType::CO === $activity) {
                 return [50, 80];
             }
+
             return match ($ageCategory) {
                 LicenseAgeCategoryType::POUSSIN => [20, 80],
                 LicenseAgeCategoryType::BENJAMIN => [30, 80],

@@ -15,7 +15,7 @@ class UserFactory
             ->setLastname($profile->getNom())
             ->setGender($profile->getSexe())
             ->setPhoneNumber($profile->getMobile())
-            ->setRoles(["ROLE_USER"])
-            ->setPassword("!!");
+            ->setRoles(['ROLE_USER'])
+            ->setPassword('!!');
     }
 }

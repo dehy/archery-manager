@@ -6,7 +6,6 @@ use App\Entity\Licensee;
 use App\Entity\User;
 use App\Helper\LicenseeHelper;
 use App\Repository\LicenseeRepository;
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\NonUniqueResultException;
@@ -14,44 +13,44 @@ use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\EventListener\AbstractSessionListener;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 class LicenseeController extends AbstractController
 {
-    #[Route("/licensees", name: "app_licensee_index")]
-    public function index(LicenseeRepository $licenseeRepository): Response {
+    #[Route('/licensees', name: 'app_licensee_index')]
+    public function index(LicenseeRepository $licenseeRepository): Response
+    {
         $year = 2023;
         $licensees = new ArrayCollection(
-            $licenseeRepository->findByLicenseYear($year)
+            $licenseeRepository->findByLicenseYear($year),
         );
         /** @var ArrayCollection<int, Licensee> $orderedLicensees */
         $orderedLicensees = $licensees->matching(
             Criteria::create()->orderBy([
-                "firstname" => "ASC",
-                "lastname" => "ASC",
-            ])
+                'firstname' => 'ASC',
+                'lastname' => 'ASC',
+            ]),
         );
 
-        return $this->render("licensee/index.html.twig", [
-            "licensees" => $orderedLicensees,
-            "year" => $year,
+        return $this->render('licensee/index.html.twig', [
+            'licensees' => $orderedLicensees,
+            'year' => $year,
         ]);
     }
 
-    #[Route("/my-profile", name: "app_licensee_my_profile", methods: ["GET"])]
+    #[Route('/my-profile', name: 'app_licensee_my_profile', methods: ['GET'])]
     #[
         Route(
-            "/licensee/{fftaCode}",
-            name: "app_licensee_profile",
-            methods: ["GET"]
-        )
+            '/licensee/{fftaCode}',
+            name: 'app_licensee_profile',
+            methods: ['GET'],
+        ),
     ]
     public function show(
         LicenseeRepository $licenseeRepository,
         LicenseeHelper $licenseeHelper,
-        ?string $fftaCode
+        ?string $fftaCode,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
@@ -65,12 +64,13 @@ class LicenseeController extends AbstractController
         if (
             !$licensee ||
             ($user->getLicensees()->contains($licensee) &&
-                !$this->isGranted("ROLE_ADMIN"))
+                !$this->isGranted('ROLE_ADMIN'))
         ) {
             throw new NotFoundHttpException();
         }
-        return $this->render("licensee/show.html.twig", [
-            "licensee" => $licensee,
+
+        return $this->render('licensee/show.html.twig', [
+            'licensee' => $licensee,
         ]);
     }
 
@@ -79,15 +79,15 @@ class LicenseeController extends AbstractController
      */
     #[
         Route(
-            "/licensee/{fftaCode}/picture",
-            name: "app_licensee_picture",
-            methods: ["GET"]
-        )
+            '/licensee/{fftaCode}/picture',
+            name: 'app_licensee_picture',
+            methods: ['GET'],
+        ),
     ]
     public function profilePicture(
         string $fftaCode,
         LicenseeRepository $licenseeRepository,
-        FilesystemOperator $profilePicturesStorage
+        FilesystemOperator $profilePicturesStorage,
     ): Response {
         $licensee = $licenseeRepository->findByCode($fftaCode);
         if (!$licensee) {
@@ -95,11 +95,11 @@ class LicenseeController extends AbstractController
         }
 
         $lastModified = null;
-        $imagePath = sprintf("%s.jpg", $fftaCode);
+        $imagePath = sprintf('%s.jpg', $fftaCode);
         try {
             $profilePicture = $profilePicturesStorage->read($imagePath);
             $lastModified = $profilePicturesStorage->lastModified($imagePath);
-            $contentType = "image/jpeg";
+            $contentType = 'image/jpeg';
         } catch (FilesystemException) {
             $profilePicture = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg width="100%" height="100%" viewBox="0 0 175 275" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
@@ -115,11 +115,11 @@ class LicenseeController extends AbstractController
     </g>
 </svg>
 ';
-            $contentType = "image/svg+xml";
+            $contentType = 'image/svg+xml';
         }
 
         return new Response($profilePicture, 200, [
-            "Content-Type" => $contentType,
+            'Content-Type' => $contentType,
         ]);
     }
 }

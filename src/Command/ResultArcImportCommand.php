@@ -17,52 +17,55 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[
     AsCommand(
-        name: "app:result-arc:import",
-        description: "Add a short description for your command"
-    )
+        name: 'app:result-arc:import',
+        description: 'Add a short description for your command',
+    ),
 ]
 class ResultArcImportCommand extends Command
 {
     public function __construct(
         protected ResultArcParser $parser,
-        protected EntityManagerInterface $entityManager
+        protected EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
     }
 
     protected function configure(): void
     {
-        $this->addArgument("file", InputArgument::REQUIRED, "File to import");
-        $this->addArgument("eventId", InputArgument::REQUIRED, "Event ID");
+        $this->addArgument('file', InputArgument::REQUIRED, 'File to import');
+        $this->addArgument('eventId', InputArgument::REQUIRED, 'Event ID');
     }
 
     protected function execute(
         InputInterface $input,
-        OutputInterface $output
+        OutputInterface $output,
     ): int {
         $io = new SymfonyStyle($input, $output);
 
-        $file = $input->getArgument("file");
-        $eventId = $input->getArgument("eventId");
+        $file = $input->getArgument('file');
+        $eventId = $input->getArgument('eventId');
 
         $eventRepository = $this->entityManager->getRepository(Event::class);
         $event = $eventRepository->find($eventId);
 
         if (!$event) {
-            $io->error(sprintf("Event #%s not found", $eventId));
+            $io->error(sprintf('Event #%s not found', $eventId));
+
             return Command::INVALID;
         }
 
         if (!$event->getContestType()) {
             $io->error(
-                "You must set the contest type value of the event before importing results"
+                'You must set the contest type value of the event before importing results',
             );
+
             return Command::INVALID;
         }
         if (!$event->getDiscipline()) {
             $io->error(
-                "You must set the event discipline before importing results"
+                'You must set the event discipline before importing results',
             );
+
             return Command::INVALID;
         }
 
@@ -70,7 +73,7 @@ class ResultArcImportCommand extends Command
 
         /** @var LicenseeRepository $licenseeRepository */
         $licenseeRepository = $this->entityManager->getRepository(
-            Licensee::class
+            Licensee::class,
         );
         $resultRepository = $this->entityManager->getRepository(Result::class);
 
@@ -80,8 +83,8 @@ class ResultArcImportCommand extends Command
                 continue;
             }
             $existingResult = $resultRepository->findOneBy([
-                "licensee" => $licensee->getId(),
-                "event" => $event->getId(),
+                'licensee' => $licensee->getId(),
+                'event' => $event->getId(),
             ]);
             if ($existingResult) {
                 $result = $existingResult;
@@ -90,14 +93,14 @@ class ResultArcImportCommand extends Command
                     ->setEvent($event)
                     ->setLicensee($licensee);
             }
-            list(
+            [
                 $distance,
                 $targetSize,
-            ) = Result::distanceForContestTypeAndActivity(
+            ] = Result::distanceForContestTypeAndActivity(
                 $event->getContestType(),
                 $event->getDiscipline(),
                 $resultLine->activity,
-                $resultLine->ageCategory
+                $resultLine->ageCategory,
             );
             $result
                 ->setActivity($resultLine->activity)

@@ -12,40 +12,40 @@ class Bow
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: "bows")]
+    #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: 'bows')]
     #[ORM\JoinColumn(nullable: false)]
     private Licensee $owner;
 
-    #[ORM\Column(type: "BowType")]
+    #[ORM\Column(type: 'BowType')]
     private string $type;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $brand;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $model;
 
-    #[ORM\Column(type: "integer", nullable: true)]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $limbSize;
 
-    #[ORM\Column(type: "integer", nullable: true)]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $limbStrength;
 
-    #[ORM\Column(type: "float", nullable: true)]
+    #[ORM\Column(type: 'float', nullable: true)]
     private ?float $braceHeight;
 
-    #[ORM\Column(type: "integer", nullable: true)]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $drawLength;
 
     #[
         ORM\OneToMany(
-            mappedBy: "bow",
+            mappedBy: 'bow',
             targetEntity: SightAdjustment::class,
-            orphanRemoval: true
-        )
+            orphanRemoval: true,
+        ),
     ]
     private Collection $sightAdjustments;
 
@@ -174,7 +174,7 @@ class Bow
     }
 
     public function removeSightAdjustment(
-        SightAdjustment $sightAdjustment
+        SightAdjustment $sightAdjustment,
     ): self {
         if ($this->sightAdjustments->removeElement($sightAdjustment)) {
             // set the owning side to null (unless already changed)

@@ -13,49 +13,49 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: "`user`")]
+#[ORM\Table(name: '`user`')]
 #[
     UniqueEntity(
-        fields: ["email"],
-        message: "There is already an account with this email"
-    )
+        fields: ['email'],
+        message: 'There is already an account with this email',
+    ),
 ]
 #[Auditable]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    #[ORM\Column(type: "string", length: 180, unique: true)]
+    #[ORM\Column(type: 'string', length: 180, unique: true)]
     #[Assert\Email]
     private $email;
 
-    #[ORM\Column(type: "json")]
+    #[ORM\Column(type: 'json')]
     private $roles = [];
 
-    #[ORM\Column(type: "string")]
+    #[ORM\Column(type: 'string')]
     private $password;
 
-    #[ORM\Column(type: "GenderType")]
+    #[ORM\Column(type: 'GenderType')]
     private $gender;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private $lastname;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private $firstname;
 
-    #[ORM\Column(type: "string", length: 12, nullable: true)]
+    #[ORM\Column(type: 'string', length: 12, nullable: true)]
     private $phoneNumber;
 
     #[
         ORM\OneToMany(
-            mappedBy: "user",
+            mappedBy: 'user',
             targetEntity: Licensee::class,
-            indexBy: "fftaMemberCode"
-        )
+            indexBy: 'fftaMemberCode',
+        ),
     ]
     private $licensees;
 
@@ -106,7 +106,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        $roles[] = "ROLE_USER";
+        $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
     }
@@ -168,7 +168,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getFullname(): string
     {
-        return sprintf("%s %s", $this->getFirstname(), $this->getLastname());
+        return sprintf('%s %s', $this->getFirstname(), $this->getLastname());
     }
 
     public function getFirstname(): ?string

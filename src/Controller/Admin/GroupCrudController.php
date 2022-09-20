@@ -20,17 +20,17 @@ class GroupCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new("id")->hideOnForm(),
-            TextField::new("name"),
-            TextEditorField::new("description"),
-            AssociationField::new("licensees"),
+            IdField::new('id')->hideOnForm(),
+            TextField::new('name'),
+            TextEditorField::new('description'),
+            AssociationField::new('licensees'),
         ];
     }
 
     public function configureCrud(Crud $crud): Crud
     {
         return $crud->setDefaultSort([
-            "name" => "ASC",
+            'name' => 'ASC',
         ]);
     }
 }

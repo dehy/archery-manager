@@ -2,7 +2,6 @@
 
 namespace App\Controller\Admin;
 
-use App\Admin\Field\EnumTypeField;
 use App\DBAL\Types\GenderType;
 use App\Entity\User;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -26,16 +25,16 @@ class UserCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new("id")->hideOnForm(),
-            ChoiceField::new("gender")
+            IdField::new('id')->hideOnForm(),
+            ChoiceField::new('gender')
                 ->setChoices(GenderType::getChoices())
                 ->renderExpanded()
                 ->hideOnIndex(),
-            TextField::new("firstname"),
-            TextField::new("lastname"),
-            EmailField::new("email"),
-            TelephoneField::new("phoneNumber"),
-            AssociationField::new("licensees"),
+            TextField::new('firstname'),
+            TextField::new('lastname'),
+            EmailField::new('email'),
+            TelephoneField::new('phoneNumber'),
+            AssociationField::new('licensees'),
         ];
     }
 
@@ -44,21 +43,21 @@ class UserCrudController extends AbstractCrudController
         /** @var User $user */
         $user = parent::createEntity($entityFqcn);
         $user->setPassword(Uuid::v4());
-        $user->setRoles(["ROLE_USER"]);
+        $user->setRoles(['ROLE_USER']);
 
         return $user;
     }
 
     public function configureFilters(Filters $filters): Filters
     {
-        return $filters->add("lastname")->add("firstname");
+        return $filters->add('lastname')->add('firstname');
     }
 
     public function configureCrud(Crud $crud): Crud
     {
         return $crud->setDefaultSort([
-            "lastname" => "ASC",
-            "firstname" => "ASC",
+            'lastname' => 'ASC',
+            'firstname' => 'ASC',
         ]);
     }
 }

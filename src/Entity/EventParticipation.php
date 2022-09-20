@@ -12,26 +12,26 @@ class EventParticipation
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: "participations")]
+    #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: 'participations')]
     #[ORM\JoinColumn(nullable: false)]
     private $event;
 
     #[
         ORM\ManyToOne(
             targetEntity: Licensee::class,
-            inversedBy: "eventParticipations"
-        )
+            inversedBy: 'eventParticipations',
+        ),
     ]
     #[ORM\JoinColumn(nullable: false)]
     private $participant;
 
-    #[ORM\OneToOne(targetEntity: Result::class, cascade: ["persist", "remove"])]
+    #[ORM\OneToOne(targetEntity: Result::class, cascade: ['persist', 'remove'])]
     private $result;
 
-    #[ORM\Column(type: "boolean")]
+    #[ORM\Column(type: 'boolean')]
     private $present;
 
     public function getId(): ?int

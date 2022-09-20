@@ -3,7 +3,6 @@
 namespace App\Controller\Admin;
 
 use App\Entity\PracticeAdvice;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -21,12 +20,12 @@ class PracticeAdviceCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            AssociationField::new("licensee"),
-            TextField::new("title"),
-            TextEditorField::new("advice"),
-            AssociationField::new("author"),
-            DateTimeField::new("createdAt")->hideOnForm(),
-            BooleanField::new("archivedAt", "Archived")
+            AssociationField::new('licensee'),
+            TextField::new('title'),
+            TextEditorField::new('advice'),
+            AssociationField::new('author'),
+            DateTimeField::new('createdAt')->hideOnForm(),
+            BooleanField::new('archivedAt', 'Archived')
                 ->hideOnForm()
                 ->renderAsSwitch(false),
         ];

@@ -8,7 +8,6 @@ use App\Entity\User;
 use App\Factory\LicenseeFactory;
 use App\Factory\UserFactory;
 use App\Repository\LicenseeRepository;
-use App\Repository\LicenseRepository;
 use App\Repository\UserRepository;
 use App\Scrapper\FftaScrapper;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,22 +21,22 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[
     AsCommand(
-        name: "app:ffta:import-licensees",
-        description: "Import licensees from the FFTA website"
-    )
+        name: 'app:ffta:import-licensees',
+        description: 'Import licensees from the FFTA website',
+    ),
 ]
 class FftaImportLicenseesCommand extends Command
 {
     public function __construct(
         protected readonly FftaScrapper $scrapper,
-        protected readonly EntityManagerInterface $entityManager
+        protected readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
     }
 
     protected function configure(): void
     {
-        $this->addArgument("season", InputArgument::REQUIRED, "Season");
+        $this->addArgument('season', InputArgument::REQUIRED, 'Season');
     }
 
     /**
@@ -45,42 +44,42 @@ class FftaImportLicenseesCommand extends Command
      */
     protected function execute(
         InputInterface $input,
-        OutputInterface $output
+        OutputInterface $output,
     ): int {
         $io = new SymfonyStyle($input, $output);
 
-        $season = (int) $input->getArgument("season");
+        $season = (int) $input->getArgument('season');
 
         $fftaIds = $this->scrapper->fetchLicenseeIdList($season);
         $io->info(
-            sprintf("Found %s licensees in %s", count($fftaIds), $season)
+            sprintf('Found %s licensees in %s', count($fftaIds), $season),
         );
 
         /** @var LicenseeRepository $licenseeRepository */
         $licenseeRepository = $this->entityManager->getRepository(
-            Licensee::class
+            Licensee::class,
         );
 
         foreach ($fftaIds as $fftaId) {
-            $io->writeln(sprintf("==== %s ====", $fftaId));
+            $io->writeln(sprintf('==== %s ====', $fftaId));
             $licensee = $licenseeRepository->findOneByFftaId($fftaId);
             if (!$licensee) {
                 $licensee = $this->createLicenseeFromFftaId($fftaId);
                 $io->writeln(
                     sprintf(
-                        "+ New Licensee: %s (%s)",
+                        '+ New Licensee: %s (%s)',
                         $licensee->__toString(),
-                        $licensee->getFftaMemberCode()
-                    )
+                        $licensee->getFftaMemberCode(),
+                    ),
                 );
                 $this->entityManager->persist($licensee);
             } else {
                 $io->writeln(
                     sprintf(
-                        "~ Existing Licensee: %s (%s)",
+                        '~ Existing Licensee: %s (%s)',
                         $licensee->__toString(),
-                        $licensee->getFftaMemberCode()
-                    )
+                        $licensee->getFftaMemberCode(),
+                    ),
                 );
             }
 
@@ -88,13 +87,13 @@ class FftaImportLicenseesCommand extends Command
             if (!$license) {
                 $license = $this->createLicenseForLicenseeAndSeason(
                     $licensee,
-                    $season
+                    $season,
                 );
-                $io->writeln(sprintf("  + New License for: %s", $season));
+                $io->writeln(sprintf('  + New License for: %s', $season));
                 $license->setLicensee($licensee);
                 $this->entityManager->persist($license);
             } else {
-                $io->writeln(sprintf("  ~ Existing License for: %s", $season));
+                $io->writeln(sprintf('  ~ Existing License for: %s', $season));
             }
             $this->entityManager->flush();
         }
@@ -123,12 +122,13 @@ class FftaImportLicenseesCommand extends Command
 
     protected function createLicenseForLicenseeAndSeason(
         ?Licensee $licensee,
-        int $seasonYear
+        int $seasonYear,
     ): License {
         $licenses = $this->scrapper->fetchLicenseeLicenses(
             $licensee->getFftaId(),
-            $seasonYear
+            $seasonYear,
         );
+
         return $licenses[$seasonYear];
     }
 }

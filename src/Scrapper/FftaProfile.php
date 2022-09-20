@@ -23,12 +23,14 @@ class FftaProfile
     public function setId(?int $id): FftaProfile
     {
         $this->id = $id;
+
         return $this;
     }
 
     public function setCodeAdherent(?string $codeAdherent): FftaProfile
     {
         $this->codeAdherent = $codeAdherent;
+
         return $this;
     }
 
@@ -40,6 +42,7 @@ class FftaProfile
     public function setEmail(?string $email): FftaProfile
     {
         $this->email = $email;
+
         return $this;
     }
 
@@ -51,6 +54,7 @@ class FftaProfile
     public function setNom(?string $nom): FftaProfile
     {
         $this->nom = $nom;
+
         return $this;
     }
 
@@ -62,6 +66,7 @@ class FftaProfile
     public function setPrenom(?string $prenom): FftaProfile
     {
         $this->prenom = $prenom;
+
         return $this;
     }
 
@@ -73,6 +78,7 @@ class FftaProfile
     public function setMobile(?string $mobile): FftaProfile
     {
         $this->mobile = $mobile;
+
         return $this;
     }
 
@@ -84,6 +90,7 @@ class FftaProfile
     public function setDateNaissance(?DateTime $dateNaissance): FftaProfile
     {
         $this->dateNaissance = $dateNaissance;
+
         return $this;
     }
 
@@ -100,6 +107,7 @@ class FftaProfile
     public function setSexe(?string $sexe): FftaProfile
     {
         $this->sexe = $sexe;
+
         return $this;
     }
 }
