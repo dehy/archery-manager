@@ -143,7 +143,12 @@ class AdminDashboardController extends AbstractDashboardController
             "Pré-inscriptions",
             "fa-solid fa-user-plus",
             Applicant::class
-        );
+        )->setController(ApplicantCrudController::class);
+        yield MenuItem::linkToCrud(
+            "Création des licenses",
+            "fa-solid fa-id-badge",
+            Applicant::class
+        )->setController(RegistrationCrudController::class);
 
         yield MenuItem::section();
 

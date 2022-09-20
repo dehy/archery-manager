@@ -1,0 +1,10 @@
+{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
+{# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
+{# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
+{# this template is used to display Doctrine entity primary keys #}
+{# Adds the entity detail page link if the CRUD has the "detail" action #}
+{% if entity.actions|filter(action => action.name == constant('EasyCorp\\Bundle\\EasyAdminBundle\\Config\\Action::DETAIL'))|length > 0 %}
+    <a href="{{ ea_url().setAction('detail').setEntityId(field.value) }}">{{ field.formattedValue }}</a>
+{% else %}
+    {{ field.formattedValue }}
+{% endif %}

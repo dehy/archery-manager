@@ -7,6 +7,8 @@ use App\Entity\Applicant;
 use App\Form\PreRegistrationSettingsType;
 use App\Repository\ApplicantRepository;
 use Dmishh\SettingsBundle\Manager\SettingsManager;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -36,13 +38,16 @@ class ApplicantCrudController extends AbstractCrudController
     {
         return $crud
             ->setEntityLabelInSingular("Pré-inscrit")
-            ->setEntityLabelInPlural("Pré-inscrits");
+            ->setEntityLabelInPlural("Pré-inscrits")
+            ->setPaginatorPageSize(150);
     }
 
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new("id")->hideOnForm(),
+            IdField::new("id")
+                ->hideOnForm()
+                ->setTemplatePath("admin/crud/fields/id.html.twig"),
             BooleanField::new("renewal", "Renouvellement")->renderAsSwitch(
                 false
             ),
@@ -75,6 +80,11 @@ class ApplicantCrudController extends AbstractCrudController
             ->add("renewal")
             ->add("season")
             ->add("onWaitingList");
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        return $actions->add(Crud::PAGE_INDEX, Action::DETAIL);
     }
 
     /**

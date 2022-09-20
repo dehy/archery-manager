@@ -2,12 +2,16 @@
 
 namespace App\Entity;
 
+use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\DBAL\Types\PracticeLevelType;
+use App\Helper\ApplicantHelper;
+use App\Helper\LicenseHelper;
 use App\Repository\ApplicantRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
+use Money\Money;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ApplicantRepository::class)]
@@ -61,6 +65,23 @@ class Applicant
 
     #[ORM\Column]
     private bool $onWaitingList = false;
+
+    #[ORM\Column]
+    private bool $docsRetrieved = false;
+
+    #[ORM\Column]
+    private bool $paid = false;
+
+    #[ORM\Column]
+    private bool $licenseCreated = false;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $paymentObservations = null;
+
+    public function __toString()
+    {
+        return $this->getCompleteName();
+    }
 
     public function getId(): ?int
     {
@@ -224,6 +245,83 @@ class Applicant
     public function setOnWaitingList(bool $onWaitingList): self
     {
         $this->onWaitingList = $onWaitingList;
+
+        return $this;
+    }
+
+    public function isDocsRetrieved(): ?bool
+    {
+        return $this->docsRetrieved;
+    }
+
+    public function setDocsRetrieved(bool $docsRetrieved): self
+    {
+        $this->docsRetrieved = $docsRetrieved;
+
+        return $this;
+    }
+
+    public function isPaid(): ?bool
+    {
+        return $this->paid;
+    }
+
+    public function setPaid(bool $paid): self
+    {
+        $this->paid = $paid;
+
+        return $this;
+    }
+
+    public function isLicenseCreated(): ?bool
+    {
+        return $this->licenseCreated;
+    }
+
+    public function setLicenseCreated(bool $licenseCreated): self
+    {
+        $this->licenseCreated = $licenseCreated;
+
+        return $this;
+    }
+
+    public function getCompleteName(): string
+    {
+        return sprintf(
+            "%s %s",
+            mb_strtoupper($this->getLastname()),
+            ucfirst($this->getFirstname())
+        );
+    }
+
+    /**
+     * @todo rename $licenseType to boolean $tournament
+     */
+    public function getRealLicenseType(): string
+    {
+        return ApplicantHelper::default()->licenseTypeForApplicant($this);
+    }
+
+    public function getAgeCategory(): string
+    {
+        return ApplicantHelper::default()->licenseAgeCategoryForApplicant(
+            $this
+        );
+    }
+
+    public function toPay(): Money
+    {
+        return ApplicantHelper::default()->toPayForApplicant($this);
+    }
+
+    public function getPaymentObservations(): ?string
+    {
+        return $this->paymentObservations;
+    }
+
+    public function setPaymentObservations(?string $paymentObservations): self
+    {
+        $this->paymentObservations = $paymentObservations;
 
         return $this;
     }
