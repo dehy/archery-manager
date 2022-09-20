@@ -2,19 +2,18 @@
 
 namespace App\Entity;
 
-use App\DBAL\Types\LicenseAgeCategoryType;
-use App\DBAL\Types\LicenseType;
 use App\DBAL\Types\PracticeLevelType;
 use App\Helper\ApplicantHelper;
-use App\Helper\LicenseHelper;
 use App\Repository\ApplicantRepository;
 use DateTimeImmutable;
+use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use Money\Money;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ApplicantRepository::class)]
+#[Auditable]
 class Applicant
 {
     #[ORM\Id]

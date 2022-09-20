@@ -4,9 +4,11 @@ namespace App\Entity;
 
 use App\Repository\PracticeAdviceRepository;
 use DateTimeImmutable;
+use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PracticeAdviceRepository::class)]
+#[Auditable]
 class PracticeAdvice
 {
     #[ORM\Id]

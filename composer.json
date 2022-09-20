@@ -14,6 +14,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-mbstring": "*",
+        "damienharper/auditor-bundle": "^5.0",
         "dmishh/settings-bundle": "dev-master",
         "doctrine/annotations": "^1.0",
         "doctrine/doctrine-bundle": "^2.5",
@@ -116,7 +117,7 @@
     },
     "extra": {
         "symfony": {
-            "allow-contrib": false,
+            "allow-contrib": true,
             "require": "6.1.*",
             "docker": true
         }

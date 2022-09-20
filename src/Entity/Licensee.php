@@ -5,12 +5,14 @@ namespace App\Entity;
 use App\Repository\LicenseeRepository;
 use DateTime;
 use DateTimeInterface;
+use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LicenseeRepository::class)]
+#[Auditable]
 class Licensee
 {
     #[ORM\Id]

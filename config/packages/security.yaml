@@ -41,7 +41,12 @@ security:
     access_control:
         - { path: ^/(login|register|verify/email|reset-password|pre-inscription), roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/audit, roles: ROLE_ADMIN }
         - { path: ^/, roles: ROLE_USER }
+
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_COACH, ROLE_USER, ROLE_ALLOWED_TO_SWITCH]
+        ROLE_COACH: ROLE_USER
 
 when@test:
     security:

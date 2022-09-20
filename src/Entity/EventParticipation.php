@@ -3,9 +3,11 @@
 namespace App\Entity;
 
 use App\Repository\EventParticipationRepository;
+use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EventParticipationRepository::class)]
+#[Auditable]
 class EventParticipation
 {
     #[ORM\Id]

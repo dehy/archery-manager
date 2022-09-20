@@ -157,6 +157,11 @@ class AdminDashboardController extends AbstractDashboardController
             "fa-solid fa-wrench",
             Setting::class
         );
+        yield MenuItem::linkToUrl(
+            "Audit",
+            "fa-solid fa-user-secret",
+            "/audit"
+        )->setLinkTarget("_blank");
 
         yield MenuItem::section();
 
