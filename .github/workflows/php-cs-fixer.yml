@@ -1,0 +1,23 @@
+name: PHP-CS-Fixer
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    paths:
+      - '**.php'
+
+jobs:
+  php-cs-fixer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install
+        run: composer install
+
+      - name: Run php-cs-fixer
+        run: ./vendor/bin/php-cs-fixer fix --config .php-cs-fixer.dist.php --dry-run src/ tests/
