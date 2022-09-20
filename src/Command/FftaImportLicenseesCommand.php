@@ -56,13 +56,9 @@ class FftaImportLicenseesCommand extends Command
             sprintf("Found %s licensees in %s", count($fftaIds), $season)
         );
 
-        /** @var LicenseeRepository $userRepository */
+        /** @var LicenseeRepository $licenseeRepository */
         $licenseeRepository = $this->entityManager->getRepository(
             Licensee::class
-        );
-        /** @var LicenseRepository $licenseRepository */
-        $licenseRepository = $this->entityManager->getRepository(
-            License::class
         );
 
         foreach ($fftaIds as $fftaId) {

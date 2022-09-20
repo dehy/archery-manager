@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Event;
 use App\Entity\PracticeAdvice;
 use App\Helper\LicenseeHelper;
+use App\Repository\EventRepository;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,6 +20,7 @@ class HomepageController extends AbstractController
         EntityManagerInterface $entityManager,
         LicenseeHelper $licenseeHelper
     ): Response {
+        /** @var EventRepository $eventRepository */
         $eventRepository = $entityManager->getRepository(Event::class);
         $events = $eventRepository->findNextForLicensee(
             $licenseeHelper->getLicenseeFromSession(),

@@ -59,6 +59,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     ]
     private $licensees;
 
+    #[ORM\Column]
+    private bool $isVerified = false;
+
     public function __construct()
     {
         $this->licensees = new ArrayCollection();
@@ -230,5 +233,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getLicenseeWithCode(string $fftaCode): ?Licensee
     {
         return $this->getLicensees()[$fftaCode] ?? null;
+    }
+
+    public function isIsVerified(): ?bool
+    {
+        return $this->isVerified;
+    }
+
+    public function setIsVerified(bool $isVerified): self
+    {
+        $this->isVerified = $isVerified;
+
+        return $this;
     }
 }

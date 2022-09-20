@@ -13,6 +13,7 @@ use App\Entity\Licensee;
 use App\Entity\PracticeAdvice;
 use App\Entity\Result;
 use App\Entity\User;
+use App\Repository\LicenseeRepository;
 use Dmishh\SettingsBundle\Entity\Setting;
 use Dmishh\SettingsBundle\Manager\SettingsManagerInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -37,6 +38,7 @@ class AdminDashboardController extends AbstractDashboardController
     #[Route("/admin", name: "admin")]
     public function index(): Response
     {
+        /** @var LicenseeRepository $licenseeRepository */
         $licenseeRepository = $this->entityManager->getRepository(
             Licensee::class
         );

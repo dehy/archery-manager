@@ -102,8 +102,6 @@ class LicenseHelper
             }
         }
 
-        dd($leftPart, $rightPart, $after, $before);
-
         throw new \LogicException(
             sprintf(
                 "Should have found a value. %s given",

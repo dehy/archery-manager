@@ -5,6 +5,7 @@ namespace App\Command;
 use App\Entity\Event;
 use App\Entity\Licensee;
 use App\Entity\Result;
+use App\Repository\LicenseeRepository;
 use App\Scrapper\ResultArcParser;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -67,6 +68,7 @@ class ResultArcImportCommand extends Command
 
         $results = $this->parser->parseFile($file);
 
+        /** @var LicenseeRepository $licenseeRepository */
         $licenseeRepository = $this->entityManager->getRepository(
             Licensee::class
         );
