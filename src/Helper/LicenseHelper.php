@@ -7,6 +7,7 @@ use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
 use DateTimeImmutable;
 use DateTimeInterface;
+use LogicException;
 
 class LicenseHelper
 {
@@ -32,7 +33,7 @@ class LicenseHelper
 
     public function licenseTypeForBirthdate(
         DateTimeInterface $birthdate,
-        bool $tournament,
+        bool              $tournament,
     ): string {
         $categoryType = $this->licenseCategoryTypeForBirthdate($birthdate);
 
@@ -100,7 +101,7 @@ class LicenseHelper
             }
         }
 
-        throw new \LogicException(sprintf('Should have found a value. %s given', $birthdate->format('Y-m-d')));
+        throw new LogicException(sprintf('Should have found a value. %s given', $birthdate->format('Y-m-d')));
     }
 
     private function dateTimeFromKeyPart(string $keyPart): DateTimeImmutable

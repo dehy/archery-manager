@@ -1,0 +1,72 @@
+{% extends "email_base.html.twig" %}
+
+{% block header %}
+    <row>
+        <columns>
+            <h4 class="text-center">Bienvenue, {{ licensee.firstname }} !</h4>
+        </columns>
+    </row>
+{% endblock %}
+
+{% block content %}
+    <row>
+        <columns>
+            <p>Tout d'abord, bienvenue aux Archers de Guyenne ! Voici quelques petites
+                informations complémentaires à ton inscription.</p>
+
+            <h3>Discord</h3>
+
+            <p>
+                Pour mieux communiquer en dehors des heures d'entrainement, nous
+                avons créé notre serveur Discord. C'est un t'chat de groupe, gratuit
+                et disponible partout (iPhone, android, mac et PC, ...). C'est comme un Whatsapp,
+                mais en plus complet.
+            </p>
+
+            <callout class="warning">
+                Discord est notre moyen de communication principal en dehors du terrain. Il est
+                donc important que tu l'installes afin de ne rien rater !
+            </callout>
+
+            <div class="text-center">
+                <button href="https://discord.com/download">Télécharger Discord</button>
+            </div>
+
+            <p>
+                Si tu ne connais pas Discord, nous t'avons préparé un petit tutoriel vidéo.
+            </p>
+
+            <div class="text-center">
+                <button href="https://www.youtube.com/watch?v=9O-MikrMZTo">Tutoriel vidéo</button>
+            </div>
+
+            <p>Une fois inscrit{{ licensee.gender == 'F' ? 'e' }}, voici le lien te permettant
+                d'accéder à notre serveur privé en le copiant-collant quand l'application te le demandera :<br>
+                <strong>https://discord.gg/DmNs4MjbVw</strong></p>
+
+            <h3>L'application des Archers de Guyenne</h3>
+
+            <p>Nous mettons également à disposition une application te permettant de :</p>
+
+            <ul>
+                <li>prévenir de tes absences aux entraînements,</li>
+                <li>consulter les conseils donnés par tes entraîneurs,</li>
+                <li>indiquer ta participation aux compétitions,</li>
+                <li>suivre tes résultats en compétition,</li>
+                <li>et bien d'autres fonctionnalités à venir !</li>
+            </ul>
+
+            <div class="text-center">
+                <button href="https://monclubdetiralarc.fr">Accéder à l'application</button>
+            </div>
+
+            <p>
+                Pour ta première connexion, clique sur le lien "Première connexion ?",
+                indique ton adresse email et suit les instructions reçues par mail afin
+                de définir un mot de passe !
+            </p>
+
+            <p>N'hésite pas à mettre le lien en favoris !</p>
+        </columns>
+    </row>
+{% endblock %}

@@ -125,12 +125,12 @@ class License
         return $this;
     }
 
-    public function merge(License $license): void
+    public function mergeWith(License $license): void
     {
-        $this->setType($license->getType());
-        $this->setSeason($license->getSeason());
-        $this->setCategory($license->getCategory());
-        $this->setAgeCategory($license->getAgeCategory());
         $this->setActivities($license->getActivities());
+        $this->setAgeCategory($license->getAgeCategory());
+        $this->setCategory($license->getCategory());
+        $this->setSeason($license->getSeason());
+        $this->setType($license->getType());
     }
 }

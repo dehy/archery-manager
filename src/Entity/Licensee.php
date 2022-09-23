@@ -230,6 +230,13 @@ class Licensee
         return $this->updatedAt;
     }
 
+    public function setUpdatedAt(DateTimeImmutable $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, License>
      */
@@ -480,5 +487,15 @@ class Licensee
         }
 
         return $this;
+    }
+
+    public function mergeWith(Licensee $licensee): void
+    {
+        $this->setGender($licensee->getGender());
+        $this->setLastname($licensee->getLastname());
+        $this->setFirstname($licensee->getFirstname());
+        $this->setBirthdate($licensee->getBirthdate());
+        $this->setFftaMemberCode($licensee->getFftaMemberCode());
+        $this->setFftaId($licensee->getFftaId());
     }
 }

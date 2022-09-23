@@ -58,7 +58,7 @@ class LicenseeController extends AbstractController
         $user = $this->getUser();
 
         if ($fftaCode) {
-            $licensee = $licenseeRepository->findByCode($fftaCode);
+            $licensee = $licenseeRepository->findOneByCode($fftaCode);
         } else {
             $licensee = $licenseeHelper->getLicenseeFromSession();
         }
@@ -92,7 +92,7 @@ class LicenseeController extends AbstractController
         FilesystemOperator $profilePicturesStorage,
         Request            $request,
     ): Response {
-        $licensee = $licenseeRepository->findByCode($fftaCode);
+        $licensee = $licenseeRepository->findOneByCode($fftaCode);
         if (!$licensee) {
             throw new NotFoundHttpException();
         }
@@ -126,7 +126,7 @@ class LicenseeController extends AbstractController
 ';
             $contentType = 'image/svg+xml';
         }
-        
+
         $response->headers->set('Content-Type', $contentType);
         $response->setContent($profilePicture);
         $response->setStatusCode(200);
