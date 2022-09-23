@@ -14,7 +14,7 @@ import "./bootstrap";
 // Bootstrap Javascript
 import * as bootstrap from "bootstrap";
 
-import { library, dom } from "@fortawesome/fontawesome-svg-core";
+import {dom, library} from "@fortawesome/fontawesome-svg-core";
 import {
   faAddressCard,
   faArrowLeft,
@@ -37,7 +37,7 @@ import {
   faUsers,
   faVenus,
 } from "@fortawesome/free-solid-svg-icons";
-import { faDiscord } from "@fortawesome/free-brands-svg-icons";
+import {faDiscord} from "@fortawesome/free-brands-svg-icons";
 
 library.add(
   faAddressCard,
@@ -65,10 +65,10 @@ library.add(
 dom.watch();
 
 (() => {
-  const tooltipTriggerList = document.querySelectorAll(
+  const tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll(
     '[data-bs-toggle="tooltip"]'
-  );
-  const tooltipList = [...tooltipTriggerList].map(
+  ));
+  const tooltipList = tooltipTriggerList.map(
     (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
   );
 })();
