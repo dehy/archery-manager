@@ -23,6 +23,7 @@
         "easycorp/easyadmin-bundle": "^4.1",
         "fabpot/goutte": "^4.0",
         "fresh/doctrine-enum-bundle": "^9.0",
+        "gedmo/doctrine-extensions": "^3.9",
         "league/flysystem-async-aws-s3": "^3.0",
         "league/flysystem-bundle": "^3.0",
         "moneyphp/money": "^4.0",

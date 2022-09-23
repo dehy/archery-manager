@@ -12,6 +12,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
@@ -50,8 +51,8 @@ class LicenseeController extends AbstractController
     ]
     public function show(
         LicenseeRepository $licenseeRepository,
-        LicenseeHelper $licenseeHelper,
-        ?string $fftaCode,
+        LicenseeHelper     $licenseeHelper,
+        ?string            $fftaCode,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
@@ -86,21 +87,27 @@ class LicenseeController extends AbstractController
         ),
     ]
     public function profilePicture(
-        string $fftaCode,
+        string             $fftaCode,
         LicenseeRepository $licenseeRepository,
         FilesystemOperator $profilePicturesStorage,
+        Request            $request,
     ): Response {
         $licensee = $licenseeRepository->findByCode($fftaCode);
         if (!$licensee) {
             throw new NotFoundHttpException();
         }
 
-        $lastModified = null;
+        $response = new Response();
+        $response->setLastModified($licensee->getUpdatedAt());
+
+        if ($response->isNotModified($request)) {
+            return $response;
+        }
+
         $imagePath = sprintf('%s.jpg', $fftaCode);
 
         try {
             $profilePicture = $profilePicturesStorage->read($imagePath);
-            $lastModified = $profilePicturesStorage->lastModified($imagePath);
             $contentType = 'image/jpeg';
         } catch (FilesystemException) {
             $profilePicture = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -119,9 +126,11 @@ class LicenseeController extends AbstractController
 ';
             $contentType = 'image/svg+xml';
         }
+        
+        $response->headers->set('Content-Type', $contentType);
+        $response->setContent($profilePicture);
+        $response->setStatusCode(200);
 
-        return new Response($profilePicture, 200, [
-            'Content-Type' => $contentType,
-        ]);
+        return $response;
     }
 }

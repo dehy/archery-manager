@@ -4,11 +4,13 @@ namespace App\Entity;
 
 use App\Repository\LicenseeRepository;
 use DateTime;
+use DateTimeImmutable;
 use DateTimeInterface;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LicenseeRepository::class)]
@@ -42,6 +44,10 @@ class Licensee
 
     #[ORM\Column(type: 'integer', unique: true, nullable: true)]
     private $fftaId;
+
+    #[ORM\Column]
+    #[Gedmo\Timestampable(on: "update")]
+    private ?DateTimeImmutable $updatedAt = null;
 
     #[
         ORM\OneToMany(
@@ -217,6 +223,11 @@ class Licensee
         $this->fftaMemberCode = $fftaMemberCode;
 
         return $this;
+    }
+
+    public function getUpdatedAt(): ?DateTimeImmutable
+    {
+        return $this->updatedAt;
     }
 
     /**
