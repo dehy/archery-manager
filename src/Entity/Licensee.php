@@ -111,6 +111,7 @@ class Licensee
 
     public function __construct()
     {
+        $this->updatedAt = new DateTimeImmutable();
         $this->arrows = new ArrayCollection();
         $this->bows = new ArrayCollection();
         $this->licenses = new ArrayCollection();

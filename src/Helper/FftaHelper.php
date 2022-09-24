@@ -83,8 +83,10 @@ class FftaHelper
             );
             $licensee = $fftaLicensee;
 
-            $picture = $this->fetchProfilePictureForLicensee($licensee);
-            $this->profilePicturesStorage->write(sprintf('%s.jpg', $licensee->getFftaMemberCode()), $picture);
+            $fftaPicture = $this->fetchProfilePictureForLicensee($licensee);
+            if ($fftaPicture) {
+                $this->profilePicturesStorage->write(sprintf('%s.jpg', $licensee->getFftaMemberCode()), $fftaPicture);
+            }
 
             $this->entityManager->beginTransaction();
             $this->entityManager->persist($licensee);
