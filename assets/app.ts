@@ -17,6 +17,8 @@ import * as bootstrap from "bootstrap";
 import {dom, library} from "@fortawesome/fontawesome-svg-core";
 import {
   faAddressCard,
+  faAngleLeft,
+  faAngleRight,
   faArrowLeft,
   faArrowRightFromBracket,
   faArrowsRotate,
@@ -41,6 +43,8 @@ import {faDiscord} from "@fortawesome/free-brands-svg-icons";
 
 library.add(
   faAddressCard,
+  faAngleLeft,
+  faAngleRight,
   faArrowLeft,
   faArrowRightFromBracket,
   faArrowsRotate,

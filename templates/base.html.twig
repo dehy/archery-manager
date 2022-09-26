@@ -16,99 +16,110 @@
     <title>{% block title %}Archerie{% endblock %}</title>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
-        <div class="container">
-            <img src="{{ asset('build/logo-archers-de-guyenne.svg') }}" height="40" class="me-2" alt="">
-            <h1 class="navbar-brand mb-0 h1">Les Archers de Guyenne</h1>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link {{ _self.isActive('app_homepage') }}" href="{{ path('app_homepage') }}">
-                            <em class="fa-solid fa-gauge-high"></em>
-                            Tableau de bord
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ _self.isActive('app_licensee_index') }}" href="{{ path('app_licensee_index') }}">
-                            <em class="fa-solid fa-users"></em>
-                            Trombinoscope
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link disabled">
-                            <em class="fa-solid fa-calendar"></em>
-                            Évènements
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" target="_blank" href="https://discord.com/app">
-                            <em class="fa-brands fa-discord"></em>
-                            Serveur Discord
-                        </a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link {{ _self.isActive('app_licensee_my_profile') }} dropdown-toggle text-end" href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <em class="fa-solid fa-address-card fa-fw"></em> {{ licenseeHelper.licenseeFromSession.fullname }}
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                            {% if (is_granted("ROLE_ADMIN")) %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
+    <div class="container">
+        <img src="{{ asset('build/logo-archers-de-guyenne.svg') }}" height="40" class="me-2" alt="">
+        <h1 class="navbar-brand mb-0 h1">Les Archers de Guyenne</h1>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link {{ _self.isActive('app_homepage') }}" href="{{ path('app_homepage') }}">
+                        <em class="fa-solid fa-gauge-high"></em>
+                        Tableau de bord
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ _self.isActive('app_licensee_index') }}"
+                       href="{{ path('app_licensee_index') }}">
+                        <em class="fa-solid fa-users"></em>
+                        Trombinoscope
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('app_events_index') }}">
+                        <em class="fa-solid fa-calendar"></em>
+                        Calendrier
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" target="_blank" href="https://discord.com/app">
+                        <em class="fa-brands fa-discord"></em>
+                        Serveur Discord
+                    </a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link {{ _self.isActive('app_licensee_my_profile') }} dropdown-toggle text-end"
+                       href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown"
+                       aria-expanded="false">
+                        <em class="fa-solid fa-address-card fa-fw"></em> {{ licenseeHelper.licenseeFromSession.fullname }}
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                        {% if (is_granted("ROLE_ADMIN")) %}
+                            <li>
+                                <a class="dropdown-item" href="{{ path('admin') }}">
+                                    <em class="fa-solid fa-screwdriver-wrench fa-fw"></em>
+                                    Administration
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                        {% endif %}
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_user_account') }}">
+                                <em class="fa-solid fa-user-gear fa-fw"></em>
+                                Mon compte
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_licensee_my_profile') }}">
+                                <em class="fa-solid fa-address-card fa-fw"></em>
+                                Mon profil
+                            </a>
+                        </li>
+                        {% if app.user.licensees|length > 1 %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            {% for licensee in app.user.licensees|filter(l => l.id is not same as(licenseeHelper.licenseeFromSession.id)) %}
                                 <li>
-                                    <a class="dropdown-item" href="{{ path('admin') }}">
-                                        <em class="fa-solid fa-screwdriver-wrench fa-fw"></em>
-                                        Administration
+                                    <a class="dropdown-item"
+                                       href="{{ path(app.request.get('_route'), {'_switch_licensee': licensee.fftaMemberCode }) }}">
+                                        <em class="fa-solid fa-arrows-rotate fa-fw"></em>
+                                        {{ licensee.fullname }}
                                     </a>
                                 </li>
-                                <li><hr class="dropdown-divider"></li>
-                            {% endif %}
-                            <li>
-                                <a class="dropdown-item" href="{{ path('app_user_account') }}">
-                                    <em class="fa-solid fa-user-gear fa-fw"></em>
-                                    Mon compte
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{{ path('app_licensee_my_profile') }}">
-                                    <em class="fa-solid fa-address-card fa-fw"></em>
-                                    Mon profil
-                                </a>
-                            </li>
-                            {% if app.user.licensees|length > 1 %}
-                                <li><hr class="dropdown-divider"></li>
-                                {% for licensee in app.user.licensees|filter(l => l.id is not same as(licenseeHelper.licenseeFromSession.id)) %}
-                                    <li>
-                                        <a class="dropdown-item" href="{{ path(app.request.get('_route'), {'_switch_licensee': licensee.fftaMemberCode }) }}">
-                                            <em class="fa-solid fa-arrows-rotate fa-fw"></em>
-                                            {{ licensee.fullname }}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                            {% endif %}
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item" href="{{ path('app_logout') }}">
-                                    <em class="fa-solid fa-arrow-right-from-bracket fa-fw"></em>
-                                    Se déconnecter
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
+                            {% endfor %}
+                        {% endif %}
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_logout') }}">
+                                <em class="fa-solid fa-arrow-right-from-bracket fa-fw"></em>
+                                Se déconnecter
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
         </div>
-    </nav>
-
-    <div class="container">
-        {% block body %}{% endblock %}
     </div>
+</nav>
 
-    <footer class="my-3 text-center">
-        © {{ "now"|date('Y') }} - Les Archers de Guyenne
-    </footer>
+<div class="container">
+    {% block body %}{% endblock %}
+</div>
+
+<footer class="my-3 text-center">
+    © {{ "now"|date('Y') }} - Les Archers de Guyenne
+</footer>
 </body>
 </html>
 

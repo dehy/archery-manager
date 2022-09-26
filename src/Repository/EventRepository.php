@@ -8,6 +8,7 @@ use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 
 /**
  * @method null|Event find($id, $lockMode = null, $lockVersion = null)
@@ -40,7 +41,7 @@ class EventRepository extends ServiceEntityRepository
 
     public function findNextForLicensee(
         Licensee $licensee,
-        ?int $limit = null,
+        ?int     $limit = null,
     ): ArrayCollection {
         return new ArrayCollection(
             $this->createQueryBuilder('e')
@@ -50,5 +51,29 @@ class EventRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getResult(),
         );
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function findForMonthAndYear(int $month, int $year): array
+    {
+        $firstDate = new DateTime(sprintf('%s-%s-01 midnight', $year, $month));
+        $lastDate = (clone $firstDate)->modify('last day of this month');
+        if ((int)$firstDate->format('N') !== 1) {
+            $firstDate->modify('previous monday');
+        }
+        if ($lastDate !== false && (int)$lastDate->format('N') !== 7) {
+            $lastDate->modify('next sunday 23:59:59');
+        }
+        return $this->createQueryBuilder('e')
+            ->where('e.endsAt >= :monthStart')
+            ->andWhere('e.startsAt <= :monthEnd')
+            ->setParameters([
+                'monthStart' => $firstDate,
+                'monthEnd' => $lastDate,
+            ])
+            ->getQuery()
+            ->getResult();
     }
 }

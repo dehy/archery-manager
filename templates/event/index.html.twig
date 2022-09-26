@@ -1,0 +1,45 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Calendrier{% endblock %}
+
+{% block body %}
+    <h2>Calendrier</h2>
+
+    {% set month = date(year ~ '-' ~ month ~ '-01') %}
+    {% set previousMonth = month|date_modify('previous month') %}
+    {% set nextMonth = month|date_modify('next month') %}
+    <h3>
+        <a href="{{ path('app_events_index', {'m': previousMonth|date('n'), 'y': previousMonth|date('Y')}) }}"
+           class="btn btn-sm btn-secondary">
+            <em class="fa-solid fa-angle-left"></em>
+        </a>
+        <a href="{{ path('app_events_index', {'m': nextMonth|date('n'), 'y': nextMonth|date('Y')}) }}"
+           class="btn btn-sm btn-secondary">
+            <em class="fa-solid fa-angle-right"></em>
+        </a>
+        {{ month|format_date(pattern='MMMM', locale='fr') }}
+        <span class="fw-normal text-primary">{{ month|format_date(pattern='yyyy', locale='fr') }}</span>
+    </h3>
+
+    <div style="display: grid; grid-template: 2em / repeat(7, 1fr)">
+        {% for day in ["LUN.", "MAR.", "MER.", "JEU.", "VEN.", "SAM.", "DIM."] %}
+            <div class="text-end p-1">{{ day }}</div>
+        {% endfor %}
+    </div>
+    {% set rowsCount = calendar|length/7 %}
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows:repeat({{ rowsCount }}, 1fr); grid-gap: 1px; background-color: #CCCCCC; border: 1px solid #CCCCCC">
+        {% for date_key, events in calendar %}
+            {% set list = date_key|split('-') %}
+            <div class="p-2 bg-white"
+                 style="height: 90px">
+                <div class="text-end">{{ list[2] }}</div>
+                {% for event in events %}
+                    <div class="d-flex justify-content-between" style="font-size: 12px">
+                        <div class="" style="text-overflow: ellipsis">{{ event.name }}</div>
+                        <div class="text-black-50">{{ event.startsAt|date('H:i') }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
