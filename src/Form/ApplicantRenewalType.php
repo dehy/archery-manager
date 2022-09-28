@@ -29,7 +29,7 @@ class ApplicantRenewalType extends AbstractType
                 'required' => true,
             ])
             ->add('tournament', null, [
-                'label' => 'Type de Licence *',
+                'label' => 'Participation aux compétitions',
             ])
             ->add('comment', null, [
                 'label' => 'Observations / Remarques',
