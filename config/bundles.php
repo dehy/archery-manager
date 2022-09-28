@@ -21,4 +21,5 @@ return [
     Sentry\SentryBundle\SentryBundle::class => ['prod' => true],
     Dmishh\SettingsBundle\DmishhSettingsBundle::class => ['all' => true],
     DH\AuditorBundle\DHAuditorBundle::class => ['all' => true],
+    Vich\UploaderBundle\VichUploaderBundle::class => ['all' => true],
 ];

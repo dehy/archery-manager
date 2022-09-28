@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Licensee;
+use App\Entity\LicenseeAttachment;
 use App\Entity\User;
 use App\Helper\LicenseeHelper;
 use App\Repository\LicenseeRepository;
@@ -14,6 +15,8 @@ use League\Flysystem\FilesystemOperator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -51,8 +54,8 @@ class LicenseeController extends AbstractController
     ]
     public function show(
         LicenseeRepository $licenseeRepository,
-        LicenseeHelper $licenseeHelper,
-        ?string $fftaCode,
+        LicenseeHelper     $licenseeHelper,
+        ?string            $fftaCode,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
@@ -87,10 +90,10 @@ class LicenseeController extends AbstractController
         ),
     ]
     public function profilePicture(
-        string $fftaCode,
+        string             $fftaCode,
         LicenseeRepository $licenseeRepository,
-        FilesystemOperator $profilePicturesStorage,
-        Request $request,
+        FilesystemOperator $licenseesStorage,
+        Request            $request,
     ): Response {
         $licensee = $licenseeRepository->findOneByCode($fftaCode);
         if (!$licensee) {
@@ -107,7 +110,7 @@ class LicenseeController extends AbstractController
         $imagePath = sprintf('%s.jpg', $fftaCode);
 
         try {
-            $profilePicture = $profilePicturesStorage->read($imagePath);
+            $profilePicture = $licenseesStorage->read($imagePath);
             $contentType = 'image/jpeg';
         } catch (FilesystemException) {
             $profilePicture = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -130,6 +133,31 @@ class LicenseeController extends AbstractController
         $response->headers->set('Content-Type', $contentType);
         $response->setContent($profilePicture);
         $response->setStatusCode(200);
+
+        return $response;
+    }
+
+    #[Route('/licensees/attachments/{attachment}', name: 'licensees_attachements_download')]
+    public function downloadAttachement(Request $request, LicenseeAttachment $attachment, FilesystemOperator $licenseesStorage): Response
+    {
+        $forceDownload = $request->query->get('forceDownload');
+        $contentDisposition = sprintf(
+            '%s; filename="%s"',
+            $forceDownload ? ResponseHeaderBag::DISPOSITION_ATTACHMENT : ResponseHeaderBag::DISPOSITION_INLINE,
+            $attachment->getFile()->getName()
+        );
+
+        $response = new StreamedResponse(function () use ($licenseesStorage, $attachment) {
+            $outputStream = fopen('php://output', 'wb');
+            $fileStream = $licenseesStorage->readStream($attachment->getFile()->getName());
+
+            stream_copy_to_stream($fileStream, $outputStream);
+        }, 200, [
+            'Content-Type' => $attachment->getFile()->getMimeType(),
+            'Content-Disposition' => $contentDisposition,
+            'Content-Length' => $attachment->getFile()->getSize(),
+        ]);
+        $response->setLastModified($attachment->getUpdatedAt());
 
         return $response;
     }

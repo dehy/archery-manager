@@ -27,7 +27,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class AdminDashboardController extends AbstractDashboardController
 {
     public function __construct(
-        protected readonly EntityManagerInterface $entityManager,
+        protected readonly EntityManagerInterface   $entityManager,
         protected readonly SettingsManagerInterface $settingsManager,
     ) {
     }
@@ -102,13 +102,13 @@ class AdminDashboardController extends AbstractDashboardController
             'fa-solid fa-user',
             Licensee::class,
         );
-
         yield MenuItem::linkToCrud(
             'Licences',
             'fa-solid fa-id-card',
             License::class,
         );
 
+        yield MenuItem::section('Entraînements');
         yield MenuItem::linkToCrud(
             'Groupes',
             'fa-solid fa-users',
@@ -121,22 +121,19 @@ class AdminDashboardController extends AbstractDashboardController
             PracticeAdvice::class,
         );
 
-        yield MenuItem::section();
-
+        yield MenuItem::section("Évènements");
         yield MenuItem::linkToCrud(
             'Évènements',
             'fa-regular fa-calendar',
             Event::class,
         );
-
         yield MenuItem::linkToCrud(
             'Résultats',
             'fa-solid fa-square-poll-vertical',
             Result::class,
         );
 
-        yield MenuItem::section();
-
+        yield MenuItem::section("Pré-inscriptions");
         yield MenuItem::linkToRoute(
             'Stats Pré-inscriptions',
             'fa-solid fa-chart-simple',
@@ -144,7 +141,7 @@ class AdminDashboardController extends AbstractDashboardController
         );
 
         yield MenuItem::linkToCrud(
-            'Pré-inscriptions',
+            'Pré-inscripts',
             'fa-solid fa-user-plus',
             Applicant::class,
         )->setController(ApplicantCrudController::class);
@@ -155,8 +152,7 @@ class AdminDashboardController extends AbstractDashboardController
             Applicant::class,
         )->setController(RegistrationCrudController::class);
 
-        yield MenuItem::section();
-
+        yield MenuItem::section("Technique");
         yield MenuItem::linkToCrud(
             'Paramètres',
             'fa-solid fa-wrench',

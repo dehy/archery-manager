@@ -15,6 +15,7 @@
         "ext-gd": "*",
         "ext-iconv": "*",
         "ext-mbstring": "*",
+        "cocur/slugify": "^4.2",
         "damienharper/auditor-bundle": "^5.0",
         "dmishh/settings-bundle": "dev-master",
         "doctrine/annotations": "^1.0",
@@ -70,7 +71,8 @@
         "twig/extra-bundle": "^3.4",
         "twig/inky-extra": "^3.4",
         "twig/intl-extra": "^3.3",
-        "twig/twig": "^2.12|^3.0"
+        "twig/twig": "^2.12|^3.0",
+        "vich/uploader-bundle": "^1.21"
     },
     "config": {
         "allow-plugins": {

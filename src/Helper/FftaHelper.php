@@ -25,11 +25,11 @@ use Symfony\Component\Mailer\MailerInterface;
 class FftaHelper
 {
     public function __construct(
-        protected FftaScrapper $scrapper,
+        protected FftaScrapper           $scrapper,
         protected EntityManagerInterface $entityManager,
-        protected MailerInterface $mailer,
-        protected LoggerInterface $logger,
-        protected FilesystemOperator $profilePicturesStorage
+        protected MailerInterface        $mailer,
+        protected LoggerInterface        $logger,
+        protected FilesystemOperator     $licenseesStorage
     ) {
     }
 
@@ -85,7 +85,7 @@ class FftaHelper
 
             $fftaPicture = $this->fetchProfilePictureForLicensee($licensee);
             if ($fftaPicture) {
-                $this->profilePicturesStorage->write(sprintf('%s.jpg', $licensee->getFftaMemberCode()), $fftaPicture);
+                $this->licenseesStorage->write(sprintf('%s.jpg', $licensee->getFftaMemberCode()), $fftaPicture);
             }
 
             $this->entityManager->beginTransaction();
@@ -100,8 +100,7 @@ class FftaHelper
                 )
                 ->context([
                     'licensee' => $licensee,
-                ])
-            ;
+                ]);
 
             try {
                 $this->mailer->send($email);
@@ -123,19 +122,19 @@ class FftaHelper
             $fftaPicture = $this->fetchProfilePictureForLicensee($licensee);
 
             try {
-                $exitingPicture = $this->profilePicturesStorage->read(sprintf('%s.jpg', $licensee->getFftaMemberCode()));
+                $exitingPicture = $this->licenseesStorage->read(sprintf('%s.jpg', $licensee->getFftaMemberCode()));
             } catch (UnableToReadFile) {
                 $exitingPicture = null;
             }
 
             if ($fftaPicture) {
                 if (($exitingPicture && sha1($exitingPicture) !== sha1($fftaPicture)) || !$exitingPicture) {
-                    $this->profilePicturesStorage->write(sprintf('%s.jpg', $licensee->getFftaMemberCode()), $fftaPicture);
+                    $this->licenseesStorage->write(sprintf('%s.jpg', $licensee->getFftaMemberCode()), $fftaPicture);
                     $licensee->setUpdatedAt(new DateTimeImmutable());
                 }
             } else {
                 if ($exitingPicture) {
-                    $this->profilePicturesStorage->delete(sprintf('%s.jpg', $licensee->getFftaMemberCode()));
+                    $this->licenseesStorage->delete(sprintf('%s.jpg', $licensee->getFftaMemberCode()));
                     $licensee->setUpdatedAt(new DateTimeImmutable());
                 }
             }
@@ -205,7 +204,7 @@ class FftaHelper
      */
     public function createLicenseForLicenseeAndSeason(
         ?Licensee $licensee,
-        int $seasonYear,
+        int       $seasonYear,
     ): License {
         $licenses = $this->scrapper->fetchLicenseeLicenses(
             $licensee->getFftaId(),

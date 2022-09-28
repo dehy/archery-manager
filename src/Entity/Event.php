@@ -4,9 +4,11 @@ namespace App\Entity;
 
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
+use App\DBAL\Types\EventAttachmentType;
 use App\DBAL\Types\EventType;
 use App\Repository\EventRepository;
 use App\Scrapper\FftaEvent;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -52,16 +54,14 @@ class Event
     #[ORM\Column(type: 'DisciplineType')]
     private $discipline;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $mandateFilepath;
-
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $resultFilepath;
+    #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventAttachment::class)]
+    private Collection $attachments;
 
     public function __construct()
     {
         $this->participations = new ArrayCollection();
         $this->results = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function __toString(): string
@@ -91,24 +91,24 @@ class Event
         return $this;
     }
 
-    public function getStartsAt(): ?\DateTimeImmutable
+    public function getStartsAt(): ?DateTimeImmutable
     {
         return $this->startsAt;
     }
 
-    public function setStartsAt(\DateTimeImmutable $startsAt): self
+    public function setStartsAt(DateTimeImmutable $startsAt): self
     {
         $this->startsAt = $startsAt;
 
         return $this;
     }
 
-    public function getEndsAt(): ?\DateTimeImmutable
+    public function getEndsAt(): ?DateTimeImmutable
     {
         return $this->endsAt;
     }
 
-    public function setEndsAt(\DateTimeImmutable $endsAt): self
+    public function setEndsAt(DateTimeImmutable $endsAt): self
     {
         $this->endsAt = $endsAt;
 
@@ -229,30 +229,6 @@ class Event
         return $this->getDiscipline() && $this->getContestType();
     }
 
-    public function getMandateFilepath(): ?string
-    {
-        return $this->mandateFilepath;
-    }
-
-    public function setMandateFilepath(?string $mandateFilepath): self
-    {
-        $this->mandateFilepath = $mandateFilepath;
-
-        return $this;
-    }
-
-    public function getResultFilepath(): ?string
-    {
-        return $this->resultFilepath;
-    }
-
-    public function setResultFilepath(?string $resultFilepath): self
-    {
-        $this->resultFilepath = $resultFilepath;
-
-        return $this;
-    }
-
     public static function fromFftaEvent(FftaEvent $fftaEvent): Event
     {
         return (new Event())
@@ -262,18 +238,61 @@ class Event
             ->setEndsAt($fftaEvent->getTo())
             ->setName($fftaEvent->getName())
             ->setStartsAt($fftaEvent->getFrom())
-            ->setType(EventType::CONTEST_OFFICIAL)
-        ;
+            ->setType(EventType::CONTEST_OFFICIAL);
     }
 
     public function getSeason(): int
     {
-        $month = (int) $this->getStartsAt()->format('m');
-        $year = (int) $this->getStartsAt()->format('Y');
+        $month = (int)$this->getStartsAt()->format('m');
+        $year = (int)$this->getStartsAt()->format('Y');
         if ($month >= 9 && $month <= 12) {
             return $year + 1;
         }
 
         return $year;
+    }
+
+    /**
+     * @return Collection<int, PracticeAdviceAttachment>
+     */
+    public function getAttachments(): Collection
+    {
+        return $this->attachments;
+    }
+
+    public function addAttachment(PracticeAdviceAttachment $attachment): self
+    {
+        if (!$this->attachments->contains($attachment)) {
+            $this->attachments->add($attachment);
+            $attachment->setPracticeAdvice($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachment(PracticeAdviceAttachment $attachment): self
+    {
+        if ($this->attachments->removeElement($attachment)) {
+            // set the owning side to null (unless already changed)
+            if ($attachment->getPracticeAdvice() === $this) {
+                $attachment->setPracticeAdvice(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function hasMandate(): bool
+    {
+        return $this->getAttachments()->exists(function (int $key, EventAttachment $attachment) {
+            return $attachment->getType() === EventAttachmentType::MANDATE;
+        });
+    }
+
+    public function hasResults(): bool
+    {
+        return $this->getAttachments()->exists(function (int $key, EventAttachment $attachment) {
+            return $attachment->getType() === EventAttachmentType::RESULTS;
+        });
     }
 }

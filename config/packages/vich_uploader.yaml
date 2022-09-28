@@ -1,0 +1,24 @@
+vich_uploader:
+    db_driver: orm
+    storage: flysystem
+
+    metadata:
+        type: attribute
+
+    mappings:
+        licensees:
+            upload_destination: licensees.storage
+            namer:
+                service: Vich\UploaderBundle\Naming\PropertyNamer
+                options: { property: 'generateFilename' }
+            inject_on_load: true
+            delete_on_update: true
+            delete_on_remove: true
+        events:
+            upload_destination: events.storage
+            namer:
+                service: Vich\UploaderBundle\Naming\PropertyNamer
+                options: { property: 'generateFilename' }
+            inject_on_load: true
+            delete_on_update: true
+            delete_on_remove: true

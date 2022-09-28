@@ -109,6 +109,9 @@ class Licensee
     #[ORM\OneToMany(mappedBy: 'author', targetEntity: PracticeAdvice::class)]
     private $givenPracticeAdvices;
 
+    #[ORM\OneToMany(mappedBy: 'licensee', targetEntity: LicenseeAttachment::class, orphanRemoval: true)]
+    private Collection $attachments;
+
     public function __construct()
     {
         $this->updatedAt = new DateTimeImmutable();
@@ -120,6 +123,7 @@ class Licensee
         $this->groups = new ArrayCollection();
         $this->practiceAdvices = new ArrayCollection();
         $this->givenPracticeAdvices = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function __toString(): string
@@ -498,5 +502,35 @@ class Licensee
         $this->setBirthdate($licensee->getBirthdate());
         $this->setFftaMemberCode($licensee->getFftaMemberCode());
         $this->setFftaId($licensee->getFftaId());
+    }
+
+    /**
+     * @return Collection<int, LicenseeAttachment>
+     */
+    public function getAttachments(): Collection
+    {
+        return $this->attachments;
+    }
+
+    public function addAttachment(LicenseeAttachment $attachment): self
+    {
+        if (!$this->attachments->contains($attachment)) {
+            $this->attachments->add($attachment);
+            $attachment->setLicensee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachment(LicenseeAttachment $attachment): self
+    {
+        if ($this->attachments->removeElement($attachment)) {
+            // set the owning side to null (unless already changed)
+            if ($attachment->getLicensee() === $this) {
+                $attachment->setLicensee(null);
+            }
+        }
+
+        return $this;
     }
 }

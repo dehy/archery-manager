@@ -11,13 +11,16 @@ doctrine:
             BowType: App\DBAL\Types\BowType
             ContestType: App\DBAL\Types\ContestType
             DisciplineType: App\DBAL\Types\DisciplineType
+            EventAttachmentType: App\DBAL\Types\EventAttachmentType
             EventType: App\DBAL\Types\EventType
             FletchingType: App\DBAL\Types\FletchingType
             GenderType: App\DBAL\Types\GenderType
             LicenseActivityType: App\DBAL\Types\LicenseActivityType
             LicenseAgeCategoryType: App\DBAL\Types\LicenseAgeCategoryType
+            LicenseeAttachmentType: App\DBAL\Types\LicenseeAttachmentType
             LicenseCategoryType: App\DBAL\Types\LicenseCategoryType
             LicenseType: App\DBAL\Types\LicenseType
+            PracticeAdviceAttachmentType: App\DBAL\Types\PracticeAdviceAttachmentType
             PracticeLevelType: App\DBAL\Types\PracticeLevelType
     orm:
         auto_generate_proxy_classes: true
