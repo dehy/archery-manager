@@ -21,18 +21,18 @@ class EventController extends AbstractController
     public function index(Request $request, EventRepository $eventRepository): Response
     {
         $now = new DateTime();
-        $month = $request->query->get('m', (int)$now->format('n'));
-        $year = $request->query->get('y', (int)$now->format('Y'));
+        $month = $request->query->get('m', (int) $now->format('n'));
+        $year = $request->query->get('y', (int) $now->format('Y'));
 
         /** @var Event[] $events */
         $events = $eventRepository->findForMonthAndYear($month, $year);
 
         $firstDate = (new DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
         $lastDate = (clone $firstDate)->modify('last day of this month');
-        if ((int)$firstDate->format('N') !== 1) {
+        if (1 !== (int) $firstDate->format('N')) {
             $firstDate->modify('previous monday');
         }
-        if ((int)$lastDate->format('N') !== 7) {
+        if (7 !== (int) $lastDate->format('N')) {
             $lastDate->modify('next sunday 23:59:59');
         }
 
@@ -41,12 +41,12 @@ class EventController extends AbstractController
             $startOfDay = DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0, 0);
             $endOfDay = DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
             $eventsForThisDay = array_filter($events, function (Event $event) use ($startOfDay, $endOfDay) {
-                return ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay) ||
-                    ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay);
+                return ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
+                    || ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay);
             });
             $calendar[$currentDate->format('Y-m-j')] = $eventsForThisDay;
         }
-        
+
         return $this->render('event/index.html.twig', [
             'month' => $month,
             'year' => $year,

@@ -22,7 +22,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class FftaFetchProfilePicture extends Command
 {
     public function __construct(
-        protected readonly FftaScrapper       $scrapper,
+        protected readonly FftaScrapper $scrapper,
         protected readonly LicenseeRepository $licenseeRepository,
     ) {
         parent::__construct();
@@ -44,7 +44,7 @@ class FftaFetchProfilePicture extends Command
      * @throws Exception
      */
     protected function execute(
-        InputInterface  $input,
+        InputInterface $input,
         OutputInterface $output,
     ): int {
         $io = new SymfonyStyle($input, $output);
@@ -54,23 +54,27 @@ class FftaFetchProfilePicture extends Command
 
         $licensee = $this->licenseeRepository->findOneByCode($code);
         if (!$licensee) {
-            $io->error(sprintf("Licensee with code %s was not found in database", $code));
+            $io->error(sprintf('Licensee with code %s was not found in database', $code));
+
             return Command::INVALID;
         }
 
         $pictureAsString = $this->scrapper->fetchLicenseeProfilePicture($licensee->getFftaId());
 
-        if ($pictureAsString === null) {
-            $io->info("The licensee has no profile picture");
+        if (null === $pictureAsString) {
+            $io->info('The licensee has no profile picture');
+
             return Command::SUCCESS;
         }
 
-        if ($output !== null) {
+        if (null !== $output) {
             file_put_contents($output, $pictureAsString);
+
             return Command::SUCCESS;
         }
 
         $io->write($pictureAsString);
+
         return Command::SUCCESS;
     }
 }

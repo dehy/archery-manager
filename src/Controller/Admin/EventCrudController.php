@@ -84,13 +84,15 @@ class EventCrudController extends AbstractCrudController
                 ->unsetAll()
                 ->setController(ResultCrudController::class)
                 ->set('filters[event][comparison]', '=')
-                ->set('filters[event][value]', $event->getId());
+                ->set('filters[event][value]', $event->getId())
+            ;
         });
 
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $seeResultsAction)
-            ->add(Crud::PAGE_DETAIL, $importResultArcScoresAction);
+            ->add(Crud::PAGE_DETAIL, $importResultArcScoresAction)
+        ;
     }
 
     /**
@@ -98,11 +100,11 @@ class EventCrudController extends AbstractCrudController
      * @throws NonUniqueResultException
      */
     public function importResults(
-        AdminContext           $context,
-        Request                $request,
-        ResultArcParser        $resultArcParser,
+        AdminContext $context,
+        Request $request,
+        ResultArcParser $resultArcParser,
         EntityManagerInterface $entityManager,
-        FilesystemOperator     $eventsStorage,
+        FilesystemOperator $eventsStorage,
     ): Response {
         /** @var Event $event */
         $event = $context->getEntity()->getInstance();
@@ -118,7 +120,8 @@ class EventCrudController extends AbstractCrudController
             ->add('import', SubmitType::class, [
                 'disabled' => !$event->canImportResults(),
             ])
-            ->getForm();
+            ->getForm()
+        ;
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -174,7 +177,8 @@ class EventCrudController extends AbstractCrudController
                 } else {
                     $result = (new Result())
                         ->setEvent($event)
-                        ->setLicensee($licensee);
+                        ->setLicensee($licensee)
+                    ;
 
                     $entityManager->persist($result);
                 }
@@ -183,7 +187,8 @@ class EventCrudController extends AbstractCrudController
                     ->setDiscipline($event->getDiscipline())
                     ->setTotal($line->score)
                     ->setDistance($distance)
-                    ->setTargetSize($targetSize);
+                    ->setTargetSize($targetSize)
+                ;
             }
             $entityManager->flush();
 
@@ -192,8 +197,8 @@ class EventCrudController extends AbstractCrudController
                     ->unsetAll()
                     ->setController(ResultCrudController::class)
                     ->setAction(Action::INDEX)
-                    ->generateUrl() .
-                '&filters[event][comparison]==&filters[event][value]=' .
+                    ->generateUrl().
+                '&filters[event][comparison]==&filters[event][value]='.
                 $event->getId(),
             );
         }

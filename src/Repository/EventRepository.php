@@ -41,7 +41,7 @@ class EventRepository extends ServiceEntityRepository
 
     public function findNextForLicensee(
         Licensee $licensee,
-        ?int     $limit = null,
+        ?int $limit = null,
     ): ArrayCollection {
         return new ArrayCollection(
             $this->createQueryBuilder('e')
@@ -60,12 +60,13 @@ class EventRepository extends ServiceEntityRepository
     {
         $firstDate = new DateTime(sprintf('%s-%s-01 midnight', $year, $month));
         $lastDate = (clone $firstDate)->modify('last day of this month');
-        if ((int)$firstDate->format('N') !== 1) {
+        if (1 !== (int) $firstDate->format('N')) {
             $firstDate->modify('previous monday');
         }
-        if ($lastDate !== false && (int)$lastDate->format('N') !== 7) {
+        if (false !== $lastDate && 7 !== (int) $lastDate->format('N')) {
             $lastDate->modify('next sunday 23:59:59');
         }
+
         return $this->createQueryBuilder('e')
             ->where('e.endsAt >= :monthStart')
             ->andWhere('e.startsAt <= :monthEnd')
@@ -74,6 +75,7 @@ class EventRepository extends ServiceEntityRepository
                 'monthEnd' => $lastDate,
             ])
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 }

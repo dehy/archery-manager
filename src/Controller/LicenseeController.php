@@ -51,8 +51,8 @@ class LicenseeController extends AbstractController
     ]
     public function show(
         LicenseeRepository $licenseeRepository,
-        LicenseeHelper     $licenseeHelper,
-        ?string            $fftaCode,
+        LicenseeHelper $licenseeHelper,
+        ?string $fftaCode,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
@@ -87,10 +87,10 @@ class LicenseeController extends AbstractController
         ),
     ]
     public function profilePicture(
-        string             $fftaCode,
+        string $fftaCode,
         LicenseeRepository $licenseeRepository,
         FilesystemOperator $profilePicturesStorage,
-        Request            $request,
+        Request $request,
     ): Response {
         $licensee = $licenseeRepository->findOneByCode($fftaCode);
         if (!$licensee) {

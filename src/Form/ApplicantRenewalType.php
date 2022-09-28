@@ -12,7 +12,7 @@ class ApplicantRenewalType extends AbstractType
 {
     public function buildForm(
         FormBuilderInterface $builder,
-        array                $options,
+        array $options,
     ): void {
         $builder
             ->add('lastname', null, [
@@ -36,7 +36,8 @@ class ApplicantRenewalType extends AbstractType
             ])
             ->add('comment', null, [
                 'label' => 'Observations / Remarques',
-            ]);
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

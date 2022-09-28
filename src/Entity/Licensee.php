@@ -46,7 +46,7 @@ class Licensee
     private $fftaId;
 
     #[ORM\Column]
-    #[Gedmo\Timestampable(on: "update")]
+    #[Gedmo\Timestampable(on: 'update')]
     private ?DateTimeImmutable $updatedAt = null;
 
     #[

@@ -24,10 +24,10 @@ use Symfony\Component\Mailer\MailerInterface;
 class FftaSyncLicenseesCommand extends Command
 {
     public function __construct(
-        protected readonly FftaScrapper           $scrapper,
+        protected readonly FftaScrapper $scrapper,
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly MailerInterface        $mailer,
-        protected readonly FftaHelper             $fftaHelper,
+        protected readonly MailerInterface $mailer,
+        protected readonly FftaHelper $fftaHelper,
     ) {
         parent::__construct();
     }
@@ -42,12 +42,12 @@ class FftaSyncLicenseesCommand extends Command
      * @throws TransportExceptionInterface
      */
     protected function execute(
-        InputInterface  $input,
+        InputInterface $input,
         OutputInterface $output,
     ): int {
         $this->fftaHelper->setLogger(new ConsoleLogger($output));
 
-        $season = (int)$input->getArgument('season');
+        $season = (int) $input->getArgument('season');
 
         $this->fftaHelper->syncLicensees($season);
 

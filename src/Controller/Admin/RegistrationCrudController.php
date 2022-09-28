@@ -33,7 +33,8 @@ class RegistrationCrudController extends AbstractCrudController
         return $crud
             ->setEntityLabelInSingular('Inscription')
             ->setEntityLabelInPlural('Inscriptions')
-            ->setPaginatorPageSize(200);
+            ->setPaginatorPageSize(200)
+        ;
     }
 
     public function configureFields(string $pageName): iterable
@@ -48,7 +49,7 @@ class RegistrationCrudController extends AbstractCrudController
             BooleanField::new('licenseCreated', 'License faite'),
             BooleanField::new('tournament', 'Veut faire compétition')->renderAsSwitch(false),
             TextField::new('realLicenseType', 'Type de licence')->formatValue(function (?string $value) {
-                return $value === null ? null : LicenseType::getReadableValue($value);
+                return null === $value ? null : LicenseType::getReadableValue($value);
             })->hideOnForm(),
             ChoiceField::new('ageCategory', "Catégorie d'âge")->setChoices(
                 LicenseAgeCategoryType::getChoices(),
@@ -65,20 +66,22 @@ class RegistrationCrudController extends AbstractCrudController
             ->add('season')
             ->add('docsRetrieved')
             ->add('paid')
-            ->add('licenseCreated');
+            ->add('licenseCreated')
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
     {
         return $actions
             ->remove(Crud::PAGE_INDEX, Action::NEW)
-            ->remove(Crud::PAGE_INDEX, Action::DELETE);
+            ->remove(Crud::PAGE_INDEX, Action::DELETE)
+        ;
     }
 
     public function createIndexQueryBuilder(
-        SearchDto        $searchDto,
-        EntityDto        $entityDto,
-        FieldCollection  $fields,
+        SearchDto $searchDto,
+        EntityDto $entityDto,
+        FieldCollection $fields,
         FilterCollection $filters,
     ): QueryBuilder {
         $queryBuilder = parent::createIndexQueryBuilder(
@@ -94,7 +97,8 @@ class RegistrationCrudController extends AbstractCrudController
                 ->addSelect(
                     'CONCAT(entity.lastname, \' \', entity.firstname) AS HIDDEN completeName',
                 )
-                ->addOrderBy('completeName', 'ASC');
+                ->addOrderBy('completeName', 'ASC')
+            ;
         }
 
         return $queryBuilder;

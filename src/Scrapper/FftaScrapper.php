@@ -89,7 +89,8 @@ class FftaScrapper
 
         $form = $crawler
             ->filter('#formSearchPersonne')
-            ->form(['inputAdherent' => $memberCode]);
+            ->form(['inputAdherent' => $memberCode])
+        ;
         $crawler = $this->fftaGoalClient->submit($form);
 
         $requestUriComponents = parse_url(
@@ -162,7 +163,8 @@ class FftaScrapper
                         ->text(),
                     true,
                 ),
-            );
+            )
+        ;
 
         $mobileNode = $crawler->filterXPath(
             "descendant-or-self::*[@id = 'mobile']",
@@ -216,30 +218,31 @@ class FftaScrapper
         $crawler = $this->fftaGoalClient->request('GET', $url);
 
         $profilePictureCrawler = $crawler->filter('[alt="Photo Identité"]');
-        if ($profilePictureCrawler->count() === 0) {
+        if (0 === $profilePictureCrawler->count()) {
             return null;
         }
 
         $profilePictureUrl = $profilePictureCrawler->attr('src');
         $this->fftaGoalClient->request('GET', $profilePictureUrl);
+
         /** @var Response $response */
         $response = $this->fftaGoalClient->getResponse();
         $content = $response->getContent();
 
-        if ($response->getStatusCode() !== 200) {
-            throw new NotFoundHttpException(sprintf("Cannot fetch image at url %s", $profilePictureUrl));
+        if (200 !== $response->getStatusCode()) {
+            throw new NotFoundHttpException(sprintf('Cannot fetch image at url %s', $profilePictureUrl));
         }
-        $contentType = strtolower($response->getHeader("content-type"));
-        if ($contentType === "image/png") {
+        $contentType = strtolower($response->getHeader('content-type'));
+        if ('image/png' === $contentType) {
             $image = imagecreatefromstring($response->getContent());
-            $stream = fopen("php://memory", "w+");
+            $stream = fopen('php://memory', 'w+');
             imagejpeg($image, $stream, 80);
             rewind($stream);
             $content = stream_get_contents($stream);
-            $contentType = "image/jpg";
+            $contentType = 'image/jpg';
         }
-        if ($contentType !== "image/jpg") {
-            throw new BadRequestException(sprintf("Wrong mimetype for profile picture: %s", $contentType));
+        if ('image/jpg' !== $contentType) {
+            throw new BadRequestException(sprintf('Wrong mimetype for profile picture: %s', $contentType));
         }
 
         return $content;
@@ -251,7 +254,7 @@ class FftaScrapper
      * @throws Exception
      */
     public function fetchLicenseeLicenses(
-        int  $fftaId,
+        int $fftaId,
         ?int $requestedSeason = null,
     ): array {
         $this->loginFftaGoal();
@@ -580,7 +583,8 @@ class FftaScrapper
                 ->setLocation($location)
                 ->setDiscipline($discipline)
                 ->setSpecifics($specifics)
-                ->setUrl($url);
+                ->setUrl($url)
+            ;
             $events[] = $event;
         });
 
@@ -629,18 +633,19 @@ class FftaScrapper
             );
 
             $fftaResult = (new FftaResult())
-                ->setPosition((int)$row->filter('td:nth-child(1)')->text())
+                ->setPosition((int) $row->filter('td:nth-child(1)')->text())
                 ->setName($row->filter('td:nth-child(2)')->text())
                 ->setClub($row->filter('td:nth-child(3)')->text())
                 ->setLicense($row->filter('td:nth-child(4)')->text())
                 ->setCategory($row->filter('td:nth-child(5)')->text())
                 ->setDistance($distance)
                 ->setSize($size)
-                ->setScore1((int)$row->filter('td:nth-child(6)')->text())
-                ->setScore2((int)$row->filter('td:nth-child(7)')->text())
-                ->setTotal((int)$row->filter('td:nth-child(8)')->text())
-                ->setNb10((int)$row->filter('td:nth-child(9)')->text())
-                ->setNb10p((int)$row->filter('td:nth-child(10)')->text());
+                ->setScore1((int) $row->filter('td:nth-child(6)')->text())
+                ->setScore2((int) $row->filter('td:nth-child(7)')->text())
+                ->setTotal((int) $row->filter('td:nth-child(8)')->text())
+                ->setNb10((int) $row->filter('td:nth-child(9)')->text())
+                ->setNb10p((int) $row->filter('td:nth-child(10)')->text())
+            ;
 
             $fftaResults[] = $fftaResult;
         });

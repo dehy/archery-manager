@@ -31,21 +31,21 @@ class PreRegistrationController extends AbstractController
      */
     #[Route('/pre-inscription', name: 'app_pre_registration')]
     public function form(
-        Request             $request,
+        Request $request,
         ApplicantRepository $applicantRepository,
-        LicenseeRepository  $licenseeRepository,
-        MailerInterface     $mailer,
-        SettingsManager     $settingsManager,
+        LicenseeRepository $licenseeRepository,
+        MailerInterface $mailer,
+        SettingsManager $settingsManager,
     ): Response {
         $applicant = new Applicant();
         $error = null;
 
-        $waitingListActivated = (bool)$settingsManager->get(
+        $waitingListActivated = (bool) $settingsManager->get(
             'pre_registration_waiting_list_activated',
         );
 
         $buttonLabel =
-            'Enregistrer ma pré-inscription' .
+            'Enregistrer ma pré-inscription'.
             ($waitingListActivated ? " sur liste d'attente" : '');
 
         $form = $this->createForm(ApplicantType::class, $applicant);
@@ -78,7 +78,8 @@ class PreRegistrationController extends AbstractController
                     )
                     ->context([
                         'waitingListActivated' => $waitingListActivated,
-                    ]);
+                    ])
+                ;
 
                 $mailer->send($email);
 
@@ -88,7 +89,8 @@ class PreRegistrationController extends AbstractController
                     ->textTemplate(
                         'pre_registration/mail_notification.txt.twig',
                     )
-                    ->context(['applicant' => $applicant]);
+                    ->context(['applicant' => $applicant])
+                ;
 
                 $mailer->send($notificationEmail);
 
@@ -125,10 +127,10 @@ class PreRegistrationController extends AbstractController
         ),
     ]
     public function renewal(
-        Request             $request,
+        Request $request,
         ApplicantRepository $applicantRepository,
-        LicenseeRepository  $licenseeRepository,
-        MailerInterface     $mailer,
+        LicenseeRepository $licenseeRepository,
+        MailerInterface $mailer,
     ): Response {
         $applicant = new Applicant();
         $error = null;
@@ -170,7 +172,8 @@ class PreRegistrationController extends AbstractController
                     ->subject('Votre renouvellement aux Archers de Guyenne')
                     ->htmlTemplate(
                         'pre_registration/mail_renewal_confirmation.html.twig',
-                    );
+                    )
+                ;
 
                 $mailer->send($email);
 
@@ -180,7 +183,8 @@ class PreRegistrationController extends AbstractController
                     ->textTemplate(
                         'pre_registration/mail_renewal_notification.txt.twig',
                     )
-                    ->context(['applicant' => $applicant]);
+                    ->context(['applicant' => $applicant])
+                ;
 
                 $mailer->send($notificationEmail);
 

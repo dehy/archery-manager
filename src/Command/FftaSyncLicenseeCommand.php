@@ -24,10 +24,10 @@ use Symfony\Component\Mailer\MailerInterface;
 class FftaSyncLicenseeCommand extends Command
 {
     public function __construct(
-        protected readonly FftaScrapper           $scrapper,
+        protected readonly FftaScrapper $scrapper,
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly MailerInterface        $mailer,
-        protected readonly FftaHelper             $fftaHelper,
+        protected readonly MailerInterface $mailer,
+        protected readonly FftaHelper $fftaHelper,
     ) {
         parent::__construct();
     }
@@ -42,16 +42,17 @@ class FftaSyncLicenseeCommand extends Command
      * @throws TransportExceptionInterface
      */
     protected function execute(
-        InputInterface  $input,
+        InputInterface $input,
         OutputInterface $output,
     ): int {
         $this->fftaHelper->setLogger(new ConsoleLogger($output));
 
-        $licenseeCode = (int)$input->getArgument('licenseeCode');
+        $licenseeCode = (int) $input->getArgument('licenseeCode');
         $licenseeId = $this->scrapper->findLicenseeIdFromCode($licenseeCode);
 
         if (!$licenseeId) {
-            $output->writeln(sprintf("Licensee with code %s not found.", $licenseeCode));
+            $output->writeln(sprintf('Licensee with code %s not found.', $licenseeCode));
+
             return Command::INVALID;
         }
 

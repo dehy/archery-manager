@@ -33,7 +33,7 @@ class LicenseHelper
 
     public function licenseTypeForBirthdate(
         DateTimeInterface $birthdate,
-        bool              $tournament,
+        bool $tournament,
     ): string {
         $categoryType = $this->licenseCategoryTypeForBirthdate($birthdate);
 

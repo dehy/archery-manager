@@ -24,7 +24,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class ResultArcImportCommand extends Command
 {
     public function __construct(
-        protected ResultArcParser        $parser,
+        protected ResultArcParser $parser,
         protected EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
@@ -37,7 +37,7 @@ class ResultArcImportCommand extends Command
     }
 
     protected function execute(
-        InputInterface  $input,
+        InputInterface $input,
         OutputInterface $output,
     ): int {
         $io = new SymfonyStyle($input, $output);
@@ -91,7 +91,8 @@ class ResultArcImportCommand extends Command
             } else {
                 $result = (new Result())
                     ->setEvent($event)
-                    ->setLicensee($licensee);
+                    ->setLicensee($licensee)
+                ;
             }
             [
                 $distance,
@@ -107,7 +108,8 @@ class ResultArcImportCommand extends Command
                 ->setDiscipline($event->getDiscipline())
                 ->setDistance($distance)
                 ->setTargetSize($targetSize)
-                ->setTotal($resultLine->score);
+                ->setTotal($resultLine->score)
+            ;
 
             $this->entityManager->persist($result);
         }
