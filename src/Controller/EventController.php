@@ -25,18 +25,18 @@ class EventController extends AbstractController
     public function index(Request $request, EventRepository $eventRepository): Response
     {
         $now = new DateTime();
-        $month = $request->query->get('m', (int)$now->format('n'));
-        $year = $request->query->get('y', (int)$now->format('Y'));
+        $month = $request->query->get('m', (int) $now->format('n'));
+        $year = $request->query->get('y', (int) $now->format('Y'));
 
         /** @var Event[] $events */
         $events = $eventRepository->findForMonthAndYear($month, $year);
 
         $firstDate = (new DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
         $lastDate = (clone $firstDate)->modify('last day of this month');
-        if (1 !== (int)$firstDate->format('N')) {
+        if (1 !== (int) $firstDate->format('N')) {
             $firstDate->modify('previous monday');
         }
-        if (7 !== (int)$lastDate->format('N')) {
+        if (7 !== (int) $lastDate->format('N')) {
             $lastDate->modify('next sunday 23:59:59');
         }
 
@@ -67,7 +67,7 @@ class EventController extends AbstractController
             $forceDownload ? ResponseHeaderBag::DISPOSITION_ATTACHMENT : ResponseHeaderBag::DISPOSITION_INLINE,
             $attachment->getFile()->getName()
         );
-        
+
         $response = new StreamedResponse(function () use ($eventsStorage, $attachment) {
             $outputStream = fopen('php://output', 'wb');
             $fileStream = $eventsStorage->readStream($attachment->getFile()->getName());

@@ -113,6 +113,6 @@ class LicenseeAttachment extends Attachment
         $type = $this->getType();
         $randomStr = bin2hex(random_bytes(4));
 
-        return sprintf("%s-%s-%s-%s", $licensee->getFftaMemberCode(), $this->getSeason(), $type, $randomStr);
+        return sprintf('%s-%s-%s-%s', $licensee->getFftaMemberCode(), $this->getSeason(), $type, $randomStr);
     }
 }

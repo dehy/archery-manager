@@ -86,7 +86,7 @@ class EventAttachment extends Attachment
         $randomStr = bin2hex(random_bytes(4));
 
         return sprintf(
-            "%s-%s-%s-%s-%s",
+            '%s-%s-%s-%s-%s',
             $event->getStartsAt()->format('Y-m-d'),
             $type,
             $discipline,

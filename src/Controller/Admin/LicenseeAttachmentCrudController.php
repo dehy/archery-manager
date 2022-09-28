@@ -30,7 +30,9 @@ class LicenseeAttachmentCrudController extends AbstractCrudController
                 return [
                     'attachment' => $attachment->getId(),
                 ];
-            });
+            })
+        ;
+
         return $actions->add(Crud::PAGE_INDEX, $downloadAction);
     }
 

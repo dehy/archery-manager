@@ -29,7 +29,9 @@ class EventAttachmentCrudController extends AbstractCrudController
                 return [
                     'attachment' => $attachment->getId(),
                 ];
-            });
+            })
+        ;
+
         return $actions->add(Crud::PAGE_INDEX, $downloadAction);
     }
 
@@ -47,6 +49,7 @@ class EventAttachmentCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
-            ->add(EntityFilter::new('event'));
+            ->add(EntityFilter::new('event'))
+        ;
     }
 }

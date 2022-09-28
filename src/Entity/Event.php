@@ -238,13 +238,14 @@ class Event
             ->setEndsAt($fftaEvent->getTo())
             ->setName($fftaEvent->getName())
             ->setStartsAt($fftaEvent->getFrom())
-            ->setType(EventType::CONTEST_OFFICIAL);
+            ->setType(EventType::CONTEST_OFFICIAL)
+        ;
     }
 
     public function getSeason(): int
     {
-        $month = (int)$this->getStartsAt()->format('m');
-        $year = (int)$this->getStartsAt()->format('Y');
+        $month = (int) $this->getStartsAt()->format('m');
+        $year = (int) $this->getStartsAt()->format('Y');
         if ($month >= 9 && $month <= 12) {
             return $year + 1;
         }
@@ -285,14 +286,14 @@ class Event
     public function hasMandate(): bool
     {
         return $this->getAttachments()->exists(function (int $key, EventAttachment $attachment) {
-            return $attachment->getType() === EventAttachmentType::MANDATE;
+            return EventAttachmentType::MANDATE === $attachment->getType();
         });
     }
 
     public function hasResults(): bool
     {
         return $this->getAttachments()->exists(function (int $key, EventAttachment $attachment) {
-            return $attachment->getType() === EventAttachmentType::RESULTS;
+            return EventAttachmentType::RESULTS === $attachment->getType();
         });
     }
 }

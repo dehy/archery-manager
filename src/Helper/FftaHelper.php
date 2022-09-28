@@ -25,11 +25,11 @@ use Symfony\Component\Mailer\MailerInterface;
 class FftaHelper
 {
     public function __construct(
-        protected FftaScrapper           $scrapper,
+        protected FftaScrapper $scrapper,
         protected EntityManagerInterface $entityManager,
-        protected MailerInterface        $mailer,
-        protected LoggerInterface        $logger,
-        protected FilesystemOperator     $licenseesStorage
+        protected MailerInterface $mailer,
+        protected LoggerInterface $logger,
+        protected FilesystemOperator $licenseesStorage
     ) {
     }
 
@@ -100,7 +100,8 @@ class FftaHelper
                 )
                 ->context([
                     'licensee' => $licensee,
-                ]);
+                ])
+            ;
 
             try {
                 $this->mailer->send($email);
@@ -204,7 +205,7 @@ class FftaHelper
      */
     public function createLicenseForLicenseeAndSeason(
         ?Licensee $licensee,
-        int       $seasonYear,
+        int $seasonYear,
     ): License {
         $licenses = $this->scrapper->fetchLicenseeLicenses(
             $licensee->getFftaId(),

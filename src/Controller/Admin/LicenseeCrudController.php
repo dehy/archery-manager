@@ -40,8 +40,10 @@ class LicenseeCrudController extends AbstractCrudController
                 ->unsetAll()
                 ->setController(LicenseeAttachmentCrudController::class)
                 ->set('filters[event][comparison]', '=')
-                ->set('filters[event][value]', $licensee->getId());
+                ->set('filters[event][value]', $licensee->getId())
+            ;
         });
+
         return $actions->add(Crud::PAGE_INDEX, $attachmentsAction);
     }
 
