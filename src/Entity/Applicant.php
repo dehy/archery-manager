@@ -59,8 +59,8 @@ class Applicant
     #[ORM\Column(type: 'boolean')]
     private bool $renewal = false;
 
-    #[ORM\Column(type: 'string', length: 32, nullable: true)]
-    private string $licenseType;
+    #[ORM\Column]
+    private bool $tournament = false;
 
     #[ORM\Column]
     private bool $onWaitingList = false;
@@ -224,14 +224,14 @@ class Applicant
         return $this;
     }
 
-    public function getLicenseType(): string
+    public function getTournament(): bool
     {
-        return $this->licenseType;
+        return $this->tournament;
     }
 
-    public function setLicenseType(string $licenseType): self
+    public function setTournament(bool $tournament): self
     {
-        $this->licenseType = $licenseType;
+        $this->tournament = $tournament;
 
         return $this;
     }

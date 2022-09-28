@@ -4,7 +4,7 @@ namespace App\Form;
 
 use App\Entity\Applicant;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -12,7 +12,7 @@ class ApplicantRenewalType extends AbstractType
 {
     public function buildForm(
         FormBuilderInterface $builder,
-        array $options,
+        array                $options,
     ): void {
         $builder
             ->add('lastname', null, [
@@ -29,19 +29,14 @@ class ApplicantRenewalType extends AbstractType
                 'label' => 'N° licence FFTA *',
                 'required' => true,
             ])
-            ->add('licenseType', ChoiceType::class, [
+            ->add('tournament', CheckboxType::class, [
                 'label' => 'Type de Licence *',
-                'choices' => [
-                    'LOISIR' => 'LOISIR',
-                    'COMPÉTITION' => 'COMPÉTITION',
-                ],
                 'expanded' => true,
                 'required' => true,
             ])
             ->add('comment', null, [
                 'label' => 'Observations / Remarques',
-            ])
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

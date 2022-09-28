@@ -39,8 +39,7 @@ class ApplicantCrudController extends AbstractCrudController
         return $crud
             ->setEntityLabelInSingular('Pré-inscrit')
             ->setEntityLabelInPlural('Pré-inscrits')
-            ->setPaginatorPageSize(150)
-        ;
+            ->setPaginatorPageSize(150);
     }
 
     public function configureFields(string $pageName): iterable
@@ -65,10 +64,7 @@ class ApplicantCrudController extends AbstractCrudController
                 PracticeLevelType::getChoices(),
             ),
             TextField::new('licenseNumber', 'N° Licence'),
-            ChoiceField::new('licenseType', 'Type de licence')->setChoices([
-                'LOISIR' => 'LOISIR',
-                'COMPÉTITION' => 'COMPÉTITION',
-            ]),
+            BooleanField::new('tournament', 'Compétition'),
             EmailField::new('email'),
             TelephoneField::new('phoneNumber', 'Téléphone'),
             TextField::new('comment', 'Commentaire'),
@@ -80,8 +76,7 @@ class ApplicantCrudController extends AbstractCrudController
         return $filters
             ->add('renewal')
             ->add('season')
-            ->add('onWaitingList')
-        ;
+            ->add('onWaitingList');
     }
 
     public function configureActions(Actions $actions): Actions
@@ -93,10 +88,10 @@ class ApplicantCrudController extends AbstractCrudController
      * @Route("/admin/applicants/stats", name="app_admin_applicants_stats")
      */
     public function applicantStatistics(
-        Request $request,
+        Request             $request,
         ApplicantRepository $applicantRepository,
-        SettingsManager $settingsManager,
-        AdminUrlGenerator $adminUrlGenerator,
+        SettingsManager     $settingsManager,
+        AdminUrlGenerator   $adminUrlGenerator,
     ): Response {
         $settingsForm = $this->createForm(
             PreRegistrationSettingsType::class,

@@ -26,7 +26,7 @@ class ApplicantHelper
 
     public function licenseTypeForApplicant(Applicant $applicant): string
     {
-        $tournament = 'COMPÉTITION' === $applicant->getLicenseType();
+        $tournament = $applicant->getTournament();
 
         return $this->licenseHelper->licenseTypeForBirthdate(
             $applicant->getBirthdate(),
