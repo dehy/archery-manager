@@ -82,4 +82,12 @@ class EventController extends AbstractController
 
         return $response;
     }
+
+    #[Route('/events/{event}')]
+    public function showModal(Event $event): Response
+    {
+        return $this->render('event/show.modal.html.twig', [
+            'event' => $event,
+        ]);
+    }
 }

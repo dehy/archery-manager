@@ -20,4 +20,14 @@ final class EventType extends AbstractEnumType
         self::CONTEST_HOBBY => 'Compétition Loisir',
         self::OTHER => 'Autre',
     ];
+
+    public static function colorCode(string $choice): string
+    {
+        return match ($choice) {
+            self::TRAINING => '#00CC00',
+            self::CONTEST_OFFICIAL => '#CC0000',
+            self::CONTEST_HOBBY => '#0000CC',
+            default => '#CCCCCC',
+        };
+    }
 }

@@ -9,22 +9,38 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-4 col-xs-12 mb-3">
+        <div class="col-md-4 col-xs-12 mb-3" data-controller="modal">
+            {{ include('_modal.html.twig') }}
             <h2 class="mb-3"><em class="fa-solid fa-calendar-days"></em> Prochains évènements</h2>
             {% if events is empty %}
                 <p><em>Aucun évènement prévu</em></p>
             {% else %}
                 <ul class="list-group">
                     {% for event in events %}
-                        <li class="list-group-item d-flex justify-content-between">
+                        <a href="{{ path('app_event_showmodal', {'event': event.id}) }}"
+                           type="button"
+                           class="list-group-item list-group-item-action d-flex justify-content-between link-unstyled"
+                           data-action="click->modal#open"
+                           data-title="{{ event.type|readable_enum }} - {{ event.name }}"
+                        >
                             <div>
-                                <div class="fw-bold">{{ event.name }}</div>
+                                <div class="fw-bold">
+                                    <div class="event-pill me-1"
+                                         style="background-color: {{ event.type|eventColor }}"
+                                         data-bs-toggle="tooltip" data-bs-title="{{ event.type|readable_enum }}"
+                                    >
+                                    </div>
+                                    {{ event.name }}
+                                    {% if event.attachments|length > 0 %}
+                                        <em class="fa-solid fa-paperclip"></em>
+                                    {% endif %}
+                                </div>
                                 <small>
                                     le {{ event.startsAt|format_date(locale='fr') }}
                                     (dans {{ event.startsAt.diff(date()).days }} jours)
                                 </small>
                             </div>
-                            <div>
+                            <!--<div>
                                 <div class="btn-group btn-group-sm float-end" role="group">
                                     <button type="button" class="btn btn-outline-danger"
                                             data-bs-toggle="tooltip" data-bs-title="Je n'y vais pas"
@@ -39,8 +55,8 @@
                                         <em class="fa-solid fa-check fa-fw"></em>
                                     </button>
                                 </div>
-                            </div>
-                        </li>
+                            </div>-->
+                        </a>
                     {% endfor %}
                 </ul>
             {% endif %}
@@ -52,10 +68,10 @@
             {% else %}
                 <ul class="list-group">
                     {% for advice in advices %}
-                            <li class="list-group-item">
-                                <strong>{{ advice.title }}</strong><br/>
-                                <em>par {{ advice.author.firstname }}</em>
-                            </li>
+                        <li class="list-group-item">
+                            <strong>{{ advice.title }}</strong><br/>
+                            <em>par {{ advice.author.firstname }}</em>
+                        </li>
                     {% endfor %}
                 </ul>
             {% endif %}

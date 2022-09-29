@@ -1,0 +1,28 @@
+<dl class="row">
+    <dt class="col-3 text-end">adresse</dt>
+    <dd class="col-9">{{ event.address }}</dd>
+    <dt class="col-3 text-end">début</dt>
+    <dd class="col-9">{{ event.startsAt|date('H:i') }}</dd>
+    <dt class="col-3 text-end">fin</dt>
+    <dd class="col-9">{{ event.endsAt|date('H:i') }}</dd>
+    <dt class="col-3 text-end">participants</dt>
+    <dd class="col-9">{{ event.participations|length }}</dd>
+</dl>
+
+<ul class="list-unstyled d-flex mb-0">
+    {% for attachment in event.attachments %}
+        <li class="p-3">
+            <a href="{{ path('events_attachements_download', {'attachment': attachment.id}) }}"
+               target="_blank"
+               class="d-flex flex-grow-0 flex-shrink-0 flex-column link-unstyled text-center"
+            >
+                <span class="fa-stack fa-2x">
+                    <i class="fa-regular fa-file fa-stack-2x"></i>
+                    <i class="{{ attachment.type|icon }} fa-stack-1x"></i>
+                </span>
+                <span class="mt-2"><em class="fa-solid fa-download"></em> {{ attachment.type|readable_enum }}</span>
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+

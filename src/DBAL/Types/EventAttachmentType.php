@@ -18,4 +18,13 @@ final class EventAttachmentType extends AbstractEnumType
         self::RESULTS => 'Résultats',
         self::MISC => 'Autre',
     ];
+
+    public static function icon($value): string
+    {
+        return match ($value) {
+            self::MANDATE => 'fas fa-bullhorn',
+            self::RESULTS => 'fas fa-medal',
+            default => 'fas fa-file',
+        };
+    }
 }

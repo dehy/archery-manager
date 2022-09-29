@@ -22,15 +22,19 @@ import {
   faArrowLeft,
   faArrowRightFromBracket,
   faArrowsRotate,
+  faBullhorn,
   faBullseye,
   faCalendar,
   faCalendarDays,
   faCheck,
   faCircleArrowRight,
   faComment,
+  faDownload,
   faGaugeHigh,
   faHeart,
+  faInfo,
   faMars,
+  faPaperclip,
   faPeopleGroup,
   faPlus,
   faScrewdriverWrench,
@@ -41,40 +45,46 @@ import {
   faVenus,
 } from "@fortawesome/free-solid-svg-icons";
 import {faDiscord} from "@fortawesome/free-brands-svg-icons";
+import {faFile} from "@fortawesome/free-regular-svg-icons";
 
 library.add(
-  faAddressCard,
-  faAngleLeft,
-  faAngleRight,
-  faArrowLeft,
-  faArrowRightFromBracket,
-  faArrowsRotate,
-  faBullseye,
-  faCalendar,
-  faCalendarDays,
-  faCheck,
-  faCircleArrowRight,
-  faComment,
-  faDiscord,
-  faGaugeHigh,
-  faHeart,
-  faMars,
-  faPeopleGroup,
-  faPlus,
-  faScrewdriverWrench,
-  faTimes,
-  faUser,
-  faUsers,
-  faUserGear,
-  faVenus
+    faAddressCard,
+    faAngleLeft,
+    faAngleRight,
+    faArrowLeft,
+    faArrowRightFromBracket,
+    faArrowsRotate,
+    faBullhorn,
+    faBullseye,
+    faCalendar,
+    faCalendarDays,
+    faCheck,
+    faCircleArrowRight,
+    faComment,
+    faDiscord,
+    faDownload,
+    faFile,
+    faGaugeHigh,
+    faHeart,
+    faInfo,
+    faMars,
+    faPaperclip,
+    faPeopleGroup,
+    faPlus,
+    faScrewdriverWrench,
+    faTimes,
+    faUser,
+    faUsers,
+    faUserGear,
+    faVenus
 );
 dom.watch();
 
 (() => {
-  const tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll(
-    '[data-bs-toggle="tooltip"]'
-  ));
-  const tooltipList = tooltipTriggerList.map(
-    (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
-  );
+    const tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll(
+        '[data-bs-toggle="tooltip"]'
+    ));
+    const tooltipList = tooltipTriggerList.map(
+        (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
+    );
 })();

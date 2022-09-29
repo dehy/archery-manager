@@ -1,6 +1,11 @@
 @import "variables";
 @import "bootstrap";
 
+.link-unstyled {
+  color: inherit;
+  text-decoration: inherit;
+}
+
 .profile-stamp {
   display: block;
   position: absolute;
@@ -13,4 +18,65 @@
 .bg-ffta {
   background-color: #125f9b;
   background-image: linear-gradient(90deg, #084276, #125f9b);
+}
+
+.calendar-header {
+  display: grid;
+  grid-template: 2em / repeat(7, 1fr);
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-gap: 1px;
+  background-color: #CCCCCC;
+  border: 1px solid #CCCCCC;
+}
+
+.calendar-row-6 {
+  grid-template-rows:repeat(6, 1fr);
+}
+
+.calendar-row-7 {
+  grid-template-rows:repeat(7, 1fr);
+}
+
+.calendar-case {
+  height: 90px;
+  font-size: 0.8em;
+}
+
+.calendar-case .event-name {
+  text-overflow: ellipsis;
+}
+
+.event-pill {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 20px;
+}
+
+.event-list-event {
+  border-radius: 10px;
+}
+
+.event-list-event:hover {
+  background-color: #EEEEEE;
+}
+
+.event-list-event .time {
+  color: grey;
+  font-weight: bold;
+  font-size: 0.8em;
+  margin-top: -2px;
+}
+
+.event-list-event .name {
+
+}
+
+.event-list-event .address {
+  color: grey;
+  font-size: 0.8em;
 }
