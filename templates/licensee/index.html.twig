@@ -9,20 +9,18 @@
         {% for licensee in licensees %}
             {% set license = licensee.licenseForSeason(year) %}
             <div class="col-xxl-3 col-lg-4 col-md-6 col-12 mb-3">
-                <div class="card">
+                <a class="card text-reset text-decoration-none"
+                   href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}"
+                >
                     <div class="row g-0">
                         <div class="col-3">
-                            <img src="{{ path('app_licensee_picture', {'fftaCode': licensee.fftaMemberCode}) }}" class="img-fluid rounded-start" alt="">
+                            <img src="{{ path('app_licensee_picture', {'fftaCode': licensee.fftaMemberCode}) }}"
+                                 class="img-fluid rounded-start" alt="">
                         </div>
                         <div class="col-9">
                             <div class="card-body">
                                 <h5 class="card-title mb-1">
-                                    <a href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}"
-                                        class="text-reset text-decoration-none"
-                                    >
-                                        {{ licensee.fullname }}
-                                        <small><em class="fa-solid fa-circle-arrow-right text-muted"></em></small>
-                                    </a>
+                                    {{ licensee.fullname }}
                                 </h5>
                                 <p class="card-text">
                                     <em class="fa-solid fa-people-group fa-fw"></em>
@@ -33,7 +31,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
         {% endfor %}
     </div>

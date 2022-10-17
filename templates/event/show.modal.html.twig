@@ -22,7 +22,9 @@
     <dd class="col-9">
         {% if not event.attachments(type).empty %}
             {% for attachment in event.attachments(type) %}
-                <a href="{{ path('events_attachements_download', {'attachment': attachment.id}) }}" target="_blank">
+                <a href="{{ path('events_attachements_download', {'attachment': attachment.id}) }}"
+                   class="btn btn-sm btn-primary"
+                   target="_blank">
                     <em class="fa-solid fa-download"></em> Télécharger
                 </a>
             {% endfor %}
