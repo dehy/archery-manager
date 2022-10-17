@@ -42,6 +42,7 @@ class EventAttachment extends Attachment
     public function setEvent(?Event $event): self
     {
         $this->event = $event;
+        $event->addAttachment($this);
 
         return $this;
     }

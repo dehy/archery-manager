@@ -267,22 +267,22 @@ class Event
         return $this->attachments;
     }
 
-    public function addAttachment(PracticeAdviceAttachment $attachment): self
+    public function addAttachment(EventAttachment $attachment): self
     {
         if (!$this->attachments->contains($attachment)) {
             $this->attachments->add($attachment);
-            $attachment->setPracticeAdvice($this);
+            $attachment->setEvent($this);
         }
 
         return $this;
     }
 
-    public function removeAttachment(PracticeAdviceAttachment $attachment): self
+    public function removeAttachment(EventAttachment $attachment): self
     {
         if ($this->attachments->removeElement($attachment)) {
             // set the owning side to null (unless already changed)
-            if ($attachment->getPracticeAdvice() === $this) {
-                $attachment->setPracticeAdvice(null);
+            if ($attachment->getEvent() === $this) {
+                $attachment->setEvent(null);
             }
         }
 

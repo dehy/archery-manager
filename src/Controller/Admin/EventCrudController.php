@@ -4,8 +4,10 @@ namespace App\Controller\Admin;
 
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
+use App\DBAL\Types\EventAttachmentType;
 use App\DBAL\Types\EventType;
 use App\Entity\Event;
+use App\Entity\EventAttachment;
 use App\Entity\Licensee;
 use App\Entity\Result;
 use App\Repository\LicenseeRepository;
@@ -144,19 +146,13 @@ class EventCrudController extends AbstractCrudController
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var UploadedFile $file */
             $file = $form->get('file')->getData();
-            $sanitizedEventName = mb_ereg_replace(
-                '([^\w\s\d\-_~,;\[\]\(\).])',
-                '-',
-                $event->getName(),
-            );
-            $filepath = sprintf(
-                '%s/%s - %s - Résultats.pdf',
-                $event->getId(),
-                $event->getStartsAt()->format('Y-m-d'),
-                $sanitizedEventName,
-            );
-            $eventsStorage->write($filepath, $file->getContent());
-            $event->setResultFilepath($filepath);
+
+            $eventAttachment = new EventAttachment();
+            $eventAttachment->setType(EventAttachmentType::RESULTS);
+            $eventAttachment->setUploadedFile($file);
+            $eventAttachment->setEvent($event);
+
+            $entityManager->persist($eventAttachment);
             $entityManager->flush();
 
             $resultLines = $resultArcParser->parseFile($file);
