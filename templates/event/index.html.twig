@@ -5,62 +5,80 @@
 {% block body %}
     <h2>Calendrier</h2>
 
-    {% set month = date(year ~ '-' ~ month ~ '-01') %}
-    {% set previousMonth = month|date_modify('previous month') %}
-    {% set nextMonth = month|date_modify('next month') %}
+    {% set start_of_month = date(year ~ '-' ~ month ~ '-01') %}
+    {% set previous_month = start_of_month|date_modify('previous month') %}
+    {% set next_month = start_of_month|date_modify('next month') %}
     <h3>
-        <a href="{{ path('app_events_index', {'m': previousMonth|date('n'), 'y': previousMonth|date('Y')}) }}"
+        <a href="{{ path('app_events_index', {'m': previous_month|date('n'), 'y': previous_month|date('Y')}) }}"
            class="btn btn-sm btn-secondary">
             <em class="fa-solid fa-angle-left"></em>
         </a>
-        <a href="{{ path('app_events_index', {'m': nextMonth|date('n'), 'y': nextMonth|date('Y')}) }}"
+        <a href="{{ path('app_events_index') }}" class="btn btn-sm btn-secondary">Aujourd'hui</a>
+        <a href="{{ path('app_events_index', {'m': next_month|date('n'), 'y': next_month|date('Y')}) }}"
            class="btn btn-sm btn-secondary">
             <em class="fa-solid fa-angle-right"></em>
         </a>
-        {{ month|format_date(pattern='MMMM', locale='fr') }}
-        <span class="fw-normal text-primary">{{ month|format_date(pattern='yyyy', locale='fr') }}</span>
+        {{ start_of_month|format_date(pattern='MMMM', locale='fr') }}
+        <span class="fw-normal text-primary">{{ start_of_month|format_date(pattern='yyyy', locale='fr') }}</span>
     </h3>
 
     <div class="row" data-controller="modal">
         {{ include('_modal.html.twig') }}
-        <div class="col-xl-8 d-xl-block d-none">
+        <div class="col-xl-9 d-xl-block d-none">
             <div class="calendar-header">
                 {% for day in ["LUN.", "MAR.", "MER.", "JEU.", "VEN.", "SAM.", "DIM."] %}
                     <div class="text-end p-1">{{ day }}</div>
                 {% endfor %}
             </div>
-            {% set rowsCount = calendar|length/7 %}
-            <div class="calendar calendar-row-{{ rowsCount }}">
+            {% set rows_count = calendar|length/7 %}
+            <div class="calendar calendar-row-{{ rows_count }}">
                 {% for date_key, events in calendar %}
-                    {% set list = date_key|split('-') %}
-                    <div class="p-2 bg-white calendar-case">
+                    {% set case_css = [] %}
+                    {% set row = (loop.index / 7)|round(0, 'ceil') %}
+                    {% set date_elements = date_key|split('-') %}
+                    {% if date_elements[1] < month %}
+                        {% set case_css = case_css|merge(['previous-month']) %}
+                    {% endif %}
+                    {% if date_elements[1] > month %}
+                        {% set case_css = case_css|merge(['next-month']) %}
+                    {% endif %}
+                    {% if date_key == start_of_month|date_modify('last day of previous month')|date('Y-m-j') %}
+                        {% set case_css = case_css|merge(['last-day']) %}
+                    {% endif %}
+                    {% if date_key == start_of_month|date_modify('first day of next month')|date('Y-m-j') %}
+                        {% set case_css = case_css|merge(['first-day']) %}
+                    {% endif %}
+                    {% if row == rows_count %}
+                        {% set case_css = case_css|merge(['row-last']) %}
+                    {% endif %}
+                    <div class="p-2 calendar-case row-{{ row }} {{ case_css|join(' ') }}">
                         <div class="text-end">
                             {% if ("now"|date('Y-m-d') == date_key) %}
                                 <div class="badge rounded-pill bg-primary">
-                                    {{ list[2] }} {{ "now"|format_date(pattern="MMM") }}.
+                                    {{ date_elements[2] }} {{ "now"|format_date(pattern="MMM") }}.
                                 </div>
                             {% else %}
-                                {{ list[2] }}
+                                {{ date_elements[2] }}
                             {% endif %}
                         </div>
                         {% for event in events %}
                             <a href="{{ path('app_event_showmodal', {'event': event.id}) }}"
                                data-action="click->modal#open"
                                data-title="{{ event.type|readable_enum }} - {{ event.name }}"
-                               class="d-flex justify-content-between link-unstyled">
+                               class="event-link d-flex d-inline-block justify-content-between link-unstyled">
                                 <div class="event-name">
                                     <div class="event-pill" style="background-color: {{ event.type|eventColor }}"></div>
                                     {{ event.name }}
                                 </div>
-                                <div class="text-black-50 d-none d-xxl-block">{{ event.startsAt|date('H:i') }}</div>
+                                <div class="text-black-50 d-none d-xxl-block event-time">{{ event.startsAt|date('H:i') }}</div>
                             </a>
                         {% endfor %}
                     </div>
                 {% endfor %}
             </div>
         </div>
-        <div class="col-xl-4 col-12">
-            <ul>
+        <div class="col-xl-3 col-12">
+            <ul class="ps-0">
                 {% for date_key, events in calendar|filter((e) => e|length > 0) %}
                     <li class="list-unstyled">
                         {% set day = date(date_key) %}

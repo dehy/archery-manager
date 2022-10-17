@@ -44,10 +44,47 @@
 .calendar-case {
   height: 90px;
   font-size: 0.8em;
+  background: white;
+  overflow: hidden;
+}
+
+.calendar-case.previous-month,
+.calendar-case.next-month {
+  background-color: #EEEEEE;
+}
+
+.calendar-case.previous-month {
+  border-bottom: 1px solid #CCCCCC;
+}
+
+.calendar-case.previous-month.last-day {
+  border-right: 1px solid #CCCCCC;
+}
+
+.calendar-case.row-1:not(.previous-month) {
+  border-top: 1px solid #CCCCCC;
+}
+
+.calendar-case.next-month {
+  border-top: 1px solid #CCCCCC;
+}
+
+.calendar-case.next-month.first-day {
+  border-left: 1px solid #CCCCCC;
+}
+
+.calendar-case.row-last:not(.next-month) {
+  border-bottom: 1px solid #CCCCCC;
 }
 
 .calendar-case .event-name {
   text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.calendar-case .event-time {
+  margin-left: 0.5em;
 }
 
 .event-pill {
