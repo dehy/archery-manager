@@ -71,7 +71,8 @@ class FftaScrapper
         $ids = [];
         foreach ($licensesData['licences'] as $licenseData) {
             $html = $licenseData[9];
-            $ids[] = preg_replace("/.*FichePersonne_(\\d+)'.*/", '\\1', $html);
+            $id = preg_replace("/.*FichePersonne_(\\d+)'.*/", '\\1', $html);
+            $ids[] = intval($id);
         }
 
         return $ids;
