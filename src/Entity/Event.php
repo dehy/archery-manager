@@ -256,8 +256,14 @@ class Event
     /**
      * @return Collection<int, PracticeAdviceAttachment>
      */
-    public function getAttachments(): Collection
+    public function getAttachments(?string $type = null): Collection
     {
+        if ($type) {
+            return $this->attachments
+                ->filter(fn (EventAttachment $attachment) => $attachment->getType() === $type)
+            ;
+        }
+
         return $this->attachments;
     }
 

@@ -1,28 +1,33 @@
 <dl class="row">
     <dt class="col-3 text-end">adresse</dt>
-    <dd class="col-9">{{ event.address }}</dd>
+    <dd class="col-9">
+        {{ event.address }}<br>
+        <a href="https://www.google.com/maps/search/?api=1&query={{ event.address|url_encode }}"
+           target="_blank">Afficher sur Google Maps <em class="fas fa-arrow-up-right-from-square"></em></a>
+    </dd>
     <dt class="col-3 text-end">début</dt>
     <dd class="col-9">{{ event.startsAt|date('H:i') }}</dd>
     <dt class="col-3 text-end">fin</dt>
     <dd class="col-9">{{ event.endsAt|date('H:i') }}</dd>
     <dt class="col-3 text-end">participants</dt>
     <dd class="col-9">{{ event.participations|length }}</dd>
+    {% if event.type in ['contest_official', 'contest_hobby'] %}
+        {{ _self.attachment(event, 'mandate') }}
+        {{ _self.attachment(event, 'results') }}
+    {% endif %}
 </dl>
 
-<ul class="list-unstyled d-flex mb-0">
-    {% for attachment in event.attachments %}
-        <li class="p-3">
-            <a href="{{ path('events_attachements_download', {'attachment': attachment.id}) }}"
-               target="_blank"
-               class="d-flex flex-grow-0 flex-shrink-0 flex-column link-unstyled text-center"
-            >
-                <span class="fa-stack fa-2x">
-                    <i class="fa-regular fa-file fa-stack-2x"></i>
-                    <i class="{{ attachment.type|icon }} fa-stack-1x"></i>
-                </span>
-                <span class="mt-2"><em class="fa-solid fa-download"></em> {{ attachment.type|readable_enum }}</span>
-            </a>
-        </li>
-    {% endfor %}
-</ul>
-
+{% macro attachment(event, type) %}
+    <dt class="col-3 text-end">{{ type|readable_enum('EventAttachmentType')|lower }}</dt>
+    <dd class="col-9">
+        {% if not event.attachments(type).empty %}
+            {% for attachment in event.attachments(type) %}
+                <a href="{{ path('events_attachements_download', {'attachment': attachment.id}) }}" target="_blank">
+                    <em class="fa-solid fa-download"></em> Télécharger
+                </a>
+            {% endfor %}
+        {% else %}
+            <em>Indisponible</em>
+        {% endif %}
+    </dd>
+{% endmacro %}
