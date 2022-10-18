@@ -42,10 +42,10 @@
 }
 
 .calendar-case {
-  height: 90px;
+  min-height: 110px;
   font-size: 0.8em;
   background: white;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .calendar-case.previous-month,
