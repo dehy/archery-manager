@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Listener;
+namespace App\EventListener;
 
 use App\Entity\User;
 use App\Helper\LicenseeHelper;

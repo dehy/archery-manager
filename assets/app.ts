@@ -43,6 +43,7 @@ import {
   faUser,
   faUserGear,
   faUsers,
+  faUserSecret,
   faVenus,
 } from "@fortawesome/free-solid-svg-icons";
 import {faDiscord} from "@fortawesome/free-brands-svg-icons";
@@ -76,6 +77,7 @@ library.add(
     faScrewdriverWrench,
     faTimes,
     faUser,
+    faUserSecret,
     faUsers,
     faUserGear,
     faVenus

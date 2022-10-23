@@ -13,7 +13,8 @@
                     <img src="{{ asset('build/logo-ffta.svg') }}" alt="" class="mb-2" style="height: 40px">
                     <h2 class="mb-3">{{ licensee.fullname }}</h2>
                     <div class="mb-3 d-block position-relative">
-                        <img src="{{ path('app_licensee_picture', {'fftaCode': licensee.fftaMemberCode}) }}" alt="Photo de profil" class="img-thumbnail" style="width: 175px; min-height: 275px" />
+                        <img src="{{ path('app_licensee_picture', {'fftaCode': licensee.fftaMemberCode}) }}"
+                             alt="Photo de profil" class="img-thumbnail" style="width: 175px; min-height: 275px"/>
                         <img src="{{ asset('build/logo-archers-de-guyenne.svg') }}" class="profile-stamp" alt="">
                     </div>
                 </div>
@@ -38,22 +39,43 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-12 mb-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Équipement</h5>
-                    <p class="card-text">Fonctionnalité en cours de développement.</p>
+        <div class="col-md-9">
+            {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_COACH') %}
+                <div class="row">
+                    <div class="col-12">
+                        <div class="alert alert-warning">
+                            <h6>Actions d'administration</h6>
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <a href="{{ path('app_homepage', {'_switch_user': licensee.user.email, '_switch_licensee': licensee.fftaMemberCode}) }}"
+                                   class="btn btn-secondary">
+                                    <em class="fas fa-user-secret"></em> Usurper l'identité
+                                </a>
+                            {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="row">
+                <div class="col-md-6 col-12 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Équipement</h5>
+                            <p class="card-text">Fonctionnalité en cours de développement.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-12 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Résultats</h5>
+                            <p class="card-text">Fonctionnalité en cours de développement.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4 col-12 mb-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Résultats</h5>
-                    <p class="card-text">Fonctionnalité en cours de développement.</p>
-                </div>
-            </div>
-        </div>
     </div>
 {% endblock %}

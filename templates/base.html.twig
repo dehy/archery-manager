@@ -114,6 +114,16 @@
 </nav>
 
 <div class="container">
+    {% if is_granted('IS_IMPERSONATOR') %}
+        <div class="row">
+            <div class="col">
+                <div class="alert alert-warning text-center mb-2">
+                    Navigation en tant que {{ app.user.email }} -
+                    <a href="{{ impersonation_exit_path(path(app.request.get('_route')) ) }}">Arrêter</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
     {% block body %}{% endblock %}
 </div>
 
