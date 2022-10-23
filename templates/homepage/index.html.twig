@@ -36,7 +36,13 @@
                                     {% endif %}
                                 </div>
                                 <small>
-                                    le {{ event.startsAt|format_date(locale='fr') }}
+                                    {% if event.endsAt.diff(event.startsAt).days == 1 %}
+                                        les {{ event.startsAt|date('j') }} et {{ event.endsAt|format_date(locale='fr') }}
+                                    {% elseif event.startsAt|date('d') != event.endsAt|date('d') %}
+                                        du {{ event.startsAt|date('j') }} au {{ event.endsAt|format_date(locale='fr') }}
+                                    {% else %}
+                                        le {{ event.startsAt|format_date(locale='fr') }}
+                                    {% endif %}
                                     (dans {{ event.startsAt.diff(date()).days }} jours)
                                 </small>
                             </div>

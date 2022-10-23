@@ -13,11 +13,11 @@
     <dd class="col-9">{{ event.participations|length }}</dd>
     {% if event.type in ['contest_official', 'contest_hobby'] %}
         {{ _self.attachment(event, 'mandate') }}
-        {{ _self.attachment(event, 'results') }}
+        {{ _self.attachment(event, 'results', true) }}
     {% endif %}
 </dl>
 
-{% macro attachment(event, type) %}
+{% macro attachment(event, type, plural = false) %}
     <dt class="col-3 text-end">{{ type|readable_enum('EventAttachmentType')|lower }}</dt>
     <dd class="col-9">
         {% if not event.attachments(type).empty %}
@@ -29,7 +29,7 @@
                 </a>
             {% endfor %}
         {% else %}
-            <em>Indisponible</em>
+            <em>Pas encore disponible{{ plural ? 's' }}</em>
         {% endif %}
     </dd>
 {% endmacro %}
