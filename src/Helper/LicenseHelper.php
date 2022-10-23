@@ -2,9 +2,11 @@
 
 namespace App\Helper;
 
+use App\DBAL\Types\EventType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
+use App\Entity\License;
 use DateTimeImmutable;
 use DateTimeInterface;
 use LogicException;
@@ -26,9 +28,38 @@ class LicenseHelper
         ],
     ];
 
-    public function __construct()
+    public function __construct(private readonly LicenseeHelper $licenseeHelper)
     {
         $this->season = 2023;
+    }
+
+    public function getCurrentLicenseeCurrentLicense(): License
+    {
+        $licensee = $this->licenseeHelper->getLicenseeFromSession();
+
+        return $licensee->getLicenseForSeason($this->season);
+    }
+
+    public function licenseIsValidForEventType(License $license, string $eventType): bool
+    {
+        EventType::assertValidChoice($eventType);
+        $licenseType = $license->getType();
+        $isValid = false;
+        if (EventType::CONTEST_OFFICIAL === $eventType) {
+            if (in_array($licenseType, [LicenseType::ADULTES_COMPETITION, LicenseType::JEUNES])) {
+                $isValid = true;
+            }
+        } elseif (EventType::CONTEST_HOBBY === $eventType) {
+            if (in_array($licenseType, [LicenseType::ADULTES_CLUB, LicenseType::JEUNES, LicenseType::POUSSINS])) {
+                $isValid = true;
+            }
+        } elseif (EventType::TRAINING) {
+            $isValid = true;
+        } elseif (EventType::OTHER) {
+            $isValid = true;
+        }
+
+        return $isValid;
     }
 
     public function licenseTypeForBirthdate(

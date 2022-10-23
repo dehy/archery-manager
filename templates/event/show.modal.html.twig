@@ -1,3 +1,8 @@
+{% if not licenseHelper.licenseIsValidForEventType(licenseHelper.currentLicenseeCurrentLicense, event.type) %}
+    <div class="alert alert-warning">
+        Ta licence ne te permet pas de participer à ce type d'évènement.
+    </div>
+{% endif %}
 <dl class="row">
     <dt class="col-3 text-end">adresse</dt>
     <dd class="col-9">
