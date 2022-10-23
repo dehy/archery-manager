@@ -54,7 +54,7 @@
             </ul>
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <li class="nav-item dropdown">
-                    <a class="nav-link {{ _self.isActive('app_licensee_my_profile') }} dropdown-toggle text-end"
+                    <a class="nav-link {{ _self.isActive('app_licensee_my_profile') }} {{ _self.isActive('app_user_account') }} dropdown-toggle text-end"
                        href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown"
                        aria-expanded="false">
                         <em class="fa-solid fa-address-card fa-fw"></em> {{ licenseeHelper.licenseeFromSession.fullname }}
@@ -72,13 +72,15 @@
                             </li>
                         {% endif %}
                         <li>
-                            <a class="dropdown-item" href="{{ path('app_user_account') }}">
+                            <a class="dropdown-item {{ _self.isActive('app_user_account') }}"
+                               href="{{ path('app_user_account') }}">
                                 <em class="fa-solid fa-user-gear fa-fw"></em>
                                 Mon compte
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{{ path('app_licensee_my_profile') }}">
+                            <a class="dropdown-item {{ _self.isActive('app_licensee_my_profile') }}"
+                               href="{{ path('app_licensee_my_profile') }}">
                                 <em class="fa-solid fa-address-card fa-fw"></em>
                                 Mon profil
                             </a>
@@ -117,9 +119,9 @@
     {% if is_granted('IS_IMPERSONATOR') %}
         <div class="row">
             <div class="col">
-                <div class="alert alert-warning text-center mb-2">
+                <div class="alert alert-warning text-center mb-3">
                     Navigation en tant que {{ app.user.email }} -
-                    <a href="{{ impersonation_exit_path(path(app.request.get('_route')) ) }}">Arrêter</a>
+                    <a href="{{ impersonation_exit_path(path('app_homepage') ) }}">Arrêter</a>
                 </div>
             </div>
         </div>
