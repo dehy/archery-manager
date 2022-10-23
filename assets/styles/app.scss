@@ -6,6 +6,24 @@
   text-decoration: inherit;
 }
 
+.navbar {
+  padding-bottom: 0;
+}
+
+.navbar-nav .nav-link {
+  color: var(--bs-white);
+  padding-bottom: calc(var(--bs-navbar-padding-y) * 2);
+}
+
+.navbar-nav .nav-link.active {
+  color: var(--bs-white);
+  background-color: #A51400;
+  margin-top: calc(var(--bs-navbar-padding-y) * -1);
+  padding: calc(var(--bs-navbar-padding-y) * 2) var(--bs-navbar-nav-link-padding-x);
+  border-left: 1px solid white;
+  border-right: 1px solid white;
+}
+
 .profile-stamp {
   display: block;
   position: absolute;
