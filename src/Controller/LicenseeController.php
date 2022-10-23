@@ -68,8 +68,8 @@ class LicenseeController extends AbstractController
 
         if (
             !$licensee
-            || ($user->getLicensees()->contains($licensee)
-                && !$this->isGranted('ROLE_ADMIN'))
+            || (!$user->getLicensees()->contains($licensee)
+                && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_COACH'))
         ) {
             throw new NotFoundHttpException();
         }
