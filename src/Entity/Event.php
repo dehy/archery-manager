@@ -165,8 +165,7 @@ class Event
 
     public function removeParticipation(
         EventParticipation $participation,
-    ): self
-    {
+    ): self {
         if ($this->participations->removeElement($participation)) {
             // set the owning side to null (unless already changed)
             if ($participation->getEvent() === $this) {
@@ -245,13 +244,14 @@ class Event
             ->setEndsAt($fftaEvent->getTo())
             ->setName($fftaEvent->getName())
             ->setStartsAt($fftaEvent->getFrom())
-            ->setType(EventType::CONTEST_OFFICIAL);
+            ->setType(EventType::CONTEST_OFFICIAL)
+        ;
     }
 
     public function getSeason(): int
     {
-        $month = (int)$this->getStartsAt()->format('m');
-        $year = (int)$this->getStartsAt()->format('Y');
+        $month = (int) $this->getStartsAt()->format('m');
+        $year = (int) $this->getStartsAt()->format('Y');
         if ($month >= 9 && $month <= 12) {
             return $year + 1;
         }
@@ -266,7 +266,8 @@ class Event
     {
         if ($type) {
             return $this->attachments
-                ->filter(fn(EventAttachment $attachment) => $attachment->getType() === $type);
+                ->filter(fn (EventAttachment $attachment) => $attachment->getType() === $type)
+            ;
         }
 
         return $this->attachments;
