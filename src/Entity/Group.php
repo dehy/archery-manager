@@ -25,9 +25,18 @@ class Group
     #[ORM\ManyToMany(targetEntity: Licensee::class, inversedBy: 'groups')]
     private $licensees;
 
+    #[ORM\ManyToMany(targetEntity: Event::class, mappedBy: 'assignedGroups')]
+    private Collection $events;
+
     public function __construct()
     {
         $this->licensees = new ArrayCollection();
+        $this->events = new ArrayCollection();
+    }
+
+    public function __toString()
+    {
+        return $this->getName();
     }
 
     public function getId(): ?int
@@ -79,6 +88,33 @@ class Group
     public function removeLicensee(Licensee $licensee): self
     {
         $this->licensees->removeElement($licensee);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Event>
+     */
+    public function getEvents(): Collection
+    {
+        return $this->events;
+    }
+
+    public function addEvent(Event $event): self
+    {
+        if (!$this->events->contains($event)) {
+            $this->events->add($event);
+            $event->addAssignedGroup($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEvent(Event $event): self
+    {
+        if ($this->events->removeElement($event)) {
+            $event->removeAssignedGroup($this);
+        }
 
         return $this;
     }

@@ -17,53 +17,71 @@
             {% else %}
                 <ul class="list-group">
                     {% for event in events %}
+                        {% set participation = eventHelper.licenseeParticipationToEvent(licenseeHelper.licenseeFromSession, event) %}
+                        {% if participation == null %}
+                            {% set link_class = '' %}
+                            {% set icon = '' %}
+                        {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
+                            {% set link_class = 'text-muted bg-light' %}
+                            {% set icon = 'times' %}
+                        {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::GOING') %}
+                            {% set link_class = 'bg-warning' %}
+                            {% set icon = 'hourglass' %}
+                        {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') %}
+                            {% set link_class = 'bg-success' %}
+                            {% set icon = 'check' %}
+                        {% endif %}
                         <a href="{{ path('app_event_showmodal', {'event': event.id}) }}"
                            type="button"
-                           class="list-group-item list-group-item-action d-flex justify-content-between link-unstyled"
+                           class="list-group-item list-group-item-action d-flex flex-row justify-content-between link-unstyled bg-opacity-25 {{ link_class }}"
                            data-action="click->modal#open"
                            data-title="{{ event.type|readable_enum }} - {{ event.name }}"
                         >
-                            <div>
+                            <div class="d-flex flex-column">
                                 <div class="fw-bold">
                                     <div class="event-pill me-1"
                                          style="background-color: {{ event.type|eventColor }}"
                                          data-bs-toggle="tooltip" data-bs-title="{{ event.type|readable_enum }}"
                                     >
                                     </div>
-                                    {{ event.name }}
-                                    {% if event.attachments|length > 0 %}
-                                        <em class="fa-solid fa-paperclip"></em>
-                                    {% endif %}
+                                    {{ event.type|readable_enum }} : {{ event.name }}
+                                    <span class="badge rounded-pill text-bg-info">
+                                        <em class="fas fa-people-group"></em>
+                                        {{ event.participations|filter(p => p.participationState != 'not_going')|length }}
+                                    </span>
                                 </div>
-                                <small>
-                                    {% if event.endsAt.diff(event.startsAt).days == 1 %}
-                                        les {{ event.startsAt|date('j') }} et {{ event.endsAt|format_date(locale='fr') }}
-                                    {% elseif event.startsAt|date('d') != event.endsAt|date('d') %}
-                                        du {{ event.startsAt|date('j') }} au {{ event.endsAt|format_date(locale='fr') }}
-                                    {% else %}
-                                        le {{ event.startsAt|format_date(locale='fr') }}
-                                    {% endif %}
-                                    (dans {{ event.startsAt.diff(date()).days }} jours)
-                                </small>
+                                <div>
+                                    <small>
+                                        {% if event.endsAt.diff(event.startsAt).days == 1 %}
+                                            les {{ event.startsAt|date('j') }} et {{ event.endsAt|format_date(locale='fr') }}
+                                        {% elseif event.startsAt|date('d') != event.endsAt|date('d') %}
+                                            du {{ event.startsAt|date('j') }} au {{ event.endsAt|format_date(locale='fr') }}
+                                        {% else %}
+                                            le {{ event.startsAt|format_date(locale='fr') }}
+                                            de {{ event.startsAt|format_time('short', locale='fr') }}
+                                            à  {{ event.endsAt|format_time('short', locale='fr') }}
+                                        {% endif %}
+                                        {% set diffDays = event.startsAt.diff(date()).days %}
+                                        {% if diffDays == 0 %}
+                                            (aujourd'hui)
+                                        {% else %}
+                                            (dans {{ event.startsAt.diff(date()).days }} jours)
+                                        {% endif %}
+                                    </small>
+                                </div>
                             </div>
-                            <!--<div>
-                                <div class="btn-group btn-group-sm float-end" role="group">
-                                    <button type="button" class="btn btn-outline-danger"
-                                            data-bs-toggle="tooltip" data-bs-title="Je n'y vais pas"
-                                            disabled
-                                    >
-                                        <em class="fa-solid fa-times fa-fw"></em>
-                                    </button>
-                                    <button type="button" class="btn btn-outline-success"
-                                            data-bs-toggle="tooltip" data-bs-title="J'y vais"
-                                            disabled
-                                    >
-                                        <em class="fa-solid fa-check fa-fw"></em>
-                                    </button>
-                                </div>
-                            </div>-->
+                            <div class="d-flex align-items-center">
+                                {% if icon %}
+                                    <em class="fas fa-2x fa-fw fa-{{ icon }}"></em>
+                                {% endif %}
+                            </div>
                         </a>
                     {% endfor %}
+                    <a href="{{ path('app_events_index') }}"
+                       class="list-group-item text-center"
+                    >
+                        Voir les autres évènements
+                    </a>
                 </ul>
             {% endif %}
         </div>

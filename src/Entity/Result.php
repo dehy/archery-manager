@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\LicenseActivityType;
@@ -13,6 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 use LogicException;
 
 #[ORM\Entity(repositoryClass: ResultRepository::class)]
+#[ApiResource]
 class Result
 {
     #[ORM\Id]

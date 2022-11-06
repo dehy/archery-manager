@@ -53,7 +53,7 @@
                     {% endif %}
                     <div class="p-2 calendar-case row-{{ row }} {{ case_css|join(' ') }}">
                         <div class="text-end">
-                            {% if ("now"|date('Y-m-d') == date_key) %}
+                            {% if ("now"|date('Y-m-j') == date_key) %}
                                 <div class="badge rounded-pill bg-primary">
                                     {{ date_elements[2] }} {{ "now"|format_date(pattern="MMM") }}.
                                 </div>

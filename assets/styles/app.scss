@@ -10,6 +10,14 @@
   padding-bottom: 0;
 }
 
+.navbar img {
+  margin-top: calc(var(--bs-navbar-padding-y) * -1);
+}
+
+.navbar-brand {
+  margin-top: calc(var(--bs-navbar-padding-y) * -1);
+}
+
 .navbar-nav .nav-link {
   color: var(--bs-white);
   padding-bottom: calc(var(--bs-navbar-padding-y) * 2);

@@ -2,22 +2,24 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\EventParticipationRepository;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EventParticipationRepository::class)]
 #[Auditable]
+#[ApiResource]
 class EventParticipation
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: 'participations')]
     #[ORM\JoinColumn(nullable: false)]
-    private $event;
+    private Event $event;
 
     #[
         ORM\ManyToOne(
@@ -26,13 +28,13 @@ class EventParticipation
         ),
     ]
     #[ORM\JoinColumn(nullable: false)]
-    private $participant;
+    private Licensee $participant;
 
     #[ORM\OneToOne(targetEntity: Result::class, cascade: ['persist', 'remove'])]
-    private $result;
+    private Result $result;
 
-    #[ORM\Column(type: 'boolean')]
-    private $present;
+    #[ORM\Column(type: 'EventParticipationStateType')]
+    private string $participationState;
 
     public function getId(): ?int
     {
@@ -75,14 +77,14 @@ class EventParticipation
         return $this;
     }
 
-    public function getPresent(): ?bool
+    public function getParticipationState(): string
     {
-        return $this->present;
+        return $this->participationState;
     }
 
-    public function setPresent(bool $present): self
+    public function setParticipationState(string $participationState): self
     {
-        $this->present = $present;
+        $this->participationState = $participationState;
 
         return $this;
     }

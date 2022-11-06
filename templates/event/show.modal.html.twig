@@ -1,40 +1,102 @@
-{% if not licenseHelper.licenseIsValidForEventType(licenseHelper.currentLicenseeCurrentLicense, event.type) %}
+{% set licensee = licenseeHelper.licenseeFromSession %}
+{% set license = licenseHelper.currentLicenseeCurrentLicense %}
+{% set canAttend = licenseHelper.licenseIsValidForEventType(license, event.type) %}
+{% if not canAttend %}
     <div class="alert alert-warning">
         Ta licence ne te permet pas de participer à ce type d'évènement.
     </div>
 {% endif %}
 <dl class="row">
+    <dt class="col-3 text-end">date</dt>
+    <dd class="col-9">
+        {% if event.endsAt.diff(event.startsAt).days == 1 %}
+            les {{ event.startsAt|date('j') }} et {{ event.endsAt|format_date(locale='fr') }}
+        {% elseif event.startsAt|date('d') != event.endsAt|date('d') %}
+            du {{ event.startsAt|date('j') }} au {{ event.endsAt|format_date(locale='fr') }}
+        {% else %}
+            le {{ event.startsAt|format_date(locale='fr') }}
+            de {{ event.startsAt|format_time('short', locale='fr') }}
+            à  {{ event.endsAt|format_time('short', locale='fr') }}
+        {% endif %}
+        {% set diffDays = event.startsAt.diff(date()).days %}
+        {% if diffDays == 0 %}
+            (aujourd'hui)
+        {% else %}
+            (dans {{ event.startsAt.diff(date()).days }} jours)
+        {% endif %}
+    </dd>
     <dt class="col-3 text-end">adresse</dt>
     <dd class="col-9">
         {{ event.address }}<br>
         <a href="https://www.google.com/maps/search/?api=1&query={{ event.address|url_encode }}"
            target="_blank">Afficher sur Google Maps <em class="fas fa-arrow-up-right-from-square"></em></a>
     </dd>
-    <dt class="col-3 text-end">début</dt>
-    <dd class="col-9">{{ event.startsAt|date('H:i') }}</dd>
-    <dt class="col-3 text-end">fin</dt>
-    <dd class="col-9">{{ event.endsAt|date('H:i') }}</dd>
-    <dt class="col-3 text-end">participants</dt>
-    <dd class="col-9">{{ event.participations|length }}</dd>
-    {% if event.type in ['contest_official', 'contest_hobby'] %}
-        {{ _self.attachment(event, 'mandate') }}
-        {{ _self.attachment(event, 'results', true) }}
-    {% endif %}
+    {{ _self.attachment(event, 'mandate') }}
+    <dt class="col-3 text-end mb-2">ont prévu d'y aller</dt>
+    {% set goingParticipations = event.participations|filter(p => p.participationState == 'going') %}
+    <dd class="col-9">
+        {{ goingParticipations|length > 0 ? goingParticipations|map(p => p.participant)|join(', ') : '-' }}
+    </dd>
+    {% set registeredParticipations = event.participations|filter(p => p.participationState == 'registered') %}
+    <dt class="col-3 text-end">sont inscrits</dt>
+    <dd class="col-9">
+        {{ registeredParticipations|length > 0 ? registeredParticipations|map(p => p.participant)|join(', ') : '-' }}
+    </dd>
+    {{ _self.attachment(event, 'results', true) }}
 </dl>
 
+{% if canAttend %}
+    {% set licenseeParticipation = eventHelper.licenseeParticipationToEvent(licensee, event) %}
+    <div data-controller="event-participation"
+         data-participation-id="{{ licenseeParticipation ? licenseeParticipation.id }}"
+         data-event-id="{{ event.id }}"
+         data-licensee-id="{{ licensee.id }}"
+    >
+        <h4>Ma participation</h4>
+        <div class="d-flex justify-content-center mt-3">
+            <div class="btn-group" role="group">
+                <button type="button"
+                        class="btn btn-outline-danger"
+                        data-event-participation-target="stateButtons"
+                        data-action="event-participation#updateParticipationState"
+                        data-state="{{ constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') }}">
+                    Je n'y vais pas
+                </button>
+                <button type="button"
+                        class="btn btn-outline-warning"
+                        data-event-participation-target="stateButtons"
+                        data-action="event-participation#updateParticipationState"
+                        data-state="{{ constant('App\\DBAL\\Types\\EventParticipationStateType::GOING') }}">
+                    J'y vais
+                </button>
+                <button type="button"
+                        class="btn btn-outline-success"
+                        data-event-participation-target="stateButtons"
+                        data-action="event-participation#updateParticipationState"
+                        data-state="{{ constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') }}">
+                    Je suis inscrit
+                </button>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+
 {% macro attachment(event, type, plural = false) %}
-    <dt class="col-3 text-end">{{ type|readable_enum('EventAttachmentType')|lower }}</dt>
-    <dd class="col-9">
-        {% if not event.attachments(type).empty %}
-            {% for attachment in event.attachments(type) %}
-                <a href="{{ path('events_attachements_download', {'attachment': attachment.id}) }}"
-                   class="btn btn-sm btn-primary"
-                   target="_blank">
-                    <em class="fa-solid fa-download"></em> Télécharger
-                </a>
-            {% endfor %}
-        {% else %}
-            <em>Pas encore disponible{{ plural ? 's' }}</em>
-        {% endif %}
-    </dd>
+    {% if event.type in ['contest_official', 'contest_hobby'] %}
+        <dt class="col-3 text-end">{{ type|readable_enum('EventAttachmentType')|lower }}</dt>
+        <dd class="col-9">
+            {% if not event.attachments(type).empty %}
+                {% for attachment in event.attachments(type) %}
+                    <a href="{{ path('events_attachements_download', {'attachment': attachment.id}) }}"
+                       class="btn btn-sm btn-primary"
+                       target="_blank">
+                        <em class="fa-solid fa-download"></em> Télécharger
+                    </a>
+                {% endfor %}
+            {% else %}
+                <em>Pas encore disponible{{ plural ? 's' }}</em>
+            {% endif %}
+        </dd>
+    {% endif %}
 {% endmacro %}

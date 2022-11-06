@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventAttachmentType;
@@ -14,27 +15,28 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
+#[ApiResource]
 class Event
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $name;
+    private string $name;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private $startsAt;
+    private DateTimeImmutable $startsAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private $endsAt;
+    private DateTimeImmutable $endsAt;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $address;
+    private string $address;
 
     #[ORM\Column(type: 'EventType')]
-    private $type;
+    private string $type;
 
     #[
         ORM\OneToMany(
@@ -43,25 +45,29 @@ class Event
             orphanRemoval: true,
         ),
     ]
-    private $participations;
+    private Collection $participations;
 
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: Result::class)]
-    private $results;
+    private Collection $results;
 
     #[ORM\Column(type: 'ContestType', nullable: true)]
-    private $contestType;
+    private string $contestType;
 
     #[ORM\Column(type: 'DisciplineType')]
-    private $discipline;
+    private string $discipline;
 
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventAttachment::class)]
     private Collection $attachments;
+
+    #[ORM\ManyToMany(targetEntity: Group::class, inversedBy: 'events')]
+    private Collection $assignedGroups;
 
     public function __construct()
     {
         $this->participations = new ArrayCollection();
         $this->results = new ArrayCollection();
         $this->attachments = new ArrayCollection();
+        $this->assignedGroups = new ArrayCollection();
     }
 
     public function __toString(): string
@@ -159,7 +165,8 @@ class Event
 
     public function removeParticipation(
         EventParticipation $participation,
-    ): self {
+    ): self
+    {
         if ($this->participations->removeElement($participation)) {
             // set the owning side to null (unless already changed)
             if ($participation->getEvent() === $this) {
@@ -238,14 +245,13 @@ class Event
             ->setEndsAt($fftaEvent->getTo())
             ->setName($fftaEvent->getName())
             ->setStartsAt($fftaEvent->getFrom())
-            ->setType(EventType::CONTEST_OFFICIAL)
-        ;
+            ->setType(EventType::CONTEST_OFFICIAL);
     }
 
     public function getSeason(): int
     {
-        $month = (int) $this->getStartsAt()->format('m');
-        $year = (int) $this->getStartsAt()->format('Y');
+        $month = (int)$this->getStartsAt()->format('m');
+        $year = (int)$this->getStartsAt()->format('Y');
         if ($month >= 9 && $month <= 12) {
             return $year + 1;
         }
@@ -260,8 +266,7 @@ class Event
     {
         if ($type) {
             return $this->attachments
-                ->filter(fn (EventAttachment $attachment) => $attachment->getType() === $type)
-            ;
+                ->filter(fn(EventAttachment $attachment) => $attachment->getType() === $type);
         }
 
         return $this->attachments;
@@ -301,5 +306,29 @@ class Event
         return $this->getAttachments()->exists(function (int $key, EventAttachment $attachment) {
             return EventAttachmentType::RESULTS === $attachment->getType();
         });
+    }
+
+    /**
+     * @return Collection<int, Group>
+     */
+    public function getAssignedGroups(): Collection
+    {
+        return $this->assignedGroups;
+    }
+
+    public function addAssignedGroup(Group $assignedGroup): self
+    {
+        if (!$this->assignedGroups->contains($assignedGroup)) {
+            $this->assignedGroups->add($assignedGroup);
+        }
+
+        return $this;
+    }
+
+    public function removeAssignedGroup(Group $assignedGroup): self
+    {
+        $this->assignedGroups->removeElement($assignedGroup);
+
+        return $this;
     }
 }

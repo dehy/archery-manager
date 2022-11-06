@@ -45,8 +45,13 @@ class EventRepository extends ServiceEntityRepository
     ): ArrayCollection {
         return new ArrayCollection(
             $this->createQueryBuilder('e')
+                ->leftJoin('e.assignedGroups', 'g')
                 ->where('e.endsAt >= :now')
+                ->andWhere('g IN (:groups)')
+                ->orderBy('e.startsAt', 'ASC')
+                ->orderBy('e.endsAt', 'ASC')
                 ->setParameter('now', new DateTime())
+                ->setParameter('groups', $licensee->getGroups())
                 ->setMaxResults($limit)
                 ->getQuery()
                 ->getResult(),

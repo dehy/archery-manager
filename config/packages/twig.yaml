@@ -4,8 +4,10 @@ twig:
     paths:
         '%kernel.project_dir%/assets/styles': styles
     globals:
+        apiUrl: '%env(APP_URL)%/api'
         licenseeHelper: '@App\Helper\LicenseeHelper'
         licenseHelper: '@App\Helper\LicenseHelper'
+        eventHelper: '@App\Helper\EventHelper'
 
 
 when@test:

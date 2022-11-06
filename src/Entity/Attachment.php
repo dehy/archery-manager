@@ -2,11 +2,13 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Vich\UploaderBundle\Entity\File as EmbeddedFile;
 
 #[ORM\MappedSuperclass]
+#[ApiResource]
 abstract class Attachment
 {
     #[ORM\Embedded(class: EmbeddedFile::class)]

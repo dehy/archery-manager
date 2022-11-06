@@ -16,8 +16,8 @@ final class EventType extends AbstractEnumType
 
     protected static array $choices = [
         self::TRAINING => 'Entraînement',
-        self::CONTEST_OFFICIAL => 'Compétition Officielle',
-        self::CONTEST_HOBBY => 'Compétition Loisir',
+        self::CONTEST_OFFICIAL => 'Concours',
+        self::CONTEST_HOBBY => 'Concours Loisir',
         self::OTHER => 'Autre',
     ];
 

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\LicenseeRepository;
 use DateTime;
 use DateTimeImmutable;
@@ -15,6 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LicenseeRepository::class)]
 #[Auditable]
+#[ApiResource]
 class Licensee
 {
     #[ORM\Id]
