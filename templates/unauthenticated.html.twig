@@ -3,6 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
 
     {% block stylesheets %}
         {{ encore_entry_link_tags('unauthenticated') }}
@@ -15,17 +22,17 @@
     <title>{% block title %}Archerie{% endblock %}</title>
 </head>
 <body>
-    <div class="container">
-        <div class="row justify-content-center align-content-center" style="height: 100vh">
-            <div class="col-lg-3 col-sm-8">
-                <img src="{{ asset('build/logo-archers-de-guyenne.svg') }}"
-                     alt="Les Archers de Bordeaux Guyenne"
-                     class="mx-auto d-block" />
-            </div>
-            <div class="col-lg-3 col-sm-8">
-                {% block body %}{% endblock %}
-            </div>
+<div class="container">
+    <div class="row justify-content-center align-content-center" style="height: 100vh">
+        <div class="col-lg-3 col-sm-8">
+            <img src="{{ asset('build/logo-archers-de-guyenne.svg') }}"
+                 alt="Les Archers de Bordeaux Guyenne"
+                 class="mx-auto d-block"/>
+        </div>
+        <div class="col-lg-3 col-sm-8">
+            {% block body %}{% endblock %}
         </div>
     </div>
+</div>
 </body>
 </html>
