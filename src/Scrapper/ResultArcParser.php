@@ -5,7 +5,6 @@ namespace App\Scrapper;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\Entity\Result;
-use Exception;
 use Smalot\PdfParser\Parser;
 
 /**
@@ -23,7 +22,7 @@ class ResultArcParser
     /**
      * @return ResultArcLine[]
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public function parseFile(string $filepath): array
     {
@@ -53,7 +52,7 @@ class ResultArcParser
     /**
      * @return Result[]
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public function parseContent(string $fileContent): array
     {
@@ -71,7 +70,7 @@ class ResultArcParser
         );
 
         if (!$found) {
-            throw new Exception('Cannot parse category');
+            throw new \Exception('Cannot parse category');
         }
 
         return [$matches[1], $matches[2]];

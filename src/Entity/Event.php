@@ -10,7 +10,6 @@ use App\DBAL\Types\EventParticipationStateType;
 use App\DBAL\Types\EventType;
 use App\Repository\EventRepository;
 use App\Scrapper\FftaEvent;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -28,10 +27,10 @@ class Event
     private string $name;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $startsAt;
+    private \DateTimeImmutable $startsAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $endsAt;
+    private \DateTimeImmutable $endsAt;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $address;
@@ -99,24 +98,24 @@ class Event
         return $this;
     }
 
-    public function getStartsAt(): ?DateTimeImmutable
+    public function getStartsAt(): ?\DateTimeImmutable
     {
         return $this->startsAt;
     }
 
-    public function setStartsAt(DateTimeImmutable $startsAt): self
+    public function setStartsAt(\DateTimeImmutable $startsAt): self
     {
         $this->startsAt = $startsAt;
 
         return $this;
     }
 
-    public function getEndsAt(): ?DateTimeImmutable
+    public function getEndsAt(): ?\DateTimeImmutable
     {
         return $this->endsAt;
     }
 
-    public function setEndsAt(DateTimeImmutable $endsAt): self
+    public function setEndsAt(\DateTimeImmutable $endsAt): self
     {
         $this->endsAt = $endsAt;
 

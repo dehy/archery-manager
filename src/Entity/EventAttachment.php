@@ -4,9 +4,7 @@ namespace App\Entity;
 
 use App\Repository\EventAttachmentRepository;
 use Cocur\Slugify\Slugify;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
-use Exception;
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
@@ -66,7 +64,7 @@ class EventAttachment extends Attachment
         if (null !== $file) {
             // It is required that at least one field changes if you are using doctrine
             // otherwise the event listeners won't be called and the file is lost
-            $this->updatedAt = new DateTimeImmutable();
+            $this->updatedAt = new \DateTimeImmutable();
         }
     }
 
@@ -76,7 +74,7 @@ class EventAttachment extends Attachment
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function generateFilename(): string
     {

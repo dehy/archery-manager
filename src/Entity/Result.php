@@ -11,7 +11,6 @@ use App\Repository\ResultRepository;
 use App\Scrapper\CategoryParser;
 use App\Scrapper\FftaResult;
 use Doctrine\ORM\Mapping as ORM;
-use LogicException;
 
 #[ORM\Entity(repositoryClass: ResultRepository::class)]
 #[ApiResource]
@@ -273,7 +272,7 @@ class Result
             );
         }
 
-        throw new LogicException();
+        throw new \LogicException();
     }
 
     private static function distanceAndSizeForChallenge33(
@@ -306,7 +305,7 @@ class Result
             };
         }
 
-        throw new LogicException("Missing handling of discipline {$discipline}");
+        throw new \LogicException("Missing handling of discipline {$discipline}");
     }
 
     private static function distanceAndSizeForFederal(
@@ -343,6 +342,6 @@ class Result
             };
         }
 
-        throw new LogicException("Missing handling of discipline {$discipline}");
+        throw new \LogicException("Missing handling of discipline {$discipline}");
     }
 }

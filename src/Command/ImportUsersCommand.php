@@ -4,7 +4,6 @@ namespace App\Command;
 
 use App\Entity\Licensee;
 use App\Entity\User;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -91,7 +90,7 @@ class ImportUsersCommand extends Command
                     ->setGender($gender)
                     ->setLastname($lastname)
                     ->setFirstname($firstname)
-                    ->setBirthdate(new DateTime($birthdate))
+                    ->setBirthdate(new \DateTime($birthdate))
                     ->setFftaMemberCode($ffta_member_code)
                     ->setFftaId($ffta_id)
                 ;

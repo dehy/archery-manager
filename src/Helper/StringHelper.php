@@ -2,14 +2,12 @@
 
 namespace App\Helper;
 
-use Exception;
-
 class StringHelper
 {
     /**
      * A PHP function that will generate a secure random password.
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public static function randomPassword(int $length): string
     {

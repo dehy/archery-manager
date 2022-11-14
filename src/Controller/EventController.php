@@ -9,37 +9,32 @@ use App\Form\EventParticipationType;
 use App\Helper\EventHelper;
 use App\Helper\LicenseeHelper;
 use App\Repository\EventRepository;
-use DateTime;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use League\Flysystem\FilesystemOperator;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Annotation\Route;
 
 class EventController extends AbstractController
 {
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     #[Route('/events', name: 'app_events_index')]
     public function index(Request $request, EventRepository $eventRepository): Response
     {
-        $now = new DateTime();
+        $now = new \DateTime();
         $month = $request->query->get('m', (int) $now->format('n'));
         $year = $request->query->get('y', (int) $now->format('Y'));
 
         /** @var Event[] $events */
         $events = $eventRepository->findForMonthAndYear($month, $year);
 
-        $firstDate = (new DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
+        $firstDate = (new \DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
         $lastDate = (clone $firstDate)->modify('last day of this month');
         if (1 !== (int) $firstDate->format('N')) {
             $firstDate->modify('previous monday');
@@ -50,8 +45,8 @@ class EventController extends AbstractController
 
         $calendar = [];
         for ($currentDate = $firstDate; $currentDate <= $lastDate; $currentDate->modify('+1 day')) {
-            $startOfDay = DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0, 0);
-            $endOfDay = DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
+            $startOfDay = \DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0, 0);
+            $endOfDay = \DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
             $eventsForThisDay = array_filter($events, function (Event $event) use ($startOfDay, $endOfDay) {
                 return ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
                     || ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay);

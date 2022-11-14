@@ -4,9 +4,6 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\LicenseeRepository;
-use DateTime;
-use DateTimeImmutable;
-use DateTimeInterface;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -49,7 +46,7 @@ class Licensee
 
     #[ORM\Column]
     #[Gedmo\Timestampable(on: 'update')]
-    private ?DateTimeImmutable $updatedAt = null;
+    private ?\DateTimeImmutable $updatedAt = null;
 
     #[
         ORM\OneToMany(
@@ -116,7 +113,7 @@ class Licensee
 
     public function __construct()
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
         $this->arrows = new ArrayCollection();
         $this->bows = new ArrayCollection();
         $this->licenses = new ArrayCollection();
@@ -196,17 +193,17 @@ class Licensee
         return sprintf('%s %s.', $this->getFirstname(), strtoupper(substr($this->getLastname(), 0, 1)));
     }
 
-    public function getBirthdate(): ?DateTimeInterface
+    public function getBirthdate(): ?\DateTimeInterface
     {
         return $this->birthdate;
     }
 
     public function getAge(): int
     {
-        return $this->getBirthdate()->diff(new DateTime())->y;
+        return $this->getBirthdate()->diff(new \DateTime())->y;
     }
 
-    public function setBirthdate(DateTimeInterface $birthdate): self
+    public function setBirthdate(\DateTimeInterface $birthdate): self
     {
         $this->birthdate = $birthdate;
 
@@ -237,12 +234,12 @@ class Licensee
         return $this;
     }
 
-    public function getUpdatedAt(): ?DateTimeImmutable
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(DateTimeImmutable $updatedAt): self
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
 

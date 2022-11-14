@@ -10,10 +10,8 @@ use App\Factory\UserFactory;
 use App\Repository\LicenseeRepository;
 use App\Repository\UserRepository;
 use App\Scrapper\FftaScrapper;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToReadFile;
@@ -41,7 +39,7 @@ class FftaHelper
     /**
      * @throws NonUniqueResultException
      * @throws TransportExceptionInterface
-     * @throws Exception
+     * @throws \Exception
      */
     public function syncLicensees(int $season): void
     {
@@ -131,12 +129,12 @@ class FftaHelper
             if ($fftaPicture) {
                 if (($exitingPicture && sha1($exitingPicture) !== sha1($fftaPicture)) || !$exitingPicture) {
                     $this->licenseesStorage->write(sprintf('%s.jpg', $licensee->getFftaMemberCode()), $fftaPicture);
-                    $licensee->setUpdatedAt(new DateTimeImmutable());
+                    $licensee->setUpdatedAt(new \DateTimeImmutable());
                 }
             } else {
                 if ($exitingPicture) {
                     $this->licenseesStorage->delete(sprintf('%s.jpg', $licensee->getFftaMemberCode()));
-                    $licensee->setUpdatedAt(new DateTimeImmutable());
+                    $licensee->setUpdatedAt(new \DateTimeImmutable());
                 }
             }
         }
@@ -201,7 +199,7 @@ class FftaHelper
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function createLicenseForLicenseeAndSeason(
         ?Licensee $licensee,
