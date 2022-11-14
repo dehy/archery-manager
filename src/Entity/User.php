@@ -26,29 +26,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 180, unique: true)]
     #[Assert\Email]
-    private $email;
+    private string $email;
 
     #[ORM\Column(type: 'json')]
-    private $roles = [];
+    private array $roles = [];
 
     #[ORM\Column(type: 'string')]
-    private $password;
+    private string $password;
 
     #[ORM\Column(type: 'GenderType')]
-    private $gender;
+    private string $gender;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $lastname;
+    private string $lastname;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $firstname;
+    private string $firstname;
 
     #[ORM\Column(type: 'string', length: 12, nullable: true)]
-    private $phoneNumber;
+    private ?string $phoneNumber;
 
     #[
         ORM\OneToMany(
@@ -57,10 +57,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             indexBy: 'fftaMemberCode',
         ),
     ]
-    private $licensees;
+    private Collection $licensees;
 
     #[ORM\Column]
     private bool $isVerified = false;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $discordId = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?array $discordAccessToken = null;
 
     public function __construct()
     {
@@ -96,7 +102,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return $this->email;
     }
 
     /**
@@ -243,6 +249,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsVerified(bool $isVerified): self
     {
         $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    public function getDiscordId(): ?string
+    {
+        return $this->discordId;
+    }
+
+    public function setDiscordId(?string $discordId): self
+    {
+        $this->discordId = $discordId;
+
+        return $this;
+    }
+
+    public function getDiscordAccessToken(): array
+    {
+        return $this->discordAccessToken;
+    }
+
+    public function setDiscordAccessToken(?array $discordAccessToken): self
+    {
+        $this->discordAccessToken = $discordAccessToken;
 
         return $this;
     }

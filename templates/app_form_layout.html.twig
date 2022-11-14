@@ -1,0 +1,31 @@
+{%- block _event_participation_participationState_widget -%}
+    <div class="btn-group mb-3" role="group">
+        {%- for child in form %}
+            {% set widget_value = child.vars.value %}
+            {% set color = 'secondary' %}
+            {% set label = widget_value|readable_enum %}
+            {% if widget_value is same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
+                {% set color = 'danger' %}
+                {% set label = 'Je n\'y vais pas' %}
+            {% elseif widget_value is same as constant('App\\DBAL\\Types\\EventParticipationStateType::INTERESTED') %}
+                {% set color = 'warning' %}
+                {% set label = 'Je souhaite y aller' %}
+            {% elseif widget_value is same as constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') %}
+                {% set color = 'success' %}
+                {% set label = 'Je suis inscrit' %}
+            {% endif %}
+            <input type="radio"
+                   class="btn-check"
+                   name="{{ form.vars.full_name }}"
+                   id="{{ child.vars.id }}"
+                   value="{{ widget_value }}"
+                   autocomplete="off"
+                   {% if value is same as widget_value %}checked{% endif %}
+            >
+            <label class="btn btn-outline-{{ color }}"
+                   for="{{ child.vars.id }}">
+                {{ label }}
+            </label>
+        {% endfor -%}
+    </div>
+{%- endblock _event_participation_participationState_widget %}

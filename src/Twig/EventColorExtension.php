@@ -3,10 +3,10 @@
 namespace App\Twig;
 
 use App\DBAL\Types\EventType;
-use DH\AuditorBundle\Twig\Extension\TwigExtension;
+use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 
-class EventColorExtension extends TwigExtension
+class EventColorExtension extends AbstractExtension
 {
     public function getFilters(): array
     {

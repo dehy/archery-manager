@@ -27,6 +27,9 @@
         "fabpot/goutte": "^4.0",
         "fresh/doctrine-enum-bundle": "^9.0",
         "gedmo/doctrine-extensions": "^3.9",
+        "geocoder-php/mapbox-provider": "^1.4",
+        "knplabs/knp-time-bundle": "^1.20",
+        "knpuniversity/oauth2-client-bundle": "^2.10",
         "league/flysystem-async-aws-s3": "^3.0",
         "league/flysystem-bundle": "^3.0",
         "moneyphp/money": "^4.0",
@@ -69,12 +72,15 @@
         "symfony/yaml": "6.1.*",
         "symfonycasts/reset-password-bundle": "^1.13",
         "symfonycasts/verify-email-bundle": "^1.10",
+        "team-reflex/discord-php": "^7.3",
         "twig/cssinliner-extra": "^3.4",
         "twig/extra-bundle": "^3.4",
         "twig/inky-extra": "^3.4",
         "twig/intl-extra": "^3.3",
         "twig/twig": "^2.12|^3.0",
-        "vich/uploader-bundle": "^1.21"
+        "vich/uploader-bundle": "^1.21",
+        "willdurand/geocoder-bundle": "^5.0",
+        "wohali/oauth2-discord-new": "^1.2"
     },
     "config": {
         "allow-plugins": {

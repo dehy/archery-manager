@@ -1,6 +1,6 @@
 twig:
     default_path: '%kernel.project_dir%/templates'
-    form_themes: [ 'bootstrap_5_horizontal_layout.html.twig' ]
+    form_themes: [ 'bootstrap_5_horizontal_layout.html.twig', 'app_form_layout.html.twig' ]
     paths:
         '%kernel.project_dir%/assets/styles': styles
     globals:

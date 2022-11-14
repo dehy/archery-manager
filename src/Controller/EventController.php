@@ -2,18 +2,26 @@
 
 namespace App\Controller;
 
+use App\DBAL\Types\EventType;
 use App\Entity\Event;
 use App\Entity\EventAttachment;
+use App\Form\EventParticipationType;
+use App\Helper\EventHelper;
+use App\Helper\LicenseeHelper;
 use App\Repository\EventRepository;
 use DateTime;
 use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use League\Flysystem\FilesystemOperator;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Annotation\Route;
 
 class EventController extends AbstractController
@@ -84,10 +92,55 @@ class EventController extends AbstractController
     }
 
     #[Route('/events/{event}')]
-    public function showModal(Event $event): Response
-    {
-        return $this->render('event/show.modal.html.twig', [
+    public function show(
+        Event $event,
+        EntityManagerInterface $entityManager,
+        Request $request,
+        EventHelper $eventHelper,
+        LicenseeHelper $licenseeHelper,
+        MailerInterface $mailer,
+    ): Response {
+        $eventParticipation = $eventHelper->licenseeParticipationToEvent($licenseeHelper->getLicenseeFromSession(), $event);
+        $eventParticipationForm = $this->createForm(EventParticipationType::class, $eventParticipation);
+
+        $eventParticipationForm->handleRequest($request);
+        if ($eventParticipationForm->isSubmitted() && $eventParticipationForm->isValid()) {
+            if (!$eventParticipation->getId()) {
+                $entityManager->persist($eventParticipation);
+            }
+            $entityManager->flush();
+
+            // Envoi d'un email aux admins
+            $email = new TemplatedEmail();
+            $email->addTo(new Address('lesarchersdeguyenne@gmail.com'))
+                ->addTo(new Address('secretaire.bordeauxguyenne@gmail.com'))
+                ->subject(sprintf(
+                    'Participation de %s à %s',
+                    $eventParticipation->getParticipant()->getFullname(),
+                    $eventParticipation->getEvent()->getTitle()
+                ))
+                ->textTemplate('email_notification/event_participation.txt.twig')
+                ->context([
+                    'event_participation' => $eventParticipation,
+                ])
+            ;
+
+            $mailer->send($email);
+
+            return $this->redirectToRoute('app_event_show', ['event' => $event->getId()]);
+        }
+
+        $modalTemplate = $request->query->getBoolean('modal');
+        $templateSuffix = match ($event->getType()) {
+            EventType::CONTEST_OFFICIAL, EventType::CONTEST_HOBBY => '_contest',
+            EventType::TRAINING => '_training',
+            default => '_default',
+        };
+        $template = $modalTemplate ? 'event/show.modal.html.twig' : sprintf('event/show%s.html.twig', $templateSuffix);
+
+        return $this->render($template, [
             'event' => $event,
+            'event_participation_form' => $eventParticipationForm->createView(),
         ]);
     }
 }

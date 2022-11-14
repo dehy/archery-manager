@@ -30,11 +30,14 @@ class EventParticipation
     #[ORM\JoinColumn(nullable: false)]
     private Licensee $participant;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $departure = null;
+
     #[ORM\OneToOne(targetEntity: Result::class, cascade: ['persist', 'remove'])]
     private Result $result;
 
     #[ORM\Column(type: 'EventParticipationStateType')]
-    private string $participationState;
+    private ?string $participationState = null;
 
     public function getId(): ?int
     {
@@ -65,6 +68,18 @@ class EventParticipation
         return $this;
     }
 
+    public function getDeparture(): ?int
+    {
+        return $this->departure;
+    }
+
+    public function setDeparture(?int $departure): EventParticipation
+    {
+        $this->departure = $departure;
+
+        return $this;
+    }
+
     public function getResult(): ?Result
     {
         return $this->result;
@@ -77,7 +92,7 @@ class EventParticipation
         return $this;
     }
 
-    public function getParticipationState(): string
+    public function getParticipationState(): ?string
     {
         return $this->participationState;
     }

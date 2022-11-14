@@ -3,10 +3,10 @@
 namespace App\Twig;
 
 use App\DBAL\Types\EventAttachmentType;
-use DH\AuditorBundle\Twig\Extension\TwigExtension;
+use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 
-class EventAttachmentTypeExtension extends TwigExtension
+class EventAttachmentTypeExtension extends AbstractExtension
 {
     public function getFilters(): array
     {

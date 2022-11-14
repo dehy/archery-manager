@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Event;
 use App\Entity\PracticeAdvice;
+use App\Entity\Result;
 use App\Helper\LicenseeHelper;
 use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,16 +26,23 @@ class HomepageController extends AbstractController
             5,
         );
 
-        $adviceRepository = $entityManager->getRepository(
-            PracticeAdvice::class,
-        );
+        $adviceRepository = $entityManager->getRepository(PracticeAdvice::class);
         $advices = $adviceRepository->findBy([
             'licensee' => $licenseeHelper->getLicenseeFromSession(),
         ]);
 
+        $resultRepository = $entityManager->getRepository(Result::class);
+        $results = $resultRepository->findLastForLicensee($licenseeHelper->getLicenseeFromSession());
+
+        $resultsByTypeAndDiscipline = [];
+        foreach ($results as $result) {
+            $resultsByTypeAndDiscipline[$result->getEvent()->getType()][$result->getEvent()->getDiscipline()] = $result;
+        }
+
         return $this->render('homepage/index.html.twig', [
             'events' => $events,
             'advices' => $advices,
+            'results' => $results,
         ]);
     }
 }

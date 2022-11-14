@@ -191,6 +191,11 @@ class Licensee
         return sprintf('%s %s', $this->getFirstname(), $this->getLastname());
     }
 
+    public function getFirstnameWithInitial(): string
+    {
+        return sprintf('%s %s.', $this->getFirstname(), strtoupper(substr($this->getLastname(), 0, 1)));
+    }
+
     public function getBirthdate(): ?DateTimeInterface
     {
         return $this->birthdate;

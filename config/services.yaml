@@ -25,13 +25,22 @@ services:
             $username: '%env(FFTA_USERNAME)%'
             $password: '%env(FFTA_PASSWORD)%'
 
+    App\Command\DiscordBotRunCommand:
+        arguments:
+            $botToken: '%env(DISCORD_TOKEN)%'
+
+    App\Helper\MapHelper:
+        arguments:
+            $username: '%env(MAPBOX_USERNAME)%'
+            $accessToken: '%env(MAPBOX_ACCESS_TOKEN)%'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
     scaleway_object_storage_client:
         class: 'AsyncAws\S3\S3Client'
         arguments:
-            - endpoint: '%env(SCALEWAY_OBJECT_STORAGE_ENDPOINT)%'
-              accessKeyId: '%env(SCALEWAY_OBJECT_STORAGE_ID)%'
-              accessKeySecret: '%env(SCALEWAY_OBJECT_STORAGE_SECRET)%'
-              region: '%env(SCALEWAY_OBJECT_STORAGE_REGION)%'
+            -   endpoint: '%env(SCALEWAY_OBJECT_STORAGE_ENDPOINT)%'
+                accessKeyId: '%env(SCALEWAY_OBJECT_STORAGE_ID)%'
+                accessKeySecret: '%env(SCALEWAY_OBJECT_STORAGE_SECRET)%'
+                region: '%env(SCALEWAY_OBJECT_STORAGE_REGION)%'

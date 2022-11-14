@@ -18,37 +18,34 @@
                 <ul class="list-group">
                     {% for event in events %}
                         {% set participation = eventHelper.licenseeParticipationToEvent(licenseeHelper.licenseeFromSession, event) %}
-                        {% if participation == null %}
+                        {% if participation.participationState is same as null %}
                             {% set link_class = '' %}
                             {% set icon = '' %}
                         {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
-                            {% set link_class = 'text-muted bg-light' %}
+                            {% set link_class = 'bg-danger' %}
                             {% set icon = 'times' %}
-                        {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::GOING') %}
+                        {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::INTERESTED') %}
                             {% set link_class = 'bg-warning' %}
                             {% set icon = 'hourglass' %}
                         {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') %}
                             {% set link_class = 'bg-success' %}
                             {% set icon = 'check' %}
                         {% endif %}
-                        <a href="{{ path('app_event_showmodal', {'event': event.id}) }}"
-                           type="button"
-                           class="list-group-item list-group-item-action d-flex flex-row justify-content-between link-unstyled bg-opacity-25 {{ link_class }}"
-                           data-action="click->modal#open"
-                           data-title="{{ event.type|readable_enum }} - {{ event.name }}"
+                        <a href="{{ path('app_event_show', {'event': event.id}) }}"
+                           class="list-group-item list-group-item-action link-unstyled bg-opacity-10 {{ link_class }}"
                         >
                             <div class="d-flex flex-column">
                                 <div class="fw-bold">
-                                    <div class="event-pill me-1"
-                                         style="background-color: {{ event.type|eventColor }}"
-                                         data-bs-toggle="tooltip" data-bs-title="{{ event.type|readable_enum }}"
-                                    >
-                                    </div>
-                                    {{ event.type|readable_enum }} : {{ event.name }}
+                                    {{ event.title }}
                                     <span class="badge rounded-pill text-bg-info">
                                         <em class="fas fa-people-group"></em>
                                         {{ event.participations|filter(p => p.participationState != 'not_going')|length }}
                                     </span>
+                                    {% if icon %}
+                                        <span class="badge rounded-pill {{ link_class }}">
+                                            <em class="fas fa-{{ icon }}"></em>
+                                        </span>
+                                    {% endif %}
                                 </div>
                                 <div>
                                     <small>
@@ -61,19 +58,15 @@
                                             de {{ event.startsAt|format_time('short', locale='fr') }}
                                             à  {{ event.endsAt|format_time('short', locale='fr') }}
                                         {% endif %}
-                                        {% set diffDays = event.startsAt.diff(date()).days %}
-                                        {% if diffDays == 0 %}
-                                            (aujourd'hui)
-                                        {% else %}
-                                            (dans {{ event.startsAt.diff(date()).days }} jours)
+                                        {% if date() > event.startsAt and date() < event.endsAt %}
+                                            (en ce moment)
+                                        {% elseif date() < event.startsAt %}
+                                            ({{ event.startsAt|ago(locale='fr') }})
+                                        {% elseif date() > event.endsAt %}
+                                            ({{ event.endsAt|ago(locale='fr') }})
                                         {% endif %}
                                     </small>
                                 </div>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                {% if icon %}
-                                    <em class="fas fa-2x fa-fw fa-{{ icon }}"></em>
-                                {% endif %}
                             </div>
                         </a>
                     {% endfor %}
@@ -85,7 +78,32 @@
                 </ul>
             {% endif %}
         </div>
-        <div class="col-md-4 col-xs-12">
+        <div class="col-md-5 col-xs-12">
+            <h2 class="mb-3"><em class="fa-solid fa-bullseye"></em> Mes 5 derniers résultats</h2>
+            {% if results is empty %}
+                <p><em>Aucun résultat enregistré</em></p>
+            {% else %}
+                <table class="table">
+                    {% for result in results %}
+                        <tr>
+                            <td>
+                                <a href="{{ path('app_event_show', {event: result.event.id}) }}" class="link-unstyled">
+                                    <span class="fw-bold">{{ result.event.title }}</span>
+                                    <em class="fas fa-circle-right text-muted"></em>
+                                </a><br>
+                                <span class="fst-italic">
+                                    <small>{{ result.event.startsAt|format_date(locale='fr') }}</small>
+                                </span>
+                                <span class="badge bg-secondary badge-pill">{{ result.distance }}m</span>
+                                <span class="badge bg-secondary badge-pill">{{ result.targetSize }}cm</span>
+                            </td>
+                            <td>{{ result.total }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </div>
+        <div class="col-md-3 col-xs-12">
             <h2 class="mb-3"><em class="fa-solid fa-comment"></em> Mes conseils de pratique</h2>
             {% if advices is empty %}
                 <p><em>Aucun conseil pour le moment</em></p>
@@ -99,10 +117,6 @@
                     {% endfor %}
                 </ul>
             {% endif %}
-        </div>
-        <div class="col-md-4 col-xs-12">
-            <h2 class="mb-3"><em class="fa-solid fa-bullseye"></em> Mes résultats</h2>
-            <p><em>Aucun résultat enregistré</em></p>
         </div>
     </div>
 {% endblock %}

@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventAttachmentType;
+use App\DBAL\Types\EventParticipationStateType;
 use App\DBAL\Types\EventType;
 use App\Repository\EventRepository;
 use App\Scrapper\FftaEvent;
@@ -73,8 +74,9 @@ class Event
     public function __toString(): string
     {
         return sprintf(
-            '%s - %s - %s',
+            '%s - %s %s - %s',
             $this->getStartsAt()->format('d/m/Y'),
+            EventType::getReadableValue($this->getType()),
             DisciplineType::getReadableValue($this->getDiscipline()),
             $this->getAddress(),
         );
@@ -331,5 +333,28 @@ class Event
         $this->assignedGroups->removeElement($assignedGroup);
 
         return $this;
+    }
+
+    public function getTitle(): string
+    {
+        return sprintf(
+            '%s %s %s',
+            ucfirst(EventType::getReadableValue($this->getType())),
+            lcfirst(DisciplineType::getReadableValue($this->getDiscipline())),
+            $this->getName()
+        );
+    }
+
+    public function getParticipationsByDeparture(): array
+    {
+        $departures = [];
+        foreach ($this->getParticipations() as $participation) {
+            if (EventParticipationStateType::NOT_GOING === $participation->getParticipationState()) {
+                continue;
+            }
+            $departures[$participation->getDeparture() ?? 'non précisé'][] = $participation;
+        }
+
+        return $departures;
     }
 }

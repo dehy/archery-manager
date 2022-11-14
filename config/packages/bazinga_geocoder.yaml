@@ -1,0 +1,7 @@
+# See the docs at https://github.com/geocoder-php/BazingaGeocoderBundle
+bazinga_geocoder:
+    providers:
+        mapbox:
+            factory: Bazinga\GeocoderBundle\ProviderFactory\MapboxFactory
+            options:
+                api_key: '%env(MAPBOX_ACCESS_TOKEN)%'

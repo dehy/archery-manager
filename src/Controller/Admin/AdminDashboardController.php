@@ -7,6 +7,7 @@ use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\Entity\Applicant;
 use App\Entity\Event;
+use App\Entity\EventParticipation;
 use App\Entity\Group;
 use App\Entity\License;
 use App\Entity\Licensee;
@@ -129,6 +130,12 @@ class AdminDashboardController extends AbstractDashboardController
             'Évènements',
             'fa-regular fa-calendar',
             Event::class,
+        );
+
+        yield MenuItem::linkToCrud(
+            'Participations',
+            'fa-solid fa-user-check',
+            EventParticipation::class,
         );
 
         yield MenuItem::linkToCrud(

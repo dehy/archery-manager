@@ -5,6 +5,7 @@ namespace App\Helper;
 use App\DBAL\Types\LicenseCategoryType;
 use App\Entity\Applicant;
 use Money\Money;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class ApplicantHelper
 {
@@ -18,7 +19,8 @@ class ApplicantHelper
     public static function default(): self
     {
         if (null === self::$instance) {
-            self::$instance = new ApplicantHelper(new LicenseHelper());
+            $requestStack = new RequestStack();
+            self::$instance = new ApplicantHelper(new LicenseHelper(new LicenseeHelper()));
         }
 
         return self::$instance;

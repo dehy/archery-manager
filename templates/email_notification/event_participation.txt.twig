@@ -1,0 +1,12 @@
+{% set event = event_participation.event %}
+{% set licensee = event_participation.participant %}
+
+{{ licensee.fullname }} vient de mettre à jour sa participation à {{ event }} :
+
+{{ event_participation.participationState|readable_enum }}
+{% if event.type is same as constant('App\\DBAL\\Types\\EventType::CONTEST_OFFICIAL') or event.type is same as constant('App\\DBAL\\Types\\EventType::CONTEST_HOBBY') %}
+Départ n°{{ event_participation.departure }}
+{% endif %}
+
+Profil du licencié : {{ url('app_licensee_profile', {fftaCode: licensee.fftaMemberCode}) }}
+Page de l'évènement : {{ url('app_event_show', {event: event.id}) }}

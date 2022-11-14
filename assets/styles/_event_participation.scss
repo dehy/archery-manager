@@ -1,0 +1,19 @@
+@import "node_modules/bootstrap/scss/functions";
+@import "node_modules/bootstrap/scss/variables";
+@import "node_modules/bootstrap/scss/mixins";
+
+.event-participation-unknown {
+  @extend .bg-secondary;
+}
+
+.event-participation-not_going {
+  @extend .bg-danger;
+}
+
+.event-participation-interested {
+  @extend .bg-warning;
+}
+
+.event-participation-registered {
+  @extend .bg-success;
+}

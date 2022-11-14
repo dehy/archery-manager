@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Licensee;
 use App\Entity\Result;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
@@ -43,6 +44,19 @@ class ResultRepository extends ServiceEntityRepository
         if ($flush) {
             $this->_em->flush();
         }
+    }
+
+    public function findLastForLicensee(Licensee $licensee, int $count = 5): ?array
+    {
+        return $this->createQueryBuilder('r')
+            ->join('r.event', 'e')
+            ->where('r.licensee = :licensee')
+            ->orderBy('e.endsAt', 'DESC')
+            ->setMaxResults($count)
+            ->setParameter('licensee', $licensee)
+            ->getQuery()
+            ->getResult()
+        ;
     }
 
     // /**

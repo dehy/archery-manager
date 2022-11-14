@@ -11,7 +11,8 @@
                 <dt>Identifiant</dt>
                 <dd>{{ user.email }}</dd>
 
-                <dt>Mot de passe <a href="" class="fw-normal">Changer de mot de passe</a></dt>
+                <dt>Mot de passe <a href="{{ path('app_forgot_password_request') }}" class="fw-normal">Changer de mot de
+                        passe</a></dt>
                 <dd>••••••••••••</dd>
 
                 <dt>Prénom</dt>
@@ -22,6 +23,25 @@
 
                 <dt>Numéro de téléphone</dt>
                 <dd>{{ user.phoneNumber }}</dd>
+
+                <dt>Discord</dt>
+                <dd>
+                    {% if user.discordId %}
+                        <a href="{{ path('connect_discord_logout') }}"
+                           class="btn btn-danger"
+                        >
+                            <em class="fab fa-discord fa-fw"></em>
+                            Se déconnecter de Discord
+                        </a>
+                    {% else %}
+                        <a href="{{ path('connect_discord_start') }}"
+                           class="btn btn-discord"
+                        >
+                            <em class="fab fa-discord fa-fw"></em>
+                            Se connecter avec Discord
+                        </a>
+                    {% endif %}
+                </dd>
             </dl>
         </div>
 
@@ -42,7 +62,7 @@
     <div class="row">
         <div class="col-md-6">
             <p>
-                Une erreur ? Un changement ? Contacter le club à <a href="mailto:lesarchersdeguyenne@gmail.com">lesarchersdeguyenne@gmail.com</a>
+                Une erreur ? Un changement ? Contacter le club à <a href="mailto:secretaire.bordeauxguyenne@gmail.com">secretaire.bordeauxguyenne@gmail.com</a>
             </p>
         </div>
     </div>
