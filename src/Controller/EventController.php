@@ -110,23 +110,6 @@ class EventController extends AbstractController
             }
             $entityManager->flush();
 
-            // Envoi d'un email aux admins
-            $email = new TemplatedEmail();
-            $email->addTo(new Address('lesarchersdeguyenne@gmail.com'))
-                ->addTo(new Address('secretaire.bordeauxguyenne@gmail.com'))
-                ->subject(sprintf(
-                    'Participation de %s à %s',
-                    $eventParticipation->getParticipant()->getFullname(),
-                    $eventParticipation->getEvent()->getTitle()
-                ))
-                ->textTemplate('email_notification/event_participation.txt.twig')
-                ->context([
-                    'event_participation' => $eventParticipation,
-                ])
-            ;
-
-            $mailer->send($email);
-
             return $this->redirectToRoute('app_event_show', ['event' => $event->getId()]);
         }
 
