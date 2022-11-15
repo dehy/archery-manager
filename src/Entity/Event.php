@@ -11,11 +11,13 @@ use App\DBAL\Types\EventType;
 use App\Repository\EventRepository;
 use App\Scrapper\FftaEvent;
 use DateTimeImmutable;
+use Cocur\Slugify\Slugify;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[ApiResource]
 class Event
 {
@@ -380,5 +382,17 @@ class Event
         }
 
         return false;
+    }
+
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    public function onUpdate(): void
+    {
+        $slugify = new Slugify();
+        $this->setSlug(
+            $slugify->slugify(
+                sprintf('%s-%s', $this->getStartsAt()->format('d-m-Y'), $this->getTitle())
+            )
+        );
     }
 }
