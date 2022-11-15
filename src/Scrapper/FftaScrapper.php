@@ -74,7 +74,7 @@ class FftaScrapper
         return $ids;
     }
 
-    public function findLicenseeIdFromCode(string $memberCode): int
+    public function findLicenseeIdFromCode(string $memberCode): ?int
     {
         $this->loginFftaGoal();
 
@@ -95,9 +95,11 @@ class FftaScrapper
         );
         if ('/personnes/show' === $requestUriComponents['path']) {
             parse_str($requestUriComponents['query'], $queryParameters);
+
+            /** @var ?int $idPersonne */
             $idPersonne = $queryParameters['idPersonne'] ?? null;
             if ($idPersonne) {
-                return $idPersonne;
+                return (int) $idPersonne;
             }
         }
         $feedbackPanel = $crawler->filter('#feedbackPanel');
@@ -495,6 +497,7 @@ class FftaScrapper
                         'Arc Droit' => LicenseActivityType::AD,
                         'Arc Nu' => LicenseActivityType::BB,
                         'Arc à Poulies' => LicenseActivityType::CO,
+                        default => null,
                     };
                     if (!$activity) {
                         throw new \Exception(sprintf("Unknown Activity '%s'", $activiteStr));

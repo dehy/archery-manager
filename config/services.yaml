@@ -34,6 +34,17 @@ services:
             $username: '%env(MAPBOX_USERNAME)%'
             $accessToken: '%env(MAPBOX_ACCESS_TOKEN)%'
 
+    Doctrine\Migrations\Version\DbalMigrationFactory: ~
+    App\Migrations\Factory\MigrationFactoryDecorator:
+        decorates: Doctrine\Migrations\Version\DbalMigrationFactory
+        arguments: [ '@doctrine.dbal.default_connection', '@logger', '@doctrine.orm.entity_manager' ]
+
+    Twig\Extra\Intl\IntlExtension:
+        alias: 'twig.extension.intl'
+
+    Knp\Bundle\TimeBundle\Twig\Extension\TimeExtension:
+        alias: 'time.twig.extension.time'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 

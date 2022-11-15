@@ -62,7 +62,7 @@
                             {% endif %}
                         </div>
                         {% for event in events %}
-                            <a href="{{ path('app_event_show', {'event': event.id}) }}"
+                            <a href="{{ path('app_event_show', {slug: event.slug}) }}"
                                class="event-link d-flex d-inline-block justify-content-between link-unstyled">
                                 <div class="event-name">
                                     <div class="event-pill" style="background-color: {{ event.type|eventColor }}"></div>
@@ -88,7 +88,7 @@
                         <ul class="list-unstyled">
                             {% for event in events %}
                                 <li class="event-list-event">
-                                    <a href="{{ path('app_event_show', {'event': event.id}) }}"
+                                    <a href="{{ path('app_event_show', {slug: event.slug}) }}"
                                        class="d-flex flex-row link-unstyled p-2"
                                     >
                                         <div class="event-pill me-1"

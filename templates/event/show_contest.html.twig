@@ -43,25 +43,15 @@
     <div class="col-sm-7">
         <div class="row">
             <div class="col-sm-6">
-                <h5><em class="fas fa-calendar-alt"></em> Dates</h5>
-                <p>
-                    {% if event.endsAt.diff(event.startsAt).days == 1 %}
-                        les {{ event.startsAt|date('j') }} et {{ event.endsAt|format_date(locale='fr') }}
-                    {% elseif event.startsAt|date('d') != event.endsAt|date('d') %}
-                        du {{ event.startsAt|date('j') }} au {{ event.endsAt|format_date(locale='fr') }}
-                    {% else %}
-                        le {{ event.startsAt|format_date(locale='fr') }}
-                        de {{ event.startsAt|format_time('short', locale='fr') }}
-                        à  {{ event.endsAt|format_time('short', locale='fr') }}
-                    {% endif %}
-                    {% if date() > event.startsAt and date() < event.endsAt %}
-                        (en ce moment)
-                    {% elseif date() < event.startsAt %}
-                        ({{ event.startsAt|ago(locale='fr') }})
-                    {% elseif date() > event.endsAt %}
-                        ({{ event.endsAt|ago(locale='fr') }})
-                    {% endif %}
-                </p>
+                <h5>
+                    <em class="fas fa-calendar-alt"></em> Dates
+                    <a href="{{ path('app_event_eventics', {slug: event.slug}) }}"
+                       class="btn btn-secondary btn-sm">
+                        <em class="fas fa-calendar-plus fa-fw"></em>
+                        Ajouter à mon calendrier
+                    </a>
+                </h5>
+                <p>{{ event|event_date(diff=true) }}</p>
             </div>
 
             <div class="col-sm-6">
@@ -103,11 +93,7 @@
                             {% for departure, participations in event.participationsByDeparture %}
                                 <li>
                                     Départ {{ departure }} :
-                                    {% for participation in participations|sort((a, b) => a.participant.fullname <=> b.participant.fullname) %}
-                                    <a href="{{ path('app_licensee_profile', {fftaCode: participation.participant.fftaMemberCode}) }}">
-                                        {{ participation.participant.firstnameWithInitial }}
-                                        </a>{{- not loop.last ? ' - ' -}}
-                                    {% endfor %}
+                                    {{ participations|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => p.participant.firstnameWithInitial)|join(', ') }}
                                 </li>
                             {% endfor %}
                         </ul>

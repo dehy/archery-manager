@@ -5,36 +5,41 @@ namespace App\Controller;
 use App\DBAL\Types\EventType;
 use App\Entity\Event;
 use App\Entity\EventAttachment;
+use App\Factory\IcsFactory;
 use App\Form\EventParticipationType;
 use App\Helper\EventHelper;
 use App\Helper\LicenseeHelper;
 use App\Repository\EventRepository;
+use DateTime;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use League\Flysystem\FilesystemOperator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 class EventController extends AbstractController
 {
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     #[Route('/events', name: 'app_events_index')]
     public function index(Request $request, EventRepository $eventRepository): Response
     {
-        $now = new \DateTime();
+        $now = new DateTime();
         $month = $request->query->get('m', (int) $now->format('n'));
         $year = $request->query->get('y', (int) $now->format('Y'));
 
         /** @var Event[] $events */
         $events = $eventRepository->findForMonthAndYear($month, $year);
 
-        $firstDate = (new \DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
+        $firstDate = (new DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
         $lastDate = (clone $firstDate)->modify('last day of this month');
         if (1 !== (int) $firstDate->format('N')) {
             $firstDate->modify('previous monday');
@@ -45,8 +50,8 @@ class EventController extends AbstractController
 
         $calendar = [];
         for ($currentDate = $firstDate; $currentDate <= $lastDate; $currentDate->modify('+1 day')) {
-            $startOfDay = \DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0, 0);
-            $endOfDay = \DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
+            $startOfDay = DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0, 0);
+            $endOfDay = DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
             $eventsForThisDay = array_filter($events, function (Event $event) use ($startOfDay, $endOfDay) {
                 return ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
                     || ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay);
@@ -58,6 +63,32 @@ class EventController extends AbstractController
             'month' => $month,
             'year' => $year,
             'calendar' => $calendar,
+        ]);
+    }
+
+    /**
+     * @throws NonUniqueResultException
+     */
+    #[Route('/events/{slug}.ics')]
+    public function eventIcs(string $slug, EventRepository $eventRepository): Response
+    {
+        $event = $eventRepository->findBySlug($slug);
+
+        if (!$event) {
+            throw new NotFoundHttpException();
+        }
+
+        $ics = IcsFactory::new($event->getTitle())
+            ->setStart($event->getStartsAt())
+            ->setEnd($event->getEndsAt())
+            ->setLocation($event->getAddress())
+            ->setAllDay($event->isAllDay())
+            ->getICS()
+        ;
+
+        return new Response($ics, 200, [
+            'Content-Type' => 'text/calendar',
+            'Content-Disposition' => sprintf('attachment; filename="%s.ics"', $event->getSlug()),
         ]);
     }
 
@@ -86,15 +117,22 @@ class EventController extends AbstractController
         return $response;
     }
 
-    #[Route('/events/{event}')]
+    #[Route('/events/{slug}')]
     public function show(
-        Event $event,
+        string $slug,
         EntityManagerInterface $entityManager,
         Request $request,
         EventHelper $eventHelper,
         LicenseeHelper $licenseeHelper,
-        MailerInterface $mailer,
     ): Response {
+        /** @var EventRepository $eventRepository */
+        $eventRepository = $entityManager->getRepository(Event::class);
+        $event = $eventRepository->findBySlug($slug);
+
+        if (!$event) {
+            throw new NotFoundHttpException();
+        }
+
         $eventParticipation = $eventHelper->licenseeParticipationToEvent($licenseeHelper->getLicenseeFromSession(), $event);
         $eventParticipationForm = $this->createForm(EventParticipationType::class, $eventParticipation);
 
@@ -105,7 +143,7 @@ class EventController extends AbstractController
             }
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_event_show', ['event' => $event->getId()]);
+            return $this->redirectToRoute('app_event_show', ['slug' => $event->getSlug()]);
         }
 
         $modalTemplate = $request->query->getBoolean('modal');

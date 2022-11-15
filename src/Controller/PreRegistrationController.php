@@ -56,7 +56,7 @@ class PreRegistrationController extends AbstractController
         ]);
 
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             $licensee = $applicant->getLicenseNumber()
                 ? $licenseeRepository->findOneByCode(
                     $applicant->getLicenseNumber(),
@@ -92,8 +92,6 @@ class PreRegistrationController extends AbstractController
                 ;
 
                 $mailer->send($notificationEmail);
-
-                dd($email);
 
                 return $this->redirectToRoute('app_pre_registration_thank_you');
             }

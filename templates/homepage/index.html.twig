@@ -31,7 +31,7 @@
                             {% set link_class = 'bg-success' %}
                             {% set icon = 'check' %}
                         {% endif %}
-                        <a href="{{ path('app_event_show', {'event': event.id}) }}"
+                        <a href="{{ path('app_event_show', {slug: event.slug}) }}"
                            class="list-group-item list-group-item-action link-unstyled bg-opacity-10 {{ link_class }}"
                         >
                             <div class="d-flex flex-column">
@@ -49,22 +49,7 @@
                                 </div>
                                 <div>
                                     <small>
-                                        {% if event.endsAt.diff(event.startsAt).days == 1 %}
-                                            les {{ event.startsAt|date('j') }} et {{ event.endsAt|format_date(locale='fr') }}
-                                        {% elseif event.startsAt|date('d') != event.endsAt|date('d') %}
-                                            du {{ event.startsAt|date('j') }} au {{ event.endsAt|format_date(locale='fr') }}
-                                        {% else %}
-                                            le {{ event.startsAt|format_date(locale='fr') }}
-                                            de {{ event.startsAt|format_time('short', locale='fr') }}
-                                            à  {{ event.endsAt|format_time('short', locale='fr') }}
-                                        {% endif %}
-                                        {% if date() > event.startsAt and date() < event.endsAt %}
-                                            (en ce moment)
-                                        {% elseif date() < event.startsAt %}
-                                            ({{ event.startsAt|ago(locale='fr') }})
-                                        {% elseif date() > event.endsAt %}
-                                            ({{ event.endsAt|ago(locale='fr') }})
-                                        {% endif %}
+                                        {{ event|event_date(diff=true) }}
                                     </small>
                                 </div>
                             </div>
@@ -87,12 +72,12 @@
                     {% for result in results %}
                         <tr>
                             <td>
-                                <a href="{{ path('app_event_show', {event: result.event.id}) }}" class="link-unstyled">
+                                <a href="{{ path('app_event_show', {slug: result.event.slug}) }}" class="link-unstyled">
                                     <span class="fw-bold">{{ result.event.title }}</span>
                                     <em class="fas fa-circle-right text-muted"></em>
                                 </a><br>
                                 <span class="fst-italic">
-                                    <small>{{ result.event.startsAt|format_date(locale='fr') }}</small>
+                                    <small>{{ result.event|event_date(includeTime=false) }}</small>
                                 </span>
                                 <span class="badge bg-secondary badge-pill">{{ result.distance }}m</span>
                                 <span class="badge bg-secondary badge-pill">{{ result.targetSize }}cm</span>

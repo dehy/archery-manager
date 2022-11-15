@@ -4,9 +4,12 @@ namespace App\Repository;
 
 use App\Entity\Event;
 use App\Entity\Licensee;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 
 /**
  * @method null|Event find($id, $lockMode = null, $lockVersion = null)
@@ -47,8 +50,8 @@ class EventRepository extends ServiceEntityRepository
                 ->where('e.endsAt >= :now')
                 ->andWhere('g IN (:groups)')
                 ->orderBy('e.startsAt', 'ASC')
-                ->orderBy('e.endsAt', 'ASC')
-                ->setParameter('now', new \DateTime())
+                ->addOrderBy('e.endsAt', 'ASC')
+                ->setParameter('now', new DateTime())
                 ->setParameter('groups', $licensee->getGroups())
                 ->setMaxResults($limit)
                 ->getQuery()
@@ -57,11 +60,11 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function findForMonthAndYear(int $month, int $year): array
     {
-        $firstDate = new \DateTime(sprintf('%s-%s-01 midnight', $year, $month));
+        $firstDate = new DateTime(sprintf('%s-%s-01 midnight', $year, $month));
         $lastDate = (clone $firstDate)->modify('last day of this month');
         if (1 !== (int) $firstDate->format('N')) {
             $firstDate->modify('previous monday');
@@ -79,6 +82,19 @@ class EventRepository extends ServiceEntityRepository
             ])
             ->getQuery()
             ->getResult()
+        ;
+    }
+
+    /**
+     * @throws NonUniqueResultException
+     */
+    public function findBySlug(string $slug): ?Event
+    {
+        return $this->createQueryBuilder('e')
+            ->where('e.slug = :slug')
+            ->setParameter('slug', $slug)
+            ->getQuery()
+            ->getOneOrNullResult()
         ;
     }
 }

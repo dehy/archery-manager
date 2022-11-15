@@ -7,6 +7,7 @@ use App\Entity\PracticeAdvice;
 use App\Entity\Result;
 use App\Helper\LicenseeHelper;
 use App\Repository\EventRepository;
+use App\Repository\ResultRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,13 +32,9 @@ class HomepageController extends AbstractController
             'licensee' => $licenseeHelper->getLicenseeFromSession(),
         ]);
 
+        /** @var ResultRepository $resultRepository */
         $resultRepository = $entityManager->getRepository(Result::class);
         $results = $resultRepository->findLastForLicensee($licenseeHelper->getLicenseeFromSession());
-
-        $resultsByTypeAndDiscipline = [];
-        foreach ($results as $result) {
-            $resultsByTypeAndDiscipline[$result->getEvent()->getType()][$result->getEvent()->getDiscipline()] = $result;
-        }
 
         return $this->render('homepage/index.html.twig', [
             'events' => $events,

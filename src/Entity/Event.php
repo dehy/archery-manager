@@ -10,6 +10,7 @@ use App\DBAL\Types\EventParticipationStateType;
 use App\DBAL\Types\EventType;
 use App\Repository\EventRepository;
 use App\Scrapper\FftaEvent;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -27,10 +28,10 @@ class Event
     private string $name;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $startsAt;
+    private DateTimeImmutable $startsAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $endsAt;
+    private DateTimeImmutable $endsAt;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $address;
@@ -61,6 +62,9 @@ class Event
 
     #[ORM\ManyToMany(targetEntity: Group::class, inversedBy: 'events')]
     private Collection $assignedGroups;
+
+    #[ORM\Column(length: 255)]
+    private ?string $slug = null;
 
     public function __construct()
     {
@@ -98,24 +102,24 @@ class Event
         return $this;
     }
 
-    public function getStartsAt(): ?\DateTimeImmutable
+    public function getStartsAt(): ?DateTimeImmutable
     {
         return $this->startsAt;
     }
 
-    public function setStartsAt(\DateTimeImmutable $startsAt): self
+    public function setStartsAt(DateTimeImmutable $startsAt): self
     {
         $this->startsAt = $startsAt;
 
         return $this;
     }
 
-    public function getEndsAt(): ?\DateTimeImmutable
+    public function getEndsAt(): ?DateTimeImmutable
     {
         return $this->endsAt;
     }
 
-    public function setEndsAt(\DateTimeImmutable $endsAt): self
+    public function setEndsAt(DateTimeImmutable $endsAt): self
     {
         $this->endsAt = $endsAt;
 
@@ -355,5 +359,26 @@ class Event
         }
 
         return $departures;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): self
+    {
+        $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function isAllDay(): bool
+    {
+        if ('00:00' === $this->getStartsAt()->format('H:i') && '00:00' === $this->getEndsAt()->format('H:i')) {
+            return true;
+        }
+
+        return false;
     }
 }

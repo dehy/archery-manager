@@ -29,13 +29,15 @@
         <div class="col-sm-12">
             <div class="row">
                 <div class="col-sm-6">
-                    <h5><em class="fas fa-calendar-alt"></em> Date</h5>
-                    <p>
-                        le {{ event.startsAt|format_date(locale='fr') }}
-                        de {{ event.startsAt|format_time('short', locale='fr') }}
-                        à {{ event.endsAt|format_time('short', locale='fr') }}
-                        ({{ event.startsAt|ago(locale='fr') }})
-                    </p>
+                    <h5>
+                        <em class="fas fa-calendar-alt"></em> Date
+                        <a href="{{ path('app_event_eventics', {slug: event.slug}) }}"
+                           class="btn btn-secondary btn-sm">
+                            <em class="fas fa-calendar-plus fa-fw"></em>
+                            Ajouter à mon calendrier
+                        </a>
+                    </h5>
+                    <p>{{ event|event_date(diff=true) }}</p>
                 </div>
 
                 <div class="col-sm-6">
@@ -70,11 +72,7 @@
                     </h5>
                     <div>
                         {% if event.participations is not empty %}
-                            {% for participation in event.participations.values|filter(p => p.participationState is not same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
-                            <a href="{{ path('app_licensee_profile', {fftaCode: participation.participant.fftaMemberCode}) }}">
-                                {{ participation.participant.firstnameWithInitial }}
-                                </a>{{- not loop.last ? ', ' -}}
-                            {% endfor %}
+                            {{ event.participations|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => p.participant.firstnameWithInitial)|join(', ') }}
                         {% else %}
                             <em>Aucun</em>
                         {% endif %}
