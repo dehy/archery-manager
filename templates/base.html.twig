@@ -99,7 +99,7 @@
                             {% for licensee in app.user.licensees|filter(l => l.id is not same as(licenseeHelper.licenseeFromSession.id)) %}
                                 <li>
                                     <a class="dropdown-item"
-                                       href="{{ path(app.request.get('_route'), {'_switch_licensee': licensee.fftaMemberCode }) }}">
+                                       href="{{ path(app.request.get('_route'), app.request.get('_route_params')|merge({'_switch_licensee': licensee.fftaMemberCode })) }}">
                                         <em class="fa-solid fa-arrows-rotate fa-fw"></em>
                                         {{ licensee.fullname }}
                                     </a>
