@@ -52,7 +52,7 @@
 
                 <div class="col-sm-12">
                     <h5>
-                        <em class="fas fa-people-group"></em> Présents
+                        <em class="fas fa-people-group"></em> Participation
                         {% if licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
                             {% set participationButtonLabel = 'Absent•e' %}
                             {% set participationButtonColor = 'danger' %}
@@ -71,8 +71,19 @@
                         </button>
                     </h5>
                     <div>
-                        {% if event.participations is not empty %}
-                            {{ event.participations|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => p.participant.firstnameWithInitial)|join(', ') }}
+                        {% set participants = event.participations|filter(p => p.participationState is not same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
+                        {% set absents = event.participations|filter(p => p.participationState is same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
+                        <h6>Participants</h6>
+                        {% if participants is not empty %}
+                            {{ participants|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => p.participant.firstnameWithInitial)|join(', ') }}
+                        {% else %}
+                            <em>Aucun</em>
+                        {% endif %}
+                    </div>
+                    <div class="mt-3">
+                        <h6>Absents</h6>
+                        {% if absents is not empty %}
+                            {{ absents|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => p.participant.firstnameWithInitial)|join(', ') }}
                         {% else %}
                             <em>Aucun</em>
                         {% endif %}
