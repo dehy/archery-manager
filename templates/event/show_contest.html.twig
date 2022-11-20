@@ -112,24 +112,29 @@
                                 aria-expanded="false">
                             Ouvrir dans
                         </button>
+                        {% if event.latitude and event.longitude %}
+                            {% set address_query = event.latitude ~ "," ~ event.longitude %}
+                        {% else %}
+                            {% set address_query = event.address|url_encode %}
+                        {% endif %}
                         <ul class="dropdown-menu">
                             <li>
                                 <a class="dropdown-item"
-                                   href="https://maps.apple.com/?q={{ event.address|url_encode }}">
+                                   href="https://maps.apple.com/?q={{ address_query }}">
                                     <em class="fab fa-apple fa-fw"></em>
                                     Apple Plans
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item"
-                                   href="https://www.google.com/maps/search/?api=1&query={{ event.address|url_encode }}">
+                                   href="https://www.google.com/maps/search/?api=1&query={{ address_query }}">
                                     <em class="fab fa-google fa-fw"></em>
                                     Google Maps
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item"
-                                   href="https://waze.com/ul?q={{ event.address|url_encode }}">
+                                   href="https://waze.com/ul?q={{ address_query }}">
                                     <em class="fab fa-waze fa-fw"></em>
                                     Waze
                                 </a>
@@ -138,6 +143,9 @@
                     </div>
                 </h5>
                 <address>{{ event.address }}</address>
+                {% if event.latitude and event.longitude %}
+                <div>latitude : {{ event.latitude }} ; longitude : {{ event.longitude }}</div>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -31,6 +31,7 @@ class ResultArcParser
         $results = [];
         $re = '/'.$this->searchPattern().'/m';
         foreach (explode(PHP_EOL, $pdf->getText()) as $line) {
+            dump($line);
             if (1 === preg_match($re, $line, $matches)) {
                 $score = intval($matches[1]);
                 $ageCategory = $matches[3];
@@ -45,6 +46,7 @@ class ResultArcParser
                 $results[$fftaCode] = $resultArcLine;
             }
         }
+        dd($results);
 
         return $results;
     }

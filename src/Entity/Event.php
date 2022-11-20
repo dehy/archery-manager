@@ -10,7 +10,6 @@ use App\DBAL\Types\EventParticipationStateType;
 use App\DBAL\Types\EventType;
 use App\Repository\EventRepository;
 use App\Scrapper\FftaEvent;
-use DateTimeImmutable;
 use Cocur\Slugify\Slugify;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -30,10 +29,10 @@ class Event
     private string $name;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $startsAt;
+    private \DateTimeImmutable $startsAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $endsAt;
+    private \DateTimeImmutable $endsAt;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $address;
@@ -68,6 +67,18 @@ class Event
     #[ORM\Column(length: 255)]
     private ?string $slug = null;
 
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $latitude = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $longitude = null;
+
+    #[ORM\Column]
+    private bool $allDay = false;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $updatedAt = null;
+
     public function __construct()
     {
         $this->participations = new ArrayCollection();
@@ -87,9 +98,17 @@ class Event
         );
     }
 
-    public function getId(): ?int
+    public static function fromFftaEvent(FftaEvent $fftaEvent): Event
     {
-        return $this->id;
+        return (new Event())
+            ->setAddress($fftaEvent->getLocation())
+            ->setContestType(ContestType::FEDERAL)
+            ->setDiscipline($fftaEvent->getDiscipline())
+            ->setEndsAt($fftaEvent->getTo())
+            ->setName($fftaEvent->getName())
+            ->setStartsAt($fftaEvent->getFrom())
+            ->setType(EventType::CONTEST_OFFICIAL)
+        ;
     }
 
     public function getName(): ?string
@@ -104,38 +123,14 @@ class Event
         return $this;
     }
 
-    public function getStartsAt(): ?DateTimeImmutable
+    public function getStartsAt(): ?\DateTimeImmutable
     {
         return $this->startsAt;
     }
 
-    public function setStartsAt(DateTimeImmutable $startsAt): self
+    public function setStartsAt(\DateTimeImmutable $startsAt): self
     {
         $this->startsAt = $startsAt;
-
-        return $this;
-    }
-
-    public function getEndsAt(): ?DateTimeImmutable
-    {
-        return $this->endsAt;
-    }
-
-    public function setEndsAt(DateTimeImmutable $endsAt): self
-    {
-        $this->endsAt = $endsAt;
-
-        return $this;
-    }
-
-    public function getAddress(): ?string
-    {
-        return $this->address;
-    }
-
-    public function setAddress(string $address): self
-    {
-        $this->address = $address;
 
         return $this;
     }
@@ -152,12 +147,33 @@ class Event
         return $this;
     }
 
-    /**
-     * @return Collection<int, EventParticipation>
-     */
-    public function getParticipations(): Collection
+    public function getDiscipline()
     {
-        return $this->participations;
+        return $this->discipline;
+    }
+
+    public function setDiscipline($discipline): self
+    {
+        $this->discipline = $discipline;
+
+        return $this;
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+
+    public function setAddress(string $address): self
+    {
+        $this->address = $address;
+
+        return $this;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function addParticipation(EventParticipation $participation): self
@@ -213,6 +229,11 @@ class Event
         return $this;
     }
 
+    public function canImportResults(): bool
+    {
+        return $this->getDiscipline() && $this->getContestType();
+    }
+
     public function getContestType()
     {
         return $this->contestType;
@@ -225,36 +246,6 @@ class Event
         return $this;
     }
 
-    public function getDiscipline()
-    {
-        return $this->discipline;
-    }
-
-    public function setDiscipline($discipline): self
-    {
-        $this->discipline = $discipline;
-
-        return $this;
-    }
-
-    public function canImportResults(): bool
-    {
-        return $this->getDiscipline() && $this->getContestType();
-    }
-
-    public static function fromFftaEvent(FftaEvent $fftaEvent): Event
-    {
-        return (new Event())
-            ->setAddress($fftaEvent->getLocation())
-            ->setContestType(ContestType::FEDERAL)
-            ->setDiscipline($fftaEvent->getDiscipline())
-            ->setEndsAt($fftaEvent->getTo())
-            ->setName($fftaEvent->getName())
-            ->setStartsAt($fftaEvent->getFrom())
-            ->setType(EventType::CONTEST_OFFICIAL)
-        ;
-    }
-
     public function getSeason(): int
     {
         $month = (int) $this->getStartsAt()->format('m');
@@ -264,20 +255,6 @@ class Event
         }
 
         return $year;
-    }
-
-    /**
-     * @return Collection<int, PracticeAdviceAttachment>
-     */
-    public function getAttachments(?string $type = null): Collection
-    {
-        if ($type) {
-            return $this->attachments
-                ->filter(fn (EventAttachment $attachment) => $attachment->getType() === $type)
-            ;
-        }
-
-        return $this->attachments;
     }
 
     public function addAttachment(EventAttachment $attachment): self
@@ -307,6 +284,20 @@ class Event
         return $this->getAttachments()->exists(function (int $key, EventAttachment $attachment) {
             return EventAttachmentType::MANDATE === $attachment->getType();
         });
+    }
+
+    /**
+     * @return Collection<int, PracticeAdviceAttachment>
+     */
+    public function getAttachments(?string $type = null): Collection
+    {
+        if ($type) {
+            return $this->attachments
+                ->filter(fn (EventAttachment $attachment) => $attachment->getType() === $type)
+            ;
+        }
+
+        return $this->attachments;
     }
 
     public function hasResults(): bool
@@ -340,16 +331,6 @@ class Event
         return $this;
     }
 
-    public function getTitle(): string
-    {
-        return sprintf(
-            '%s %s %s',
-            ucfirst(EventType::getReadableValue($this->getType())),
-            lcfirst(DisciplineType::getReadableValue($this->getDiscipline())),
-            $this->getName()
-        );
-    }
-
     public function getParticipationsByDeparture(): array
     {
         $departures = [];
@@ -361,6 +342,14 @@ class Event
         }
 
         return $departures;
+    }
+
+    /**
+     * @return Collection<int, EventParticipation>
+     */
+    public function getParticipations(): Collection
+    {
+        return $this->participations;
     }
 
     public function getSlug(): ?string
@@ -375,13 +364,16 @@ class Event
         return $this;
     }
 
-    public function isAllDay(): bool
+    public function getEndsAt(): ?\DateTimeImmutable
     {
-        if ('00:00' === $this->getStartsAt()->format('H:i') && '00:00' === $this->getEndsAt()->format('H:i')) {
-            return true;
-        }
+        return $this->endsAt;
+    }
 
-        return false;
+    public function setEndsAt(\DateTimeImmutable $endsAt): self
+    {
+        $this->endsAt = $endsAt;
+
+        return $this;
     }
 
     #[ORM\PrePersist]
@@ -394,5 +386,64 @@ class Event
                 sprintf('%s-%s', $this->getStartsAt()->format('d-m-Y'), $this->getTitle())
             )
         );
+        $this->setUpdatedAt(new \DateTimeImmutable());
+    }
+
+    public function getTitle(): string
+    {
+        return sprintf(
+            '%s %s %s',
+            ucfirst(EventType::getReadableValue($this->getType())),
+            lcfirst(DisciplineType::getReadableValue($this->getDiscipline())),
+            $this->getName()
+        );
+    }
+
+    public function getLatitude(): ?string
+    {
+        return $this->latitude;
+    }
+
+    public function setLatitude(?string $latitude): self
+    {
+        $this->latitude = $latitude;
+
+        return $this;
+    }
+
+    public function getLongitude(): ?string
+    {
+        return $this->longitude;
+    }
+
+    public function setLongitude(?string $longitude): self
+    {
+        $this->longitude = $longitude;
+
+        return $this;
+    }
+
+    public function isAllDay(): bool
+    {
+        return $this->allDay;
+    }
+
+    public function setAllDay(bool $allDay): self
+    {
+        $this->allDay = $allDay;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 }

@@ -54,7 +54,7 @@
                     <div class="p-2 calendar-case row-{{ row }} {{ case_css|join(' ') }}">
                         <div class="text-end">
                             {% if ("now"|date('Y-m-j') == date_key) %}
-                                <div class="badge rounded-pill bg-primary">
+                                <div class="badge rounded-pill bg-dark">
                                     {{ date_elements[2] }} {{ "now"|format_date(pattern="MMM") }}.
                                 </div>
                             {% else %}
@@ -62,13 +62,26 @@
                             {% endif %}
                         </div>
                         {% for event in events %}
+                            {% if event.allDay %}
+                                {% set link_class = "badge rounded-pill text-bg-primary" %}
+                                {% set link_style = "background-color: " ~ event.type|eventColor ~ " !important" %}
+                            {% else %}
+                                {% set link_class = "" %}
+                                {% set link_style = "" %}
+                            {% endif %}
                             <a href="{{ path('app_event_show', {slug: event.slug}) }}"
-                               class="event-link d-flex d-inline-block justify-content-between link-unstyled">
+                               class="event-link d-flex d-inline-block justify-content-between link-unstyled {{ link_class }}"
+                               style="{{ link_style }}"
+                            >
                                 <div class="event-name">
+                                    {% if not event.allDay %}
                                     <div class="event-pill" style="background-color: {{ event.type|eventColor }}"></div>
+                                    {% endif %}
                                     {{ event.name }}
                                 </div>
+                                {% if not event.allDay %}
                                 <div class="text-black-50 d-none d-xxl-block event-time">{{ event.startsAt|date('H:i') }}</div>
+                                {% endif %}
                             </a>
                         {% endfor %}
                     </div>
@@ -96,8 +109,12 @@
                                         </div>
                                         <div class="d-flex flex-column">
                                             <div class="time">
+                                                {% if event.allDay %}
+                                                Toute la journée
+                                                {% else %}
                                                 {{ event.startsAt|date('H:i') }}
                                                 — {{ event.endsAt|date('H:i') }}
+                                                {% endif %}
                                             </div>
                                             <div class="name">
                                                 {{ event.type|readable_enum }} - {{ event.name }}

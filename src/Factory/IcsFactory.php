@@ -68,12 +68,6 @@
 
 namespace App\Factory;
 
-use DateInterval;
-use DateTime;
-use DateTimeInterface;
-use DateTimeZone;
-use Exception;
-
 class IcsFactory
 {
     public const ALL_DAY_DT_FORMAT = 'Ymd';
@@ -119,14 +113,14 @@ class IcsFactory
         return $this;
     }
 
-    public function setStart(DateTimeInterface $start): self
+    public function setStart(\DateTimeInterface $start): self
     {
         $this->set('dtstart', $start);
 
         return $this;
     }
 
-    public function setEnd(DateTimeInterface $end): self
+    public function setEnd(\DateTimeInterface $end): self
     {
         $this->set('dtend', $end);
 
@@ -148,7 +142,7 @@ class IcsFactory
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function set(string $key, mixed $val): void
     {
@@ -158,7 +152,7 @@ class IcsFactory
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function getICS(): string
     {
@@ -168,7 +162,7 @@ class IcsFactory
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     private function buildProps(): array
     {
@@ -192,8 +186,8 @@ class IcsFactory
             };
             if (in_array($k, ['dtstart', 'dtend'])) {
                 if ($this->isAllDay && 'dtend' === $k) {
-                    $v = DateTime::createFromInterface($v);
-                    $v = $v->add(new DateInterval('P1D'));
+                    $v = \DateTime::createFromInterface($v);
+                    $v = $v->add(new \DateInterval('P1D'));
                 }
                 $escapedValue = $this->formatDatetime($v, $this->isAllDay);
             } else {
@@ -203,7 +197,7 @@ class IcsFactory
         }
 
         // Set some default values
-        $props['DTSTAMP'] = $this->formatDatetime(new DateTime());
+        $props['DTSTAMP'] = $this->formatDatetime(new \DateTime());
         $props['UID'] = uniqid();
 
         // Append properties
@@ -219,13 +213,13 @@ class IcsFactory
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
-    private function formatDatetime(DateTimeInterface $datetime, bool $allDay = false): string
+    private function formatDatetime(\DateTimeInterface $datetime, bool $allDay = false): string
     {
-        $dt = DateTime::createFromInterface($datetime);
+        $dt = \DateTime::createFromInterface($datetime);
         if (!$this->isAllDay) {
-            $dt->setTimezone(new DateTimeZone('UTC'));
+            $dt->setTimezone(new \DateTimeZone('UTC'));
         }
 
         return $dt->format($allDay ? self::ALL_DAY_DT_FORMAT : self::DT_FORMAT);

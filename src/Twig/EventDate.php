@@ -3,7 +3,6 @@
 namespace App\Twig;
 
 use App\Entity\Event;
-use DateTimeInterface;
 use Knp\Bundle\TimeBundle\Twig\Extension\TimeExtension;
 use Twig\Environment;
 use Twig\Extension\AbstractExtension;
@@ -61,7 +60,7 @@ class EventDate extends AbstractExtension
         return $date;
     }
 
-    private function formatDate(Environment $environment, DateTimeInterface $datetime): string
+    private function formatDate(Environment $environment, \DateTimeInterface $datetime): string
     {
         return $this->intlExtension->formatDate($environment, $datetime, 'medium', '', null, 'gregorian', 'fr');
     }

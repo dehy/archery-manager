@@ -56,19 +56,22 @@ class EventCrudController extends AbstractCrudController
             TextField::new('name'),
             DateTimeField::new('startsAt'),
             DateTimeField::new('endsAt'),
+            BooleanField::new('allDay')->renderAsSwitch(false),
             ChoiceField::new('type')
                 ->setChoices(EventType::getChoices())
                 ->renderExpanded(),
-            ChoiceField::new('discipline')->setChoices(
-                DisciplineType::getChoices(),
-            ),
             ChoiceField::new('contestType')->setChoices(
                 ContestType::getChoices(),
             ),
+            ChoiceField::new('discipline')->setChoices(
+                DisciplineType::getChoices(),
+            ),
             TextField::new('address'),
+            TextField::new('latitude'),
+            TextField::new('longitude'),
             AssociationField::new('assignedGroups'),
-            BooleanField::new('hasMandate', 'Mandat')->renderAsSwitch(false),
-            BooleanField::new('hasResults', 'Résultats')->renderAsSwitch(false),
+            BooleanField::new('hasMandate', 'Mandat')->renderAsSwitch(false)->hideOnForm(),
+            BooleanField::new('hasResults', 'Résultats')->renderAsSwitch(false)->hideOnForm(),
         ];
     }
 
@@ -102,7 +105,7 @@ class EventCrudController extends AbstractCrudController
 
         $importResultArcScoresAction = Action::new(
             'resultArcImport',
-            'Import results',
+            'Importer résultats',
             'fa-solid fa-file-import',
         )->linkToCrudAction('importResults');
 
@@ -122,6 +125,7 @@ class EventCrudController extends AbstractCrudController
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $attachmentsAction)
             ->add(Crud::PAGE_INDEX, $seeResultsAction)
+            ->add(Crud::PAGE_INDEX, $importResultArcScoresAction)
             ->add(Crud::PAGE_DETAIL, $importResultArcScoresAction)
         ;
     }
