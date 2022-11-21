@@ -53,7 +53,7 @@ class Event
     private Collection $results;
 
     #[ORM\Column(type: 'ContestType', nullable: true)]
-    private string $contestType;
+    private ?string $contestType = null;
 
     #[ORM\Column(type: 'DisciplineType')]
     private string $discipline;
