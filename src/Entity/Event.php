@@ -67,10 +67,10 @@ class Event
     #[ORM\Column(length: 255)]
     private ?string $slug = null;
 
-    #[ORM\Column(length: 10, nullable: true)]
+    #[ORM\Column(length: 16, nullable: true)]
     private ?string $latitude = null;
 
-    #[ORM\Column(length: 11, nullable: true)]
+    #[ORM\Column(length: 16, nullable: true)]
     private ?string $longitude = null;
 
     #[ORM\Column]
