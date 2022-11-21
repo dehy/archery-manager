@@ -24,7 +24,7 @@ final class Version20221120205341 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE event ADD latitude VARCHAR(10) DEFAULT NULL, ADD longitude VARCHAR(10) DEFAULT NULL, ADD all_day TINYINT(1) NOT NULL, ADD updated_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\'');
+        $this->addSql('ALTER TABLE event ADD latitude VARCHAR(10) DEFAULT NULL, ADD longitude VARCHAR(11) DEFAULT NULL, ADD all_day TINYINT(1) NOT NULL, ADD updated_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\'');
         $this->addSql('UPDATE event SET updated_at = CONVERT_TZ(NOW(), \'SYSTEM\', \'Europe/Paris\')');
     }
 

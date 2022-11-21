@@ -70,7 +70,7 @@ class Event
     #[ORM\Column(length: 10, nullable: true)]
     private ?string $latitude = null;
 
-    #[ORM\Column(length: 10, nullable: true)]
+    #[ORM\Column(length: 11, nullable: true)]
     private ?string $longitude = null;
 
     #[ORM\Column]
