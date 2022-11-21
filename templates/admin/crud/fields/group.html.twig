@@ -1,0 +1,15 @@
+{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
+{# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
+{# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
+{% for group in field.value %}
+    {%- set url = ea_url()
+        .setController('App\\Controller\\Admin\\GroupCrudController')
+        .setAction('detail')
+        .setEntityId(group.id)
+    -%}
+    <a href="{{ url }}">
+        {{ group.name }}{% if not loop.last %}, {% endif %}
+    </a>
+{% else %}
+    <span class="badge badge-secondary">Aucun</span>
+{% endfor %}

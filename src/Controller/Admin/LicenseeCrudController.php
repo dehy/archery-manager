@@ -57,6 +57,8 @@ class LicenseeCrudController extends AbstractCrudController
                 ->renderExpanded(),
             TextField::new('firstname'),
             TextField::new('lastname'),
+            AssociationField::new('groups')->setFormTypeOption('by_reference', false)
+            ->setTemplatePath('admin/crud/fields/group.html.twig'),
             DateField::new('birthdate'),
             TextField::new('fftaMemberCode'),
             IntegerField::new('fftaId')->hideOnIndex(),
@@ -65,6 +67,8 @@ class LicenseeCrudController extends AbstractCrudController
 
     public function configureFilters(Filters $filters): Filters
     {
-        return $filters->add(LicenseSeasonFilter::new());
+        return $filters->add(LicenseSeasonFilter::new())
+            ->add('groups')
+        ;
     }
 }
