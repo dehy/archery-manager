@@ -14,15 +14,8 @@ use Doctrine\ORM\EntityManagerInterface;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20221120205341 extends AbstractMigration implements EntityMigrationInterface
+final class Version20221120205341 extends AbstractMigration
 {
-    private ?EntityManagerInterface $entityManager = null;
-
-    public function setEntityManager(EntityManagerInterface $entityManager)
-    {
-        $this->entityManager = $entityManager;
-    }
-
     public function getDescription(): string
     {
         return '';
@@ -32,20 +25,7 @@ final class Version20221120205341 extends AbstractMigration implements EntityMig
     {
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('ALTER TABLE event ADD latitude VARCHAR(10) DEFAULT NULL, ADD longitude VARCHAR(10) DEFAULT NULL, ADD all_day TINYINT(1) NOT NULL, ADD updated_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\'');
-    }
-
-    public function postUp(Schema $schema): void
-    {
-        /** @var EventRepository $eventRepository */
-        $eventRepository = $this->entityManager->getRepository(Event::class);
-        $events = $eventRepository->findAll();
-        foreach ($events as $event) {
-            if ('00:00' === $event->getStartsAt()->format('H:i') && '00:00' === $event->getEndsAt()->format('H:i')) {
-                $event->setAllDay(true);
-            }
-            $event->setUpdatedAt(new \DateTimeImmutable());
-        }
-        $this->entityManager->flush();
+        $this->addSql('UPDATE event SET updated_at = CONVERT_TZ(NOW(), \'SYSTEM\', \'Europe/Paris\')');
     }
 
     public function down(Schema $schema): void

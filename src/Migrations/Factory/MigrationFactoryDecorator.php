@@ -26,9 +26,9 @@ class MigrationFactoryDecorator implements MigrationFactory
             $this->logger
         );
 
-        if ($migration instanceof EntityMigrationInterface) {
+        /*if ($migration instanceof EntityMigrationInterface) {
             $migration->setEntityManager($this->entityManager);
-        }
+        }*/
 
         return $migration;
     }
