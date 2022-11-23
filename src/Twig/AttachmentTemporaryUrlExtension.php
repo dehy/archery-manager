@@ -6,7 +6,6 @@ use App\Entity\Attachment;
 use App\Entity\User;
 use League\Flysystem\FilesystemOperator;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;

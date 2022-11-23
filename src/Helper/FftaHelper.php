@@ -23,9 +23,6 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\MimeTypeGuesserInterface;
-use Vich\UploaderBundle\Handler\UploadHandler;
-use Vich\UploaderBundle\Storage\FileSystemStorage;
-use Vich\UploaderBundle\Storage\StorageInterface;
 
 class FftaHelper
 {

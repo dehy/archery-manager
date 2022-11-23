@@ -21,7 +21,7 @@ class MigrationFactoryDecorator implements MigrationFactory
     public function createVersion(string $migrationClassName): AbstractMigration
     {
         /** @var AbstractMigration $migration */
-        $migration = new $migrationClassName(
+        return new $migrationClassName(
             $this->connection,
             $this->logger
         );
@@ -29,7 +29,5 @@ class MigrationFactoryDecorator implements MigrationFactory
         /*if ($migration instanceof EntityMigrationInterface) {
             $migration->setEntityManager($this->entityManager);
         }*/
-
-        return $migration;
     }
 }

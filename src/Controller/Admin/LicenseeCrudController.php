@@ -58,7 +58,7 @@ class LicenseeCrudController extends AbstractCrudController
             TextField::new('firstname'),
             TextField::new('lastname'),
             AssociationField::new('groups')->setFormTypeOption('by_reference', false)
-            ->setTemplatePath('admin/crud/fields/group.html.twig'),
+                ->setTemplatePath('admin/crud/fields/group.html.twig'),
             DateField::new('birthdate'),
             TextField::new('fftaMemberCode'),
             IntegerField::new('fftaId')->hideOnIndex(),

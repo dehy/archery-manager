@@ -78,6 +78,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->getFullname();
     }
 
+    public function __serialize()
+    {
+        return [
+            'id' => $this->getId(),
+            'email' => $this->getEmail(),
+            'roles' => $this->getRoles(),
+            'password' => $this->getPassword(),
+        ];
+    }
+
+    public function __unserialize(array $data)
+    {
+        $this->id = $data['id'];
+        $this->setEmail($data['email'])
+            ->setRoles($data['roles'])
+            ->setPassword($data['password'])
+        ;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -275,24 +294,5 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->discordAccessToken = $discordAccessToken;
 
         return $this;
-    }
-
-    public function __serialize()
-    {
-        return [
-            'id' => $this->getId(),
-            'email' => $this->getEmail(),
-            'roles' => $this->getRoles(),
-            'password' => $this->getPassword(),
-        ];
-    }
-
-    public function __unserialize(array $data)
-    {
-        $this->id = $data['id'];
-        $this->setEmail($data['email'])
-            ->setRoles($data['roles'])
-            ->setPassword($data['password'])
-        ;
     }
 }

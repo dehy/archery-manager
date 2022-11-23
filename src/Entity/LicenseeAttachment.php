@@ -123,6 +123,5 @@ class LicenseeAttachment extends Attachment
         }
 
         return sprintf('%s-%s-%s', $licensee->getFftaMemberCode(), $type, $randomStr);
-
     }
 }
