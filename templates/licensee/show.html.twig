@@ -54,7 +54,7 @@
                             {% if is_granted('ROLE_ADMIN') %}
                                 <a href="{{ path('app_homepage', {'_switch_user': licensee.user.email, '_switch_licensee': licensee.fftaMemberCode}) }}"
                                    class="btn btn-secondary">
-                                    <em class="fas fa-user-secret"></em> Usurper l'identité
+                                    <em class="fa-solid fa-user-secret"></em> Usurper l'identité
                                 </a>
                             {% endif %}
 

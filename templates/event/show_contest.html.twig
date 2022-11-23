@@ -44,10 +44,10 @@
         <div class="row">
             <div class="col-sm-6">
                 <h5>
-                    <em class="fas fa-calendar-alt"></em> Dates
+                    <em class="fa-solid fa-calendar-alt"></em> Dates
                     <a href="{{ path('app_event_eventics', {slug: event.slug}) }}"
                        class="btn btn-secondary btn-sm">
-                        <em class="fas fa-calendar-plus fa-fw"></em>
+                        <em class="fa-solid fa-calendar-plus fa-fw"></em>
                         Ajouter à mon calendrier
                     </a>
                 </h5>
@@ -55,7 +55,7 @@
             </div>
 
             <div class="col-sm-6">
-                <h5><em class="fas fa-bullseye"></em> Catégorie et Type</h5>
+                <h5><em class="fa-solid fa-bullseye"></em> Catégorie et Type</h5>
                 <dl>
                     <dt>Type</dt>
                     <dd>{{ event.type|readable_enum }}</dd>
@@ -66,7 +66,7 @@
 
             <div class="col-sm-12">
                 <h5>
-                    <em class="fas fa-people-group"></em> Participants
+                    <em class="fa-solid fa-people-group"></em> Participants
                     {% if licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
                         {% set participationButtonLabel = 'Absent•e' %}
                         {% set participationButtonColor = 'danger' %}
@@ -84,7 +84,7 @@
                             class="btn btn-sm btn-{{ participationButtonColor }} {{ not canAttend ? 'disabled' }}"
                             data-bs-toggle="modal" data-bs-target="#participationModal"
                     >
-                        <em class="fas fa-pencil-alt fa-fw"></em> {{ participationButtonLabel }}
+                        <em class="fa-solid fa-pencil-alt fa-fw"></em> {{ participationButtonLabel }}
                     </button>
                 </h5>
                 <div>
@@ -104,7 +104,7 @@
             </div>
             <div class="col-sm-12 p-3">
                 <h5>
-                    <em class="fas fa-map"></em>
+                    <em class="fa-solid fa-map"></em>
                     Adresse
                     <div class="btn-group">
                         <button type="button" class="btn btn-secondary btn-sm dropdown-toggle"
@@ -121,21 +121,21 @@
                             <li>
                                 <a class="dropdown-item"
                                    href="https://maps.apple.com/?q={{ address_query }}">
-                                    <em class="fab fa-apple fa-fw"></em>
+                                    <em class="fa-brand fa-apple fa-fw"></em>
                                     Apple Plans
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item"
                                    href="https://www.google.com/maps/search/?api=1&query={{ address_query }}">
-                                    <em class="fab fa-google fa-fw"></em>
+                                    <em class="fa-brand fa-google fa-fw"></em>
                                     Google Maps
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item"
                                    href="https://waze.com/ul?q={{ address_query }}">
-                                    <em class="fab fa-waze fa-fw"></em>
+                                    <em class="fa-brand fa-waze fa-fw"></em>
                                     Waze
                                 </a>
                             </li>
@@ -165,7 +165,7 @@
                             data-bs-toggle="collapse"
                             data-bs-target="#collapseMandate" {% if showMandate %}aria-expanded="true"{% endif %}
                             aria-controls="collapseMandate">
-                        <em class="far fa-file me-1"></em> Mandat
+                        <em class="fa-regular fa-file me-1"></em> Mandat
                     </button>
                 </h2>
                 <div id="collapseMandate" class="accordion-collapse collapse {% if showMandate %}show{% endif %}"
@@ -190,7 +190,7 @@
                             data-bs-toggle="collapse"
                             data-bs-target="#collapseResults" {% if showResults %}aria-expanded="true"{% endif %}
                             aria-controls="collapseResults">
-                        <em class="fas fa-square-poll-vertical me-1"></em>
+                        <em class="fa-solid fa-square-poll-vertical me-1"></em>
                         Résultats
                     </button>
                 </h2>

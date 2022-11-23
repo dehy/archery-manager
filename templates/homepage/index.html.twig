@@ -38,12 +38,12 @@
                                 <div class="fw-bold">
                                     {{ event.title }}
                                     <span class="badge rounded-pill text-bg-info">
-                                        <em class="fas fa-people-group"></em>
+                                        <em class="fa-solid fa-people-group"></em>
                                         {{ event.participations|filter(p => p.participationState != 'not_going')|length }}
                                     </span>
                                     {% if icon %}
                                         <span class="badge rounded-pill {{ link_class }}">
-                                            <em class="fas fa-{{ icon }}"></em>
+                                            <em class="fa-solid fa-{{ icon }}"></em>
                                         </span>
                                     {% endif %}
                                 </div>
@@ -74,7 +74,7 @@
                             <td>
                                 <a href="{{ path('app_event_show', {slug: result.event.slug}) }}" class="link-unstyled">
                                     <span class="fw-bold">{{ result.event.title }}</span>
-                                    <em class="fas fa-circle-right text-muted"></em>
+                                    <em class="fa-solid fa-circle-right text-muted"></em>
                                 </a><br>
                                 <span class="fst-italic">
                                     <small>{{ result.event|event_date(includeTime=false) }}</small>
