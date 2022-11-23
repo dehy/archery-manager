@@ -2,8 +2,10 @@
 
 namespace App\Helper;
 
+use App\DBAL\Types\LicenseeAttachmentType;
 use App\Entity\License;
 use App\Entity\Licensee;
+use App\Entity\LicenseeAttachment;
 use App\Entity\User;
 use App\Factory\LicenseeFactory;
 use App\Factory\UserFactory;
@@ -14,21 +16,30 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
-use League\Flysystem\UnableToReadFile;
+use Mimey\MimeTypes;
 use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\MimeTypeGuesserInterface;
+use Vich\UploaderBundle\Handler\UploadHandler;
+use Vich\UploaderBundle\Storage\FileSystemStorage;
+use Vich\UploaderBundle\Storage\StorageInterface;
 
 class FftaHelper
 {
+    protected MimeTypes $mimeTypes;
+
     public function __construct(
         protected FftaScrapper $scrapper,
         protected EntityManagerInterface $entityManager,
         protected MailerInterface $mailer,
         protected LoggerInterface $logger,
-        protected FilesystemOperator $licenseesStorage
+        protected FilesystemOperator $licenseesStorage,
+        protected MimeTypeGuesserInterface $mimeTypeGuesser,
     ) {
+        $this->mimeTypes = new MimeTypes();
     }
 
     public function setLogger(LoggerInterface $logger): void
@@ -81,9 +92,11 @@ class FftaHelper
             );
             $licensee = $fftaLicensee;
 
-            $fftaPicture = $this->fetchProfilePictureForLicensee($licensee);
-            if ($fftaPicture) {
-                $this->licenseesStorage->write(sprintf('%s.jpg', $licensee->getFftaMemberCode()), $fftaPicture);
+            $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($licensee);
+            if ($fftaProfilePicture) {
+                $this->logger->info('  + Adding profile picture');
+                $licensee->addAttachment($fftaProfilePicture);
+                $this->entityManager->persist($fftaProfilePicture);
             }
 
             $this->entityManager->beginTransaction();
@@ -118,24 +131,44 @@ class FftaHelper
                 ),
             );
             $licensee->mergeWith($fftaLicensee);
-            $fftaPicture = $this->fetchProfilePictureForLicensee($licensee);
+            // TODO check image date (with its filename) instead of downloading files and calculating checksums
+            $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($licensee);
+            $fftaProfilePictureContent = $fftaProfilePicture?->getUploadedFile()?->getContent();
+            $fftaProfilePictureChecksum = $fftaProfilePicture ? sha1($fftaProfilePictureContent) : null;
+            $dbProfilePicture = $licensee->getProfilePicture();
+            $dbProfilePictureChecksum = $dbProfilePicture ?
+                $this->licenseesStorage->checksum(
+                    $dbProfilePicture->getFile()->getName(),
+                    ['checksum_algo' => 'sha1']
+                ) : null;
 
-            try {
-                $exitingPicture = $this->licenseesStorage->read(sprintf('%s.jpg', $licensee->getFftaMemberCode()));
-            } catch (UnableToReadFile) {
-                $exitingPicture = null;
+            if ($dbProfilePicture && $fftaProfilePicture) {
+                // Licensee has already a profile picture
+                if ($dbProfilePictureChecksum !== $fftaProfilePictureChecksum) {
+                    $this->logger->info('  ~ Updating profile picture.');
+                    $licensee->removeAttachment($dbProfilePicture);
+                    $this->entityManager->remove($dbProfilePicture);
+
+                    $licensee->addAttachment($fftaProfilePicture);
+                    $licensee->setUpdatedAt(new \DateTimeImmutable());
+                    $this->entityManager->persist($fftaProfilePicture);
+                } else {
+                    $this->logger->info('  = Same profile picture. Not updating.');
+                }
             }
-
-            if ($fftaPicture) {
-                if (($exitingPicture && sha1($exitingPicture) !== sha1($fftaPicture)) || !$exitingPicture) {
-                    $this->licenseesStorage->write(sprintf('%s.jpg', $licensee->getFftaMemberCode()), $fftaPicture);
-                    $licensee->setUpdatedAt(new \DateTimeImmutable());
-                }
-            } else {
-                if ($exitingPicture) {
-                    $this->licenseesStorage->delete(sprintf('%s.jpg', $licensee->getFftaMemberCode()));
-                    $licensee->setUpdatedAt(new \DateTimeImmutable());
-                }
+            if ($dbProfilePicture && !$fftaProfilePicture) {
+                $this->logger->info('  - Removing profile picture');
+                $licensee->removeAttachment($dbProfilePicture);
+                $this->entityManager->remove($dbProfilePicture);
+            }
+            if (!$dbProfilePicture && $fftaProfilePicture) {
+                $this->logger->info('  + Adding profile picture');
+                $licensee->addAttachment($fftaProfilePicture);
+                $licensee->setUpdatedAt(new \DateTimeImmutable());
+                $this->entityManager->persist($fftaProfilePicture);
+            }
+            if (!$dbProfilePicture && !$fftaProfilePicture) {
+                $this->logger->info('  ! No profile picture');
             }
         }
         $this->entityManager->flush();
@@ -146,6 +179,43 @@ class FftaHelper
     public function fetchProfilePictureForLicensee(Licensee $licensee): ?string
     {
         return $this->scrapper->fetchLicenseeProfilePicture($licensee->getFftaId());
+    }
+
+    public function profilePictureAttachmentForLicensee(Licensee $licensee): ?LicenseeAttachment
+    {
+        $fftaPicture = $this->fetchProfilePictureForLicensee($licensee);
+        if ($fftaPicture) {
+            $temporaryPPPath = tempnam(sys_get_temp_dir(), sprintf('pp_%s_', $licensee->getFftaMemberCode()));
+            if (false === $temporaryPPPath) {
+                throw new \Exception('Cannot generate temporary filename');
+            }
+            $writtenBytes = file_put_contents($temporaryPPPath, $fftaPicture);
+            if (false === $writtenBytes) {
+                throw new \Exception('file not written');
+            }
+            $mimetype = $this->mimeTypeGuesser->guessMimeType($temporaryPPPath);
+            if (!$mimetype) {
+                throw new \Exception('Cannot guess mimetype for profile picture');
+            }
+            $extension = $this->mimeTypes->getExtension($mimetype);
+            if (!$extension) {
+                throw new \Exception('Cannot find a corresponding extension for mimetype '.$mimetype);
+            }
+            $uploadedFile = new UploadedFile(
+                $temporaryPPPath,
+                sprintf('photo_identite_ffta_%s.%s', $licensee->getFftaMemberCode(), $extension),
+                $mimetype,
+            );
+            $profilePicture = new LicenseeAttachment();
+            $profilePicture
+                ->setType(LicenseeAttachmentType::PROFILE_PICTURE)
+                ->setUploadedFile($uploadedFile)
+            ;
+
+            return $profilePicture;
+        }
+
+        return null;
     }
 
     /**

@@ -24,7 +24,14 @@ class EventAttachment extends Attachment
     #[ORM\Column(type: 'EventAttachmentType')]
     private ?string $type = null;
 
-    #[Vich\UploadableField(mapping: 'events', fileNameProperty: 'file.name', size: 'file.size', mimeType: 'file.mimeType', originalName: 'file.originalName', dimensions: 'file.dimensions')]
+    #[Vich\UploadableField(
+        mapping: 'events',
+        fileNameProperty: 'file.name',
+        size: 'file.size',
+        mimeType: 'file.mimeType',
+        originalName: 'file.originalName',
+        dimensions: 'file.dimensions'
+    )]
     private ?File $uploadedFile = null;
 
     public function getId(): ?int

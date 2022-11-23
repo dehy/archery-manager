@@ -49,7 +49,7 @@ services:
     # please note that last definitions always *replace* previous ones
 
     scaleway_object_storage_client:
-        class: 'AsyncAws\S3\S3Client'
+        class: 'AsyncAws\SimpleS3\SimpleS3Client'
         arguments:
             -   endpoint: '%env(SCALEWAY_OBJECT_STORAGE_ENDPOINT)%'
                 accessKeyId: '%env(SCALEWAY_OBJECT_STORAGE_ID)%'

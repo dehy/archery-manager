@@ -21,16 +21,23 @@ class LicenseeAttachment extends Attachment
     #[ORM\JoinColumn(nullable: false)]
     private ?Licensee $licensee = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $season = null;
 
     #[ORM\Column(type: 'LicenseeAttachmentType')]
     private ?string $type = null;
 
-    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $documentDate = null;
 
-    #[Vich\UploadableField(mapping: 'licensees', fileNameProperty: 'file.name', size: 'file.size', mimeType: 'file.mimeType', originalName: 'file.originalName', dimensions: 'file.dimensions')]
+    #[Vich\UploadableField(
+        mapping: 'licensees',
+        fileNameProperty: 'file.name',
+        size: 'file.size',
+        mimeType: 'file.mimeType',
+        originalName: 'file.originalName',
+        dimensions: 'file.dimensions'
+    )]
     private ?File $uploadedFile = null;
 
     public function getId(): ?int
@@ -111,6 +118,11 @@ class LicenseeAttachment extends Attachment
         $type = $this->getType();
         $randomStr = bin2hex(random_bytes(4));
 
-        return sprintf('%s-%s-%s-%s', $licensee->getFftaMemberCode(), $this->getSeason(), $type, $randomStr);
+        if ($this->getSeason()) {
+            return sprintf('%s-%s-%s-%s', $licensee->getFftaMemberCode(), $this->getSeason(), $type, $randomStr);
+        }
+
+        return sprintf('%s-%s-%s', $licensee->getFftaMemberCode(), $type, $randomStr);
+
     }
 }

@@ -13,13 +13,16 @@
                     <img src="{{ asset('build/logo-ffta.svg') }}" alt="" class="mb-2" style="height: 40px">
                     <h2 class="mb-3">{{ licensee.fullname }}</h2>
                     <div class="mb-3 d-block position-relative">
-                        <img src="{{ path('app_licensee_picture', {'fftaCode': licensee.fftaMemberCode}) }}"
-                             alt="Photo de profil" class="img-thumbnail" style="width: 175px; min-height: 275px"/>
+                        <img src="{{ licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}"
+                             alt="Photo de profil" class="img-thumbnail badge-profile-picture" />
                     </div>
                 </div>
 
                 <div class="p-3">
-                    <h4>Licence 2023</h4>
+                    <h4>
+                        Licence 2023
+                        <small class="badge bg-secondary">{{ licensee.fftaMemberCode }}</small>
+                    </h4>
                     {% set license = licensee.licenseForSeason(2023) %}
                     {% if not licensee.licenseForSeason(2023) %}
                         <em>Aucune license</em>
@@ -30,7 +33,11 @@
                                 {{ license.ageCategory|readable_enum }}
                             </li>
                             <li>
-                                <em class="fa-solid fa-bow-arrow fa-fw"></em>
+                                <em class="fa-solid fa-venus-mars fa-fw"></em>
+                                {{ licensee.gender|readable_enum('GenderType') }}
+                            </li>
+                            <li>
+                                <em class="fa-solid fa-screwdriver-wrench fa-fw"></em>
                                 {{ license.activities|map(a => a|readable_enum('LicenseActivityType'))|join(', ') }}
                             </li>
                         </ul>

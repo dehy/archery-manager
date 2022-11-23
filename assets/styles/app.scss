@@ -33,5 +33,10 @@
   background-image: linear-gradient(90deg, #084276, #125f9b);
 }
 
+.badge-profile-picture {
+  width: 175px;
+  min-height: 275px;
+}
+
 @import '_calendar.scss';
 @import '_event_participation.scss';

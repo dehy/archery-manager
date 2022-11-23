@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\DBAL\Types\LicenseeAttachmentType;
 use App\Repository\LicenseeRepository;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -19,30 +20,30 @@ class Licensee
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'licensees')]
     #[ORM\JoinColumn(nullable: true)]
-    private $user;
+    private User $user;
 
     #[ORM\Column(type: 'GenderType')]
-    private $gender;
+    private string $gender;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $lastname;
+    private string $lastname;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $firstname;
+    private string $firstname;
 
     #[ORM\Column(type: 'date')]
-    private $birthdate;
+    private \DateTimeInterface $birthdate;
 
     #[ORM\Column(type: 'string', length: 7, unique: true, nullable: true)]
     #[Assert\Length(min: 7, max: 7)]
-    private $fftaMemberCode;
+    private ?string $fftaMemberCode = null;
 
     #[ORM\Column(type: 'integer', unique: true, nullable: true)]
-    private $fftaId;
+    private ?int $fftaId;
 
     #[ORM\Column]
     #[Gedmo\Timestampable(on: 'update')]
@@ -55,7 +56,7 @@ class Licensee
             orphanRemoval: true,
         ),
     ]
-    private $licenses;
+    private Collection $licenses;
 
     #[
         ORM\OneToMany(
@@ -82,7 +83,7 @@ class Licensee
             orphanRemoval: true,
         ),
     ]
-    private $eventParticipations;
+    private Collection $eventParticipations;
 
     #[
         ORM\OneToMany(
@@ -91,10 +92,10 @@ class Licensee
             orphanRemoval: true,
         ),
     ]
-    private $results;
+    private Collection $results;
 
     #[ORM\ManyToMany(targetEntity: Group::class, mappedBy: 'licensees')]
-    private $groups;
+    private Collection $groups;
 
     #[
         ORM\OneToMany(
@@ -103,10 +104,10 @@ class Licensee
             orphanRemoval: true,
         ),
     ]
-    private $practiceAdvices;
+    private Collection $practiceAdvices;
 
     #[ORM\OneToMany(mappedBy: 'author', targetEntity: PracticeAdvice::class)]
-    private $givenPracticeAdvices;
+    private Collection $givenPracticeAdvices;
 
     #[ORM\OneToMany(mappedBy: 'licensee', targetEntity: LicenseeAttachment::class, orphanRemoval: true)]
     private Collection $attachments;
@@ -536,5 +537,27 @@ class Licensee
         }
 
         return $this;
+    }
+
+    public function hasProfilePicture(): bool
+    {
+        foreach ($this->getAttachments() as $attachment) {
+            if (LicenseeAttachmentType::PROFILE_PICTURE === $attachment->getType()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function getProfilePicture(): ?LicenseeAttachment
+    {
+        foreach ($this->getAttachments() as $attachment) {
+            if (LicenseeAttachmentType::PROFILE_PICTURE === $attachment->getType()) {
+                return $attachment;
+            }
+        }
+
+        return null;
     }
 }

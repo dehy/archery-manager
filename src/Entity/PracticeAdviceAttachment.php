@@ -23,7 +23,14 @@ class PracticeAdviceAttachment extends Attachment
     #[ORM\Column(type: 'PracticeAdviceAttachmentType')]
     private ?string $type = null;
 
-    #[Vich\UploadableField(mapping: 'licensees', fileNameProperty: 'file.name', size: 'file.size', mimeType: 'file.mimeType', originalName: 'file.originalName', dimensions: 'file.dimensions')]
+    #[Vich\UploadableField(
+        mapping: 'licensees',
+        fileNameProperty: 'file.name',
+        size: 'file.size',
+        mimeType: 'file.mimeType',
+        originalName: 'file.originalName',
+        dimensions: 'file.dimensions'
+    )]
     private UploadedFile|File|null $uploadedFile = null;
 
     public function getId(): ?int

@@ -24,10 +24,14 @@
 
 {% macro card(licensee, year) %}
     {% set license = licensee.licenseForSeason(year) %}
+    {% set profile_picture = 'default.jpg' %}
+    {% if licensee.profilePicture %}
+        {% set profile_picture = licensee.profilePicture.file.name %}
+    {% endif %}
     <div class="card">
         <div class="row g-0">
             <div class="col-3">
-                <img src="{{ path('app_licensee_picture', {'fftaCode': licensee.fftaMemberCode}) }}"
+                <img src="{{ licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}"
                      class="img-fluid rounded-start" alt="">
             </div>
             <div class="col-9">

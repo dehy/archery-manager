@@ -53,6 +53,7 @@ import {
   faUserSecret,
   faUserXmark,
   faVenus,
+  faVenusMars,
 } from "@fortawesome/free-solid-svg-icons";
 import {faApple, faDiscord, faGoogle, faWaze} from "@fortawesome/free-brands-svg-icons";
 import {faFile} from "@fortawesome/free-regular-svg-icons";
@@ -100,6 +101,7 @@ library.add(
     faUsers,
     faUserXmark,
     faVenus,
+    faVenusMars,
     faWaze
 );
 dom.watch();
