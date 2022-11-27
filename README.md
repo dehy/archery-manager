@@ -47,3 +47,6 @@ son ergonomie, etc., en tant qu'entraîneuse ou entraîneur, ou comme archère o
 
 N'hésitez pas à soit me contacter directement à [archery-manager@admds.net](mailto:archery-manager@admds.net), soit
 si vous êtes familier avec GitHub, en créant des [issues](https://github.com/dehy/archery-manager/issues).
+
+## Licence
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdehy%2Farchery-manager.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdehy%2Farchery-manager?ref=badge_large)
