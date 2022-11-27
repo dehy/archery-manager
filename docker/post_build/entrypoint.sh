@@ -101,13 +101,13 @@ if [[ "${1:-}" == "sut" ]]; then
     ${GOSU} php bin/phpunit --coverage-clover "${CLOVER_FILEPATH}" --log-junit "${JUNIT_FILEPATH}" && TEST_RESULT=0 || TEST_RESULT=$?
 
     # Execute sonar-scanner only on CI
-    if [[ "${CI:-}" == "true" && -n "${SONARQUBE_TOKEN}" ]]; then
+    if [[ "${CI:-}" == "true" && -n "${SONAR_TOKEN}" ]]; then
       # Install dependencies for sonar-scanner: Java Runtime Engine (JRE), unzip and sha256sum
       apt-get install -y --no-install-recommends curl unzip
 
       # Install sonar-scanner
-      SONAR_CLI_VERSION="4.6.2.2472-linux"
-      SONAR_CLI_SHA256_SUM="9411331814c1d002bd65d37758b872918b7602e7cf3ca5b83a3e19a729b2be05"
+      SONAR_CLI_VERSION="4.7.0.2747-linux"
+      SONAR_CLI_SHA256_SUM="3e121d85a4adb1f30b917d5f3eb897966b59e02c3d6d313a78dcd964193dc963"
       SONAR_CLI_DIRNAME="sonar-scanner-cli-${SONAR_CLI_VERSION}"
       SONAR_CLI_FILENAME="${SONAR_CLI_DIRNAME}.zip"
       SONAR_CLI_FILEPATH="/tmp/${SONAR_CLI_FILENAME}"
@@ -132,7 +132,7 @@ if [[ "${1:-}" == "sut" ]]; then
       # Scan project
       # shellcheck disable=SC2086
       ./sonar-scanner-${SONAR_CLI_VERSION}/bin/sonar-scanner \
-          -Dsonar.login="${SONARQUBE_TOKEN}" \
+          -Dsonar.login="${SONAR_TOKEN}" \
           -Dsonar.qualitygate.wait=true \
           ${SONAR_PARAMETERS} || true # Do not fail on Quality Gate is not PASSED
     fi

@@ -15,10 +15,12 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+      - run: env
       - name: Docker Compose Setup
         uses: ndeloof/install-compose-action@v0.0.1
         with:
-          version: v2.4.1
+          version: latest
+          legacy: false
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -30,26 +32,28 @@ jobs:
           file: docker/Dockerfile
           push: false
           load: true
-          tags: myarchery:to_test
+          tags: archery-manager:to_test
           cache-from: type=gha, scope=${{ github.workflow }}
           cache-to: type=gha, scope=${{ github.workflow }}
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
       - name: Run tests
         run: docker compose -p archery_test -f docker-compose.test.yml up --build --abort-on-container-exit --force-recreate
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Generate Docker Image Tag
         id: docker_tag
         run: echo "::set-output name=tag::$(bash ./docker/tag_from_branch.sh)"
       - name: Login to Scaleway Container Registry
         uses: docker/login-action@v1
         with:
-          registry: rg.fr-par.scw.cloud/myarchery
+          registry: rg.fr-par.scw.cloud/archery-manager
           username: nologin
           password: ${{ secrets.SCALEWAY_SECRET_KEY }}
       - name: Push
         run: |
-          docker tag myarchery:to_test rg.fr-par.scw.cloud/myarchery/myarchery:${{ steps.docker_tag.outputs.tag }} \
-          && docker push rg.fr-par.scw.cloud/myarchery/myarchery:${{ steps.docker_tag.outputs.tag }};
+          docker tag archery-manager:to_test rg.fr-par.scw.cloud/archery-manager/archery-manager:${{ steps.docker_tag.outputs.tag }} \
+          && docker push rg.fr-par.scw.cloud/archery-manager/archery-manager:${{ steps.docker_tag.outputs.tag }};
       - name: Reload staging docker service
         run: curl -X POST ${{ secrets.PORTAINER_RELOAD_SERVICE_WEBHOOK }}
         #if: github.ref == 'refs/heads/main'
