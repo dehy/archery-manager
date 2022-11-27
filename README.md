@@ -1,11 +1,11 @@
 # Archerie
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0)
 
 Un outil de gestion pour les clubs de tir à l'arc
 
 - Gestion d'un roster d'archers
 - Gestion de l'équipement
 - Gestion des évènements : entraînements, compétitions, autre
-
 Cet outil est réalisé pour [Les Archers de Bordeaux Guyenne](https://archersdebordeaux-guyenne.com).
 
 ## Exécution locale
