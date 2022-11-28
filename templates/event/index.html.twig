@@ -93,7 +93,7 @@
                 {% for date_key, events in calendar|filter((e) => e|length > 0) %}
                     {% set day = date(date_key) %}
                     {% set date_elements = date_key|split('-') %}
-                    <li class="list-unstyled{% if day|date('Y-m') != (year ~ "-" ~ month) %} d-none d-xl-block{% endif %}">
+                    <li class="list-unstyled{% if day|date('Y-n') != (year ~ "-" ~ month) %} d-none d-xl-block{% endif %}">
                         <h4>
                             <strong>{{ day|format_date(pattern='eeee', locale='fr') }}</strong>
                             <span class="text-black-50 fs-5">{{ day|date('d/m/Y') }}</span>
