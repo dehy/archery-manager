@@ -173,11 +173,8 @@
                      data-bs-parent="#mandateAndResults">
                     <div class="accordion-body">
                         {% if event.attachments('mandate') is not empty %}
-                            <embed type="application/pdf"
-                                   class="col-12"
-                                   style="aspect-ratio: 1/1.5"
-                                   src="{{ path('events_attachements_download', {'attachment': (event.attachments('mandate')|first).id }) }}"
-                            >
+                            <canvas data-pdf-url="{{ path('events_attachements_download', {'attachment': (event.attachments('mandate')|first).id }) }}"
+                            ></canvas>
                         {% else %}
                             <span class="fst-italic">Mandat non disponible.</span>
                         {% endif %}

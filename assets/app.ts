@@ -106,11 +106,15 @@ library.add(
 );
 dom.watch();
 
+import * as PdfViewer from './pdf';
+
 (() => {
     const tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll(
         '[data-bs-toggle="tooltip"]'
     ));
-    const tooltipList = tooltipTriggerList.map(
+    tooltipTriggerList.forEach(
         (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
     );
+    PdfViewer.init();
+    PdfViewer.listenForDisplayChanges();
 })();
