@@ -19,8 +19,6 @@ shell-root: start
 	$(ROOT_EXEC) bash
 
 deps: start
-	composer install --no-scripts --ignore-platform-reqs
-	yarn install
 	$(BASE_EXEC) composer install
 	$(BASE_EXEC) yarn install
 	$(BASE_EXEC) yarn run encore dev
