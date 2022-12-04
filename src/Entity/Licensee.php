@@ -145,6 +145,8 @@ class Licensee implements \Stringable
     {
         $this->user = $user;
 
+        $user->addLicensee($this);
+
         return $this;
     }
 

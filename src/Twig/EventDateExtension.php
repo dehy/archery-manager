@@ -9,22 +9,27 @@ use Twig\Extension\AbstractExtension;
 use Twig\Extra\Intl\IntlExtension;
 use Twig\TwigFilter;
 
-class EventDate extends AbstractExtension
+class EventDateExtension extends AbstractExtension
 {
-    public function __construct(private readonly IntlExtension $intlExtension, private readonly TimeExtension $timeExtension)
-    {
+    public function __construct(
+        private readonly IntlExtension $intlExtension,
+        private readonly TimeExtension $timeExtension
+    ) {
     }
 
-    public function getFilters()
+    public function getFilters(): array
     {
         return [
             new TwigFilter('event_date', $this->eventDate(...), ['needs_environment' => true]),
         ];
     }
 
-    public function eventDate(Environment $environment, Event $event, bool $includeTime = true, bool $diff = false): string
-    {
-        $date = '';
+    public function eventDate(
+        Environment $environment,
+        Event $event,
+        bool $includeTime = true,
+        bool $diff = false
+    ): string {
         if (1 === $event->getEndsAt()->diff($event->getStartsAt())->days) {
             $date = sprintf(
                 'les %s et %s',
@@ -54,7 +59,11 @@ class EventDate extends AbstractExtension
         }
 
         if (true === $diff) {
-            $date = sprintf('%s (%s)', $date, $this->timeExtension->diff($event->getStartsAt(), null, 'fr'));
+            $date = sprintf(
+                '%s (%s)',
+                $date,
+                $this->timeExtension->diff($event->getStartsAt(), null, 'fr')
+            );
         }
 
         return $date;
@@ -62,6 +71,14 @@ class EventDate extends AbstractExtension
 
     private function formatDate(Environment $environment, \DateTimeInterface $datetime): string
     {
-        return $this->intlExtension->formatDate($environment, $datetime, 'medium', '', null, 'gregorian', 'fr');
+        return $this->intlExtension->formatDate(
+            $environment,
+            $datetime,
+            'medium',
+            '',
+            null,
+            'gregorian',
+            'fr'
+        );
     }
 }

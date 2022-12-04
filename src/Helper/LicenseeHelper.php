@@ -28,6 +28,9 @@ class LicenseeHelper
             ->getSession()
             ->get(self::SESSION_KEY)
         ;
+        if (!$user->getLicensees()->containsKey($licenseeCode)) {
+            $licenseeCode = null;
+        }
         if (null === $licenseeCode) {
             $licensee = $user->getLicensees()->first();
             $this->setSelectedLicensee($licensee);

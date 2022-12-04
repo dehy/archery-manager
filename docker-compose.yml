@@ -12,7 +12,7 @@ services:
   database:
     image: mariadb:${MARIADB_VERSION:-10.8.2}
     environment:
-      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+      MARIADB_ROOT_PASSWORD: "root"
       MARIADB_DATABASE: ${MARIADB_DATABASE:-app}
       MARIADB_PASSWORD: ${MARIADB_PASSWORD:-ChangeMe}
       MARIADB_USER: ${MARIADB_USER:-symfony}

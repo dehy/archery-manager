@@ -112,6 +112,8 @@ class License
     {
         $this->licensee = $licensee;
 
+        $licensee->addLicense($this);
+
         return $this;
     }
 
