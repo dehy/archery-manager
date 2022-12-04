@@ -80,6 +80,7 @@
                                     <small>{{ result.event|event_date(includeTime=false) }}</small>
                                 </span>
                                 <span class="badge bg-secondary badge-pill">{{ result.distance }}m</span>
+                                <span class="badge bg-secondary badge-pill">{{ result.targetType|readable_enum }}</span>
                                 <span class="badge bg-secondary badge-pill">{{ result.targetSize }}cm</span>
                             </td>
                             <td>{{ result.total }}</td>

@@ -40,6 +40,9 @@ class Result
     #[ORM\Column(type: 'integer', nullable: true)]
     private int $distance;
 
+    #[ORM\Column(type: 'TargetTypeType')]
+    private string $targetType;
+
     #[ORM\Column(type: 'integer')]
     private int $targetSize;
 
@@ -160,6 +163,18 @@ class Result
     public function setDistance(?int $distance): self
     {
         $this->distance = $distance;
+
+        return $this;
+    }
+
+    public function getTargetType(): string
+    {
+        return $this->targetType;
+    }
+
+    public function setTargetType(string $targetType): self
+    {
+        $this->targetType = $targetType;
 
         return $this;
     }

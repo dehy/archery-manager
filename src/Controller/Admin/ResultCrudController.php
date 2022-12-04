@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
+use App\DBAL\Types\TargetTypeType;
 use App\Entity\Result;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -36,8 +37,13 @@ class ResultCrudController extends AbstractCrudController
             ChoiceField::new('activity')->setChoices(
                 LicenseActivityType::getChoices(),
             ),
-            IntegerField::new('distance'),
-            IntegerField::new('targetSize'),
+            IntegerField::new('distance')->setLabel('Distance (en mètres)'),
+            ChoiceField::new('targetType')->setChoices(
+                TargetTypeType::getChoices(),
+            ),
+            IntegerField::new('targetSize')->setLabel('Taille (en centimètres)'),
+            IntegerField::new('score1'),
+            IntegerField::new('score2'),
             IntegerField::new('total'),
         ];
     }
@@ -53,6 +59,10 @@ class ResultCrudController extends AbstractCrudController
                 ),
             )
             ->add('distance')
+            ->add(ChoiceFilter::new('targetType')->setChoices(
+                TargetTypeType::getChoices(),
+            ))
+            ->add('targetSize')
             ->add(
                 ChoiceFilter::new('ageCategory')->setChoices(
                     LicenseAgeCategoryType::getChoices(),

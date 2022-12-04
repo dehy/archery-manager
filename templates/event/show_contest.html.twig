@@ -208,6 +208,11 @@
                                     <tr>
                                         <td>{{ result.licensee.firstnameWithInitial }}</td>
                                         <td>{{ result.total }}</td>
+                                        <td data-bs-toggle="tooltip"
+                                            style="width: 2em"
+                                            title="{{ result.distance }}m {{ result.targetType|readable_enum }} {{ result.targetSize }}cm">
+                                            <em class="fa-solid fa-info-circle"></em>
+                                        </td>
                                     </tr>
                                 {% endfor %}
                                 </tbody>
