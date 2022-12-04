@@ -13,10 +13,8 @@ class SmokeTest extends WebTestCase
 {
     /**
      * @dataProvider publicUrlsProvider
-     *
-     * @param mixed $url
      */
-    public function testPublicUrls($url): void
+    public function testPublicUrls(string $url): void
     {
         $client = self::createClient();
         $client->request('GET', $url);

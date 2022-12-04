@@ -46,7 +46,7 @@ class ImportUsersCommand extends Command
         if (($handle = fopen($csvFile, 'r')) !== false) {
             while (($data = fgetcsv($handle, 1000, ';')) !== false) {
                 $email = $data[0];
-                $roles = json_decode($data[1], true);
+                $roles = json_decode((string) $data[1], true, 512, JSON_THROW_ON_ERROR);
                 $password = $data[2];
                 $gender = $data[3];
                 $lastname = $data[4];
@@ -74,9 +74,7 @@ class ImportUsersCommand extends Command
 
                 $licensee = $user
                     ->getLicensees()
-                    ->filter(function (Licensee $l) use ($user) {
-                        return $l->getFirstname() === $user->getFirstname();
-                    })
+                    ->filter(fn(Licensee $l) => $l->getFirstname() === $user->getFirstname())
                     ->first()
                 ;
 

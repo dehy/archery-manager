@@ -11,7 +11,7 @@ class EventColorExtension extends AbstractExtension
     public function getFilters(): array
     {
         return [
-            new TwigFilter('eventColor', [$this, 'eventColor']),
+            new TwigFilter('eventColor', $this->eventColor(...)),
         ];
     }
 

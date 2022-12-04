@@ -70,8 +70,8 @@ namespace App\Factory;
 
 class IcsFactory
 {
-    public const ALL_DAY_DT_FORMAT = 'Ymd';
-    public const DT_FORMAT = 'Ymd\THis\Z';
+    final public const ALL_DAY_DT_FORMAT = 'Ymd';
+    final public const DT_FORMAT = 'Ymd\THis\Z';
 
     protected array $properties = [];
     private array $availableProperties = [

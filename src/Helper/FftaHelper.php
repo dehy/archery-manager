@@ -14,8 +14,8 @@ use App\Repository\UserRepository;
 use App\Scrapper\FftaScrapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
+use League\Flysystem\UnableToProvideChecksum;
 use Mimey\MimeTypes;
 use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -68,7 +68,6 @@ class FftaHelper
     /**
      * @throws NonUniqueResultException
      * @throws TransportExceptionInterface
-     * @throws FilesystemException
      */
     public function syncLicenseeWithId(string $fftaId): Licensee
     {
@@ -133,11 +132,17 @@ class FftaHelper
             $fftaProfilePictureContent = $fftaProfilePicture?->getUploadedFile()?->getContent();
             $fftaProfilePictureChecksum = $fftaProfilePicture ? sha1($fftaProfilePictureContent) : null;
             $dbProfilePicture = $licensee->getProfilePicture();
-            $dbProfilePictureChecksum = $dbProfilePicture ?
-                $this->licenseesStorage->checksum(
-                    $dbProfilePicture->getFile()->getName(),
-                    ['checksum_algo' => 'sha1']
-                ) : null;
+
+            try {
+                $dbProfilePictureChecksum = $dbProfilePicture ?
+                    $this->licenseesStorage->checksum(
+                        $dbProfilePicture->getFile()->getName(),
+                        ['checksum_algo' => 'sha1']
+                    ) : null;
+            } catch (UnableToProvideChecksum) {
+                $dbProfilePicture = null;
+                $dbProfilePictureChecksum = null;
+            }
 
             if ($dbProfilePicture && $fftaProfilePicture) {
                 // Licensee has already a profile picture

@@ -48,7 +48,7 @@ class License
     private $licensee;
 
     #[ORM\Column(type: 'simple_array')]
-    private $activities = [];
+    private array $activities = [];
 
     public function getId(): ?int
     {

@@ -23,22 +23,22 @@ class Bow
     private string $type;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $brand;
+    private ?string $brand = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $model;
+    private ?string $model = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $limbSize;
+    private ?int $limbSize = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $limbStrength;
+    private ?int $limbStrength = null;
 
     #[ORM\Column(type: 'float', nullable: true)]
-    private ?float $braceHeight;
+    private ?float $braceHeight = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $drawLength;
+    private ?int $drawLength = null;
 
     #[
         ORM\OneToMany(

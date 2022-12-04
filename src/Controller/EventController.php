@@ -49,10 +49,8 @@ class EventController extends AbstractController
         for ($currentDate = $firstDate; $currentDate <= $lastDate; $currentDate->modify('+1 day')) {
             $startOfDay = \DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0, 0);
             $endOfDay = \DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
-            $eventsForThisDay = array_filter($events, function (Event $event) use ($startOfDay, $endOfDay) {
-                return ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
-                    || ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay);
-            });
+            $eventsForThisDay = array_filter($events, fn(Event $event) => ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
+                || ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay));
             $calendar[$currentDate->format('Y-m-j')] = $eventsForThisDay;
         }
 

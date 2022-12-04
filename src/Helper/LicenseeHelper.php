@@ -10,7 +10,7 @@ use Symfony\Component\Security\Core\Security;
 
 class LicenseeHelper
 {
-    public const SESSION_KEY = 'selectedLicensee';
+    final public const SESSION_KEY = 'selectedLicensee';
 
     protected SessionInterface $session;
 

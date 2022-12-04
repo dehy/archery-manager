@@ -15,8 +15,8 @@ class MapExtension extends AbstractExtension
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('address_map_url', [$this->mapHelper, 'urlForAddress']),
-            new TwigFunction('longlat_map_url', [$this->mapHelper, 'urlForLongLat']),
+            new TwigFunction('address_map_url', $this->mapHelper->urlForAddress(...)),
+            new TwigFunction('longlat_map_url', $this->mapHelper->urlForLongLat(...)),
         ];
     }
 }

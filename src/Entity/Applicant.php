@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ApplicantRepository::class)]
 #[Auditable]
-class Applicant
+class Applicant implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -44,7 +44,7 @@ class Applicant
     private ?string $licenseNumber = null;
 
     #[ORM\Column(type: 'string', length: 12, nullable: true)]
-    private ?string $phoneNumber;
+    private ?string $phoneNumber = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
@@ -76,7 +76,7 @@ class Applicant
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $paymentObservations = null;
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getCompleteName();
     }

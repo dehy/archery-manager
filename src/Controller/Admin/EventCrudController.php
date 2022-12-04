@@ -94,14 +94,11 @@ class EventCrudController extends AbstractCrudController
             'eventAttachments',
             'Pièces jointes',
             'fa-solid fa-paperclip'
-        )->linkToUrl(function (Event $event) {
-            return $this->urlGenerator
-                ->unsetAll()
-                ->setController(EventAttachmentCrudController::class)
-                ->set('filters[event][comparison]', '=')
-                ->set('filters[event][value]', $event->getId())
-            ;
-        });
+        )->linkToUrl(fn(Event $event) => $this->urlGenerator
+            ->unsetAll()
+            ->setController(EventAttachmentCrudController::class)
+            ->set('filters[event][comparison]', '=')
+            ->set('filters[event][value]', $event->getId()));
 
         $importResultArcScoresAction = Action::new(
             'resultArcImport',
@@ -112,14 +109,11 @@ class EventCrudController extends AbstractCrudController
         $seeResultsAction = Action::new(
             'showEventResults',
             'Results',
-        )->linkToUrl(function (Event $event) {
-            return $this->urlGenerator
-                ->unsetAll()
-                ->setController(ResultCrudController::class)
-                ->set('filters[event][comparison]', '=')
-                ->set('filters[event][value]', $event->getId())
-            ;
-        });
+        )->linkToUrl(fn(Event $event) => $this->urlGenerator
+            ->unsetAll()
+            ->setController(ResultCrudController::class)
+            ->set('filters[event][comparison]', '=')
+            ->set('filters[event][value]', $event->getId()));
 
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)

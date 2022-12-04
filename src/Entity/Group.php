@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GroupRepository::class)]
 #[ORM\Table(name: '`group`')]
-class Group
+class Group implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -34,9 +34,9 @@ class Group
         $this->events = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        return $this->getName();
+        return (string) $this->getName();
     }
 
     public function getId(): ?int

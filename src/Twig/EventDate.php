@@ -18,7 +18,7 @@ class EventDate extends AbstractExtension
     public function getFilters()
     {
         return [
-            new TwigFilter('event_date', [$this, 'eventDate'], ['needs_environment' => true]),
+            new TwigFilter('event_date', $this->eventDate(...), ['needs_environment' => true]),
         ];
     }
 

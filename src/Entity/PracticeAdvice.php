@@ -43,7 +43,7 @@ class PracticeAdvice
     private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $archivedAt;
+    private ?\DateTimeImmutable $archivedAt = null;
 
     public function __construct()
     {

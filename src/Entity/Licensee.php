@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: LicenseeRepository::class)]
 #[Auditable]
 #[ApiResource]
-class Licensee
+class Licensee implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -43,7 +43,7 @@ class Licensee
     private ?string $fftaMemberCode = null;
 
     #[ORM\Column(type: 'integer', unique: true, nullable: true)]
-    private ?int $fftaId;
+    private ?int $fftaId = null;
 
     #[ORM\Column]
     #[Gedmo\Timestampable(on: 'update')]

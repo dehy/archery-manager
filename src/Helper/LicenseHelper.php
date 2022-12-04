@@ -103,7 +103,7 @@ class LicenseHelper
         $mapping = $this->mappingSeason[$this->season];
 
         foreach ($mapping as $dateKey => $ageCategory) {
-            $parts = explode('_', $dateKey);
+            $parts = explode('_', (string) $dateKey);
             $leftPart = $parts[0];
             $rightPart = $parts[1] ?? null;
             $after = null;

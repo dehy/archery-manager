@@ -37,9 +37,7 @@ class MoneyField implements FieldInterface
             ->setProperty($propertyName)
             ->setLabel($label)
             ->setTemplatePath('admin/crud/fields/money.html.twig')
-            ->formatValue(function ($property) {
-                return self::$moneyFormatter->format($property);
-            })
+            ->formatValue(fn($property) => self::$moneyFormatter->format($property))
         ;
     }
 }

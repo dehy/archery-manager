@@ -18,7 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: EventRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource]
-class Event
+class Event implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -281,9 +281,7 @@ class Event
 
     public function hasMandate(): bool
     {
-        return $this->getAttachments()->exists(function (int $key, EventAttachment $attachment) {
-            return EventAttachmentType::MANDATE === $attachment->getType();
-        });
+        return $this->getAttachments()->exists(fn(int $key, EventAttachment $attachment) => EventAttachmentType::MANDATE === $attachment->getType());
     }
 
     /**
@@ -302,9 +300,7 @@ class Event
 
     public function hasResults(): bool
     {
-        return $this->getAttachments()->exists(function (int $key, EventAttachment $attachment) {
-            return EventAttachmentType::RESULTS === $attachment->getType();
-        });
+        return $this->getAttachments()->exists(fn(int $key, EventAttachment $attachment) => EventAttachmentType::RESULTS === $attachment->getType());
     }
 
     /**

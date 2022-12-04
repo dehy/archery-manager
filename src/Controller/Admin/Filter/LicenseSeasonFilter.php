@@ -17,7 +17,7 @@ class LicenseSeasonFilter implements FilterInterface
     public static function new($label = null): self
     {
         return (new self())
-            ->setFilterFqcn(__CLASS__)
+            ->setFilterFqcn(self::class)
             ->setProperty('season')
             ->setLabel($label)
             ->setFormType(IntegerType::class)

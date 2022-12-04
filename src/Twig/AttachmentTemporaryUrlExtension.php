@@ -26,7 +26,7 @@ class AttachmentTemporaryUrlExtension extends AbstractExtension
     public function getFilters(): array
     {
         return [
-            new TwigFilter('temporary_url', [$this, 'temporaryUrl']),
+            new TwigFilter('temporary_url', $this->temporaryUrl(...)),
         ];
     }
 

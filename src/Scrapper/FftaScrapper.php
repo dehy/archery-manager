@@ -61,13 +61,15 @@ class FftaScrapper
         );
 
         $licensesData = json_decode(
-            $this->fftaGoalClient->getResponse()->getContent(),
+            (string) $this->fftaGoalClient->getResponse()->getContent(),
             true,
+            512,
+            JSON_THROW_ON_ERROR,
         );
         $ids = [];
         foreach ($licensesData['licences'] as $licenseData) {
             $html = $licenseData[9];
-            $id = preg_replace("/.*FichePersonne_(\\d+)'.*/", '\\1', $html);
+            $id = preg_replace("/.*FichePersonne_(\\d+)'.*/", '\\1', (string) $html);
             $ids[] = intval($id);
         }
 
@@ -91,7 +93,7 @@ class FftaScrapper
         $crawler = $this->fftaGoalClient->submit($form);
 
         $requestUriComponents = parse_url(
-            $this->fftaGoalClient->getRequest()->getUri(),
+            (string) $this->fftaGoalClient->getRequest()->getUri(),
         );
         if ('/personnes/show' === $requestUriComponents['path']) {
             parse_str($requestUriComponents['query'], $queryParameters);
@@ -313,35 +315,14 @@ class FftaScrapper
             if ($libelleCrawler->count() > 0) {
                 $libelleStr = $this->clean($libelleCrawler->text());
 
-                switch ($libelleStr) {
-                    case 'ADULTE Pratique en compétition':
-                        $licence->setType(LicenseType::ADULTES_COMPETITION);
-
-                        break;
-
-                    case 'ADULTE Pratique en club':
-                        $licence->setType(LicenseType::ADULTES_CLUB);
-
-                        break;
-
-                    case 'Jeune':
-                        $licence->setType(LicenseType::JEUNES);
-
-                        break;
-
-                    case 'Poussin':
-                        $licence->setType(LicenseType::POUSSINS);
-
-                        break;
-
-                    case 'Découverte':
-                        $licence->setType(LicenseType::DECOUVERTE);
-
-                        break;
-
-                    default:
-                        throw new \Exception(sprintf("Unknown licence type '%s'", $libelleStr));
-                }
+                match ($libelleStr) {
+                    'ADULTE Pratique en compétition' => $licence->setType(LicenseType::ADULTES_COMPETITION),
+                    'ADULTE Pratique en club' => $licence->setType(LicenseType::ADULTES_CLUB),
+                    'Jeune' => $licence->setType(LicenseType::JEUNES),
+                    'Poussin' => $licence->setType(LicenseType::POUSSINS),
+                    'Découverte' => $licence->setType(LicenseType::DECOUVERTE),
+                    default => throw new \Exception(sprintf("Unknown licence type '%s'", $libelleStr)),
+                };
             }
 
             $categorieAgeCrawler = $season->filterXPath(
@@ -488,7 +469,7 @@ class FftaScrapper
                 $licenseActivities = new ArrayCollection(
                     $licence->getActivities(),
                 );
-                $listeActivites = explode(',', $activitesCrawler->text());
+                $listeActivites = explode(',', (string) $activitesCrawler->text());
                 foreach ($listeActivites as $activite) {
                     $activiteStr = $this->clean($activite);
                     $activity = match ($activiteStr) {
@@ -517,11 +498,9 @@ class FftaScrapper
     }
 
     /**
-     * @param mixed $season
-     *
      * @return FftaEvent[]
      */
-    public function fetchEvents($season): array
+    public function fetchEvents(mixed $season): array
     {
         $this->loginFftaExtranet();
 

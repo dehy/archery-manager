@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     ),
 ]
 #[Auditable]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface, \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -48,7 +48,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private string $firstname;
 
     #[ORM\Column(type: 'string', length: 12, nullable: true)]
-    private ?string $phoneNumber;
+    private ?string $phoneNumber = null;
 
     #[
         ORM\OneToMany(
