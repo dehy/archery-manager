@@ -1,4 +1,4 @@
-name: PHP-CS-Fixer
+name: PHP Code Quality
 
 on:
   push:
