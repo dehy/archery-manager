@@ -1,4 +1,4 @@
-NAME = dehy/crowd-news:local
+NAME = dehy/archery-manager:local
 DOCKER_COMPOSE = docker compose
 ifeq ($(CI), true)
 DOCKER_COMPOSE = docker compose --ansi never
