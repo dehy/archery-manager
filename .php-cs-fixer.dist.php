@@ -8,5 +8,5 @@ use PHPStyle\PHPStyle;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-return (new PHPStyle())->getConfig('phpstyle.neon');
+return (new PHPStyle())->getConfig(__DIR__ . DIRECTORY_SEPARATOR . 'phpstyle.neon');
 
