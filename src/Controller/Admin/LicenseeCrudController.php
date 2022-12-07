@@ -35,7 +35,7 @@ class LicenseeCrudController extends AbstractCrudController
             'licenseeAttachments',
             'Pièces jointes',
             'fa-solid fa-paperclip'
-        )->linkToUrl(fn(Licensee $licensee) => $this->urlGenerator
+        )->linkToUrl(fn (Licensee $licensee) => $this->urlGenerator
             ->unsetAll()
             ->setController(LicenseeAttachmentCrudController::class)
             ->set('filters[event][comparison]', '=')

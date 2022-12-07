@@ -6,6 +6,11 @@ use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 class LoggedInTestCase extends WebTestCase
 {
     protected static function createLoggedInAsAdminClient(): KernelBrowser

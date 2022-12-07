@@ -94,7 +94,7 @@ class EventCrudController extends AbstractCrudController
             'eventAttachments',
             'Pièces jointes',
             'fa-solid fa-paperclip'
-        )->linkToUrl(fn(Event $event) => $this->urlGenerator
+        )->linkToUrl(fn (Event $event) => $this->urlGenerator
             ->unsetAll()
             ->setController(EventAttachmentCrudController::class)
             ->set('filters[event][comparison]', '=')
@@ -109,7 +109,7 @@ class EventCrudController extends AbstractCrudController
         $seeResultsAction = Action::new(
             'showEventResults',
             'Results',
-        )->linkToUrl(fn(Event $event) => $this->urlGenerator
+        )->linkToUrl(fn (Event $event) => $this->urlGenerator
             ->unsetAll()
             ->setController(ResultCrudController::class)
             ->set('filters[event][comparison]', '=')

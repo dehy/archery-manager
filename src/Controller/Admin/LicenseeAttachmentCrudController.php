@@ -26,7 +26,7 @@ class LicenseeAttachmentCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         $downloadAction = Action::new('downloadFile', 'Voir', 'fa-solid fa-eye')
-            ->linkToRoute('licensees_attachements_download', fn(LicenseeAttachment $attachment) => [
+            ->linkToRoute('licensees_attachements_download', fn (LicenseeAttachment $attachment) => [
                 'attachment' => $attachment->getId(),
             ])
         ;
@@ -39,7 +39,7 @@ class LicenseeAttachmentCrudController extends AbstractCrudController
         return [
             AssociationField::new('licensee', 'Licencié'),
             IntegerField::new('season', 'Saison'),
-            ChoiceField::new('type', 'Type')->setChoices(fn() => LicenseeAttachmentType::getChoices()),
+            ChoiceField::new('type', 'Type')->setChoices(fn () => LicenseeAttachmentType::getChoices()),
             DateField::new('documentDate', 'Date du document'),
             TextField::new('uploadedFile', 'Fichier')->setFormType(VichImageType::class),
         ];

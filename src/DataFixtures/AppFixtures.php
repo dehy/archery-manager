@@ -18,8 +18,8 @@ use Faker;
 
 class AppFixtures extends Fixture
 {
-    public function __construct(private readonly LicenseHelper $licenseHelper) {
-
+    public function __construct(private readonly LicenseHelper $licenseHelper)
+    {
     }
 
     public function load(ObjectManager $manager): void
@@ -58,7 +58,6 @@ class AppFixtures extends Fixture
             ->setCategory(LicenseCategoryType::ADULTES)
         ;
         $manager->persist($license);
-
 
         for ($i = 1; $i <= 5; ++$i) {
             $gender = mt_rand(0, 1) ? GenderType::MALE : GenderType::FEMALE;

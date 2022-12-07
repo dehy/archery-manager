@@ -74,7 +74,7 @@ class ImportUsersCommand extends Command
 
                 $licensee = $user
                     ->getLicensees()
-                    ->filter(fn(Licensee $l) => $l->getFirstname() === $user->getFirstname())
+                    ->filter(fn (Licensee $l) => $l->getFirstname() === $user->getFirstname())
                     ->first()
                 ;
 
