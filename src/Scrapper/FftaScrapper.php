@@ -11,7 +11,11 @@ use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\Entity\License;
 use App\Entity\Result;
+use DateTime;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
+use ErrorException;
+use Exception;
 use Goutte\Client;
 use Symfony\Component\BrowserKit\Response;
 use Symfony\Component\DomCrawler\Crawler;
@@ -34,7 +38,7 @@ class FftaScrapper
         private readonly string $password,
     ) {
         if (!$this->username || !$this->password) {
-            throw new \Exception('FFTA Credentials not set');
+            throw new Exception('FFTA Credentials not set');
         }
     }
 
@@ -88,8 +92,7 @@ class FftaScrapper
 
         $form = $crawler
             ->filter('#formSearchPersonne')
-            ->form(['inputAdherent' => $memberCode])
-        ;
+            ->form(['inputAdherent' => $memberCode]);
         $crawler = $this->fftaGoalClient->submit($form);
 
         $requestUriComponents = parse_url(
@@ -112,7 +115,7 @@ class FftaScrapper
             throw new NotFoundHttpException();
         }
 
-        throw new \ErrorException('Something went wrong during the request');
+        throw new ErrorException('Something went wrong during the request');
     }
 
     public function fetchLicenseeProfile(string $fftaId): FftaProfile
@@ -164,8 +167,7 @@ class FftaScrapper
                         ->text(),
                     true,
                 ),
-            )
-        ;
+            );
 
         $mobileNode = $crawler->filterXPath(
             "descendant-or-self::*[@id = 'mobile']",
@@ -189,7 +191,7 @@ class FftaScrapper
             "descendant-or-self::*[@id = 'identite.dateNaissance']",
         );
         $identity->setDateNaissance(
-            \DateTime::createFromFormat(
+            DateTime::createFromFormat(
                 'd/m/Y',
                 $this->clean($dateNaissanceNode->text()),
             ),
@@ -252,7 +254,7 @@ class FftaScrapper
     /**
      * @return array<int, License>
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function fetchLicenseeLicenses(
         int $fftaId,
@@ -321,7 +323,7 @@ class FftaScrapper
                     'Jeune' => $licence->setType(LicenseType::JEUNES),
                     'Poussin' => $licence->setType(LicenseType::POUSSINS),
                     'Découverte' => $licence->setType(LicenseType::DECOUVERTE),
-                    default => throw new \Exception(sprintf("Unknown licence type '%s'", $libelleStr)),
+                    default => throw new Exception(sprintf("Unknown licence type '%s'", $libelleStr)),
                 };
             }
 
@@ -342,7 +344,6 @@ class FftaScrapper
                         );
 
                         break;
-
                     case 'Benjamin':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(
@@ -350,7 +351,6 @@ class FftaScrapper
                         );
 
                         break;
-
                     case 'Minime':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(
@@ -358,13 +358,11 @@ class FftaScrapper
                         );
 
                         break;
-
                     case 'Cadet':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(LicenseAgeCategoryType::CADET);
 
                         break;
-
                     case 'Junior':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(
@@ -372,7 +370,6 @@ class FftaScrapper
                         );
 
                         break;
-
                     case 'Sénior 1':
                         $licence->setCategory(LicenseCategoryType::ADULTES);
                         $licence->setAgeCategory(
@@ -380,7 +377,6 @@ class FftaScrapper
                         );
 
                         break;
-
                     case 'Sénior 2':
                         $licence->setCategory(LicenseCategoryType::ADULTES);
                         $licence->setAgeCategory(
@@ -388,7 +384,6 @@ class FftaScrapper
                         );
 
                         break;
-
                     case 'Sénior 3':
                         $licence->setCategory(LicenseCategoryType::ADULTES);
                         $licence->setAgeCategory(
@@ -396,7 +391,6 @@ class FftaScrapper
                         );
 
                         break;
-
                     case 'Sénior':
                     case 'Senior':
                         $licence->setCategory(LicenseCategoryType::ADULTES);
@@ -405,37 +399,31 @@ class FftaScrapper
                         );
 
                         break;
-
                     case 'U11':
                         $licence->setCategory(LicenseCategoryType::POUSSINS);
                         $licence->setAgeCategory(LicenseAgeCategoryType::U11);
 
                         break;
-
                     case 'U13':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(LicenseAgeCategoryType::U13);
 
                         break;
-
                     case 'U15':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(LicenseAgeCategoryType::U15);
 
                         break;
-
                     case 'U18':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(LicenseAgeCategoryType::U18);
 
                         break;
-
                     case 'U21':
                         $licence->setCategory(LicenseCategoryType::JEUNES);
                         $licence->setAgeCategory(LicenseAgeCategoryType::U21);
 
                         break;
-
                     case 'Vétéran':
                     case 'Veteran':
                         $licence->setCategory(LicenseCategoryType::ADULTES);
@@ -444,7 +432,6 @@ class FftaScrapper
                         );
 
                         break;
-
                     case 'Super Vétéran':
                     case 'Super Veteran':
                         $licence->setCategory(LicenseCategoryType::ADULTES);
@@ -453,9 +440,8 @@ class FftaScrapper
                         );
 
                         break;
-
                     default:
-                        throw new \Exception(sprintf("Unknown Age Category '%s'", $categorieAgeStr));
+                        throw new Exception(sprintf("Unknown Age Category '%s'", $categorieAgeStr));
                 }
             }
 
@@ -481,7 +467,7 @@ class FftaScrapper
                         default => null,
                     };
                     if (!$activity) {
-                        throw new \Exception(sprintf("Unknown Activity '%s'", $activiteStr));
+                        throw new Exception(sprintf("Unknown Activity '%s'", $activiteStr));
                     }
                     if (!$licenseActivities->contains($activity)) {
                         $licenseActivities->add($activity);
@@ -550,10 +536,10 @@ class FftaScrapper
 
             $event = (new FftaEvent())
                 ->setFrom(
-                    \DateTimeImmutable::createFromFormat('!d/m/Y', $fromDate),
+                    DateTimeImmutable::createFromFormat('!d/m/Y', $fromDate),
                 )
                 ->setTo(
-                    \DateTimeImmutable::createFromFormat(
+                    DateTimeImmutable::createFromFormat(
                         '!d/m/Y',
                         $toDate,
                     )->setTime(23, 59, 59),
@@ -562,8 +548,7 @@ class FftaScrapper
                 ->setLocation($location)
                 ->setDiscipline($discipline)
                 ->setSpecifics($specifics)
-                ->setUrl($url)
-            ;
+                ->setUrl($url);
             $events[] = $event;
         });
 
@@ -623,8 +608,7 @@ class FftaScrapper
                 ->setScore2((int) $row->filter('td:nth-child(7)')->text())
                 ->setTotal((int) $row->filter('td:nth-child(8)')->text())
                 ->setNb10((int) $row->filter('td:nth-child(9)')->text())
-                ->setNb10p((int) $row->filter('td:nth-child(10)')->text())
-            ;
+                ->setNb10p((int) $row->filter('td:nth-child(10)')->text());
 
             $fftaResults[] = $fftaResult;
         });

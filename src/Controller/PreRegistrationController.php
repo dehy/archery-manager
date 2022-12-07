@@ -7,6 +7,7 @@ use App\Form\ApplicantRenewalType;
 use App\Form\ApplicantType;
 use App\Repository\ApplicantRepository;
 use App\Repository\LicenseeRepository;
+use DateTimeImmutable;
 use Dmishh\SettingsBundle\Manager\SettingsManager;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\NonUniqueResultException;
@@ -44,7 +45,7 @@ class PreRegistrationController extends AbstractController
         );
 
         $buttonLabel =
-            'Enregistrer ma pré-inscription'.
+            'Enregistrer ma pré-inscription' .
             ($waitingListActivated ? " sur liste d'attente" : '');
 
         $form = $this->createForm(ApplicantType::class, $applicant);
@@ -64,7 +65,7 @@ class PreRegistrationController extends AbstractController
                 : null;
 
             if (!$licensee) {
-                $applicant->setRegisteredAt(new \DateTimeImmutable());
+                $applicant->setRegisteredAt(new DateTimeImmutable());
                 $applicant->setOnWaitingList($waitingListActivated);
                 $applicantRepository->add($applicant);
 
@@ -77,8 +78,7 @@ class PreRegistrationController extends AbstractController
                     )
                     ->context([
                         'waitingListActivated' => $waitingListActivated,
-                    ])
-                ;
+                    ]);
 
                 $mailer->send($email);
 
@@ -88,8 +88,7 @@ class PreRegistrationController extends AbstractController
                     ->textTemplate(
                         'pre_registration/mail_notification.txt.twig',
                     )
-                    ->context(['applicant' => $applicant])
-                ;
+                    ->context(['applicant' => $applicant]);
 
                 $mailer->send($notificationEmail);
 
@@ -150,7 +149,7 @@ class PreRegistrationController extends AbstractController
 
             if ($licensee) {
                 $applicant->setBirthdate(
-                    \DateTimeImmutable::createFromMutable(
+                    DateTimeImmutable::createFromMutable(
                         $licensee->getBirthdate(),
                     ),
                 );
@@ -159,7 +158,7 @@ class PreRegistrationController extends AbstractController
                     $licensee->getUser()->getPhoneNumber(),
                 );
                 $applicant->setRenewal(true);
-                $applicant->setRegisteredAt(new \DateTimeImmutable());
+                $applicant->setRegisteredAt(new DateTimeImmutable());
 
                 $applicantRepository->add($applicant);
 
@@ -169,8 +168,7 @@ class PreRegistrationController extends AbstractController
                     ->subject('Votre renouvellement aux Archers de Guyenne')
                     ->htmlTemplate(
                         'pre_registration/mail_renewal_confirmation.html.twig',
-                    )
-                ;
+                    );
 
                 $mailer->send($email);
 
@@ -180,8 +178,7 @@ class PreRegistrationController extends AbstractController
                     ->textTemplate(
                         'pre_registration/mail_renewal_notification.txt.twig',
                     )
-                    ->context(['applicant' => $applicant])
-                ;
+                    ->context(['applicant' => $applicant]);
 
                 $mailer->send($notificationEmail);
 

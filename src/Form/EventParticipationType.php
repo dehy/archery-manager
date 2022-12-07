@@ -28,8 +28,7 @@ class EventParticipationType extends AbstractType
                 'required' => false,
                 'label' => 'Départ',
                 'placeholder' => 'Non précisé',
-            ])
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

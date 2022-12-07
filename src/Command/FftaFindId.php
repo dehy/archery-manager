@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Scrapper\FftaScrapper;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -37,7 +38,7 @@ class FftaFindId extends Command
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     protected function execute(
         InputInterface $input,

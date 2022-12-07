@@ -39,8 +39,7 @@ class ApplicantCrudController extends AbstractCrudController
         return $crud
             ->setEntityLabelInSingular('Pré-inscrit')
             ->setEntityLabelInPlural('Pré-inscrits')
-            ->setPaginatorPageSize(150)
-        ;
+            ->setPaginatorPageSize(150);
     }
 
     public function configureFields(string $pageName): iterable
@@ -77,8 +76,7 @@ class ApplicantCrudController extends AbstractCrudController
         return $filters
             ->add('renewal')
             ->add('season')
-            ->add('onWaitingList')
-        ;
+            ->add('onWaitingList');
     }
 
     public function configureActions(Actions $actions): Actions

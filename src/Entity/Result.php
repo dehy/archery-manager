@@ -11,6 +11,7 @@ use App\Repository\ResultRepository;
 use App\Scrapper\CategoryParser;
 use App\Scrapper\FftaResult;
 use Doctrine\ORM\Mapping as ORM;
+use LogicException;
 
 #[ORM\Entity(repositoryClass: ResultRepository::class)]
 #[ApiResource]
@@ -83,8 +84,7 @@ class Result
             ->setScore2($fftaResult->getScore2())
             ->setTotal($fftaResult->getTotal())
             ->setNb10($fftaResult->getNb10())
-            ->setNb10p($fftaResult->getNb10p())
-        ;
+            ->setNb10p($fftaResult->getNb10p());
     }
 
     public function getId(): ?int
@@ -287,7 +287,7 @@ class Result
             );
         }
 
-        throw new \LogicException();
+        throw new LogicException();
     }
 
     private static function distanceAndSizeForChallenge33(
@@ -320,7 +320,7 @@ class Result
             };
         }
 
-        throw new \LogicException("Missing handling of discipline {$discipline}");
+        throw new LogicException("Missing handling of discipline {$discipline}");
     }
 
     private static function distanceAndSizeForFederal(
@@ -357,6 +357,6 @@ class Result
             };
         }
 
-        throw new \LogicException("Missing handling of discipline {$discipline}");
+        throw new LogicException("Missing handling of discipline {$discipline}");
     }
 }

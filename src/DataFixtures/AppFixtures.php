@@ -32,8 +32,7 @@ class AppFixtures extends Fixture
             ->setPassword('$2y$13$AXw36f3KDVUmodygNIT.Su5vCtf1OU2ftjFRsTZmvdsqkw0UhtRKi') // admin
             ->setFirstname('John')
             ->setLastname('Doe')
-            ->setGender(GenderType::MALE)
-        ;
+            ->setGender(GenderType::MALE);
         $manager->persist($admin);
 
         $licensee = new Licensee();
@@ -44,8 +43,7 @@ class AppFixtures extends Fixture
             ->setLastname($admin->getLastname())
             ->setBirthdate($faker->dateTimeInInterval('-39 years', '-21 years'))
             ->setFftaId(123456)
-            ->setFftaMemberCode('123456F')
-        ;
+            ->setFftaMemberCode('123456F');
         $manager->persist($licensee);
 
         $license = new License();
@@ -55,8 +53,7 @@ class AppFixtures extends Fixture
             ->setType(LicenseType::ADULTES_COMPETITION)
             ->setActivities([LicenseActivityType::CL])
             ->setAgeCategory(LicenseAgeCategoryType::SENIOR_1)
-            ->setCategory(LicenseCategoryType::ADULTES)
-        ;
+            ->setCategory(LicenseCategoryType::ADULTES);
         $manager->persist($license);
 
         for ($i = 1; $i <= 5; ++$i) {
@@ -68,8 +65,7 @@ class AppFixtures extends Fixture
                 ->setPassword('$2y$13$CGDD6CfkN8pHT/hKhml2RuA28Ba48QE86SlrjPssIcfXmRsNrzh1W') // user
                 ->setFirstname($faker->firstName(GenderType::MALE === $gender ? 'male' : 'female'))
                 ->setLastname($faker->lastName())
-                ->setGender($gender)
-            ;
+                ->setGender($gender);
             $manager->persist($user);
 
             $fftaId = $faker->randomNumber(6);
@@ -83,8 +79,7 @@ class AppFixtures extends Fixture
                 ->setLastname($user->getLastname())
                 ->setBirthdate($birthdate)
                 ->setFftaId($fftaId)
-                ->setFftaMemberCode($fftaId.'F')
-            ;
+                ->setFftaMemberCode($fftaId . 'F');
             $manager->persist($licensee);
 
             $license = new License();
@@ -94,8 +89,7 @@ class AppFixtures extends Fixture
                 ->setType($this->licenseHelper->licenseTypeForBirthdate($birthdate, (bool) random_int(0, 1)))
                 ->setActivities([LicenseActivityType::CL])
                 ->setAgeCategory($this->licenseHelper->ageCategoryForBirthdate($birthdate))
-                ->setCategory($this->licenseHelper->licenseCategoryTypeForBirthdate($birthdate))
-            ;
+                ->setCategory($this->licenseHelper->licenseCategoryTypeForBirthdate($birthdate));
             $manager->persist($license);
         }
 

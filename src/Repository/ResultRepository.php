@@ -55,8 +55,7 @@ class ResultRepository extends ServiceEntityRepository
             ->setMaxResults($count)
             ->setParameter('licensee', $licensee)
             ->getQuery()
-            ->getResult()
-        ;
+            ->getResult();
     }
 
     // /**

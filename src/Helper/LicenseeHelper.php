@@ -4,6 +4,7 @@ namespace App\Helper;
 
 use App\Entity\Licensee;
 use App\Entity\User;
+use LogicException;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Security;
@@ -26,8 +27,7 @@ class LicenseeHelper
         $user = $this->security->getUser();
         $licenseeCode = $this->requestStack
             ->getSession()
-            ->get(self::SESSION_KEY)
-        ;
+            ->get(self::SESSION_KEY);
         if (!$user->getLicensees()->containsKey($licenseeCode)) {
             $licenseeCode = null;
         }
@@ -43,14 +43,13 @@ class LicenseeHelper
             }
         }
 
-        throw new \LogicException('Should have get a licensee.');
+        throw new LogicException('Should have get a licensee.');
     }
 
     public function setSelectedLicensee(Licensee $licensee): void
     {
         $this->requestStack
             ->getSession()
-            ->set(self::SESSION_KEY, $licensee->getFftaMemberCode())
-        ;
+            ->set(self::SESSION_KEY, $licensee->getFftaMemberCode());
     }
 }

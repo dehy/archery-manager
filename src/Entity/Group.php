@@ -6,10 +6,11 @@ use App\Repository\GroupRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 
 #[ORM\Entity(repositoryClass: GroupRepository::class)]
 #[ORM\Table(name: '`group`')]
-class Group implements \Stringable
+class Group implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

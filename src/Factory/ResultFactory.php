@@ -41,7 +41,6 @@ class ResultFactory
             ->setTotal($fftaResult->getTotal())
             ->setNb10($fftaResult->getNb10())
             ->setNb10p($fftaResult->getNb10p())
-            ->setPosition($fftaResult->getPosition())
-        ;
+            ->setPosition($fftaResult->getPosition());
     }
 }

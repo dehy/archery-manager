@@ -20,8 +20,7 @@ class LicenseSeasonFilter implements FilterInterface
             ->setFilterFqcn(self::class)
             ->setProperty('season')
             ->setLabel($label)
-            ->setFormType(IntegerType::class)
-        ;
+            ->setFormType(IntegerType::class);
     }
 
     public function apply(
@@ -36,7 +35,6 @@ class LicenseSeasonFilter implements FilterInterface
                 'license',
             )
             ->andWhere('license.season = :season')
-            ->setParameter('season', $filterDataDto->getValue())
-        ;
+            ->setParameter('season', $filterDataDto->getValue());
     }
 }

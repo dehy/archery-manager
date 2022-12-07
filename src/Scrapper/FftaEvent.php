@@ -3,12 +3,13 @@
 namespace App\Scrapper;
 
 use App\DBAL\Types\DisciplineType;
+use DateTimeImmutable;
 
 class FftaEvent
 {
     private string $name;
-    private \DateTimeImmutable $from;
-    private \DateTimeImmutable $to;
+    private DateTimeImmutable $from;
+    private DateTimeImmutable $to;
     private string $location;
     private string $discipline;
     private string $specifics;
@@ -26,26 +27,26 @@ class FftaEvent
         return $this->name;
     }
 
-    public function setFrom(\DateTimeImmutable $from): FftaEvent
+    public function setFrom(DateTimeImmutable $from): FftaEvent
     {
         $this->from = $from;
 
         return $this;
     }
 
-    public function getFrom(): \DateTimeImmutable
+    public function getFrom(): DateTimeImmutable
     {
         return $this->from;
     }
 
-    public function setTo(\DateTimeImmutable $to): FftaEvent
+    public function setTo(DateTimeImmutable $to): FftaEvent
     {
         $this->to = $to;
 
         return $this;
     }
 
-    public function getTo(): \DateTimeImmutable
+    public function getTo(): DateTimeImmutable
     {
         return $this->to;
     }

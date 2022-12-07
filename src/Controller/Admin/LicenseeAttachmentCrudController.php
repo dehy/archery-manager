@@ -28,8 +28,7 @@ class LicenseeAttachmentCrudController extends AbstractCrudController
         $downloadAction = Action::new('downloadFile', 'Voir', 'fa-solid fa-eye')
             ->linkToRoute('licensees_attachements_download', fn (LicenseeAttachment $attachment) => [
                 'attachment' => $attachment->getId(),
-            ])
-        ;
+            ]);
 
         return $actions->add(Crud::PAGE_INDEX, $downloadAction);
     }

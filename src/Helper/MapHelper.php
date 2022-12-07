@@ -52,6 +52,6 @@ class MapHelper
             $url = str_replace(sprintf('{%s}', $key), $value, $url);
         }
 
-        return $url.'?access_token='.$this->accessToken;
+        return $url . '?access_token=' . $this->accessToken;
     }
 }

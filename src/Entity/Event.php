@@ -11,14 +11,16 @@ use App\DBAL\Types\EventType;
 use App\Repository\EventRepository;
 use App\Scrapper\FftaEvent;
 use Cocur\Slugify\Slugify;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource]
-class Event implements \Stringable
+class Event implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -29,10 +31,10 @@ class Event implements \Stringable
     private string $name;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $startsAt;
+    private DateTimeImmutable $startsAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $endsAt;
+    private DateTimeImmutable $endsAt;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $address;
@@ -77,7 +79,7 @@ class Event implements \Stringable
     private bool $allDay = false;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private ?DateTimeImmutable $updatedAt = null;
 
     public function __construct()
     {
@@ -107,8 +109,7 @@ class Event implements \Stringable
             ->setEndsAt($fftaEvent->getTo())
             ->setName($fftaEvent->getName())
             ->setStartsAt($fftaEvent->getFrom())
-            ->setType(EventType::CONTEST_OFFICIAL)
-        ;
+            ->setType(EventType::CONTEST_OFFICIAL);
     }
 
     public function getName(): ?string
@@ -123,12 +124,12 @@ class Event implements \Stringable
         return $this;
     }
 
-    public function getStartsAt(): ?\DateTimeImmutable
+    public function getStartsAt(): ?DateTimeImmutable
     {
         return $this->startsAt;
     }
 
-    public function setStartsAt(\DateTimeImmutable $startsAt): self
+    public function setStartsAt(DateTimeImmutable $startsAt): self
     {
         $this->startsAt = $startsAt;
 
@@ -291,8 +292,7 @@ class Event implements \Stringable
     {
         if ($type) {
             return $this->attachments
-                ->filter(fn (EventAttachment $attachment) => $attachment->getType() === $type)
-            ;
+                ->filter(fn (EventAttachment $attachment) => $attachment->getType() === $type);
         }
 
         return $this->attachments;
@@ -360,12 +360,12 @@ class Event implements \Stringable
         return $this;
     }
 
-    public function getEndsAt(): ?\DateTimeImmutable
+    public function getEndsAt(): ?DateTimeImmutable
     {
         return $this->endsAt;
     }
 
-    public function setEndsAt(\DateTimeImmutable $endsAt): self
+    public function setEndsAt(DateTimeImmutable $endsAt): self
     {
         $this->endsAt = $endsAt;
 
@@ -382,7 +382,7 @@ class Event implements \Stringable
                 sprintf('%s-%s', $this->getStartsAt()->format('d-m-Y'), $this->getTitle())
             )
         );
-        $this->setUpdatedAt(new \DateTimeImmutable());
+        $this->setUpdatedAt(new DateTimeImmutable());
     }
 
     public function getTitle(): string
@@ -431,12 +431,12 @@ class Event implements \Stringable
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): ?DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): self
+    public function setUpdatedAt(DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
 

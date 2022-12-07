@@ -4,8 +4,12 @@ namespace App\Twig;
 
 use App\Entity\Attachment;
 use App\Entity\User;
+use DateInterval;
+use DateTime;
+use Exception;
 use League\Flysystem\FilesystemOperator;
 use Psr\Log\LoggerInterface;
+use ReflectionClass;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -34,7 +38,7 @@ class AttachmentTemporaryUrlExtension extends AbstractExtension
     {
         /** @var User $user */
         $user = $this->security->getUser();
-        $reflectionClass = new \ReflectionClass($attachment);
+        $reflectionClass = new ReflectionClass($attachment);
         $cacheKey = sprintf(
             'user#%s.class#%s.name#%s.url',
             $user->getId(),
@@ -43,7 +47,7 @@ class AttachmentTemporaryUrlExtension extends AbstractExtension
         );
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($reflectionClass, $attachment) {
-            $item->expiresAfter(new \DateInterval('PT10M'));
+            $item->expiresAfter(new DateInterval('PT10M'));
 
             $reflectionProperty = $reflectionClass->getProperty('uploadedFile');
             $reflectionAttributes = $reflectionProperty->getAttributes();
@@ -51,19 +55,19 @@ class AttachmentTemporaryUrlExtension extends AbstractExtension
                 if (UploadableField::class === $reflectionAttribute->getName()) {
                     /** @var UploadableField $uploadableField */
                     $uploadableField = $reflectionAttribute->newInstance();
-                    $storageName = $uploadableField->getMapping().'Storage';
+                    $storageName = $uploadableField->getMapping() . 'Storage';
 
                     /** @var FilesystemOperator $operator */
                     $operator = $this->{$storageName};
 
                     return $operator->temporaryUrl(
                         $attachment->getFile()->getName(),
-                        new \DateTime('+10 minutes')
+                        new DateTime('+10 minutes')
                     );
                 }
             }
 
-            throw new \Exception('Was not able to generate a temporary URL');
+            throw new Exception('Was not able to generate a temporary URL');
         });
     }
 }

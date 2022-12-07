@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Vich\UploaderBundle\Entity\File as EmbeddedFile;
 
@@ -14,7 +15,7 @@ abstract class Attachment
     protected EmbeddedFile $file;
 
     #[ORM\Column]
-    protected ?\DateTimeImmutable $updatedAt = null;
+    protected ?DateTimeImmutable $updatedAt = null;
 
     public function __construct()
     {
@@ -31,12 +32,12 @@ abstract class Attachment
         return $this->file;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): ?DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): self
+    public function setUpdatedAt(DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
 

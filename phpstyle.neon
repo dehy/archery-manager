@@ -1,0 +1,9 @@
+parameters:
+    php: 8.1
+    risky: false
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - src/Kernel.php
+        - tests/bootstrap.php

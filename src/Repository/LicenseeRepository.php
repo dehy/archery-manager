@@ -51,8 +51,7 @@ class LicenseeRepository extends ServiceEntityRepository
             ->andWhere('l.fftaMemberCode = :fftaCode')
             ->setParameter('fftaCode', $fftaCode)
             ->getQuery()
-            ->getOneOrNullResult()
-        ;
+            ->getOneOrNullResult();
     }
 
     /**
@@ -64,8 +63,7 @@ class LicenseeRepository extends ServiceEntityRepository
             ->andWhere('l.fftaId = :fftaId')
             ->setParameter('fftaId', $fftaId)
             ->getQuery()
-            ->getOneOrNullResult()
-        ;
+            ->getOneOrNullResult();
     }
 
     public function findByLicenseYear(int $year): array
@@ -75,8 +73,7 @@ class LicenseeRepository extends ServiceEntityRepository
             ->where('li.season = :year')
             ->setParameter('year', $year)
             ->getQuery()
-            ->getResult()
-        ;
+            ->getResult();
     }
 
     // /**

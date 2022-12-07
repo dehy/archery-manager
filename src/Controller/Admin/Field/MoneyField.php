@@ -7,6 +7,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FieldTrait;
 use Money\Currencies\ISOCurrencies;
 use Money\Formatter\IntlMoneyFormatter;
+use NumberFormatter;
 
 class MoneyField implements FieldInterface
 {
@@ -19,9 +20,9 @@ class MoneyField implements FieldInterface
         $this->dto = new FieldDto();
         $currencies = new ISOCurrencies();
 
-        $numberFormatter = new \NumberFormatter(
+        $numberFormatter = new NumberFormatter(
             'fr_FR',
-            \NumberFormatter::CURRENCY,
+            NumberFormatter::CURRENCY,
         );
         self::$moneyFormatter = new IntlMoneyFormatter(
             $numberFormatter,
@@ -37,7 +38,6 @@ class MoneyField implements FieldInterface
             ->setProperty($propertyName)
             ->setLabel($label)
             ->setTemplatePath('admin/crud/fields/money.html.twig')
-            ->formatValue(fn ($property) => self::$moneyFormatter->format($property))
-        ;
+            ->formatValue(fn ($property) => self::$moneyFormatter->format($property));
     }
 }

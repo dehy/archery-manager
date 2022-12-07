@@ -4,7 +4,9 @@ namespace App\Command;
 
 use App\Entity\Licensee;
 use App\Entity\User;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -32,7 +34,7 @@ class ImportUsersCommand extends Command
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     protected function execute(
         InputInterface $input,
@@ -66,8 +68,7 @@ class ImportUsersCommand extends Command
                         ->setPassword('!!')
                         ->setGender($gender)
                         ->setLastname($lastname)
-                        ->setFirstname($firstname)
-                    ;
+                        ->setFirstname($firstname);
                     $this->entityManager->persist($user);
                 }
                 $user->setPhoneNumber($phone_number);
@@ -75,8 +76,7 @@ class ImportUsersCommand extends Command
                 $licensee = $user
                     ->getLicensees()
                     ->filter(fn (Licensee $l) => $l->getFirstname() === $user->getFirstname())
-                    ->first()
-                ;
+                    ->first();
 
                 if (!$licensee) {
                     $licensee = new Licensee();
@@ -88,10 +88,9 @@ class ImportUsersCommand extends Command
                     ->setGender($gender)
                     ->setLastname($lastname)
                     ->setFirstname($firstname)
-                    ->setBirthdate(new \DateTime($birthdate))
+                    ->setBirthdate(new DateTime($birthdate))
                     ->setFftaMemberCode($ffta_member_code)
-                    ->setFftaId($ffta_id)
-                ;
+                    ->setFftaId($ffta_id);
 
                 $output->writeln(
                     sprintf(

@@ -17,7 +17,7 @@ class CategoryParser
 
         $matchPattern = sprintf('(%s)[HF](%s)', $ageCategories, $activityTypes);
 
-        $re = '/'.$matchPattern.'/m';
+        $re = '/' . $matchPattern . '/m';
         if (1 === preg_match($re, $categoryString, $matches)) {
             $ageCategory = $matches[1];
             $activity = $matches[2];

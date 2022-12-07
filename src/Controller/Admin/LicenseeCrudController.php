@@ -65,7 +65,6 @@ class LicenseeCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return $filters->add(LicenseSeasonFilter::new())
-            ->add('groups')
-        ;
+            ->add('groups');
     }
 }

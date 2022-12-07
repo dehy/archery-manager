@@ -72,7 +72,6 @@ class ResultCrudController extends AbstractCrudController
                 ChoiceFilter::new('activity')->setChoices(
                     LicenseActivityType::getChoices(),
                 ),
-            )
-        ;
+            );
     }
 }

@@ -87,7 +87,7 @@ class SmokeTest extends LoggedInTestCase
         $client = static::createLoggedInAsUserClient();
 
         $event = $this->findEvent(EventType::CONTEST_OFFICIAL);
-        $crawler = $client->request('GET', '/events/'.$event->getSlug());
+        $crawler = $client->request('GET', '/events/' . $event->getSlug());
 
         $calendarLink = $crawler->selectLink('Ajouter à mon calendrier')->link();
         $client->click($calendarLink);

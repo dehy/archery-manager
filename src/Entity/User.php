@@ -7,6 +7,7 @@ use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -21,7 +22,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     ),
 ]
 #[Auditable]
-class User implements UserInterface, PasswordAuthenticatedUserInterface, \Stringable
+class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -93,8 +94,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         $this->id = $data['id'];
         $this->setEmail($data['email'])
             ->setRoles($data['roles'])
-            ->setPassword($data['password'])
-        ;
+            ->setPassword($data['password']);
     }
 
     public function getId(): ?int

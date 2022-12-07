@@ -12,8 +12,10 @@ use App\Factory\UserFactory;
 use App\Repository\LicenseeRepository;
 use App\Repository\UserRepository;
 use App\Scrapper\FftaScrapper;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToProvideChecksum;
 use Mimey\MimeTypes;
@@ -47,7 +49,7 @@ class FftaHelper
     /**
      * @throws NonUniqueResultException
      * @throws TransportExceptionInterface
-     * @throws \Exception
+     * @throws Exception
      */
     public function syncLicensees(int $season): void
     {
@@ -107,8 +109,7 @@ class FftaHelper
                 )
                 ->context([
                     'licensee' => $licensee,
-                ])
-            ;
+                ]);
 
             try {
                 $this->mailer->send($email);
@@ -152,7 +153,7 @@ class FftaHelper
                     $this->entityManager->remove($dbProfilePicture);
 
                     $licensee->addAttachment($fftaProfilePicture);
-                    $licensee->setUpdatedAt(new \DateTimeImmutable());
+                    $licensee->setUpdatedAt(new DateTimeImmutable());
                     $this->entityManager->persist($fftaProfilePicture);
                 } else {
                     $this->logger->info('  = Same profile picture. Not updating.');
@@ -166,7 +167,7 @@ class FftaHelper
             if (!$dbProfilePicture && $fftaProfilePicture) {
                 $this->logger->info('  + Adding profile picture');
                 $licensee->addAttachment($fftaProfilePicture);
-                $licensee->setUpdatedAt(new \DateTimeImmutable());
+                $licensee->setUpdatedAt(new DateTimeImmutable());
                 $this->entityManager->persist($fftaProfilePicture);
             }
             if (!$dbProfilePicture && !$fftaProfilePicture) {
@@ -189,19 +190,19 @@ class FftaHelper
         if ($fftaPicture) {
             $temporaryPPPath = tempnam(sys_get_temp_dir(), sprintf('pp_%s_', $licensee->getFftaMemberCode()));
             if (false === $temporaryPPPath) {
-                throw new \Exception('Cannot generate temporary filename');
+                throw new Exception('Cannot generate temporary filename');
             }
             $writtenBytes = file_put_contents($temporaryPPPath, $fftaPicture);
             if (false === $writtenBytes) {
-                throw new \Exception('file not written');
+                throw new Exception('file not written');
             }
             $mimetype = $this->mimeTypeGuesser->guessMimeType($temporaryPPPath);
             if (!$mimetype) {
-                throw new \Exception('Cannot guess mimetype for profile picture');
+                throw new Exception('Cannot guess mimetype for profile picture');
             }
             $extension = $this->mimeTypes->getExtension($mimetype);
             if (!$extension) {
-                throw new \Exception('Cannot find a corresponding extension for mimetype '.$mimetype);
+                throw new Exception('Cannot find a corresponding extension for mimetype ' . $mimetype);
             }
             $uploadedFile = new UploadedFile(
                 $temporaryPPPath,
@@ -211,8 +212,7 @@ class FftaHelper
             $profilePicture = new LicenseeAttachment();
             $profilePicture
                 ->setType(LicenseeAttachmentType::PROFILE_PICTURE)
-                ->setUploadedFile($uploadedFile)
-            ;
+                ->setUploadedFile($uploadedFile);
 
             return $profilePicture;
         }
@@ -271,7 +271,7 @@ class FftaHelper
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function createLicenseForLicenseeAndSeason(
         ?Licensee $licensee,

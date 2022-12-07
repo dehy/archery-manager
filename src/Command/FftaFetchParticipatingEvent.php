@@ -72,7 +72,7 @@ class FftaFetchParticipatingEvent extends Command
                         $fftaEvent->getDiscipline(),
                     ),
                     $fftaEvent->getSpecifics()
-                        ? '/'.$fftaEvent->getSpecifics()
+                        ? '/' . $fftaEvent->getSpecifics()
                         : '',
                     $fftaEvent->getName(),
                     $fftaEvent->getLocation(),
@@ -119,8 +119,7 @@ class FftaFetchParticipatingEvent extends Command
                     'toNight' => $fftaEvent->getTo()->setTime(23, 59, 59),
                 ])
                 ->getQuery()
-                ->getOneOrNullResult()
-            ;
+                ->getOneOrNullResult();
             if (!$event) {
                 $event = Event::fromFftaEvent($fftaEvent);
                 $this->entityManager->persist($event);
