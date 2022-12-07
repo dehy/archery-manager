@@ -92,7 +92,7 @@ if [[ "${1:-}" == "sut" ]]; then
     export GIT_DISCOVERY_ACROSS_FILESYSTEM
 
     # Prepare test environment
-    #${GOSU} php bin/console doctrine:fixtures:load -e "${APP_ENV}"
+    ${GOSU} php bin/console doctrine:fixtures:load -e "${APP_ENV}" --no-interaction
 
     # Install phpunit environment by executing a dummy command
     ${GOSU} php bin/phpunit --version
