@@ -3,12 +3,10 @@
 namespace App\Entity;
 
 use App\DBAL\Types\PracticeLevelType;
-use App\Helper\ApplicantHelper;
 use App\Repository\ApplicantRepository;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
-use Money\Money;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ApplicantRepository::class)]
@@ -290,26 +288,6 @@ class Applicant implements \Stringable
             mb_strtoupper($this->getLastname()),
             ucfirst($this->getFirstname()),
         );
-    }
-
-    /**
-     * @todo rename $licenseType to boolean $tournament
-     */
-    public function getRealLicenseType(): string
-    {
-        return ApplicantHelper::default()->licenseTypeForApplicant($this);
-    }
-
-    public function getAgeCategory(): string
-    {
-        return ApplicantHelper::default()->licenseAgeCategoryForApplicant(
-            $this,
-        );
-    }
-
-    public function toPay(): Money
-    {
-        return ApplicantHelper::default()->toPayForApplicant($this);
     }
 
     public function getPaymentObservations(): ?string

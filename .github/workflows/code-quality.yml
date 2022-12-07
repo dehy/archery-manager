@@ -39,7 +39,7 @@ jobs:
       - name: Install
         run: composer install --prefer-dist
       - name: Run phpstan
-        run: ./vendor/bin/phpstan analyze --level 3 src/ tests/
+        run: ./vendor/bin/phpstan analyze
 
   rector:
     runs-on: ubuntu-latest
