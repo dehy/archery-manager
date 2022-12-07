@@ -60,7 +60,7 @@ class AppFixtures extends Fixture
         $manager->persist($license);
 
         for ($i = 1; $i <= 5; ++$i) {
-            $gender = mt_rand(0, 1) ? GenderType::MALE : GenderType::FEMALE;
+            $gender = random_int(0, 1) ? GenderType::MALE : GenderType::FEMALE;
 
             $user = new User();
             $user->setRoles([UserRoleType::USER])
@@ -91,7 +91,7 @@ class AppFixtures extends Fixture
             $license
                 ->setLicensee($licensee)
                 ->setSeason(2023)
-                ->setType($this->licenseHelper->licenseTypeForBirthdate($birthdate, (bool) mt_rand(0, 1)))
+                ->setType($this->licenseHelper->licenseTypeForBirthdate($birthdate, (bool) random_int(0, 1)))
                 ->setActivities([LicenseActivityType::CL])
                 ->setAgeCategory($this->licenseHelper->ageCategoryForBirthdate($birthdate))
                 ->setCategory($this->licenseHelper->licenseCategoryTypeForBirthdate($birthdate))
