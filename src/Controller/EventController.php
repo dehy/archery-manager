@@ -21,7 +21,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 class EventController extends AbstractController
@@ -50,10 +49,13 @@ class EventController extends AbstractController
 
         $calendar = [];
         for ($currentDate = $firstDate; $currentDate <= $lastDate; $currentDate->modify('+1 day')) {
-            $startOfDay = DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0, 0);
+            $startOfDay = DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0);
             $endOfDay = DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
-            $eventsForThisDay = array_filter($events, fn (Event $event) => ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
-                || ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay));
+            $eventsForThisDay = array_filter(
+                $events,
+                fn (Event $event) => ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
+                    || ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay)
+            );
             $calendar[$currentDate->format('Y-m-j')] = $eventsForThisDay;
         }
 
@@ -73,7 +75,7 @@ class EventController extends AbstractController
         $event = $eventRepository->findBySlug($slug);
 
         if (!$event) {
-            throw new NotFoundHttpException();
+            throw $this->createNotFoundException();
         }
 
         $ics = IcsFactory::new($event->getTitle())
@@ -90,8 +92,11 @@ class EventController extends AbstractController
     }
 
     #[Route('/events/attachments/{attachment}', name: 'events_attachements_download')]
-    public function downloadAttachement(Request $request, EventAttachment $attachment, FilesystemOperator $eventsStorage): Response
-    {
+    public function downloadAttachement(
+        Request $request,
+        EventAttachment $attachment,
+        FilesystemOperator $eventsStorage
+    ): Response {
         $forceDownload = $request->query->get('forceDownload');
         $contentDisposition = sprintf(
             '%s; filename="%s"',
@@ -127,10 +132,13 @@ class EventController extends AbstractController
         $event = $eventRepository->findBySlug($slug);
 
         if (!$event) {
-            throw new NotFoundHttpException();
+            throw $this->createNotFoundException();
         }
 
-        $eventParticipation = $eventHelper->licenseeParticipationToEvent($licenseeHelper->getLicenseeFromSession(), $event);
+        $eventParticipation = $eventHelper->licenseeParticipationToEvent(
+            $licenseeHelper->getLicenseeFromSession(),
+            $event
+        );
         $eventParticipationForm = $this->createForm(EventParticipationType::class, $eventParticipation);
 
         $eventParticipationForm->handleRequest($request);

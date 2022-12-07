@@ -282,7 +282,9 @@ class Event implements Stringable
 
     public function hasMandate(): bool
     {
-        return $this->getAttachments()->exists(fn (int $key, EventAttachment $attachment) => EventAttachmentType::MANDATE === $attachment->getType());
+        return $this->getAttachments()->exists(
+            fn (int $key, EventAttachment $attachment) => EventAttachmentType::MANDATE === $attachment->getType()
+        );
     }
 
     /**

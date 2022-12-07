@@ -25,9 +25,12 @@ class EventAttachmentCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         $downloadAction = Action::new('downloadFile', 'Voir', 'fa-solid fa-eye')
-            ->linkToRoute('events_attachements_download', fn (EventAttachment $attachment) => [
-                'attachment' => $attachment->getId(),
-            ]);
+            ->linkToRoute(
+                'events_attachements_download',
+                fn (EventAttachment $attachment) => [
+                    'attachment' => $attachment->getId(),
+                ]
+            );
 
         return $actions->add(Crud::PAGE_INDEX, $downloadAction);
     }

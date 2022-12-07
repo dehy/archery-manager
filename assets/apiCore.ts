@@ -4,7 +4,7 @@ import config from "./config";
 axios.defaults.headers.post['Content-Type'] = 'application/json+ld';
 axios.defaults.baseURL = config.get('apiUrl');
 
-class apiCore {
+class APICore {
     /**
      * Fetches data from given url
      */
@@ -96,4 +96,4 @@ class apiCore {
     };
 }
 
-export default apiCore;
+export default APICore;
