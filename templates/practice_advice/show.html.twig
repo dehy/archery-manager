@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conseil de pratique{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col">
+            <h1>
+                {{ advice.title }}
+            </h1>
+            <em>Conseil par {{ advice.author.firstname }}, le {{ advice.createdAt|date('d/m/Y') }}, pour {{ licenseeHelper.licenseeFromSession.firstnameWithInitial }}</em>
+
+            <div class="mt-3">{{ advice.advice|raw }}</div>
+        </div>
+    </div>
+{% endblock %}

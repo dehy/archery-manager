@@ -96,10 +96,10 @@
             {% else %}
                 <ul class="list-group">
                     {% for advice in advices %}
-                        <li class="list-group-item">
+                        <a href="{{ path('app_practice_advice_show', {'advice': advice.id}) }}" class="list-group-item">
                             <strong>{{ advice.title }}</strong><br/>
                             <em>par {{ advice.author.firstname }}</em>
-                        </li>
+                        </a>
                     {% endfor %}
                 </ul>
             {% endif %}
