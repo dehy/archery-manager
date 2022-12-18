@@ -109,11 +109,11 @@ class EventController extends AbstractController
             $fileStream = $eventsStorage->readStream($attachment->getFile()->getName());
 
             stream_copy_to_stream($fileStream, $outputStream);
-        }, 200, [
-            'Content-Type' => $attachment->getFile()->getMimeType(),
-            'Content-Disposition' => $contentDisposition,
-            'Content-Length' => $attachment->getFile()->getSize(),
-        ]);
+            }, 200, [
+                'Content-Type' => $attachment->getFile()->getMimeType(),
+                'Content-Disposition' => $contentDisposition,
+                'Content-Length' => $attachment->getFile()->getSize(),
+            ]);
         $response->setLastModified($attachment->getUpdatedAt());
 
         return $response;

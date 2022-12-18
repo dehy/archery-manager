@@ -141,7 +141,6 @@
         "dama/doctrine-test-bundle": "^7.1",
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "fakerphp/faker": "^1.20",
-        "friendsofphp/php-cs-fixer": "^3.11",
         "jspaetzel/phpstyle": "^1.4",
         "phpstan/phpstan": "^1.8",
         "phpunit/phpunit": "^9.5",

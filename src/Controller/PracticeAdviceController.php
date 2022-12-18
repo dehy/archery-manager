@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\PracticeAdvice;
-use App\Entity\User;
 use App\Helper\LicenseeHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;

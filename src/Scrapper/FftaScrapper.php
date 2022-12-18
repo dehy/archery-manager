@@ -252,9 +252,8 @@ class FftaScrapper
     }
 
     /**
-     * @return array<int, License>
-     *
      * @throws Exception
+     * @return array<int, License>
      */
     public function fetchLicenseeLicenses(
         int $fftaId,

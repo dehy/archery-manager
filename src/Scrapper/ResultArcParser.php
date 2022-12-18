@@ -21,9 +21,8 @@ class ResultArcParser
     }
 
     /**
-     * @return ResultArcLine[]
-     *
      * @throws Exception
+     * @return ResultArcLine[]
      */
     public function parseFile(string $filepath): array
     {
@@ -53,9 +52,8 @@ class ResultArcParser
     }
 
     /**
-     * @return Result[]
-     *
      * @throws Exception
+     * @return Result[]
      */
     public function parseContent(string $fileContent): array
     {
