@@ -1,0 +1,24 @@
+{% extends 'email_base.html.twig' %}
+
+{% block header %}
+    <row>
+        <columns>
+            <h4 class="text-center">Bonjour {{ advice.licensee.firstname }} !</h4>
+            <h6 class="text-center">Tu as un nouveau conseil de pratique.</h6>
+        </columns>
+    </row>
+{% endblock %}
+
+{% block content %}
+    <row>
+        <columns>
+            <p>{{ advice.author.firstname }} t'a écrit un nouveau conseil de pratique : <strong>{{ advice.title }}</strong></p>
+
+            <p>
+                Tu peux le consulter ici :
+                {% set link = url('app_practice_advice_show', {'advice': advice.id}) %}
+                <a href="{{ link }}" target="_blank">{{ link }}</a>
+            </p>
+        </columns>
+    </row>
+{% endblock %}

@@ -3,15 +3,28 @@
 namespace App\Controller\Admin;
 
 use App\Entity\PracticeAdvice;
+use App\Helper\LicenseeHelper;
+use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use Psr\Log\LoggerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Mailer\MailerInterface;
 
 class PracticeAdviceCrudController extends AbstractCrudController
 {
+    public function __construct(
+        private readonly LicenseeHelper $licenseeHelper,
+        private readonly MailerInterface $mailer,
+        private readonly LoggerInterface $logger,
+    ) {
+    }
+
     public static function getEntityFqcn(): string
     {
         return PracticeAdvice::class;
@@ -29,5 +42,56 @@ class PracticeAdviceCrudController extends AbstractCrudController
                 ->hideOnForm()
                 ->renderAsSwitch(false),
         ];
+    }
+
+    public function createEntity(string $entityFqcn): PracticeAdvice
+    {
+        /** @var PracticeAdvice $advice */
+        $advice = new $entityFqcn();
+        $advice->setAuthor($this->licenseeHelper->getLicenseeFromSession());
+
+        return $advice;
+    }
+
+    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        /** @var PracticeAdvice $advice */
+        $advice = $entityInstance;
+        $entityManager->persist($advice);
+        $entityManager->flush();
+
+        $mail = $this->generateNotificationMail($advice, 'practice_advice/mail_notification_new.html.twig');
+
+        try {
+            $this->mailer->send($mail);
+        } catch (TransportExceptionInterface $transportException) {
+            $this->logger->error($transportException->getMessage());
+        }
+    }
+
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        /** @var PracticeAdvice $advice */
+        $advice = $entityInstance;
+        $entityManager->flush();
+
+        $mail = $this->generateNotificationMail($advice, 'practice_advice/mail_notification_update.html.twig');
+
+        try {
+            $this->mailer->send($mail);
+        } catch (TransportExceptionInterface $transportException) {
+            $this->logger->error($transportException->getMessage());
+        }
+    }
+
+    private function generateNotificationMail(PracticeAdvice $advice, string $template): TemplatedEmail
+    {
+        $mail = new TemplatedEmail();
+        $mail->to($advice->getLicensee()->getUser()->getEmail());
+        $mail->subject(sprintf('[Conseil] %s', $advice->getTitle()));
+        $mail->htmlTemplate($template);
+        $mail->context(['advice' => $advice]);
+
+        return $mail;
     }
 }
