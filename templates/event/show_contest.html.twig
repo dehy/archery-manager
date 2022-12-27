@@ -171,6 +171,14 @@
                 <div id="collapseMandate" class="accordion-collapse collapse {% if showMandate %}show{% endif %}"
                      aria-labelledby="headingMandate"
                      data-bs-parent="#mandateAndResults">
+                    {% if event.attachments('mandate') is not empty %}
+                    <div class="p-2 alert alert-secondary rounded-0">
+                        <a href="{{ path('events_attachements_download', {attachment: (event.attachments('mandate')|first).id}) }}" class="btn btn-secondary" target="_blank">
+                            <em class="fa-solid fa-download"></em>
+                            Télécharger
+                        </a>
+                    </div>
+                    {% endif %}
                     <div class="accordion-body">
                         {% if event.attachments('mandate') is not empty %}
                             <canvas data-pdf-url="{{ path('events_attachements_download', {'attachment': (event.attachments('mandate')|first).id }) }}"
