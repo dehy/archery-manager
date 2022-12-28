@@ -18,13 +18,13 @@ class Group implements Stringable
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $name;
+    private ?string $name = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $description;
+    private ?string $description = null;
 
     #[ORM\ManyToMany(targetEntity: Licensee::class, inversedBy: 'groups')]
-    private $licensees;
+    private \Doctrine\Common\Collections\ArrayCollection|array $licensees;
 
     #[ORM\ManyToMany(targetEntity: Event::class, mappedBy: 'assignedGroups')]
     private Collection $events;

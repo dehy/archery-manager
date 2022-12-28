@@ -15,13 +15,13 @@ class SightAdjustment
 
     #[ORM\ManyToOne(targetEntity: Bow::class, inversedBy: 'sightAdjustments')]
     #[ORM\JoinColumn(nullable: false)]
-    private $bow;
+    private ?\App\Entity\Bow $bow = null;
 
     #[ORM\Column(type: 'integer')]
-    private $distance;
+    private ?int $distance = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $setting;
+    private ?string $setting = null;
 
     public function getId(): ?int
     {

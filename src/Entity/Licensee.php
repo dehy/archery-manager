@@ -69,7 +69,7 @@ class Licensee implements Stringable
             orphanRemoval: true,
         ),
     ]
-    private $bows;
+    private \Doctrine\Common\Collections\ArrayCollection|array $bows;
 
     #[
         ORM\OneToMany(
@@ -78,7 +78,7 @@ class Licensee implements Stringable
             orphanRemoval: true,
         ),
     ]
-    private $arrows;
+    private \Doctrine\Common\Collections\ArrayCollection|array $arrows;
 
     #[
         ORM\OneToMany(

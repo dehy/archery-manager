@@ -29,7 +29,7 @@ class License
     private $id;
 
     #[ORM\Column(type: 'integer')]
-    private $season;
+    private ?int $season = null;
 
     #[ORM\Column(type: 'LicenseType')]
     #[DoctrineAssert\EnumType(entity: LicenseType::class)]
@@ -45,7 +45,7 @@ class License
 
     #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: 'licenses')]
     #[ORM\JoinColumn(nullable: false)]
-    private $licensee;
+    private ?\App\Entity\Licensee $licensee = null;
 
     #[ORM\Column(type: 'simple_array')]
     private array $activities = [];
