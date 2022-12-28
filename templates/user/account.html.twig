@@ -1,5 +1,13 @@
 {% extends 'base.html.twig' %}
 
+{% block return_link %}
+    {{ path('app_mobile_othermenu') }}
+{% endblock %}
+
+{% block return_text %}
+    Autre
+{% endblock %}
+
 {% block title %}Mon compte{% endblock title %}
 
 {% block body %}

@@ -5,6 +5,14 @@
 {% set canAttend = licenseHelper.licenseIsValidForEventType(license, event.type) %}
 {% set licenseeParticipation = eventHelper.licenseeParticipationToEvent(licensee, event) %}
 
+{% block return_link %}
+    {{ path('app_event_index') }}
+{% endblock %}
+
+{% block return_text %}
+    Calendrier
+{% endblock %}
+
 {% block title %}
     {{ event.title }}
 {% endblock %}
@@ -31,7 +39,7 @@
                 <div class="col-sm-6">
                     <h5>
                         <em class="fa-solid fa-calendar-alt"></em> Date
-                        <a href="{{ path('app_event_eventics', {slug: event.slug}) }}"
+                        <a href="{{ path('app_event_ics', {slug: event.slug}) }}"
                            class="btn btn-secondary btn-sm">
                             <em class="fa-solid fa-calendar-plus fa-fw"></em>
                             Ajouter à mon calendrier

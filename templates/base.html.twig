@@ -23,11 +23,58 @@
     <title>{{ block('title') }}{{ block('title') is defined ? ' • ' }}Mon Club</title>
 </head>
 <body data-env-api-url="{{ apiUrl }}">
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
+<div class="mobile-tab-bar navbar navbar-expand navbar-dark bg-primary">
+    <ul class="navbar-nav w-100">
+        <li class="nav-item">
+            <a href="{{ path('app_homepage') }}" class="nav-link {{ _self.isActive('app_homepage') }}">
+                <div class="icon">
+                    <em class="fa-solid fa-gauge-high"></em>
+                </div>
+                Accueil
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ path('app_licensee_index') }}" class="nav-link {{ _self.isActive('app_licensee_') }}">
+                <div class="icon">
+                    <em class="fa-solid fa-users"></em>
+                </div>
+                Trombinoscope
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ path('app_event_index') }}" class="nav-link {{ _self.isActive('app_event_') }}">
+                <div class="icon">
+                    <em class="fa-solid fa-calendar"></em>
+                </div>
+                Calendrier
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ path('app_mobile_othermenu') }}" class="nav-link">
+                <div class="icon">
+                    <em class="fa-solid fa-ellipsis"></em>
+                </div>
+                Autre
+            </a>
+        </li>
+    </ul>
+</div>
+<nav class="top-navbar navbar navbar-expand-lg navbar-dark bg-primary mb-3">
     <div class="container">
-        <img src="{{ asset('build/logo-archers-de-guyenne.svg') }}" height="40" class="me-2" alt="">
-        <h1 class="navbar-brand mb-0 h1">Les Archers de Guyenne</h1>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+        <img src="{{ asset('build/logo-archers-de-guyenne.svg') }}" height="40" class="me-2 d-none d-md-inline" alt="">
+        <h1 class="navbar-brand mb-0 h1 d-none d-md-inline">Les Archers de Guyenne</h1>
+        {% if block('return_link') is defined %}
+        <div class="d-inline d-md-none text-white mt-2 h6">
+            <a href="{{- block('return_link') -}}" class="text-bg-primary text-decoration-none">
+                <em class="fa-solid fa-arrow-left me-1"></em>
+                {{- block('return_text') -}}
+            </a>
+        </div>
+        {% else %}
+            <img src="{{ asset('build/logo-archers-de-guyenne.svg') }}" height="40" class="me-2 d-md-none" alt="">
+        {% endif %}
+        <h1 class="text-bg-primary mx-auto h5 mt-1 overflow-auto d-md-none">{{ block('title') }}</h1>
+        <button class="navbar-toggler ms-auto d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -40,14 +87,14 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ _self.isActive('app_licensee_index') }}"
+                    <a class="nav-link {{ _self.isActive('app_licensee_') }}"
                        href="{{ path('app_licensee_index') }}">
                         <em class="fa-solid fa-users"></em>
                         Trombinoscope
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ _self.isActive('app_events_index') }}" href="{{ path('app_events_index') }}">
+                    <a class="nav-link {{ _self.isActive('app_event_') }}" href="{{ path('app_event_index') }}">
                         <em class="fa-solid fa-calendar"></em>
                         Calendrier
                     </a>

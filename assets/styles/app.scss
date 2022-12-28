@@ -6,6 +6,8 @@
 @import "bootstrap/scss/mixins";
 @import "bootstrap/scss/utilities";
 
+@import "mobile";
+
 .btn-discord {
   @include button-variant($discord, $discord);
 }

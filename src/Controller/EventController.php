@@ -28,7 +28,7 @@ class EventController extends AbstractController
     /**
      * @throws Exception
      */
-    #[Route('/events', name: 'app_events_index')]
+    #[Route('/events', name: 'app_event_index')]
     public function index(Request $request, EventRepository $eventRepository): Response
     {
         $now = new DateTime();
@@ -80,8 +80,8 @@ class EventController extends AbstractController
     /**
      * @throws NonUniqueResultException
      */
-    #[Route('/events/{slug}.ics')]
-    public function eventIcs(string $slug, EventRepository $eventRepository): Response
+    #[Route('/events/{slug}.ics', name: 'app_event_ics')]
+    public function ics(string $slug, EventRepository $eventRepository): Response
     {
         $event = $eventRepository->findBySlug($slug);
 

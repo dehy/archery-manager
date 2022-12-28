@@ -9,12 +9,12 @@
     {% set previous_month = start_of_month|date_modify('previous month') %}
     {% set next_month = start_of_month|date_modify('next month') %}
     <h3>
-        <a href="{{ path('app_events_index', {'m': previous_month|date('n'), 'y': previous_month|date('Y')}) }}"
+        <a href="{{ path('app_event_index', {'m': previous_month|date('n'), 'y': previous_month|date('Y')}) }}"
            class="btn btn-sm btn-secondary">
             <em class="fa-solid fa-angle-left"></em>
         </a>
-        <a href="{{ path('app_events_index') }}" class="btn btn-sm btn-secondary">Aujourd'hui</a>
-        <a href="{{ path('app_events_index', {'m': next_month|date('n'), 'y': next_month|date('Y')}) }}"
+        <a href="{{ path('app_event_index') }}" class="btn btn-sm btn-secondary">Aujourd'hui</a>
+        <a href="{{ path('app_event_index', {'m': next_month|date('n'), 'y': next_month|date('Y')}) }}"
            class="btn btn-sm btn-secondary">
             <em class="fa-solid fa-angle-right"></em>
         </a>

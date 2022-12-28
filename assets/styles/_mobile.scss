@@ -1,0 +1,60 @@
+@import 'bootstrap';
+
+body {
+  padding-top: 70px;
+  padding-bottom: 50px;
+}
+
+.mobile-tab-bar {
+  overflow: hidden;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  z-index: 10;
+  flex-wrap: wrap;
+}
+
+.mobile-tab-bar ul {
+  justify-content: space-around;
+}
+
+.mobile-tab-bar a {
+  float: left;
+  display: block;
+  text-align: center;
+  padding: 0 16px;
+  text-decoration: none;
+  font-size: 0.8rem;
+}
+
+.mobile-tab-bar .icon {
+  font-size: 1.2rem;
+  display: block;
+}
+
+.top-navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 10;
+}
+
+.navbar > .container {
+  justify-content: left;
+}
+
+@include media-breakpoint-up(md) {
+  body {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .top-navbar {
+    position: relative;
+  }
+
+  .mobile-tab-bar {
+    display: none;
+  }
+}

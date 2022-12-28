@@ -1,5 +1,21 @@
 {% extends 'base.html.twig' %}
 
+{% block return_link %}
+    {% if licenseeHelper.licenseeFromSession.id is same as licensee.id %}
+        {{ path('app_mobile_othermenu') }}
+    {% else %}
+        {{ path('app_licensee_index') }}
+    {% endif %}
+{% endblock %}
+
+{% block return_text %}
+    {% if licenseeHelper.licenseeFromSession.id is same as licensee.id %}
+        Autre
+    {% else %}
+        Trombinoscope
+    {% endif %}
+{% endblock %}
+
 {% block title %}{{ licensee.fullname }}{% endblock %}
 
 {% block body %}
