@@ -15,7 +15,7 @@ class Group implements Stringable
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $name = null;
@@ -24,7 +24,7 @@ class Group implements Stringable
     private ?string $description = null;
 
     #[ORM\ManyToMany(targetEntity: Licensee::class, inversedBy: 'groups')]
-    private \Doctrine\Common\Collections\ArrayCollection|array $licensees;
+    private Collection $licensees;
 
     #[ORM\ManyToMany(targetEntity: Event::class, mappedBy: 'assignedGroups')]
     private Collection $events;
