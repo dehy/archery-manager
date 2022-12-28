@@ -20,8 +20,8 @@ class EventFixtures extends Fixture
         $faker = Faker\Factory::create('fr');
 
         $parisTimezone = new DateTimeZone('Europe/Paris');
-        $saturday = new DateTimeImmutable('next saturday midnight', $parisTimezone);
-        $sunday = new DateTimeImmutable('next sunday midnight', $parisTimezone);
+        $saturday = new DateTimeImmutable('first saturday of this month midnight', $parisTimezone);
+        $sunday = $saturday->modify('+1 day');
 
         for ($i = 1; $i <= 10; ++$i) {
             $saturday = $saturday->add(new DateInterval('P7D'));
