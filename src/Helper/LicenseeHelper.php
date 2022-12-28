@@ -5,9 +5,9 @@ namespace App\Helper;
 use App\Entity\Licensee;
 use App\Entity\User;
 use LogicException;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Security\Core\Security;
 
 class LicenseeHelper
 {

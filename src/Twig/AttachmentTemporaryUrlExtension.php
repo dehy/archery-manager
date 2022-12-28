@@ -10,7 +10,7 @@ use Exception;
 use League\Flysystem\FilesystemOperator;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Twig\Extension\AbstractExtension;
