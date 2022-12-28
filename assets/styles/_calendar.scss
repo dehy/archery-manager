@@ -24,6 +24,8 @@
   font-size: 0.8em;
   background: white;
   overflow-x: hidden;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 .calendar-case.previous-month,
@@ -65,10 +67,29 @@
   margin-left: 0.5em;
 }
 
+.all-day-event {
+  border-radius: var(--bs-border-radius-pill) !important;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.multi-day-event-start {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  margin-right: 0;
+}
+
+.multi-day-event-end {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  margin-left: 0;
+}
+
 .event-pill {
   display: inline-block;
-  width: 0.8em;
-  height: 0.8em;
+  min-width: 0.5rem;
+  width: 0.5rem;
+  height: 0.8rem;
   border-radius: 20px;
 }
 

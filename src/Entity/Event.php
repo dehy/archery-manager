@@ -96,7 +96,7 @@ class Event implements Stringable
             $this->getStartsAt()->format('d/m/Y'),
             EventType::getReadableValue($this->getType()),
             DisciplineType::getReadableValue($this->getDiscipline()),
-            $this->getAddress(),
+            $this->getName(),
         );
     }
 
@@ -431,6 +431,11 @@ class Event implements Stringable
         $this->allDay = $allDay;
 
         return $this;
+    }
+
+    public function spanMultipleDays(): bool
+    {
+        return $this->getStartsAt()->format('d/m/Y') !== $this->getEndsAt()->format('d/m/Y');
     }
 
     public function getUpdatedAt(): ?DateTimeImmutable

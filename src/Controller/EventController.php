@@ -56,6 +56,17 @@ class EventController extends AbstractController
                 fn (Event $event) => ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
                     || ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay)
             );
+            // Sort events: multi-day all-day events, single-day all-day events, then other events
+            usort($eventsForThisDay, function (Event $a, Event $b) {
+                if ($a->spanMultipleDays() !== $b->spanMultipleDays()) {
+                    return $b->spanMultipleDays() <=> $a->spanMultipleDays();
+                }
+                if ($a->isAllDay() !== $b->isAllDay()) {
+                    return $b->isAllDay() <=> $a->isAllDay();
+                }
+
+                return $a->getName() <=> $b->getName();
+            });
             $calendar[$currentDate->format('Y-m-j')] = $eventsForThisDay;
         }
 

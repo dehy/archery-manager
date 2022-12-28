@@ -52,7 +52,7 @@
                         {% set case_css = case_css|merge(['row-last']) %}
                     {% endif %}
                     <div class="p-2 calendar-case row-{{ row }} {{ case_css|join(' ') }}">
-                        <div class="text-end">
+                        <div class="text-end mb-1 px-2">
                             {% if ("now"|date('Y-m-j') == date_key) %}
                                 <div class="badge rounded-pill bg-dark">
                                     {{ date_elements[2] }} {{ "now"|format_date(pattern="MMM") }}.
@@ -62,22 +62,36 @@
                             {% endif %}
                         </div>
                         {% for event in events %}
+                            {% set event_name = event.name %}
+                            {% set link_style = "min-height: 1rem;" %}
                             {% if event.allDay %}
-                                {% set link_class = "badge rounded-pill text-bg-primary" %}
-                                {% set link_style = "background-color: " ~ event.type|eventColor ~ " !important" %}
+                                {% set link_class = "badge text-bg-primary mb-1 all-day-event" %}
+                                {% set link_style = "#{link_style} background-color: " ~ event.type|eventColor ~ " !important;" %}
                             {% else %}
                                 {% set link_class = "" %}
-                                {% set link_style = "" %}
+                                {% set link_style = "#{link_style}" %}
+                            {% endif %}
+                            {% if event.spanMultipleDays %}
+                                {% set link_class = "#{link_class} multi-day-event" %}
+                                {% if event.startsAt|date('Y-m-j') == date_key %}
+                                    {% set link_class = "#{link_class} multi-day-event-start" %}
+                                {% elseif event.endsAt|date('Y-m-j') == date_key %}
+                                    {% set link_class = "#{link_class} multi-day-event-end" %}
+                                    {% set event_name = "" %}
+                                {% endif %}
+                            {% else %}
+                                {% set link_style = "#{link_style} margin-left: 0.5rem !important; margin-right: 0.5rem !important;" %}
                             {% endif %}
                             <a href="{{ path('app_event_show', {slug: event.slug}) }}"
                                class="event-link d-flex d-inline-block justify-content-between link-unstyled {{ link_class }}"
-                               style="{{ link_style }}"
+                               style="pointer-events: auto; {{ link_style }}"
+                               data-bs-toggle="tooltip" title="{{ event.name }}"
                             >
                                 <div class="event-name">
                                     {% if not event.allDay %}
                                     <div class="event-pill" style="background-color: {{ event.type|eventColor }}"></div>
                                     {% endif %}
-                                    {{ event.name }}
+                                    {{ event_name }}
                                 </div>
                                 {% if not event.allDay %}
                                 <div class="text-black-50 d-none d-xxl-block event-time">{{ event.startsAt|date('H:i') }}</div>

@@ -23,13 +23,13 @@
                             {% set icon = '' %}
                         {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
                             {% set link_class = 'bg-danger' %}
-                            {% set icon = 'times' %}
+                            {% set icon = 'calendar-xmark' %}
                         {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::INTERESTED') %}
                             {% set link_class = 'bg-warning' %}
                             {% set icon = 'hourglass' %}
                         {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') %}
                             {% set link_class = 'bg-success' %}
-                            {% set icon = 'check' %}
+                            {% set icon = 'calendar-check' %}
                         {% endif %}
                         <a href="{{ path('app_event_show', {slug: event.slug}) }}"
                            class="list-group-item list-group-item-action link-unstyled bg-opacity-10 {{ link_class }}"

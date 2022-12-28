@@ -82,7 +82,15 @@
                     {% endif %}
                     <button type="button"
                             class="btn btn-sm btn-{{ participationButtonColor }} {{ not canAttend ? 'disabled' }}"
+                            {% if canAttend %}
                             data-bs-toggle="modal" data-bs-target="#participationModal"
+                            {% else %}
+                                {% set message = "Tu ne peux pas t'y inscrire ou modifier ta participation." %}
+                                {% if event.startsAt < date() %}
+                                    {% set message = "Le concours est déjà passé. #{message}" %}
+                                {% endif %}
+                                data-bs-toggle="tooltip" data-bs-title="{{ message }}" style="pointer-events: auto"
+                            {% endif %}
                     >
                         <em class="fa-solid fa-pencil-alt fa-fw"></em> {{ participationButtonLabel }}
                     </button>
@@ -92,8 +100,17 @@
                         <ul class="list-unstyled">
                             {% for departure, participations in event.participationsByDeparture %}
                                 <li>
-                                    Départ {{ departure }} :
-                                    {{ participations|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => p.participant.firstnameWithInitial)|join(', ') }}
+                                    <strong>Départ {{ departure }} :</strong>
+                                    {% set orderedParticipations = participations|sort((a, b) => a.participant.fullname <=> b.participant.fullname) %}
+                                    {% for participation in orderedParticipations %}
+                                        {{ participation.participant.firstnameWithInitial }}
+                                        {% if participation.participationState is same as(constant("App\\DBAL\\Types\\EventParticipationStateType::INTERESTED")) %}
+                                            <sup class="badge rounded-pill text-bg-warning" data-bs-toggle="tooltip" title="{{ participation.participant.firstname }} n'a pas encore reçu la validation de son inscription">
+                                                <em class="fa-solid fa-hourglass"></em>
+                                            </sup>
+                                        {% endif %}
+                                        {{ not loop.last ? ',' }}
+                                    {% endfor %}
                                 </li>
                             {% endfor %}
                         </ul>
