@@ -28,5 +28,5 @@ migratedb: start
 
 quality:
 	php -d "memory_limit=512M" vendor/bin/rector process; \
-	php -d "memory_limit=512M" vendor/bin/php-cs-fixer fix; \
+	PHP_CS_FIXER_IGNORE_ENV=True php -d "memory_limit=512M" vendor/bin/php-cs-fixer fix; \
 	php -d "memory_limit=512M" vendor/bin/phpstan analyze
