@@ -55,10 +55,10 @@ if [[ "${APP_ENV}" == "dev" || "${APP_ENV}" == "test"  ]]; then
             -e 's!\(error_reporting\) = .*!\1 = E_ALL!' \
             -e 's!\(display_errors\) = off!\1 = on!' \
             -e 's!\(display_startup_errors\) = off!\1 = on!' \
-            /etc/php/8.1/fpm/conf.d/99-symfony.ini
+            /etc/php/8.2/fpm/conf.d/99-symfony.ini
 
         apt-get update
-        apt-get install -y --no-install-recommends php8.1-xdebug
+        apt-get install -y --no-install-recommends php8.2-xdebug
         apt-get autoremove -y
     fi
 
