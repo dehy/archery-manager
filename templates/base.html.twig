@@ -49,12 +49,12 @@
                 Calendrier
             </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item {{ _self.isActive('app_mobile_othermenu') }}">
             <a href="{{ path('app_mobile_othermenu') }}" class="nav-link">
                 <div class="icon">
                     <em class="fa-solid fa-ellipsis"></em>
                 </div>
-                Autre
+                {{ licenseeHelper.licenseeFromSession.firstname }}
             </a>
         </li>
     </ul>
