@@ -41,7 +41,11 @@
                     </h5>
                     <p class="card-text">
                         <em class="fa-solid fa-people-group fa-fw"></em>
-                        {{ license.ageCategory|readable_enum('LicenseAgeCategoryType') }}<br>
+                        {% for group in licensee.groups %}
+                            {{ group.name }}{{ not loop.last ? ', ' }}
+                        {% else  %}
+                            <em>Dans aucun groupe</em>
+                        {% endfor %}<br>
                         <em class="fa-solid fa-bow-arrow fa-fw"></em>
                         {{ license.activities|map(a => a|readable_enum('LicenseActivityType'))|join(', ') }}
                     </p>

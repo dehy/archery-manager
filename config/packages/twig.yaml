@@ -8,6 +8,7 @@ twig:
         licenseeHelper: '@App\Helper\LicenseeHelper'
         licenseHelper: '@App\Helper\LicenseHelper'
         eventHelper: '@App\Helper\EventHelper'
+        adminUrlGenerator: '@EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator'
 
 
 when@test:

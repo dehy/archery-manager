@@ -27,17 +27,23 @@
                         <div class="bg-white rounded-3" style="width: 60px; height:15px"></div>
                     </div>
                     <img src="{{ asset('build/logo-ffta.svg') }}" alt="" class="mb-2" style="height: 40px">
-                    <h2 class="mb-3">{{ licensee.fullname }}</h2>
+                    <h2>{{ licensee.fullname }}</h2>
+                    <div class="mb-3">
+                        <span class="badge bg-light text-bg-light fs-5">{{ licensee.fftaMemberCode }}</span>
+                    </div>
                     <div class="mb-3 d-block position-relative">
                         <img src="{{ licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}"
                              alt="Photo de profil" class="img-thumbnail badge-profile-picture" />
                     </div>
                 </div>
 
-                <div class="p-3">
+                <div class="px-3 pt-3">
                     <h4>
                         Licence 2023
-                        <small class="badge bg-secondary">{{ licensee.fftaMemberCode }}</small>
+                        <a href="https://ffta-goal.multimediabs.com/espaceLicencie" class="btn btn-sm btn-secondary" target="_blank">
+                            <em class="fa-solid fa-share"></em>
+                            FFTA
+                        </a>
                     </h4>
                     {% set license = licensee.licenseForSeason(2023) %}
                     {% if not licensee.licenseForSeason(2023) %}
@@ -59,21 +65,48 @@
                         </ul>
                     {% endif %}
                 </div>
+                <div class="p-3">
+                    {% for group in licensee.groups %}
+                        <span class="badge bg-secondary">{{ group.name }}</span>
+                    {% else %}
+                        <em>Dans aucun groupe</em>
+                    {% endfor %}
+                </div>
             </div>
         </div>
         <div class="col-md-9">
-            {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_COACH') %}
+            {% if is_granted('ROLE_ADMIN') %}
                 <div class="row">
                     <div class="col-12">
                         <div class="alert alert-warning">
-                            <h6>Actions d'administration</h6>
+                            <h4 class="alert-heading">Administration</h4>
                             {% if is_granted('ROLE_ADMIN') %}
-                                <a href="{{ path('app_homepage', {'_switch_user': licensee.user.email, '_switch_licensee': licensee.fftaMemberCode}) }}"
-                                   class="btn btn-secondary">
-                                    <em class="fa-solid fa-user-secret"></em> Usurper l'identité
-                                </a>
+                            <a href="{{
+                            adminUrlGenerator
+                                .setController('App\\Controller\\Admin\\LicenseeCrudController')
+                                .setAction('edit')
+                                .setEntityId(licensee.id)
+                            .generateUrl
+                            }}" class="btn btn-secondary">
+                                <em class="fa-solid fa-pencil"></em>
+                                Éditer
+                            </a>
+                            <a href="{{
+                            adminUrlGenerator
+                                .setController('App\\Controller\\Admin\\ResultCrudController')
+                                .setAction('index')
+                                .set('filters[licensee][comparison]', '=')
+                                .set('filters[licensee][value]', licensee.id)
+                            .generateUrl
+                            }}" class="btn btn-secondary">
+                                <em class="fa-solid fa-square-poll-vertical"></em>
+                                Résultats
+                            </a>
+                            <a href="{{ path('app_homepage', {'_switch_user': licensee.user.email, '_switch_licensee': licensee.fftaMemberCode}) }}"
+                               class="btn btn-warning">
+                                <em class="fa-solid fa-user-secret"></em> Usurper l'identité
+                            </a>
                             {% endif %}
-
                         </div>
                     </div>
                 </div>

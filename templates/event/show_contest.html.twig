@@ -23,6 +23,58 @@
             <h1>{{ event.title }}</h1>
         </div>
     </div>
+    {% if is_granted('ROLE_ADMIN') %}
+        <div class="row">
+            <div class="col">
+                <div class="alert alert-warning">
+                    <h4 class="alert-heading"><em class="fa-solid fa-screwdriver-wrench"></em> Administration</h4>
+                    <a href="{{
+                    adminUrlGenerator
+                        .setController('App\\Controller\\Admin\\EventCrudController')
+                        .setAction('edit')
+                        .setEntityId(event.id)
+                    .generateUrl
+                    }}" class="btn btn-secondary">
+                        <em class="fa-solid fa-pencil"></em>
+                        Modifier
+                    </a>
+                    <a href="{{
+                    adminUrlGenerator
+                        .setController('App\\Controller\\Admin\\EventAttachmentCrudController')
+                        .setAction('index')
+                        .set('filters[event][comparison]', '=')
+                        .set('filters[event][value]', event.id)
+                    .generateUrl
+                    }}" class="btn btn-secondary">
+                        <em class="fa-regular fa-file"></em>
+                        Pièces jointes
+                    </a>
+                    <a href="{{
+                    adminUrlGenerator
+                        .setController('App\\Controller\\Admin\\EventParticipationCrudController')
+                        .setAction('index')
+                        .set('filters[event][comparison]', '=')
+                        .set('filters[event][value]', event.id)
+                    .generateUrl
+                    }}" class="btn btn-secondary">
+                        <em class="fa-solid fa-people-group"></em>
+                        Participations
+                    </a>
+                    <a href="{{
+                    adminUrlGenerator
+                        .setController('App\\Controller\\Admin\\ResultCrudController')
+                        .setAction('index')
+                        .set('filters[event][comparison]', '=')
+                        .set('filters[event][value]', event.id)
+                    .generateUrl
+                    }}" class="btn btn-secondary">
+                        <em class="fa-solid fa-square-poll-vertical"></em>
+                        Résultats
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
     {% if licenseeParticipation %}
         <div class="row">
             <div class="col-12">
@@ -139,8 +191,10 @@
                         </button>
                         {% if event.latitude and event.longitude %}
                             {% set address_query = event.latitude ~ "," ~ event.longitude %}
+                            {% set waze_url = "waze://?ll=" ~ address_query %}
                         {% else %}
                             {% set address_query = event.address|url_encode %}
+                            {% set waze_url = "waze://?q=" ~ address_query|url_encode %}
                         {% endif %}
                         <ul class="dropdown-menu">
                             <li>
@@ -159,7 +213,7 @@
                             </li>
                             <li>
                                 <a class="dropdown-item"
-                                   href="https://waze.com/ul?q={{ address_query }}">
+                                   href="{{ waze_url }}">
                                     <em class="fa-brands fa-waze fa-fw"></em>
                                     Waze
                                 </a>
