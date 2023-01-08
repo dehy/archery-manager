@@ -44,7 +44,7 @@ body {
   justify-content: left;
 }
 
-@include media-breakpoint-up(md) {
+@include media-breakpoint-up(lg) {
   body {
     padding-top: 0;
     padding-bottom: 0;

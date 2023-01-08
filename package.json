@@ -18,7 +18,7 @@
     "core-js": "^3.27.0",
     "file-loader": "^6.2.0",
     "leaflet": "^1.9.3",
-    "pdfjs-dist": "^3.1.81",
+    "pdfjs-dist": "^3.2.146",
     "regenerator-runtime": "^0.13.11",
     "sass": "^1.57.1",
     "sass-loader": "^13.2.0",

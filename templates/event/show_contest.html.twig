@@ -28,46 +28,38 @@
             <div class="col">
                 <div class="alert alert-warning">
                     <h4 class="alert-heading"><em class="fa-solid fa-screwdriver-wrench"></em> Administration</h4>
-                    <a href="{{
-                    adminUrlGenerator
+                    <a href="{{ adminUrlGenerator
                         .setController('App\\Controller\\Admin\\EventCrudController')
                         .setAction('edit')
                         .setEntityId(event.id)
-                    .generateUrl
-                    }}" class="btn btn-secondary">
+                    .generateUrl }}" class="btn btn-secondary">
                         <em class="fa-solid fa-pencil"></em>
                         Modifier
                     </a>
-                    <a href="{{
-                    adminUrlGenerator
+                    <a href="{{ adminUrlGenerator
                         .setController('App\\Controller\\Admin\\EventAttachmentCrudController')
                         .setAction('index')
                         .set('filters[event][comparison]', '=')
                         .set('filters[event][value]', event.id)
-                    .generateUrl
-                    }}" class="btn btn-secondary">
+                    .generateUrl }}" class="btn btn-secondary">
                         <em class="fa-regular fa-file"></em>
                         Pièces jointes
                     </a>
-                    <a href="{{
-                    adminUrlGenerator
+                    <a href="{{ adminUrlGenerator
                         .setController('App\\Controller\\Admin\\EventParticipationCrudController')
                         .setAction('index')
                         .set('filters[event][comparison]', '=')
                         .set('filters[event][value]', event.id)
-                    .generateUrl
-                    }}" class="btn btn-secondary">
+                    .generateUrl }}" class="btn btn-secondary">
                         <em class="fa-solid fa-people-group"></em>
                         Participations
                     </a>
-                    <a href="{{
-                    adminUrlGenerator
+                    <a href="{{ adminUrlGenerator
                         .setController('App\\Controller\\Admin\\ResultCrudController')
                         .setAction('index')
                         .set('filters[event][comparison]', '=')
                         .set('filters[event][value]', event.id)
-                    .generateUrl
-                    }}" class="btn btn-secondary">
+                    .generateUrl }}" class="btn btn-secondary">
                         <em class="fa-solid fa-square-poll-vertical"></em>
                         Résultats
                     </a>
@@ -100,214 +92,222 @@
         </div>
     {% endif %}
     <div class="row">
-    <div class="col-sm-7">
-        <div class="row">
-            <div class="col-sm-6">
-                <h5>
-                    <em class="fa-solid fa-calendar-alt"></em> Dates
-                    <a href="{{ path('app_event_ics', {slug: event.slug}) }}"
-                       class="btn btn-secondary btn-sm">
-                        <em class="fa-solid fa-calendar-plus fa-fw"></em>
-                        Ajouter à mon calendrier
-                    </a>
-                </h5>
-                <p>{{ event|event_date(diff=true) }}</p>
-            </div>
+        <div class="col-md-7">
+            <div class="row">
+                <div class="col-sm-12 col-lg-6">
+                    <h5>
+                        <em class="fa-solid fa-calendar-alt"></em> Dates
+                        <a href="{{ path('app_event_ics', {slug: event.slug}) }}"
+                           class="btn btn-secondary btn-sm">
+                            <em class="fa-solid fa-calendar-plus fa-fw"></em>
+                            <span class="d-none d-xl-inline">Ajouter à mon C</span><span class="d-inline d-xl-none">C</span>alendrier
+                        </a>
+                    </h5>
+                    <p>{{ event|event_date(diff=true) }}</p>
+                </div>
 
-            <div class="col-sm-6">
-                <h5><em class="fa-solid fa-bullseye"></em> Catégorie et Type</h5>
-                <dl>
-                    <dt>Type</dt>
-                    <dd>{{ event.type|readable_enum }}</dd>
-                    <dt>Discipline</dt>
-                    <dd>{{ event.discipline|readable_enum }}</dd>
-                </dl>
-            </div>
+                <div class="col-sm-12 col-lg-6">
+                    <h5><em class="fa-solid fa-bullseye"></em> Catégorie et Type</h5>
+                    <div class="d-flex flex-row">
+                        <dl>
+                            <dt>Type</dt>
+                            <dd>{{ event.type|readable_enum }}</dd>
+                        </dl>
+                        <dl class="ms-3">
+                            <dt>Discipline</dt>
+                            <dd>{{ event.discipline|readable_enum }}</dd>
+                        </dl>
+                    </div>
+                </div>
 
-            <div class="col-sm-12">
-                <h5>
-                    <em class="fa-solid fa-people-group"></em> Participants
-                    {% if licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
-                        {% set participationButtonLabel = 'Absent•e' %}
-                        {% set participationButtonColor = 'danger' %}
-                    {% elseif licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::INTERESTED') %}
-                        {% set participationButtonLabel = 'Intéressé•e' %}
-                        {% set participationButtonColor = 'warning' %}
-                    {% elseif licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') %}
-                        {% set participationButtonLabel = 'Inscrit•e' %}
-                        {% set participationButtonColor = 'success' %}
-                    {% else %}
-                        {% set participationButtonLabel = 'Intéressé•e ?' %}
-                        {% set participationButtonColor = 'secondary' %}
-                    {% endif %}
-                    <button type="button"
-                            class="btn btn-sm btn-{{ participationButtonColor }} {{ not canAttend ? 'disabled' }}"
-                            {% if canAttend %}
-                            data-bs-toggle="modal" data-bs-target="#participationModal"
-                            {% else %}
-                                {% set message = "Tu ne peux pas t'y inscrire ou modifier ta participation." %}
-                                {% if event.startsAt < date() %}
-                                    {% set message = "Le concours est déjà passé. #{message}" %}
+                <div class="col-sm-12">
+                    <h5>
+                        <em class="fa-solid fa-people-group"></em> Participants
+                        {% if licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
+                            {% set participationButtonLabel = 'Absent•e' %}
+                            {% set participationButtonColor = 'danger' %}
+                        {% elseif licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::INTERESTED') %}
+                            {% set participationButtonLabel = 'Intéressé•e' %}
+                            {% set participationButtonColor = 'warning' %}
+                        {% elseif licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') %}
+                            {% set participationButtonLabel = 'Inscrit•e' %}
+                            {% set participationButtonColor = 'success' %}
+                        {% else %}
+                            {% set participationButtonLabel = 'Intéressé•e ?' %}
+                            {% set participationButtonColor = 'secondary' %}
+                        {% endif %}
+                        <button type="button"
+                                class="btn btn-sm btn-{{ participationButtonColor }} {{ not canAttend ? 'disabled' }}"
+                                {% if canAttend %}
+                                    data-bs-toggle="modal" data-bs-target="#participationModal"
+                                {% else %}
+                                    {% set message = "Tu ne peux pas t'y inscrire ou modifier ta participation." %}
+                                    {% if event.startsAt < date() %}
+                                        {% set message = "Le concours est déjà passé. #{message}" %}
+                                    {% endif %}
+                                    data-bs-toggle="tooltip" data-bs-title="{{ message }}" style="pointer-events: auto"
                                 {% endif %}
-                                data-bs-toggle="tooltip" data-bs-title="{{ message }}" style="pointer-events: auto"
+                        >
+                            <em class="fa-solid fa-pencil-alt fa-fw"></em> {{ participationButtonLabel }}
+                        </button>
+                    </h5>
+                    <div>
+                        {% if event.participationsByDeparture is not empty %}
+                            <ul class="list-unstyled">
+                                {% for departure, participations in event.participationsByDeparture %}
+                                    <li>
+                                        <strong>Départ {{ departure }} :</strong>
+                                        {% set orderedParticipations = participations|sort((a, b) => a.participant.fullname <=> b.participant.fullname) %}
+                                        {% for participation in orderedParticipations %}
+                                            {{ participation.participant.firstnameWithInitial }}
+                                            {% if participation.participationState is same as(constant("App\\DBAL\\Types\\EventParticipationStateType::INTERESTED")) %}
+                                                <sup class="badge rounded-pill text-bg-warning" data-bs-toggle="tooltip"
+                                                     title="{{ participation.participant.firstname }} n'a pas encore reçu la validation de son inscription">
+                                                    <em class="fa-solid fa-hourglass"></em>
+                                                </sup>
+                                            {% endif %}
+                                            {{ not loop.last ? ',' }}
+                                        {% endfor %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <em>Aucun</em>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-sm-12 p-3">
+                    <h5>
+                        <em class="fa-solid fa-map"></em>
+                        Adresse
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-secondary btn-sm dropdown-toggle"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                Ouvrir dans
+                            </button>
+                            {% if event.latitude and event.longitude %}
+                                {% set address_query = event.latitude ~ "," ~ event.longitude %}
+                                {% set waze_url = "waze://?ll=" ~ address_query %}
+                            {% else %}
+                                {% set address_query = event.address|url_encode %}
+                                {% set waze_url = "waze://?q=" ~ address_query|url_encode %}
                             {% endif %}
-                    >
-                        <em class="fa-solid fa-pencil-alt fa-fw"></em> {{ participationButtonLabel }}
-                    </button>
-                </h5>
-                <div>
-                    {% if event.participationsByDeparture is not empty %}
-                        <ul class="list-unstyled">
-                            {% for departure, participations in event.participationsByDeparture %}
+                            <ul class="dropdown-menu">
                                 <li>
-                                    <strong>Départ {{ departure }} :</strong>
-                                    {% set orderedParticipations = participations|sort((a, b) => a.participant.fullname <=> b.participant.fullname) %}
-                                    {% for participation in orderedParticipations %}
-                                        {{ participation.participant.firstnameWithInitial }}
-                                        {% if participation.participationState is same as(constant("App\\DBAL\\Types\\EventParticipationStateType::INTERESTED")) %}
-                                            <sup class="badge rounded-pill text-bg-warning" data-bs-toggle="tooltip" title="{{ participation.participant.firstname }} n'a pas encore reçu la validation de son inscription">
-                                                <em class="fa-solid fa-hourglass"></em>
-                                            </sup>
-                                        {% endif %}
-                                        {{ not loop.last ? ',' }}
-                                    {% endfor %}
+                                    <a class="dropdown-item"
+                                       href="https://maps.apple.com/?q={{ address_query }}">
+                                        <em class="fa-brands fa-apple fa-fw"></em>
+                                        Apple Plans
+                                    </a>
                                 </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <em>Aucun</em>
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="https://www.google.com/maps/search/?api=1&query={{ address_query }}">
+                                        <em class="fa-brands fa-google fa-fw"></em>
+                                        Google Maps
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="{{ waze_url }}">
+                                        <em class="fa-brands fa-waze fa-fw"></em>
+                                        Waze
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </h5>
+                    <address>{{ event.address }}</address>
+                    {% if event.latitude and event.longitude %}
+                        <div>latitude : {{ event.latitude }} ; longitude : {{ event.longitude }}</div>
                     {% endif %}
                 </div>
-            </div>
-            <div class="col-sm-12 p-3">
-                <h5>
-                    <em class="fa-solid fa-map"></em>
-                    Adresse
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-secondary btn-sm dropdown-toggle"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                            Ouvrir dans
-                        </button>
-                        {% if event.latitude and event.longitude %}
-                            {% set address_query = event.latitude ~ "," ~ event.longitude %}
-                            {% set waze_url = "waze://?ll=" ~ address_query %}
-                        {% else %}
-                            {% set address_query = event.address|url_encode %}
-                            {% set waze_url = "waze://?q=" ~ address_query|url_encode %}
-                        {% endif %}
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item"
-                                   href="https://maps.apple.com/?q={{ address_query }}">
-                                    <em class="fa-brands fa-apple fa-fw"></em>
-                                    Apple Plans
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item"
-                                   href="https://www.google.com/maps/search/?api=1&query={{ address_query }}">
-                                    <em class="fa-brands fa-google fa-fw"></em>
-                                    Google Maps
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item"
-                                   href="{{ waze_url }}">
-                                    <em class="fa-brands fa-waze fa-fw"></em>
-                                    Waze
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </h5>
-                <address>{{ event.address }}</address>
-                {% if event.latitude and event.longitude %}
-                <div>latitude : {{ event.latitude }} ; longitude : {{ event.longitude }}</div>
-                {% endif %}
             </div>
         </div>
-    </div>
-    {% set showMandate = false %}
-    {% set showResults = false %}
-    {% if event.startsAt > date() %}
-        {% set showMandate = true %}
-    {% endif %}
-    {% if event.endsAt < date() %}
-        {% set showResults = true %}
-    {% endif %}
-    <div class="col-sm-5">
-        <div class="accordion" id="mandateAndResults">
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="headingMandate">
-                    <button class="accordion-button {% if not showMandate %}collapsed{% endif %}" type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#collapseMandate" {% if showMandate %}aria-expanded="true"{% endif %}
-                            aria-controls="collapseMandate">
-                        <em class="fa-regular fa-file me-1"></em> Mandat
-                    </button>
-                </h2>
-                <div id="collapseMandate" class="accordion-collapse collapse {% if showMandate %}show{% endif %}"
-                     aria-labelledby="headingMandate"
-                     data-bs-parent="#mandateAndResults">
-                    {% if event.attachments('mandate') is not empty %}
-                    <div class="p-2 alert alert-secondary rounded-0">
-                        <a href="{{ path('events_attachements_download', {attachment: (event.attachments('mandate')|first).id}) }}" class="btn btn-secondary" target="_blank">
-                            <em class="fa-solid fa-download"></em>
-                            Télécharger
-                        </a>
-                    </div>
-                    {% endif %}
-                    <div class="accordion-body">
+        {% set showMandate = false %}
+        {% set showResults = false %}
+        {% if event.startsAt > date() %}
+            {% set showMandate = true %}
+        {% endif %}
+        {% if event.endsAt < date() %}
+            {% set showResults = true %}
+        {% endif %}
+        <div class="col-md-5">
+            <div class="accordion" id="mandateAndResults">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingMandate">
+                        <button class="accordion-button {% if not showMandate %}collapsed{% endif %}" type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#collapseMandate" {% if showMandate %}aria-expanded="true"{% endif %}
+                                aria-controls="collapseMandate">
+                            <em class="fa-solid fa-eye fa-fw me-1"></em> Prévisualiser le mandat
+                        </button>
+                    </h2>
+                    <div id="collapseMandate" class="accordion-collapse collapse {% if showMandate %}show{% endif %}"
+                         aria-labelledby="headingMandate"
+                         data-bs-parent="#mandateAndResults">
                         {% if event.attachments('mandate') is not empty %}
-                            <canvas data-pdf-url="{{ path('events_attachements_download', {'attachment': (event.attachments('mandate')|first).id }) }}"
-                            ></canvas>
-                        {% else %}
-                            <span class="fst-italic">Mandat non disponible.</span>
+                            <div class="p-2 alert alert-secondary rounded-0">
+                                <a href="{{ path('events_attachements_download', {attachment: (event.attachments('mandate')|first).id}) }}"
+                                   class="btn btn-secondary" target="_blank">
+                                    <em class="fa-solid fa-download"></em>
+                                    Télécharger
+                                </a>
+                            </div>
                         {% endif %}
+                        <div class="accordion-body">
+                            {% if event.attachments('mandate') is not empty %}
+                                <canvas data-pdf-url="{{ path('events_attachements_download', {'attachment': (event.attachments('mandate')|first).id }) }}"
+                                ></canvas>
+                            {% else %}
+                                <span class="fst-italic">Mandat non disponible.</span>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="headingResults">
-                    <button class="accordion-button {% if not showResults %}collapsed{% endif %}" type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#collapseResults" {% if showResults %}aria-expanded="true"{% endif %}
-                            aria-controls="collapseResults">
-                        <em class="fa-solid fa-square-poll-vertical me-1"></em>
-                        Résultats
-                    </button>
-                </h2>
-                <div id="collapseResults" class="accordion-collapse collapse {% if showResults %}show{% endif %}"
-                     aria-labelledby="headingResults"
-                     data-bs-parent="#mandateAndResults">
-                    <div class="accordion-body">
-                        {% if event.results is not empty %}
-                            <table class="table table-hover table-striped mb-0">
-                                <thead>
-                                <tr>
-                                    <th>Licencié</th>
-                                    <th>Total</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for result in event.results|sort((a, b) => a.licensee.firstname <=> b.licensee.firstname) %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingResults">
+                        <button class="accordion-button {% if not showResults %}collapsed{% endif %}" type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#collapseResults" {% if showResults %}aria-expanded="true"{% endif %}
+                                aria-controls="collapseResults">
+                            <em class="fa-solid fa-square-poll-vertical me-1 fa-fw"></em>
+                            Résultats
+                        </button>
+                    </h2>
+                    <div id="collapseResults" class="accordion-collapse collapse {% if showResults %}show{% endif %}"
+                         aria-labelledby="headingResults"
+                         data-bs-parent="#mandateAndResults">
+                        <div class="accordion-body">
+                            {% if event.results is not empty %}
+                                <table class="table table-hover table-striped mb-0">
+                                    <thead>
                                     <tr>
-                                        <td>{{ result.licensee.firstnameWithInitial }}</td>
-                                        <td>{{ result.total }}</td>
-                                        <td data-bs-toggle="tooltip"
-                                            style="width: 2em"
-                                            title="{{ result.distance }}m {{ result.targetType|readable_enum }} {{ result.targetSize }}cm">
-                                            <em class="fa-solid fa-info-circle"></em>
-                                        </td>
+                                        <th>Licencié</th>
+                                        <th>Total</th>
                                     </tr>
-                                {% endfor %}
-                                </tbody>
-                                <caption>Résultats pour {{ event.title }}</caption>
-                            </table>
-                        {% else %}
-                            <em>Résultats pas encore disponibles.</em>
-                        {% endif %}
+                                    </thead>
+                                    <tbody>
+                                    {% for result in event.results|sort((a, b) => a.licensee.firstname <=> b.licensee.firstname) %}
+                                        <tr>
+                                            <td>{{ result.licensee.firstnameWithInitial }}</td>
+                                            <td>{{ result.total }}</td>
+                                            <td data-bs-toggle="tooltip"
+                                                style="width: 2em"
+                                                title="{{ result.distance }}m {{ result.targetType|readable_enum }} {{ result.targetSize }}cm">
+                                                <em class="fa-solid fa-info-circle"></em>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                    <caption>Résultats pour {{ event.title }}</caption>
+                                </table>
+                            {% else %}
+                                <em>Résultats pas encore disponibles.</em>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -331,7 +331,8 @@
                     </div>
                     {{ form_row(event_participation_form.departure) }}
                     <div class="alert alert-warning">
-                        Attention ! C'est à vous de vous inscrire personnellement au concours selon les modalités inscrites
+                        Attention ! C'est à vous de vous inscrire personnellement au concours selon les modalités
+                        inscrites
                         dans le mandat. Cet outil est seulement là pour se tenir au courant entre archers du club !
                     </div>
                 </div>
@@ -343,4 +344,10 @@
             </div>
         </div>
     </div>
+    {% endblock %}
+
+    {% block javascripts %}
+    {{ parent() }}
+
+    {{ encore_entry_script_tags('events_show') }}
 {% endblock %}

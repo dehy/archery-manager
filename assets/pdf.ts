@@ -1,11 +1,10 @@
-import * as pdfjsLib from "pdfjs-dist";
-import {PDFPageProxy, RenderTask} from "pdfjs-dist";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 
 // Setting worker path to worker bundle.
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/build/pdfjs/pdf.worker.js";
 const outputScale = window.devicePixelRatio || 1;
 
-const pdfPages: { canvas: HTMLCanvasElement, pdfPage: PDFPageProxy }[] = [];
+const pdfPages: { canvas: HTMLCanvasElement, pdfPage: pdfjsLib.PDFPageProxy }[] = [];
 
 const loadPdf = (canvas: HTMLCanvasElement) => {
     const pdfUrl = canvas.dataset.pdfUrl;
@@ -33,7 +32,7 @@ enum ScalingMode {
     Width = 'width',
     Height = 'height'
 }
-const renderPage = (pdfPage: PDFPageProxy, canvas: HTMLCanvasElement, scalingMode: ScalingMode = ScalingMode.Width): RenderTask => {
+const renderPage = (pdfPage: pdfjsLib.PDFPageProxy, canvas: HTMLCanvasElement, scalingMode: ScalingMode = ScalingMode.Width): pdfjsLib.RenderTask => {
     const originalViewport = pdfPage.getViewport({scale: 1.0});
     const parentElement = canvas.parentElement as HTMLElement;
     const parentComputedStyles = getComputedStyle(parentElement);

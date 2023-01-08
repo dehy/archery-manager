@@ -2859,36 +2859,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001312":
-  version: 1.0.30001312
-  resolution: "caniuse-lite@npm:1.0.30001312"
-  checksum: 753fb9ea1e02e999430b323a71b5acab5120f3b5fc0161b01669f54a3ef5c5296240b6ae9b79b12a3742e3aed216aa9ee3d5398a23c16d08625ccd376b79545d
-  languageName: node
-  linkType: hard
-
-"caniuse-lite@npm:^1.0.30001370":
-  version: 1.0.30001383
-  resolution: "caniuse-lite@npm:1.0.30001383"
-  checksum: 1830129858510163f6acfbeaf258e0a84061091901ea349ee12541cc04997a25dc17d0ba731e8518711d87f0e08fee2a762aa89264d86be5f329300d0ff9d421
-  languageName: node
-  linkType: hard
-
-"caniuse-lite@npm:^1.0.30001400":
+"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001312, caniuse-lite@npm:^1.0.30001370, caniuse-lite@npm:^1.0.30001400":
   version: 1.0.30001441
   resolution: "caniuse-lite@npm:1.0.30001441"
   checksum: 0f5aa8f7ea4d165e88e0d1eaa44564c5bfee66641f265a1fd959e74f0a7e6bc0207db6c28e2fb63dc8b2cd23e0e3cee06c4f372de11c93c57ff5ff4207962c3f
   languageName: node
   linkType: hard
 
-"canvas@npm:^2.10.2":
-  version: 2.10.2
-  resolution: "canvas@npm:2.10.2"
+"canvas@npm:^2.11.0":
+  version: 2.11.0
+  resolution: "canvas@npm:2.11.0"
   dependencies:
     "@mapbox/node-pre-gyp": ^1.0.0
     nan: ^2.17.0
     node-gyp: latest
     simple-get: ^3.0.3
-  checksum: b2e3eb4c3635fa2f67857619621c3d314f935a9e51904536dadf4908ab580dff4f5bcbaafe6eb0255247fa027ca494d5cd97c33376a49a0f994997263fa9944b
+  checksum: a69a6e0c90014a1b02e52c4c38a627d1a01ffe9539047bec84105cb3554907a947cf39b4a333be43fc1583dd142b641bb5480a4e23f59c6098618c33bf78f67f
   languageName: node
   linkType: hard
 
@@ -5407,16 +5393,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pdfjs-dist@npm:^3.1.81":
-  version: 3.1.81
-  resolution: "pdfjs-dist@npm:3.1.81"
+"pdfjs-dist@npm:^3.2.146":
+  version: 3.2.146
+  resolution: "pdfjs-dist@npm:3.2.146"
   dependencies:
-    canvas: ^2.10.2
+    canvas: ^2.11.0
     web-streams-polyfill: ^3.2.1
   dependenciesMeta:
     canvas:
       optional: true
-  checksum: f72bf7dbdf1f96b67c75aa04cdf9eed87a2d51b151eeee139495e589e61099ca258b425326a6e481753d98e9c82b608e3064e5d35b41cb0b28e715d7d1c44102
+  checksum: 54d4c75140f7fc1eb2008a7bb55e664c59602be09def9883da6aff4c1a7ad58a09aaa927d07f2a695181da0f20b8a96b569365195c34a0aac6ecb0d378959f8a
   languageName: node
   linkType: hard
 
@@ -6297,7 +6283,7 @@ __metadata:
     core-js: ^3.27.0
     file-loader: ^6.2.0
     leaflet: ^1.9.3
-    pdfjs-dist: ^3.1.81
+    pdfjs-dist: ^3.2.146
     regenerator-runtime: ^0.13.11
     sass: ^1.57.1
     sass-loader: ^13.2.0
