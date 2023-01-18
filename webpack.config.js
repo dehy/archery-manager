@@ -23,7 +23,7 @@ Encore
     .addEntry('public', './assets/public.ts')
     .addEntry('unauthenticated', './assets/unauthenticated.ts')
     .addEntry('app', './assets/app.ts')
-    .addEntry('pdfjs', './assets/pdf.ts')
+    .addEntry('events_show', './assets/events_show.ts')
 
 
     // enables the Symfony UX Stimulus bridge (used in assets/bootstrap.js)
@@ -77,7 +77,7 @@ Encore
     //.autoProvidejQuery()
 
     .copyFiles({from: './assets/images'})
-    .copyFiles({from: './node_modules/pdfjs-dist/build', to: 'pdfjs/[path][name].[ext]'})
+    .copyFiles({from: './node_modules/pdfjs-dist/legacy/build', to: 'pdfjs/[path][name].[ext]', pattern: /.*\.js$/})
 ;
 
 module.exports = Encore.getWebpackConfig();

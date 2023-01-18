@@ -8,9 +8,7 @@ export default class extends Controller {
     declare readonly titleTarget: HTMLHeadingElement;
     declare readonly bodyTarget: HTMLDivElement;
 
-
     connect() {
-        console.log("hello modal");
     }
 
     open(event: ActionEvent) {

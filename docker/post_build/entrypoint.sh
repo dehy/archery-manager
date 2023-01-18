@@ -59,6 +59,7 @@ if [[ "${APP_ENV}" == "dev" || "${APP_ENV}" == "test"  ]]; then
 
         apt-get update
         apt-get install -y --no-install-recommends php8.2-xdebug
+        apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
         apt-get autoremove -y
     fi
 

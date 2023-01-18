@@ -17,7 +17,7 @@ class PracticeAdviceAttachment extends Attachment
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'attachments')]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?PracticeAdvice $practiceAdvice = null;
 
