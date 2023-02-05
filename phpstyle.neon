@@ -1,9 +1,0 @@
-parameters:
-    php: 8.2
-    risky: false
-    paths:
-        - src
-        - tests
-    excludePaths:
-        - src/Kernel.php
-        - tests/bootstrap.php
