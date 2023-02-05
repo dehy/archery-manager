@@ -23,7 +23,7 @@ jobs:
       - name: Install
         run: composer install --prefer-dist
       - name: Run php-cs-fixer
-        run: ./vendor/bin/php-cs-fixer fix --config .php-cs-fixer.dist.php --dry-run
+        run: ./vendor/bin/php-cs-fixer fix --config .php-cs-fixer.dist.php --dry-run --allow-risky=yes
         env:
           PHP_CS_FIXER_IGNORE_ENV: True
 
