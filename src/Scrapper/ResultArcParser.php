@@ -30,10 +30,10 @@ class ResultArcParser
 
         $results = [];
         $re = '/'.$this->searchPattern().'/m';
-        foreach (explode(PHP_EOL, $pdf->getText()) as $line) {
+        foreach (explode(\PHP_EOL, $pdf->getText()) as $line) {
             dump($line);
             if (1 === preg_match($re, $line, $matches)) {
-                $score = intval($matches[1]);
+                $score = (int) ($matches[1]);
                 $ageCategory = $matches[3];
                 $activity = $matches[4];
                 $fftaCode = $matches[5];

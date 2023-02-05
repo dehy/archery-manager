@@ -6,8 +6,8 @@ class Season
 {
     public static function seasonForDate(\DateTimeImmutable $date): int
     {
-        $season = intval($date->format('Y'));
-        if (intval($date->format('m')) >= 9) {
+        $season = (int) ($date->format('Y'));
+        if ((int) ($date->format('m')) >= 9) {
             ++$season;
         }
 

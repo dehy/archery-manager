@@ -64,13 +64,13 @@ class FftaScrapper
             (string) $this->fftaGoalClient->getResponse()->getContent(),
             true,
             512,
-            JSON_THROW_ON_ERROR,
+            \JSON_THROW_ON_ERROR,
         );
         $ids = [];
         foreach ($licensesData['licences'] as $licenseData) {
             $html = $licenseData[9];
             $id = preg_replace("/.*FichePersonne_(\\d+)'.*/", '\\1', (string) $html);
-            $ids[] = intval($id);
+            $ids[] = (int) $id;
         }
 
         return $ids;
@@ -278,7 +278,7 @@ class FftaScrapper
                 return;
             }
             $blockTitle = $blockContent->text();
-            $year = intval(str_replace('Saison ', '', $blockTitle));
+            $year = (int) (str_replace('Saison ', '', $blockTitle));
 
             if ($requestedSeason && $requestedSeason !== $year) {
                 return;

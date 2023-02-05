@@ -83,7 +83,7 @@ class FftaFetchParticipatingEvent extends Command
             );
 
             if (
-                !in_array($fftaEvent->getDiscipline(), [
+                !\in_array($fftaEvent->getDiscipline(), [
                     DisciplineType::INDOOR,
                     DisciplineType::TARGET,
                 ])
@@ -95,7 +95,7 @@ class FftaFetchParticipatingEvent extends Command
             $supportedSpecifics = ['2X18M'];
             if (
                 $fftaEvent->getSpecifics()
-                && !in_array($fftaEvent->getSpecifics(), $supportedSpecifics)
+                && !\in_array($fftaEvent->getSpecifics(), $supportedSpecifics)
             ) {
                 $io->text(
                     sprintf(

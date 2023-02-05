@@ -129,7 +129,7 @@ class License
         return $this;
     }
 
-    public function mergeWith(License $license): void
+    public function mergeWith(self $license): void
     {
         $this->setActivities($license->getActivities());
         $this->setAgeCategory($license->getAgeCategory());

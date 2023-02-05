@@ -18,14 +18,14 @@ class FftaProfile
         return $this->id;
     }
 
-    public function setId(?int $id): FftaProfile
+    public function setId(?int $id): self
     {
         $this->id = $id;
 
         return $this;
     }
 
-    public function setCodeAdherent(?string $codeAdherent): FftaProfile
+    public function setCodeAdherent(?string $codeAdherent): self
     {
         $this->codeAdherent = $codeAdherent;
 
@@ -37,7 +37,7 @@ class FftaProfile
         return $this->codeAdherent;
     }
 
-    public function setEmail(?string $email): FftaProfile
+    public function setEmail(?string $email): self
     {
         $this->email = $email;
 
@@ -49,7 +49,7 @@ class FftaProfile
         return $this->email;
     }
 
-    public function setNom(?string $nom): FftaProfile
+    public function setNom(?string $nom): self
     {
         $this->nom = $nom;
 
@@ -61,7 +61,7 @@ class FftaProfile
         return $this->nom;
     }
 
-    public function setPrenom(?string $prenom): FftaProfile
+    public function setPrenom(?string $prenom): self
     {
         $this->prenom = $prenom;
 
@@ -73,7 +73,7 @@ class FftaProfile
         return $this->prenom;
     }
 
-    public function setMobile(?string $mobile): FftaProfile
+    public function setMobile(?string $mobile): self
     {
         $this->mobile = $mobile;
 
@@ -85,7 +85,7 @@ class FftaProfile
         return $this->mobile;
     }
 
-    public function setDateNaissance(?\DateTime $dateNaissance): FftaProfile
+    public function setDateNaissance(?\DateTime $dateNaissance): self
     {
         $this->dateNaissance = $dateNaissance;
 
@@ -102,7 +102,7 @@ class FftaProfile
         return $this->sexe;
     }
 
-    public function setSexe(?string $sexe): FftaProfile
+    public function setSexe(?string $sexe): self
     {
         $this->sexe = $sexe;
 

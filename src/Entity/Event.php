@@ -133,7 +133,7 @@ class Event implements \Stringable
         return $this->discipline;
     }
 
-    public function setDiscipline(string $discipline): Event
+    public function setDiscipline(string $discipline): self
     {
         $this->discipline = $discipline;
 

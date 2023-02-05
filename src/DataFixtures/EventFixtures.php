@@ -5,6 +5,7 @@ namespace App\DataFixtures;
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventKindType;
+use App\Entity\ContestEvent;
 use App\Entity\Event;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -24,7 +25,7 @@ class EventFixtures extends Fixture
             $saturday = $saturday->add(new \DateInterval('P7D'));
             $sunday = $sunday->add(new \DateInterval('P7D'));
 
-            $event = new Event();
+            $event = new ContestEvent();
             $event
                 ->setName($faker->city())
                 ->setKind(EventKindType::CONTEST_OFFICIAL)
@@ -32,8 +33,8 @@ class EventFixtures extends Fixture
                 ->setEndsAt($sunday)
                 ->setAllDay(true)
                 ->setAddress($faker->address())
-                ->setContestType(ContestType::FEDERAL)
-                ->setContestDiscipline(DisciplineType::INDOOR);
+                ->setContestType(ContestType::INDIVIDUAL)
+                ->setDiscipline(DisciplineType::INDOOR);
             $manager->persist($event);
         }
 

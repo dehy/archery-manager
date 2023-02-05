@@ -150,7 +150,7 @@ class ApplicantCrudController extends AbstractCrudController
         $stats = [
             'new' => $new,
             'renewal' => $renewal,
-            'total' => count($applicants),
+            'total' => \count($applicants),
             'newAges' => $newAges,
         ];
 

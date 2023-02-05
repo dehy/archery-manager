@@ -260,7 +260,7 @@ class LicenseeController extends AbstractController
         );
 
         $response = new StreamedResponse(function () use ($licenseesStorage, $attachment) {
-            $outputStream = fopen('php://output', 'wb');
+            $outputStream = fopen('php://output', 'w');
             $fileStream = $licenseesStorage->readStream($attachment->getFile()->getName());
 
             stream_copy_to_stream($fileStream, $outputStream);

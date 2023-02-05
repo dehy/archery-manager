@@ -127,7 +127,7 @@ class EventController extends AbstractController
         );
 
         $response = new StreamedResponse(function () use ($eventsStorage, $attachment) {
-            $outputStream = fopen('php://output', 'wb');
+            $outputStream = fopen('php://output', 'w');
             $fileStream = $eventsStorage->readStream($attachment->getFile()->getName());
 
             stream_copy_to_stream($fileStream, $outputStream);

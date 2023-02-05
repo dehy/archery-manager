@@ -48,7 +48,7 @@ class ApplicantHelper
         $licenseCategory = $this->licenseHelper->licenseCategoryTypeForBirthdate(
             $birthdate,
         );
-        $isYoung = in_array($licenseCategory, [
+        $isYoung = \in_array($licenseCategory, [
             LicenseCategoryType::POUSSINS,
             LicenseCategoryType::JEUNES,
         ]);

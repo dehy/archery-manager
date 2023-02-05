@@ -45,12 +45,12 @@ class ContestEvent extends Event
         );
     }
 
-    public static function fromFftaEvent(FftaEvent $fftaEvent): ContestEvent
+    public static function fromFftaEvent(FftaEvent $fftaEvent): self
     {
-        return (new ContestEvent())
+        return (new self())
             ->setAddress($fftaEvent->getLocation())
             ->setKind(EventKindType::CONTEST_OFFICIAL)
-            ->setContestType(ContestType::FEDERAL)
+            ->setContestType(ContestType::INDIVIDUAL)
             ->setDiscipline($fftaEvent->getDiscipline())
             ->setEndsAt($fftaEvent->getTo())
             ->setName($fftaEvent->getName())

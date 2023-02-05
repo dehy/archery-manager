@@ -14,7 +14,7 @@ class FftaEvent
     private string $specifics;
     private string $url;
 
-    public function setName(string $name): FftaEvent
+    public function setName(string $name): self
     {
         $this->name = $name;
 
@@ -26,7 +26,7 @@ class FftaEvent
         return $this->name;
     }
 
-    public function setFrom(\DateTimeImmutable $from): FftaEvent
+    public function setFrom(\DateTimeImmutable $from): self
     {
         $this->from = $from;
 
@@ -38,7 +38,7 @@ class FftaEvent
         return $this->from;
     }
 
-    public function setTo(\DateTimeImmutable $to): FftaEvent
+    public function setTo(\DateTimeImmutable $to): self
     {
         $this->to = $to;
 
@@ -50,7 +50,7 @@ class FftaEvent
         return $this->to;
     }
 
-    public function setLocation(string $location): FftaEvent
+    public function setLocation(string $location): self
     {
         $this->location = $location;
 
@@ -62,7 +62,7 @@ class FftaEvent
         return $this->location;
     }
 
-    public function setDiscipline(string $discipline): FftaEvent
+    public function setDiscipline(string $discipline): self
     {
         DisciplineType::assertValidChoice($discipline);
         $this->discipline = $discipline;
@@ -80,14 +80,14 @@ class FftaEvent
         return $this->specifics;
     }
 
-    public function setSpecifics(string $specifics): FftaEvent
+    public function setSpecifics(string $specifics): self
     {
         $this->specifics = $specifics;
 
         return $this;
     }
 
-    public function setUrl(string $url): FftaEvent
+    public function setUrl(string $url): self
     {
         $this->url = $url;
 

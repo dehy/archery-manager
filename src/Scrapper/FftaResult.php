@@ -22,7 +22,7 @@ class FftaResult
         return $this->position;
     }
 
-    public function setPosition(int $position): FftaResult
+    public function setPosition(int $position): self
     {
         $this->position = $position;
 
@@ -34,7 +34,7 @@ class FftaResult
         return $this->name;
     }
 
-    public function setName(string $name): FftaResult
+    public function setName(string $name): self
     {
         $this->name = $name;
 
@@ -46,7 +46,7 @@ class FftaResult
         return $this->club;
     }
 
-    public function setClub(string $club): FftaResult
+    public function setClub(string $club): self
     {
         $this->club = $club;
 
@@ -58,7 +58,7 @@ class FftaResult
         return $this->license;
     }
 
-    public function setLicense(string $license): FftaResult
+    public function setLicense(string $license): self
     {
         $this->license = $license;
 
@@ -70,7 +70,7 @@ class FftaResult
         return $this->category;
     }
 
-    public function setCategory(string $category): FftaResult
+    public function setCategory(string $category): self
     {
         $this->category = $category;
 
@@ -82,7 +82,7 @@ class FftaResult
         return $this->distance;
     }
 
-    public function setDistance(int $distance): FftaResult
+    public function setDistance(int $distance): self
     {
         $this->distance = $distance;
 
@@ -94,7 +94,7 @@ class FftaResult
         return $this->size;
     }
 
-    public function setSize(int $size): FftaResult
+    public function setSize(int $size): self
     {
         $this->size = $size;
 
@@ -106,7 +106,7 @@ class FftaResult
         return $this->score1;
     }
 
-    public function setScore1(int $score1): FftaResult
+    public function setScore1(int $score1): self
     {
         $this->score1 = $score1;
 
@@ -118,7 +118,7 @@ class FftaResult
         return $this->score2;
     }
 
-    public function setScore2(int $score2): FftaResult
+    public function setScore2(int $score2): self
     {
         $this->score2 = $score2;
 
@@ -130,7 +130,7 @@ class FftaResult
         return $this->total;
     }
 
-    public function setTotal(int $total): FftaResult
+    public function setTotal(int $total): self
     {
         $this->total = $total;
 
@@ -142,7 +142,7 @@ class FftaResult
         return $this->nb10;
     }
 
-    public function setNb10(int $nb10): FftaResult
+    public function setNb10(int $nb10): self
     {
         $this->nb10 = $nb10;
 
@@ -154,7 +154,7 @@ class FftaResult
         return $this->nb10p;
     }
 
-    public function setNb10p(int $nb10p): FftaResult
+    public function setNb10p(int $nb10p): self
     {
         $this->nb10p = $nb10p;
 

@@ -7,7 +7,7 @@ $finder = (new PhpCsFixer\Finder())
 
 return (new PhpCsFixer\Config())
     ->setRules([
-        '@Symfony' => true,
+        '@Symfony:risky' => true,
         '@PHP82Migration' => true,
     ])
     ->setFinder($finder)

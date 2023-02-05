@@ -50,11 +50,11 @@ class LicenseHelper
         $licenseType = $license->getType();
         $isValid = false;
         if (EventKindType::CONTEST_OFFICIAL === $eventKind) {
-            if (in_array($licenseType, [LicenseType::ADULTES_COMPETITION, LicenseType::JEUNES])) {
+            if (\in_array($licenseType, [LicenseType::ADULTES_COMPETITION, LicenseType::JEUNES])) {
                 $isValid = true;
             }
         } elseif (EventKindType::CONTEST_HOBBY === $eventKind) {
-            if (in_array($licenseType, [LicenseType::ADULTES_CLUB, LicenseType::JEUNES, LicenseType::POUSSINS])) {
+            if (\in_array($licenseType, [LicenseType::ADULTES_CLUB, LicenseType::JEUNES, LicenseType::POUSSINS])) {
                 $isValid = true;
             }
         } elseif (EventKindType::TRAINING) {

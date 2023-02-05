@@ -87,7 +87,7 @@ class RegistrationCrudController extends AbstractCrudController
         );
 
         // if user defined sort is not set
-        if (0 === count($searchDto->getSort())) {
+        if (0 === \count($searchDto->getSort())) {
             $queryBuilder
                 ->addSelect(
                     'CONCAT(entity.lastname, \' \', entity.firstname) AS HIDDEN completeName',

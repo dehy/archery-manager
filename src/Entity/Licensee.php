@@ -505,7 +505,7 @@ class Licensee implements \Stringable
         return $this;
     }
 
-    public function mergeWith(Licensee $licensee): void
+    public function mergeWith(self $licensee): void
     {
         $this->setGender($licensee->getGender());
         $this->setLastname($licensee->getLastname());

@@ -83,12 +83,12 @@ class Result
         Event $event,
         Licensee $licensee,
         string $discipline,
-    ): Result {
+    ): self {
         [$ageCategory, $activity] = CategoryParser::parseString(
             $fftaResult->getCategory(),
         );
 
-        return (new Result())
+        return (new self())
             ->setEvent($event)
             ->setLicensee($licensee)
             ->setDiscipline($discipline)
@@ -122,7 +122,7 @@ class Result
         return $this->event;
     }
 
-    public function setEvent(?Event $event): self
+    public function setEvent(ContestEvent $event): self
     {
         $this->event = $event;
 
@@ -147,7 +147,7 @@ class Result
         return $this->ageCategory;
     }
 
-    public function setAgeCategory(string $ageCategory): Result
+    public function setAgeCategory(string $ageCategory): self
     {
         LicenseAgeCategoryType::assertValidChoice($ageCategory);
         $this->ageCategory = $ageCategory;

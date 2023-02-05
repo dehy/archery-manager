@@ -53,7 +53,7 @@ class FftaHelper
     {
         $fftaIds = $this->scrapper->fetchLicenseeIdList($season);
         $this->logger->info(
-            sprintf('[FFTA] Found %s licensees in %s', count($fftaIds), $season),
+            sprintf('[FFTA] Found %s licensees in %s', \count($fftaIds), $season),
         );
 
         foreach ($fftaIds as $fftaId) {

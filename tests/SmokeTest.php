@@ -2,6 +2,7 @@
 
 namespace App\Tests;
 
+use App\DBAL\Types\EventKindType;
 use App\DBAL\Types\UserRoleType;
 use App\Entity\Event;
 use App\Repository\EventRepository;
@@ -85,7 +86,7 @@ class SmokeTest extends LoggedInTestCase
     {
         $client = static::createLoggedInAsUserClient();
 
-        $event = $this->findEvent(EventType::CONTEST_OFFICIAL);
+        $event = $this->findEvent(EventKindType::CONTEST_OFFICIAL);
         $crawler = $client->request('GET', '/events/'.$event->getSlug());
 
         $calendarLink = $crawler->selectLink('Ajouter à mon calendrier')->link();
@@ -94,12 +95,12 @@ class SmokeTest extends LoggedInTestCase
         self::assertResponseIsSuccessful();
     }
 
-    private function findEvent(string $eventType): Event
+    private function findEvent(string $eventKind): Event
     {
         $eventRepository = self::getContainer()->get(EventRepository::class);
 
         return $eventRepository->findOneBy([
-            'type' => $eventType,
+            'kind' => $eventKind,
         ]);
     }
 }

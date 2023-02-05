@@ -79,7 +79,7 @@ class EventParticipation
         return $this->activity;
     }
 
-    public function setActivity(?string $activity): EventParticipation
+    public function setActivity(?string $activity): self
     {
         $this->activity = $activity;
 
@@ -91,7 +91,7 @@ class EventParticipation
         return $this->targetType;
     }
 
-    public function setTargetType(?string $targetType): EventParticipation
+    public function setTargetType(?string $targetType): self
     {
         $this->targetType = $targetType;
 
@@ -103,7 +103,7 @@ class EventParticipation
         return $this->departure;
     }
 
-    public function setDeparture(?int $departure): EventParticipation
+    public function setDeparture(?int $departure): self
     {
         $this->departure = $departure;
 

@@ -84,7 +84,7 @@ class IcsFactory
     ];
     private bool $isAllDay = false;
 
-    public static function new(string $summary): IcsFactory
+    public static function new(string $summary): self
     {
         $factory = new self();
         $factory->setSummary($summary);
@@ -146,7 +146,7 @@ class IcsFactory
      */
     public function set(string $key, mixed $val): void
     {
-        if (in_array($key, $this->availableProperties)) {
+        if (\in_array($key, $this->availableProperties)) {
             $this->properties[$key] = $val;
         }
     }
@@ -184,7 +184,7 @@ class IcsFactory
                 'url' => 'URL;VALUE=URI',
                 default => $k,
             };
-            if (in_array($k, ['dtstart', 'dtend'])) {
+            if (\in_array($k, ['dtstart', 'dtend'])) {
                 if ($this->isAllDay && 'dtend' === $k) {
                     $v = \DateTime::createFromInterface($v);
                     $v = $v->add(new \DateInterval('P1D'));
