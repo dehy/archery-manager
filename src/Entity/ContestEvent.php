@@ -139,6 +139,8 @@ class ContestEvent extends Event
             $departures[$participation->getDeparture() ?? 'non précisé'][] = $participation;
         }
 
+        ksort($departures);
+
         return $departures;
     }
 

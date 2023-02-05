@@ -44,7 +44,7 @@ class EventDateExtension extends AbstractExtension
                 $this->formatDate($environment, $event->getEndsAt())
             );
         } else {
-            if ($includeTime) {
+            if ($includeTime && !$event->isAllDay()) {
                 $date = sprintf(
                     'le %s de %s à %s',
                     $this->formatDate($environment, $event->getStartsAt()),
