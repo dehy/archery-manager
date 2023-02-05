@@ -314,6 +314,12 @@ class Result
                 DisciplineType::TARGET => 720,
             };
         }
+        if (HobbyContestEvent::class === $this->getEvent()::class) {
+            return match ($this->getDiscipline()) {
+                DisciplineType::INDOOR => 300,
+                DisciplineType::TARGET => 360,
+            };
+        }
         throw new \LogicException(sprintf('Unknown total for %s - %s', $this->getEvent()::class, $this->getDiscipline()));
     }
 
@@ -328,9 +334,9 @@ class Result
             }
 
             return match ($ageCategory) {
-                LicenseAgeCategoryType::POUSSIN => [10, 80],
-                LicenseAgeCategoryType::BENJAMIN => [15, 80],
-                LicenseAgeCategoryType::MINIME => [15, 60],
+                LicenseAgeCategoryType::POUSSIN, LicenseAgeCategoryType::U11 => [10, 80],
+                LicenseAgeCategoryType::BENJAMIN, LicenseAgeCategoryType::U13 => [15, 80],
+                LicenseAgeCategoryType::MINIME, LicenseAgeCategoryType::U15 => [15, 60],
                 default => [18, 60],
             };
         }
@@ -340,10 +346,10 @@ class Result
             }
 
             return match ($ageCategory) {
-                LicenseAgeCategoryType::POUSSIN,
-                LicenseAgeCategoryType::BENJAMIN => [15, 80],
-                LicenseAgeCategoryType::MINIME => [25, 80],
-                default => [30, 122],
+                LicenseAgeCategoryType::POUSSIN, LicenseAgeCategoryType::U11, => [15, 80],
+                LicenseAgeCategoryType::BENJAMIN, LicenseAgeCategoryType::U13 => [20, 122],
+                LicenseAgeCategoryType::MINIME, LicenseAgeCategoryType::U15 => [25, 122],
+                default => [30, 80],
             };
         }
 
