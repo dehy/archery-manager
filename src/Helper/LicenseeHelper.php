@@ -27,7 +27,7 @@ class LicenseeHelper
         $licenseeCode = $this->requestStack
             ->getSession()
             ->get(self::SESSION_KEY);
-        if (null !== $licenseeCode || !$user->getLicensees()->containsKey($licenseeCode)) {
+        if (null !== $licenseeCode && !$user->getLicensees()->containsKey($licenseeCode)) {
             $licenseeCode = null;
         }
         if (null === $licenseeCode) {
