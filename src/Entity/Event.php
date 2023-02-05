@@ -2,14 +2,9 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
-use App\DBAL\Types\EventAttachmentType;
-use App\DBAL\Types\EventParticipationStateType;
-use App\DBAL\Types\EventType;
+use App\DBAL\Types\EventKindType;
 use App\Repository\EventRepository;
-use App\Scrapper\FftaEvent;
 use Cocur\Slugify\Slugify;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -18,29 +13,38 @@ use Doctrine\ORM\Mapping as ORM;
 use Stringable;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
+#[ORM\InheritanceType('SINGLE_TABLE')]
+#[ORM\DiscriminatorColumn(name: 'discr', type: 'string')]
+#[ORM\DiscriminatorMap([
+    EventKindType::CONTEST_OFFICIAL => ContestEvent::class,
+    EventKindType::CONTEST_HOBBY => HobbyContestEvent::class,
+    EventKindType::TRAINING => TrainingEvent::class,
+    EventKindType::OTHER => Event::class,
+])]
 #[ORM\HasLifecycleCallbacks]
-#[ApiResource]
 class Event implements Stringable
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
-
     #[ORM\Column(type: 'string', length: 255)]
-    private string $name;
+    protected string $name;
+
+    // TODO remove $kind and use get_class($entity) to test event kind
+    #[ORM\Column(type: 'EventKindType')]
+    protected string $kind;
+
+    #[ORM\Column(type: 'DisciplineType')]
+    protected string $discipline;
+
+    #[ORM\Column]
+    protected bool $allDay = false;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $startsAt;
+    protected DateTimeImmutable $startsAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $endsAt;
+    protected DateTimeImmutable $endsAt;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private string $address;
-
-    #[ORM\Column(type: 'EventType')]
-    private string $type;
+    protected string $address;
 
     #[
         ORM\OneToMany(
@@ -49,42 +53,33 @@ class Event implements Stringable
             orphanRemoval: true,
         ),
     ]
-    private Collection $participations;
-
-    #[ORM\OneToMany(mappedBy: 'event', targetEntity: Result::class)]
-    private Collection $results;
-
-    #[ORM\Column(type: 'ContestType', nullable: true)]
-    private ?string $contestType = null;
-
-    #[ORM\Column(type: 'DisciplineType')]
-    private string $discipline;
+    protected Collection $participations;
 
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventAttachment::class)]
-    private Collection $attachments;
+    protected Collection $attachments;
 
     #[ORM\ManyToMany(targetEntity: Group::class, inversedBy: 'events')]
-    private Collection $assignedGroups;
+    protected Collection $assignedGroups;
 
     #[ORM\Column(length: 255)]
-    private ?string $slug = null;
+    protected ?string $slug = null;
 
     #[ORM\Column(length: 16, nullable: true)]
-    private ?string $latitude = null;
+    protected ?string $latitude = null;
 
     #[ORM\Column(length: 16, nullable: true)]
-    private ?string $longitude = null;
+    protected ?string $longitude = null;
 
     #[ORM\Column]
-    private bool $allDay = false;
-
-    #[ORM\Column]
-    private ?DateTimeImmutable $updatedAt = null;
+    protected ?DateTimeImmutable $updatedAt = null;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
 
     public function __construct()
     {
         $this->participations = new ArrayCollection();
-        $this->results = new ArrayCollection();
         $this->attachments = new ArrayCollection();
         $this->assignedGroups = new ArrayCollection();
     }
@@ -92,24 +87,11 @@ class Event implements Stringable
     public function __toString(): string
     {
         return sprintf(
-            '%s - %s %s - %s',
+            '%s - %s - %s',
             $this->getStartsAt()->format('d/m/Y'),
-            EventType::getReadableValue($this->getType()),
-            DisciplineType::getReadableValue($this->getDiscipline()),
+            EventKindType::getReadableValue($this->getKind()),
             $this->getName(),
         );
-    }
-
-    public static function fromFftaEvent(FftaEvent $fftaEvent): Event
-    {
-        return (new Event())
-            ->setAddress($fftaEvent->getLocation())
-            ->setContestType(ContestType::FEDERAL)
-            ->setDiscipline($fftaEvent->getDiscipline())
-            ->setEndsAt($fftaEvent->getTo())
-            ->setName($fftaEvent->getName())
-            ->setStartsAt($fftaEvent->getFrom())
-            ->setType(EventType::CONTEST_OFFICIAL);
     }
 
     public function getName(): ?string
@@ -136,24 +118,24 @@ class Event implements Stringable
         return $this;
     }
 
-    public function getType()
+    public function getKind(): string
     {
-        return $this->type;
+        return $this->kind;
     }
 
-    public function setType($type): self
+    public function setKind($kind): self
     {
-        $this->type = $type;
+        $this->kind = $kind;
 
         return $this;
     }
 
-    public function getDiscipline()
+    public function getDiscipline(): string
     {
         return $this->discipline;
     }
 
-    public function setDiscipline($discipline): self
+    public function setDiscipline(string $discipline): Event
     {
         $this->discipline = $discipline;
 
@@ -200,64 +182,6 @@ class Event implements Stringable
         return $this;
     }
 
-    /**
-     * @return Collection<int, Result>
-     */
-    public function getResults(): Collection
-    {
-        return $this->results;
-    }
-
-    public function addResult(Result $result): self
-    {
-        if (!$this->results->contains($result)) {
-            $this->results[] = $result;
-            $result->setEvent($this);
-        }
-
-        return $this;
-    }
-
-    public function removeResult(Result $result): self
-    {
-        if ($this->results->removeElement($result)) {
-            // set the owning side to null (unless already changed)
-            if ($result->getEvent() === $this) {
-                $result->setEvent(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function canImportResults(): bool
-    {
-        return $this->getDiscipline() && $this->getContestType();
-    }
-
-    public function getContestType()
-    {
-        return $this->contestType;
-    }
-
-    public function setContestType($contestType): self
-    {
-        $this->contestType = $contestType;
-
-        return $this;
-    }
-
-    public function getSeason(): int
-    {
-        $month = (int) $this->getStartsAt()->format('m');
-        $year = (int) $this->getStartsAt()->format('Y');
-        if ($month >= 9 && $month <= 12) {
-            return $year + 1;
-        }
-
-        return $year;
-    }
-
     public function addAttachment(EventAttachment $attachment): self
     {
         if (!$this->attachments->contains($attachment)) {
@@ -280,13 +204,6 @@ class Event implements Stringable
         return $this;
     }
 
-    public function hasMandate(): bool
-    {
-        return $this->getAttachments()->exists(
-            fn (int $key, EventAttachment $attachment) => EventAttachmentType::MANDATE === $attachment->getType()
-        );
-    }
-
     /**
      * @return Collection<int, PracticeAdviceAttachment>
      */
@@ -298,11 +215,6 @@ class Event implements Stringable
         }
 
         return $this->attachments;
-    }
-
-    public function hasResults(): bool
-    {
-        return $this->getAttachments()->exists(fn (int $key, EventAttachment $attachment) => EventAttachmentType::RESULTS === $attachment->getType());
     }
 
     /**
@@ -327,19 +239,6 @@ class Event implements Stringable
         $this->assignedGroups->removeElement($assignedGroup);
 
         return $this;
-    }
-
-    public function getParticipationsByDeparture(): array
-    {
-        $departures = [];
-        foreach ($this->getParticipations() as $participation) {
-            if (EventParticipationStateType::NOT_GOING === $participation->getParticipationState()) {
-                continue;
-            }
-            $departures[$participation->getDeparture() ?? 'non précisé'][] = $participation;
-        }
-
-        return $departures;
     }
 
     /**
@@ -391,7 +290,7 @@ class Event implements Stringable
     {
         return sprintf(
             '%s %s %s',
-            ucfirst(EventType::getReadableValue($this->getType())),
+            ucfirst(EventKindType::getReadableValue($this->getKind())),
             lcfirst(DisciplineType::getReadableValue($this->getDiscipline())),
             $this->getName()
         );

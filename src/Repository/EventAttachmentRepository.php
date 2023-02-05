@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\DBAL\Types\EventAttachmentType;
+use App\Entity\Event;
 use App\Entity\EventAttachment;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -39,28 +41,16 @@ class EventAttachmentRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return EventAttachment[] Returns an array of EventAttachment objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('e')
-//            ->andWhere('e.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('e.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?EventAttachment
-//    {
-//        return $this->createQueryBuilder('e')
-//            ->andWhere('e.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function findMandateForEvent(Event $event): ?EventAttachment
+    {
+        return $this->createQueryBuilder('ea')
+            ->where('ea.event = :event')
+            ->andWhere('ea.type = :type')
+            ->setParameters([
+                'event' => $event,
+                'type' => EventAttachmentType::MANDATE
+            ])
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

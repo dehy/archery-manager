@@ -3,9 +3,12 @@
 namespace App\Command;
 
 use App\DBAL\Types\DisciplineType;
-use App\DBAL\Types\EventType;
+use App\DBAL\Types\EventKindType;
+use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\Group;
+use App\Entity\HobbyContestEvent;
+use App\Entity\TrainingEvent;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -55,11 +58,11 @@ class RecurringEventGenerateCommand extends Command
         $addressQuestion = new Question('Adresse : ');
         $address = $helper->ask($input, $output, $addressQuestion);
 
-        $typeQuestion = new ChoiceQuestion(
+        $kindQuestion = new ChoiceQuestion(
             'Type : ',
-            EventType::getReadableValues(),
+            EventKindType::getReadableValues(),
         );
-        $type = $helper->ask($input, $output, $typeQuestion);
+        $kind = $helper->ask($input, $output, $kindQuestion);
 
         $disciplineQuestion = new ChoiceQuestion(
             'Discipline : ',
@@ -86,13 +89,19 @@ class RecurringEventGenerateCommand extends Command
         $stopsAt->setTime(23, 59, 59);
 
         while ($startsAt <= $stopsAt) {
-            $event = new Event();
+            $eventClass = match ($kind) {
+                EventKindType::CONTEST_OFFICIAL => ContestEvent::class,
+                EventKindType::CONTEST_HOBBY => HobbyContestEvent::class,
+                EventKindType::TRAINING => TrainingEvent::class,
+                default => Event::class,
+            };
+            $event = new $eventClass();
             $event->setName($name)
                 ->setAddress($address)
                 ->setStartsAt($startsAt)
                 ->setEndsAt($endsAt)
                 ->setAllDay($allDay)
-                ->setType($type)
+                ->setKind($kind)
                 ->setDiscipline($discipline);
 
             foreach ($assignedGroups as $assignedGroup) {

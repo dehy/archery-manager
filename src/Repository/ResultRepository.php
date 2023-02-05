@@ -58,6 +58,21 @@ class ResultRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findForLicensee(Licensee $licensee, string $eventKind, string $contestType): array
+    {
+        return $this->createQueryBuilder('r')
+            ->join('r.event', 'e')
+            ->where('r.licensee = :licensee')
+            ->andWhere('e.kind = :event_kind')
+            ->andWhere('e.contestType = :contest_type')
+            ->orderBy('e.startsAt', 'ASC')
+            ->setParameter('licensee', $licensee)
+            ->setParameter('event_kind', $eventKind)
+            ->setParameter('contest_type', $contestType)
+            ->getQuery()
+            ->getResult();
+    }
+
     // /**
     //  * @return Result[] Returns an array of Result objects
     //  */

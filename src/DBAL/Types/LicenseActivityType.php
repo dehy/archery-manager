@@ -17,11 +17,11 @@ final class LicenseActivityType extends AbstractEnumType
     public const TL = 'TL';
 
     protected static array $choices = [
-        self::AC => 'Arc chasse',
-        self::AD => 'Arc droit',
+        self::AC => 'Chasse',
+        self::AD => 'Droit',
         self::BB => 'Bare bow',
-        self::CL => 'Arc Classique',
-        self::CO => 'Arc à poulies',
-        self::TL => 'Arc libre',
+        self::CL => 'Classique',
+        self::CO => 'Poulies',
+        self::TL => 'Libre',
     ];
 }

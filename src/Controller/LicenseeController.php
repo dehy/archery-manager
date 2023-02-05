@@ -2,11 +2,18 @@
 
 namespace App\Controller;
 
+use App\DBAL\Types\ContestType;
+use App\DBAL\Types\DisciplineType;
+use App\DBAL\Types\EventKindType;
+use App\DBAL\Types\LicenseActivityType;
 use App\Entity\Licensee;
 use App\Entity\LicenseeAttachment;
+use App\Entity\Result;
+use App\Entity\Season;
 use App\Entity\User;
 use App\Helper\LicenseeHelper;
 use App\Repository\LicenseeRepository;
+use App\Repository\ResultRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\NonUniqueResultException;
@@ -18,6 +25,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+use Symfony\UX\Chartjs\Model\Chart;
 
 class LicenseeController extends AbstractController
 {
@@ -53,7 +62,9 @@ class LicenseeController extends AbstractController
     ]
     public function show(
         LicenseeRepository $licenseeRepository,
+        ResultRepository $resultRepository,
         LicenseeHelper $licenseeHelper,
+        ChartBuilderInterface $chartBuilder,
         ?string $fftaCode,
     ): Response {
         /** @var User $user */
@@ -73,8 +84,105 @@ class LicenseeController extends AbstractController
             throw $this->createNotFoundException();
         }
 
+        $resultsBySeason = [];
+        $seasons = [];
+        /** @var Result[] $results */
+        $results = $resultRepository->findForLicensee(
+            $licensee,
+            EventKindType::CONTEST_OFFICIAL,
+            ContestType::INDIVIDUAL
+        );
+        foreach ($results as $result) {
+            $season = Season::seasonForDate($result->getEvent()->getStartsAt());
+            $seasons[sprintf("Saison %s", $season)] = $season;
+            $groupName = sprintf(
+                '%s %s %sm',
+                DisciplineType::getReadableValue($result->getDiscipline()),
+                LicenseActivityType::getReadableValue($result->getActivity()),
+                $result->getDistance()
+            );
+            $resultsBySeason[$season][$groupName]['max'] = $result->getMaxTotal();
+            $resultsBySeason[$season][$groupName]['results'][] = $result;
+        }
+        krsort($seasons);
+
+        $resultsCharts = [];
+
+        foreach ($resultsBySeason as $season => $resultsByCategory) {
+            foreach ($resultsByCategory as $category => $results) {
+                $resultsChart = $chartBuilder->createChart(Chart::TYPE_BAR);
+                $resultsChart->setData([
+                    'labels' => array_map(fn(Result $result) => $result->getEvent()->getName(), $results['results']),
+                    'datasets' => [
+                        [
+                            'label' => 'Score Total',
+                            'data' => array_map(fn(Result $result) => $result->getTotal(), $results['results']),
+                            'backgroundColor' => 'rgba(227, 29, 2, .5)',
+                            'datalabels' => [
+                                'color' => 'white',
+                                'font' => [
+                                    'weight' => 'bold',
+                                ],
+                                'align' => 'end',
+                            ],
+                        ],
+                    ],
+                ]);
+
+                $lowestScore = min(
+                    array_map(fn(Result $result) => $result->getTotal(), $results['results'])
+                );
+                $bestScore = max(
+                    array_map(fn(Result $result) => $result->getTotal(), $results['results'])
+                );
+
+                $resultsChart->setOptions([
+                    'aspectRatio' => 5/3,
+                    'scales' => [
+                        'y' => [
+                            'min' => floor($lowestScore - 10),
+                            'max' => floor($bestScore + 10),
+                        ],
+                    ],
+                    'plugins' => [
+                        'legend' => [
+                            'display' => false,
+                        ],
+                        'annotation' => [
+                            'annotations' => [
+                                'lineBest' => [
+                                    'type' => 'line',
+                                    'yMin' => $bestScore,
+                                    'yMax' => $bestScore,
+                                    'borderColor' => '#e31d02',
+                                    'borderWidth' => 2,
+                                ],
+                                'labelBest' => [
+                                    'type' => 'label',
+                                    'xValue' => 0.5,
+                                    'yValue' => $bestScore,
+                                    'backgroundColor' => '#e31d02',
+                                    'borderRadius' => 7,
+                                    'color' => 'white',
+                                    'font' => [
+                                        'weight' => 'bold',
+                                    ],
+                                    'content' => 'Meilleur',
+                                ],
+                            ],
+                        ],
+                    ],
+                ]);
+
+                $resultsCharts[$season][$category] = $resultsChart;
+            }
+        }
+        ksort($resultsCharts);
+
         return $this->render('licensee/show.html.twig', [
             'licensee' => $licensee,
+            'seasons' => $seasons,
+            'results_charts' => $resultsCharts,
         ]);
     }
 

@@ -7,7 +7,7 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 /**
  * @extends AbstractEnumType<string, string>
  */
-final class EventType extends AbstractEnumType
+final class EventKindType extends AbstractEnumType
 {
     public const TRAINING = 'training';
     public const CONTEST_OFFICIAL = 'contest_official';

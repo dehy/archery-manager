@@ -2,7 +2,7 @@
 
 namespace App\Helper;
 
-use App\DBAL\Types\EventType;
+use App\DBAL\Types\EventKindType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
@@ -33,6 +33,13 @@ class LicenseHelper
         $this->season = 2023;
     }
 
+    public static function getSeasonForDate(DateTimeInterface $dateTime): int
+    {
+        $dateYear = (int) $dateTime->format('Y');
+
+        return $dateTime->format('n') >= 9 ? ($dateYear + 1) : $dateYear;
+    }
+
     public function getCurrentLicenseeCurrentLicense(): License
     {
         $licensee = $this->licenseeHelper->getLicenseeFromSession();
@@ -40,22 +47,22 @@ class LicenseHelper
         return $licensee->getLicenseForSeason($this->season);
     }
 
-    public function licenseIsValidForEventType(License $license, string $eventType): bool
+    public function licenseIsValidForEventKind(License $license, string $eventKind): bool
     {
-        EventType::assertValidChoice($eventType);
+        EventKindType::assertValidChoice($eventKind);
         $licenseType = $license->getType();
         $isValid = false;
-        if (EventType::CONTEST_OFFICIAL === $eventType) {
+        if (EventKindType::CONTEST_OFFICIAL === $eventKind) {
             if (in_array($licenseType, [LicenseType::ADULTES_COMPETITION, LicenseType::JEUNES])) {
                 $isValid = true;
             }
-        } elseif (EventType::CONTEST_HOBBY === $eventType) {
+        } elseif (EventKindType::CONTEST_HOBBY === $eventKind) {
             if (in_array($licenseType, [LicenseType::ADULTES_CLUB, LicenseType::JEUNES, LicenseType::POUSSINS])) {
                 $isValid = true;
             }
-        } elseif (EventType::TRAINING) {
+        } elseif (EventKindType::TRAINING) {
             $isValid = true;
-        } elseif (EventType::OTHER) {
+        } elseif (EventKindType::OTHER) {
             $isValid = true;
         }
 

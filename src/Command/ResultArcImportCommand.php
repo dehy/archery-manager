@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Entity\Event;
+use App\Entity\ContestEvent;
 use App\Entity\Licensee;
 use App\Entity\Result;
 use App\Repository\LicenseeRepository;
@@ -45,23 +45,23 @@ class ResultArcImportCommand extends Command
         $file = $input->getArgument('file');
         $eventId = $input->getArgument('eventId');
 
-        $eventRepository = $this->entityManager->getRepository(Event::class);
-        $event = $eventRepository->find($eventId);
+        $contestEventRepository = $this->entityManager->getRepository(ContestEvent::class);
+        $contestEvent = $contestEventRepository->find($eventId);
 
-        if (!$event) {
+        if (!$contestEvent) {
             $io->error(sprintf('Event #%s not found', $eventId));
 
             return Command::INVALID;
         }
 
-        if (!$event->getContestType()) {
+        if (!$contestEvent->getContestType()) {
             $io->error(
                 'You must set the contest type value of the event before importing results',
             );
 
             return Command::INVALID;
         }
-        if (!$event->getDiscipline()) {
+        if (!$contestEvent->getDiscipline()) {
             $io->error(
                 'You must set the event discipline before importing results',
             );
@@ -84,27 +84,26 @@ class ResultArcImportCommand extends Command
             }
             $existingResult = $resultRepository->findOneBy([
                 'licensee' => $licensee->getId(),
-                'event' => $event->getId(),
+                'event' => $contestEvent->getId(),
             ]);
             if ($existingResult) {
                 $result = $existingResult;
             } else {
                 $result = (new Result())
-                    ->setEvent($event)
+                    ->setEvent($contestEvent)
                     ->setLicensee($licensee);
             }
             [
                 $distance,
                 $targetSize,
-            ] = Result::distanceForContestTypeAndActivity(
-                $event->getContestType(),
-                $event->getDiscipline(),
+            ] = Result::distanceForContestAndActivity(
+                $contestEvent,
                 $resultLine->activity,
                 $resultLine->ageCategory,
             );
             $result
                 ->setActivity($resultLine->activity)
-                ->setDiscipline($event->getDiscipline())
+                ->setDiscipline($contestEvent->getDiscipline())
                 ->setDistance($distance)
                 ->setTargetSize($targetSize)
                 ->setTotal($resultLine->score);

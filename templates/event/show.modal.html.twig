@@ -1,6 +1,6 @@
 {% set licensee = licenseeHelper.licenseeFromSession %}
 {% set license = licenseHelper.currentLicenseeCurrentLicense %}
-{% set canAttend = licenseHelper.licenseIsValidForEventType(license, event.type) %}
+{% set canAttend = licenseHelper.licenseIsValidForEventKind(license, event.kind) %}
 {% if not canAttend %}
     <div class="alert alert-warning">
         Ta licence ne te permet pas de participer à ce type d'évènement.
@@ -83,12 +83,12 @@
 
 
 {% macro attachment(event, type, plural = false) %}
-    {% if event.type in ['contest_official', 'contest_hobby'] %}
+    {% if event.kind in ['contest_official', 'contest_hobby'] %}
         <dt class="col-3 text-end">{{ type|readable_enum('EventAttachmentType')|lower }}</dt>
         <dd class="col-9">
             {% if not event.attachments(type).empty %}
                 {% for attachment in event.attachments(type) %}
-                    <a href="{{ path('events_attachements_download', {'attachment': attachment.id}) }}"
+                    <a href="{{ path('events_attachments_download', {'attachment': attachment.id}) }}"
                        class="btn btn-sm btn-primary"
                        target="_blank">
                         <em class="fa-solid fa-download"></em> Télécharger

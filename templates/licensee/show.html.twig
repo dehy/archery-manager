@@ -112,7 +112,7 @@
                 </div>
             {% endif %}
             <div class="row">
-                <div class="col-md-6 col-12 mb-3">
+                <div class="col-md-4 col-12 mb-3">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Équipement</h5>
@@ -121,11 +121,39 @@
                     </div>
                 </div>
 
-                <div class="col-md-6 col-12 mb-3">
+                <div class="col-md-8 col-12 mb-3">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Résultats</h5>
-                            <p class="card-text">Fonctionnalité en cours de développement.</p>
+                            <div class="d-flex flex-row mb-3">
+                                <h5 class="card-title me-3 mt-2">Résultats</h5>
+                                {% if results_charts|length > 0 %}
+                                <select class="form-select form-select-sm w-auto" id="results-season-selector">
+                                    {% for season_label, season in seasons %}
+                                        <option value="{{ season }}" {{ loop.first ? "selected" }}>{{ season_label }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% endif %}
+                            </div>
+                            {% for season, charts_by_category in results_charts %}
+                                <div class="season-pane d-none results-season-pane" data-season="{{ season }}">
+                                    <ul class="nav nav-tabs" id="resultsTab" role="tablist">
+                                        {% for category, chart in charts_by_category %}
+                                            <li class="nav-item">
+                                                <button class="nav-link {{ loop.first ? "active" }}" data-bs-toggle="tab" data-bs-target="#{{ category|slug|lower }}-tab-pane" >{{ category }}</button>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                    <div class="tab-content" id="result-charts-tab-content">
+                                        {% for category, chart in charts_by_category %}
+                                            <div class="tab-pane fade {{ loop.first ? "show active" }}" id="{{ category|slug|lower }}-tab-pane" role="tabpanel" aria-labelledby="{{ category }}-tab" tabindex="0">
+                                                {{ render_chart(chart, {'data-controller': 'results-chart'}) }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div>Aucun résultat enregistré</div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -133,4 +161,9 @@
         </div>
 
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('licensees_show') }}
 {% endblock %}

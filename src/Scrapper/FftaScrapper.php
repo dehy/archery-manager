@@ -2,13 +2,13 @@
 
 namespace App\Scrapper;
 
-use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\GenderType;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
+use App\Entity\ContestEvent;
 use App\Entity\License;
 use App\Entity\Result;
 use DateTime;
@@ -586,11 +586,13 @@ class FftaScrapper
                 return;
             }
 
+            $event = new ContestEvent();
+            $event->setDiscipline($fftaEvent->getDiscipline());
+
             $category = $row->filter('td:nth-child(5)')->text();
             [$ageCategory, $activity] = CategoryParser::parseString($category);
-            [$distance, $size] = Result::distanceForContestTypeAndActivity(
-                ContestType::FEDERAL,
-                $fftaEvent->getDiscipline(),
+            [$distance, $size] = Result::distanceForContestAndActivity(
+                $event,
                 $activity,
                 $ageCategory,
             );

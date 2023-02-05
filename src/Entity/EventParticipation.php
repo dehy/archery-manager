@@ -30,6 +30,12 @@ class EventParticipation
     #[ORM\JoinColumn(nullable: false)]
     private Licensee $participant;
 
+    #[ORM\Column(type: 'LicenseActivityType')]
+    private ?string $activity = null;
+
+    #[ORM\Column(type: 'TargetTypeType')]
+    private ?string $targetType = null;
+
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $departure = null;
 
@@ -64,6 +70,30 @@ class EventParticipation
     public function setParticipant(?Licensee $participant): self
     {
         $this->participant = $participant;
+
+        return $this;
+    }
+
+    public function getActivity(): ?string
+    {
+        return $this->activity;
+    }
+
+    public function setActivity(?string $activity): EventParticipation
+    {
+        $this->activity = $activity;
+
+        return $this;
+    }
+
+    public function getTargetType(): ?string
+    {
+        return $this->targetType;
+    }
+
+    public function setTargetType(?string $targetType): EventParticipation
+    {
+        $this->targetType = $targetType;
 
         return $this;
     }

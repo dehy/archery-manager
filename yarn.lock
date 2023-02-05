@@ -1567,7 +1567,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hotwired/stimulus@npm:^3.2.1":
+"@hotwired/stimulus@npm:^3.0.0":
   version: 3.2.1
   resolution: "@hotwired/stimulus@npm:3.2.1"
   checksum: 2617b10fb3ca0fb05205526693cbc9ea17fca84f40d8d95d0ce8d58f903aa74e020da858adc72f056f777f4854bdd7f5ee6d69810ecb17412af43d6ffb78997e
@@ -1731,6 +1731,16 @@ __metadata:
   peerDependencies:
     "@hotwired/stimulus": ^3.0
   checksum: f30b30099b36ff0447c3223863d72d3a03ffa12ddac4bf657e90ee3adaf9ffd29328e444ce8716c8ed1c81379552124ed9c0e6feb6ed4a654f35859806043ada
+  languageName: node
+  linkType: hard
+
+"@symfony/ux-chartjs@file:vendor/symfony/ux-chartjs/assets::locator=root-workspace-0b6124%40workspace%3A.":
+  version: 1.1.0
+  resolution: "@symfony/ux-chartjs@file:vendor/symfony/ux-chartjs/assets#vendor/symfony/ux-chartjs/assets::hash=a2ff3f&locator=root-workspace-0b6124%40workspace%3A."
+  peerDependencies:
+    "@hotwired/stimulus": ^3.0.0
+    chart.js: ^3.4.1
+  checksum: 7d6b61421d937dd1ca8b73f1a88b89991160b89b346a6c371db05ab9c785293ce12d0852933fc9c33f7a7ba6319a2f4611e16cdd37e30ebc85f123a135961d60
   languageName: node
   linkType: hard
 
@@ -2583,14 +2593,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "axios@npm:1.2.1"
+"axios@npm:^1.3.2":
+  version: 1.3.2
+  resolution: "axios@npm:1.3.2"
   dependencies:
     follow-redirects: ^1.15.0
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: c4dc4e119064c9aed09a3de309bedb797a139a6fb372223aafe3e0c10a7d4a14e4d3e9c9d309467fadb9d2b490b891ee3df96ef5b55716bb971910466ff9f0c5
+  checksum: 9791af75a6df137b15ef45d13ad11eb357b3860d2496347ee18778db9d0abc2320362a4452f1e070e3160f1dbcc518fcefdc9e005be097e7db39acb22cf608e5
   languageName: node
   linkType: hard
 
@@ -2880,15 +2890,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"canvas@npm:^2.10.2":
-  version: 2.10.2
-  resolution: "canvas@npm:2.10.2"
+"canvas@npm:^2.11.0":
+  version: 2.11.0
+  resolution: "canvas@npm:2.11.0"
   dependencies:
     "@mapbox/node-pre-gyp": ^1.0.0
     nan: ^2.17.0
     node-gyp: latest
     simple-get: ^3.0.3
-  checksum: b2e3eb4c3635fa2f67857619621c3d314f935a9e51904536dadf4908ab580dff4f5bcbaafe6eb0255247fa027ca494d5cd97c33376a49a0f994997263fa9944b
+  checksum: a69a6e0c90014a1b02e52c4c38a627d1a01ffe9539047bec84105cb3554907a947cf39b4a333be43fc1583dd142b641bb5480a4e23f59c6098618c33bf78f67f
   languageName: node
   linkType: hard
 
@@ -2910,6 +2920,31 @@ __metadata:
     ansi-styles: ^4.1.0
     supports-color: ^7.1.0
   checksum: fe75c9d5c76a7a98d45495b91b2172fa3b7a09e0cc9370e5c8feb1c567b85c4288e2b3fded7cfdd7359ac28d6b3844feb8b82b8686842e93d23c827c417e83fc
+  languageName: node
+  linkType: hard
+
+"chart.js@npm:^3.4.1":
+  version: 3.9.1
+  resolution: "chart.js@npm:3.9.1"
+  checksum: 9ab0c0ac01215af0b3f020f2e313030fd6e347b48ed17d5484ee9c4e8ead45e78ae71bea16c397621c386b409ce0b14bf17f9f6c2492cd15b56c0f433efdfff6
+  languageName: node
+  linkType: hard
+
+"chartjs-plugin-annotation@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "chartjs-plugin-annotation@npm:2.1.2"
+  peerDependencies:
+    chart.js: ">=3.7.0"
+  checksum: 821cfae3d2e7f7c70e8d42ba6fa22f0b40afa9d0cc52938afc9ddc547fe97c7fa3a0b849026bdc9afba823736b21733cdb2c911f0500008f2deb8f83743bf672
+  languageName: node
+  linkType: hard
+
+"chartjs-plugin-datalabels@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "chartjs-plugin-datalabels@npm:2.2.0"
+  peerDependencies:
+    chart.js: ">=3.0.0"
+  checksum: 26086a908a8e88507959b7aaf798b2d9794ea95f7a5889b8bb9f6b9f3437a7e2fdf18952d3ba403b2ff78e5b70452439fb323bd0dfe76e9d7d1dae1328dacb99
   languageName: node
   linkType: hard
 
@@ -3167,10 +3202,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.27.0":
-  version: 3.27.0
-  resolution: "core-js@npm:3.27.0"
-  checksum: 14bf6772e1c73a1cb3848ff63cae8d8f28354195e95ff550f2c4a7ae04650987691e37d6c9fe73789ffd97055b024fc7df825c203965f9a9b9aa6fb9f26f8571
+"core-js@npm:^3.27.2":
+  version: 3.27.2
+  resolution: "core-js@npm:3.27.2"
+  checksum: 718debd426f55a6b97cf9b757c936be258afd6d4f7052f89d0f96c982d7013e9000b0b006df42831a0cf32adad298e34d6a19052dce9ae1c7ab87162c0c665e0
   languageName: node
   linkType: hard
 
@@ -5407,16 +5442,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pdfjs-dist@npm:^3.1.81":
-  version: 3.1.81
-  resolution: "pdfjs-dist@npm:3.1.81"
+"path2d-polyfill@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "path2d-polyfill@npm:2.0.1"
+  checksum: e38a4f920be3550e8334b899cc56f4fca0a976ca69404ee10d656a45d422996b7e27e294e2cf0aac2e410ce59d6977cde9f95586e62a24e6c904716695e059f8
+  languageName: node
+  linkType: hard
+
+"pdfjs-dist@npm:^3.3.122":
+  version: 3.3.122
+  resolution: "pdfjs-dist@npm:3.3.122"
   dependencies:
-    canvas: ^2.10.2
+    canvas: ^2.11.0
+    path2d-polyfill: ^2.0.1
     web-streams-polyfill: ^3.2.1
   dependenciesMeta:
     canvas:
       optional: true
-  checksum: f72bf7dbdf1f96b67c75aa04cdf9eed87a2d51b151eeee139495e589e61099ca258b425326a6e481753d98e9c82b608e3064e5d35b41cb0b28e715d7d1c44102
+  checksum: 9df747b17a6fbf6ce757568825431c28a292bb37031db3dcb4683bcf1991524eadedbf5a4496561080b6edad4511af28c294ceb4c42fc6c05cdaaf2203766635
   languageName: node
   linkType: hard
 
@@ -6285,24 +6328,28 @@ __metadata:
     "@fortawesome/free-brands-svg-icons": ^6.2.1
     "@fortawesome/free-regular-svg-icons": ^6.2.1
     "@fortawesome/free-solid-svg-icons": ^6.2.1
-    "@hotwired/stimulus": ^3.2.1
+    "@hotwired/stimulus": ^3.0.0
     "@popperjs/core": ^2.11.6
     "@symfony/stimulus-bridge": ^3.2.1
     "@symfony/stimulus-bridge-types": ^1.0.0
+    "@symfony/ux-chartjs": "file:vendor/symfony/ux-chartjs/assets"
     "@symfony/webpack-encore": ^4.2.0
     "@types/bootstrap": ^5.2.6
     "@types/leaflet": ^1.9.0
-    axios: ^1.2.1
+    axios: ^1.3.2
     bootstrap: ^5.2.3
-    core-js: ^3.27.0
+    chart.js: ^3.4.1
+    chartjs-plugin-annotation: ^2.1.2
+    chartjs-plugin-datalabels: ^2.2.0
+    core-js: ^3.27.2
     file-loader: ^6.2.0
     leaflet: ^1.9.3
-    pdfjs-dist: ^3.1.81
+    pdfjs-dist: ^3.3.122
     regenerator-runtime: ^0.13.11
-    sass: ^1.57.1
+    sass: ^1.58.0
     sass-loader: ^13.2.0
     ts-loader: ^9.4.2
-    typescript: ^4.9.4
+    typescript: ^4.9.5
     webpack: ^5.75.0
     webpack-cli: ^5.0.1
     webpack-notifier: ^1.15.0
@@ -6355,16 +6402,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:^1.57.1":
-  version: 1.57.1
-  resolution: "sass@npm:1.57.1"
+"sass@npm:^1.58.0":
+  version: 1.58.0
+  resolution: "sass@npm:1.58.0"
   dependencies:
     chokidar: ">=3.0.0 <4.0.0"
     immutable: ^4.0.0
     source-map-js: ">=0.6.2 <2.0.0"
   bin:
     sass: sass.js
-  checksum: 734a08781bcbe0e8defb2d54864e7012014ed3e68ba5fcb766189b002929019fc37b2f83a18d4be0b5f69ad77317c92396ce6112447ab47a194ed600ae1afb27
+  checksum: a7219634881d2de6441fb619787fb1a02e3fa0333fb715be26aa335ba49d6bdb4f1105d9df70a80a67200893022b08346745783dc49046095d94fc6e044492d6
   languageName: node
   linkType: hard
 
@@ -6979,23 +7026,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.9.4":
-  version: 4.9.4
-  resolution: "typescript@npm:4.9.4"
+"typescript@npm:^4.9.5":
+  version: 4.9.5
+  resolution: "typescript@npm:4.9.5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: e782fb9e0031cb258a80000f6c13530288c6d63f1177ed43f770533fdc15740d271554cdae86701c1dd2c83b082cea808b07e97fd68b38a172a83dbf9e0d0ef9
+  checksum: ee000bc26848147ad423b581bd250075662a354d84f0e06eb76d3b892328d8d4440b7487b5a83e851b12b255f55d71835b008a66cbf8f255a11e4400159237db
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>":
-  version: 4.9.4
-  resolution: "typescript@patch:typescript@npm%3A4.9.4#~builtin<compat/typescript>::version=4.9.4&hash=ad5954"
+"typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
+  version: 4.9.5
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 1caaea6cb7f813e64345190fddc4e6c924d0b698ab81189b503763c4a18f7f5501c69362979d36e19c042d89d936443e768a78b0675690b35eb663d19e0eae71
+  checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
   languageName: node
   linkType: hard
 

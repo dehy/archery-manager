@@ -19,9 +19,9 @@ use Exception;
  */
 class EventRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(ManagerRegistry $registry, ?string $entityClass = null)
     {
-        parent::__construct($registry, Event::class);
+        parent::__construct($registry, $entityClass ?? Event::class);
     }
 
     public function add(Event $entity, bool $flush = true): void

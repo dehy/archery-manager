@@ -13,7 +13,7 @@ doctrine:
             DisciplineType: App\DBAL\Types\DisciplineType
             EventAttachmentType: App\DBAL\Types\EventAttachmentType
             EventParticipationStateType: App\DBAL\Types\EventParticipationStateType
-            EventType: App\DBAL\Types\EventType
+            EventKindType: App\DBAL\Types\EventKindType
             FletchingType: App\DBAL\Types\FletchingType
             GenderType: App\DBAL\Types\GenderType
             LicenseActivityType: App\DBAL\Types\LicenseActivityType

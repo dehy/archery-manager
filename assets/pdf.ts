@@ -9,6 +9,13 @@ const pdfPages: { canvas: HTMLCanvasElement, pdfPage: pdfjsLib.PDFPageProxy }[] 
 const loadPdf = (canvas: HTMLCanvasElement) => {
     const pdfUrl = canvas.dataset.pdfUrl;
 
+    const ctx = canvas.getContext("2d");
+    if (null === ctx) {
+        throw Error('Cannot get a Context');
+    }
+    ctx.font = "14px Georgia";
+    ctx.fillText('Chargement du document...', 4, 20);
+
     if (undefined === pdfUrl) {
         throw Error('No url found in canvas element');
     }

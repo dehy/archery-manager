@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\Event;
+use App\Entity\ContestEvent;
 use Cocur\Slugify\Slugify;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
@@ -27,9 +27,9 @@ final class Version20221115093357 extends AbstractMigration
         $slugify = new Slugify();
         $events = $this->connection->fetchAllAssociative('SELECT * FROM event');
         foreach ($events as $eventAssoc) {
-            $event = new Event();
-            $event->setType($eventAssoc['type'])
-                ->setDiscipline($eventAssoc['discipline'])
+            $event = new ContestEvent();
+            $event->setKind($eventAssoc['type'])
+                ->setContestDiscipline($eventAssoc['discipline'])
                 ->setName($eventAssoc['name'])
                 ->setStartsAt(new \DateTimeImmutable($eventAssoc['starts_at']))
             ;

@@ -13,6 +13,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
+use LogicException;
 use Stringable;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -51,7 +52,7 @@ class Licensee implements Stringable
 
     #[ORM\Column]
     #[Gedmo\Timestampable(on: 'update')]
-    private ?DateTimeImmutable $updatedAt = null;
+    private ?DateTimeImmutable $updatedAt;
 
     #[
         ORM\OneToMany(
@@ -267,7 +268,11 @@ class Licensee implements Stringable
             fn (License $l) => $l->getSeason() === $year,
         );
 
-        return $filteredLicenses->count() > 0
+        if ($filteredLicenses->count() > 1) {
+            throw new LogicException('Licensee should not have multiple licenses for same season');
+        }
+
+        return $filteredLicenses->count() === 1
             ? $filteredLicenses->first()
             : null;
     }

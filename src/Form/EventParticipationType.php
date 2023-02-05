@@ -18,6 +18,7 @@ class EventParticipationType extends AbstractType
             ->add('participationState', null, [
                 'expanded' => true,
             ])
+            ->add('targetType')
             ->add('departure', ChoiceType::class, [
                 'choices' => [
                     'n°1' => 1,
@@ -26,8 +27,7 @@ class EventParticipationType extends AbstractType
                     'n°4' => 4,
                 ],
                 'required' => false,
-                'label' => 'Départ',
-                'placeholder' => 'Non précisé',
+                'placeholder' => 'Unspecified',
             ]);
     }
 

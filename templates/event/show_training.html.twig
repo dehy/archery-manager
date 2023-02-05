@@ -2,7 +2,7 @@
 
 {% set licensee = licenseeHelper.licenseeFromSession %}
 {% set license = licenseHelper.currentLicenseeCurrentLicense %}
-{% set canAttend = licenseHelper.licenseIsValidForEventType(license, event.type) %}
+{% set canAttend = licenseHelper.licenseIsValidForEventKind(license, event.kind) %}
 {% set licenseeParticipation = eventHelper.licenseeParticipationToEvent(licensee, event) %}
 
 {% block return_link %}
@@ -52,7 +52,7 @@
                     <h5><em class="fa-solid fa-bullseye"></em> Catégorie et Type</h5>
                     <dl>
                         <dt>Type</dt>
-                        <dd>{{ event.type|readable_enum }}</dd>
+                        <dd>{{ event.kind|readable_enum }}</dd>
                         <dt>Discipline</dt>
                         <dd>{{ event.discipline|readable_enum }}</dd>
                     </dl>

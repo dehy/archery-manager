@@ -2,7 +2,7 @@
 
 namespace App\Factory;
 
-use App\Entity\Event;
+use App\Entity\ContestEvent;
 use App\Entity\Licensee;
 use App\Entity\Result;
 use App\Scrapper\CategoryParser;
@@ -11,15 +11,14 @@ use App\Scrapper\FftaResult;
 class ResultFactory
 {
     public static function createFromEventLicenseeAndFftaResult(
-        Event $event,
+        ContestEvent $event,
         Licensee $licensee,
         FftaResult $fftaResult,
     ): Result {
         $category = $fftaResult->getCategory();
         [$ageCategory, $activity] = CategoryParser::parseString($category);
-        [$distance, $size] = Result::distanceForContestTypeAndActivity(
-            $event->getContestType(),
-            $event->getDiscipline(),
+        [$distance, $size] = Result::distanceForContestAndActivity(
+            $event,
             $activity,
             $ageCategory,
         );

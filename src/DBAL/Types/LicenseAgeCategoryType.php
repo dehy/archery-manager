@@ -46,4 +46,18 @@ final class LicenseAgeCategoryType extends AbstractEnumType
         self::VETERAN => 'Vétéran',
         self::SUPER_VETERAN => 'Super Vétéran',
     ];
+
+    public static function getOrderedChoices()
+    {
+        $choices = [
+            self::U11, self::U13, self::U15, self::U18, self::U21, self::SENIOR_1, self::SENIOR_2, self::SENIOR_3,
+        ];
+
+        $orderedChoices = [];
+        foreach ($choices as $choice) {
+            $orderedChoices[self::getReadableValue($choice)] = $choice;
+        }
+
+        return $orderedChoices;
+    }
 }

@@ -3,6 +3,8 @@
 namespace App\Controller\Admin;
 
 use App\DBAL\Types\EventParticipationStateType;
+use App\DBAL\Types\LicenseActivityType;
+use App\DBAL\Types\TargetTypeType;
 use App\Entity\EventParticipation;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -22,6 +24,8 @@ class EventParticipationCrudController extends AbstractCrudController
         return [
             AssociationField::new('event'),
             AssociationField::new('participant'),
+            ChoiceField::new('activity')->setChoices(LicenseActivityType::getChoices()),
+            ChoiceField::new('targetType')->setChoices(TargetTypeType::getChoices()),
             IntegerField::new('departure'),
             ChoiceField::new('participationState')->setChoices(EventParticipationStateType::getChoices()),
         ];

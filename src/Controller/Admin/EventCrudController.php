@@ -5,7 +5,7 @@ namespace App\Controller\Admin;
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventAttachmentType;
-use App\DBAL\Types\EventType;
+use App\DBAL\Types\EventKindType;
 use App\Entity\Event;
 use App\Entity\EventAttachment;
 use App\Entity\Licensee;
@@ -58,7 +58,7 @@ class EventCrudController extends AbstractCrudController
             DateTimeField::new('endsAt'),
             BooleanField::new('allDay')->renderAsSwitch(false),
             ChoiceField::new('type')
-                ->setChoices(EventType::getChoices())
+                ->setChoices(EventKindType::getChoices())
                 ->renderExpanded(),
             ChoiceField::new('contestType')->setChoices(
                 ContestType::getChoices(),
@@ -83,7 +83,7 @@ class EventCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return parent::configureFilters($filters)
-            ->add(ChoiceFilter::new('type')->setChoices(EventType::getChoices()))
+            ->add(ChoiceFilter::new('type')->setChoices(EventKindType::getChoices()))
             ->add(ChoiceFilter::new('discipline')->setChoices(DisciplineType::getChoices()));
     }
 
@@ -181,9 +181,8 @@ class EventCrudController extends AbstractCrudController
                 [
                     $distance,
                     $targetSize,
-                ] = Result::distanceForContestTypeAndActivity(
-                    $event->getContestType(),
-                    $event->getDiscipline(),
+                ] = Result::distanceForContestAndActivity(
+                    $event,
                     $line->activity,
                     $line->ageCategory,
                 );

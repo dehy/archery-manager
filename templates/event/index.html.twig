@@ -22,8 +22,7 @@
         <span class="fw-normal text-primary">{{ start_of_month|format_date(pattern='yyyy', locale='fr') }}</span>
     </h3>
 
-    <div class="row" data-controller="modal">
-        {{ include('_modal.html.twig') }}
+    <div class="row">
         <div class="col-xl-9 d-xl-block d-none">
             <div class="calendar-header">
                 {% for day in ["LUN.", "MAR.", "MER.", "JEU.", "VEN.", "SAM.", "DIM."] %}
@@ -66,7 +65,7 @@
                             {% set link_style = "min-height: 1rem;" %}
                             {% if event.allDay %}
                                 {% set link_class = "badge text-bg-primary mb-1 all-day-event" %}
-                                {% set link_style = "#{link_style} background-color: " ~ event.type|eventColor ~ " !important;" %}
+                                {% set link_style = "#{link_style} background-color: " ~ event.kind|eventColor ~ " !important;" %}
                             {% else %}
                                 {% set link_class = "" %}
                                 {% set link_style = "#{link_style}" %}
@@ -89,7 +88,7 @@
                             >
                                 <div class="event-name">
                                     {% if not event.allDay %}
-                                    <div class="event-pill" style="background-color: {{ event.type|eventColor }}"></div>
+                                    <div class="event-pill" style="background-color: {{ event.kind|eventColor }}"></div>
                                     {% endif %}
                                     {{ event_name }}
                                 </div>
@@ -119,7 +118,7 @@
                                        class="d-flex flex-row link-unstyled p-2"
                                     >
                                         <div class="event-pill me-1"
-                                             style="background-color: {{ event.type|eventColor }}">
+                                             style="background-color: {{ event.kind|eventColor }}">
                                         </div>
                                         <div class="d-flex flex-column">
                                             <div class="time">
@@ -131,7 +130,7 @@
                                                 {% endif %}
                                             </div>
                                             <div class="name">
-                                                {{ event.type|readable_enum }} - {{ event.name }}
+                                                {{ event.kind|readable_enum }} - {{ event.name }}
                                                 {% if event.attachments|length > 0 %}
                                                     <em class="fa-solid fa-paperclip"></em>
                                                 {% endif %}

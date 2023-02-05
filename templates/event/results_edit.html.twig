@@ -1,0 +1,41 @@
+{{ form_start(results_form) }}
+{{ form_errors(results_form) }}
+<div class="table-responsive">
+    <table class="table table-striped mb-0">
+        {% set age_category = null %}
+        {% set season = licenseHelper.seasonForDate(event.startsAt) %}
+        {% for result_form in results_form.licensees_results %}
+            {% set license = result_form.vars.value.licensee.licenseForSeason(season) %}
+            {% if age_category != license.ageCategory %}
+                {% set age_category = license.ageCategory %}
+                <thead>
+                <tr class="text-center">
+                    <th class="text-start">{{ age_category|readable_enum }}</th>
+                    <th>Série 1</th>
+                    <th>Série 2</th>
+                    <th>Total*</th>
+                </tr>
+                </thead>
+            {% endif %}
+            <tr>
+                <td>
+                    {{ form_errors(result_form.licensee) }}
+                    {{ form_widget(result_form.licensee) }}
+                </td>
+                <td style="width: 90px">
+                    {{ form_errors(result_form.score1) }}
+                    {{ form_widget(result_form.score1) }}
+                </td>
+                <td style="width: 90px">
+                    {{ form_errors(result_form.score2) }}
+                    {{ form_widget(result_form.score2) }}
+                </td>
+                <td style="width: 90px">
+                    {{ form_errors(result_form.total) }}
+                    {{ form_widget(result_form.total) }}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+{{ form_end(results_form) }}

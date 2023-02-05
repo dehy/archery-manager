@@ -4,7 +4,7 @@ namespace App\DataFixtures;
 
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
-use App\DBAL\Types\EventType;
+use App\DBAL\Types\EventKindType;
 use App\Entity\Event;
 use DateInterval;
 use DateTimeImmutable;
@@ -30,13 +30,13 @@ class EventFixtures extends Fixture
             $event = new Event();
             $event
                 ->setName($faker->city())
-                ->setType(EventType::CONTEST_OFFICIAL)
+                ->setKind(EventKindType::CONTEST_OFFICIAL)
                 ->setStartsAt($saturday)
                 ->setEndsAt($sunday)
                 ->setAllDay(true)
                 ->setAddress($faker->address())
                 ->setContestType(ContestType::FEDERAL)
-                ->setDiscipline(DisciplineType::INDOOR);
+                ->setContestDiscipline(DisciplineType::INDOOR);
             $manager->persist($event);
         }
 

@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\DBAL\Types\DisciplineType;
+use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\Licensee;
 use App\Entity\Result;
@@ -121,7 +122,7 @@ class FftaFetchParticipatingEvent extends Command
                 ->getQuery()
                 ->getOneOrNullResult();
             if (!$event) {
-                $event = Event::fromFftaEvent($fftaEvent);
+                $event = ContestEvent::fromFftaEvent($fftaEvent);
                 $this->entityManager->persist($event);
             }
             // Fetch results

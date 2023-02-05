@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Exception;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Validator\Constraints as Assert;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: EventAttachmentRepository::class)]
@@ -21,9 +22,11 @@ class EventAttachment extends Attachment
 
     #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: 'attachments')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull]
     private ?Event $event = null;
 
     #[ORM\Column(type: 'EventAttachmentType')]
+    #[Assert\NotNull]
     private ?string $type = null;
 
     #[Vich\UploadableField(
@@ -33,6 +36,9 @@ class EventAttachment extends Attachment
         mimeType: 'file.mimeType',
         originalName: 'file.originalName',
         dimensions: 'file.dimensions'
+    )]
+    #[Assert\File(
+        extensions: ['pdf' => 'application/pdf']
     )]
     private ?File $uploadedFile = null;
 

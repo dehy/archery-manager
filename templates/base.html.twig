@@ -22,7 +22,7 @@
 
     <title>{{ block('title') }}{{ block('title') is defined ? ' • ' }}Mon Club</title>
 </head>
-<body data-env-api-url="{{ apiUrl }}">
+<body data-env-api-url="{{ apiUrl }}" {{ stimulus_controller('modal') }}>
 <div class="mobile-tab-bar navbar navbar-expand navbar-dark bg-primary">
     <ul class="navbar-nav w-100">
         <li class="nav-item">
@@ -191,6 +191,7 @@
 </div>
 
 {% include '_footer.html.twig' %}
+{% include '_modal.html.twig' %}
 </body>
 </html>
 

@@ -3,8 +3,8 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
-use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
+use App\DBAL\Types\EventKindType;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\Repository\ResultRepository;
@@ -12,6 +12,7 @@ use App\Scrapper\CategoryParser;
 use App\Scrapper\FftaResult;
 use Doctrine\ORM\Mapping as ORM;
 use LogicException;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ResultRepository::class)]
 #[ApiResource]
@@ -24,10 +25,11 @@ class Result
 
     #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: 'results')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull]
     private Licensee $licensee;
 
-    #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: 'results')]
-    private Event $event;
+    #[ORM\ManyToOne(targetEntity: ContestEvent::class, inversedBy: 'results')]
+    private ContestEvent $event;
 
     #[ORM\Column(type: 'DisciplineType')]
     private string $discipline;
@@ -48,21 +50,33 @@ class Result
     private int $targetSize;
 
     #[ORM\Column(type: 'integer', nullable: true)]
+    #[Assert\GreaterThanOrEqual(0)]
+    #[Assert\LessThanOrEqual(300)]
     private ?int $score1 = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
+    #[Assert\GreaterThanOrEqual(0)]
+    #[Assert\LessThanOrEqual(300)]
     private ?int $score2 = null;
 
     #[ORM\Column(type: 'integer')]
+    #[Assert\NotNull]
+    #[Assert\GreaterThanOrEqual(0)]
+    #[Assert\LessThanOrEqual(600)]
     private int $total;
 
     #[ORM\Column(type: 'integer', nullable: true)]
+    #[Assert\GreaterThanOrEqual(0)]
+    #[Assert\LessThanOrEqual(60)]
     private ?int $nb10 = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
+    #[Assert\GreaterThanOrEqual(0)]
+    #[Assert\LessThanOrEqual(60)]
     private ?int $nb10p = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
+    #[Assert\GreaterThanOrEqual(1)]
     private ?int $position = null;
 
     public static function fromFftaResult(
@@ -266,27 +280,30 @@ class Result
     /**
      * @return array<int>
      */
-    public static function distanceForContestTypeAndActivity(
-        string $contestType,
-        string $discipline,
+    public static function distanceForContestAndActivity(
+        ContestEvent $contestEvent,
         string $activity,
         string $ageCategory,
     ): array {
-        if (ContestType::CHALLENGE33 === $contestType) {
+        LicenseActivityType::assertValidChoice($activity);
+        LicenseAgeCategoryType::assertValidChoice($ageCategory);
+
+        if ($contestEvent::class === HobbyContestEvent::class) {
             return self::distanceAndSizeForChallenge33(
-                $discipline,
+                $contestEvent->getDiscipline(),
                 $activity,
                 $ageCategory,
             );
         }
-        if (ContestType::FEDERAL === $contestType) {
+        if ($contestEvent::class === ContestEvent::class) {
             return self::distanceAndSizeForFederal(
-                $discipline,
+                $contestEvent->getDiscipline(),
                 $activity,
                 $ageCategory,
             );
         }
 
+        dd($contestEvent, $activity, $ageCategory);
         throw new LogicException();
     }
 
@@ -358,5 +375,22 @@ class Result
         }
 
         throw new LogicException("Missing handling of discipline {$discipline}");
+    }
+
+    public function getMaxTotal(): int
+    {
+        if (EventKindType::CONTEST_OFFICIAL === $this->getEvent()->getKind()) {
+            return match($this->getDiscipline()) {
+                DisciplineType::INDOOR => 600,
+                DisciplineType::TARGET => 720,
+            };
+        }
+        throw new LogicException(
+            sprintf(
+                'Unknown total for %s - %s',
+                $this->getEvent()->getKind(),
+                $this->getDiscipline(),
+            )
+        );
     }
 }
