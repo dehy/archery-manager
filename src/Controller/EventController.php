@@ -126,6 +126,10 @@ class EventController extends AbstractController
             $attachment->getFile()->getName()
         );
 
+        if (!$eventsStorage->fileExists($attachment->getFile()->getName())) {
+            throw $this->createNotFoundException();
+        }
+
         $response = new StreamedResponse(function () use ($eventsStorage, $attachment) {
             $outputStream = fopen('php://output', 'w');
             $fileStream = $eventsStorage->readStream($attachment->getFile()->getName());

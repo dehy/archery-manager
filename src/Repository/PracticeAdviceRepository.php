@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Licensee;
 use App\Entity\PracticeAdvice;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -37,6 +38,17 @@ class PracticeAdviceRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    public function findForLicensee(Licensee $licensee): array
+    {
+        return $this->createQueryBuilder('pa')
+            ->select('pa')
+            ->join('pa.licensee', 'l')
+            ->where('l = :licensee')
+            ->setParameter('licensee', $licensee)
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**

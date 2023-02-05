@@ -216,11 +216,9 @@ class LicenseeController extends AbstractController
 
         $imagePath = sprintf('%s.jpg', $fftaCode);
 
-        try {
-            $profilePicture = $licenseesStorage->read($imagePath);
-            $contentType = 'image/jpeg';
-        } catch (FilesystemException) {
-            $profilePicture = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+        if (!$licenseesStorage->fileExists($imagePath)) {
+            return new Response(
+                '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg width="100%" height="100%" viewBox="0 0 175 275"
      xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
      style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
@@ -237,14 +235,23 @@ class LicenseeController extends AbstractController
                   style="fill-rule:nonzero;"/>
         </g>
     </g>
-</svg>
-';
-            $contentType = 'image/svg+xml';
+</svg>',
+                200,
+                [
+                    'Content-Type' => 'image/svg+xml',
+                ]
+            );
         }
 
-        $response->headers->set('Content-Type', $contentType);
-        $response->setContent($profilePicture);
-        $response->setStatusCode(200);
+        $response = new StreamedResponse(function () use ($licenseesStorage, $imagePath) {
+            $outputStream = fopen('php://output', 'w');
+            $fileStream = $licenseesStorage->readStream($imagePath);
+
+            stream_copy_to_stream($fileStream, $outputStream);
+        }, 200, [
+            'Content-Disposition' => ResponseHeaderBag::DISPOSITION_INLINE,
+        ]);
+        $response->setLastModified($licensee->getUpdatedAt());
 
         return $response;
     }

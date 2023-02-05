@@ -7,6 +7,7 @@ use App\Entity\PracticeAdvice;
 use App\Entity\Result;
 use App\Helper\LicenseeHelper;
 use App\Repository\EventRepository;
+use App\Repository\PracticeAdviceRepository;
 use App\Repository\ResultRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,10 +28,9 @@ class HomepageController extends AbstractController
             5,
         );
 
+        /** @var PracticeAdviceRepository $adviceRepository */
         $adviceRepository = $entityManager->getRepository(PracticeAdvice::class);
-        $advices = $adviceRepository->findBy([
-            'licensee' => $licenseeHelper->getLicenseeFromSession(),
-        ]);
+        $advices = $adviceRepository->findForLicensee($licenseeHelper->getLicenseeFromSession());
 
         /** @var ResultRepository $resultRepository */
         $resultRepository = $entityManager->getRepository(Result::class);

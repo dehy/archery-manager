@@ -69,7 +69,10 @@ class LicenseeRepository extends ServiceEntityRepository
     public function findByLicenseYear(int $year): array
     {
         return $this->createQueryBuilder('l')
+            ->select('l, li, a, g')
             ->leftJoin('l.licenses', 'li')
+            ->leftJoin('l.attachments', 'a')
+            ->leftJoin('l.groups', 'g')
             ->where('li.season = :year')
             ->setParameter('year', $year)
             ->getQuery()

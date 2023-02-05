@@ -44,6 +44,8 @@ class EventRepository extends ServiceEntityRepository
     ): ArrayCollection {
         return new ArrayCollection(
             $this->createQueryBuilder('e')
+                ->select('e, p')
+                ->leftJoin('e.participations', 'p')
                 ->leftJoin('e.assignedGroups', 'g')
                 ->where('e.endsAt >= :now')
                 ->andWhere('g IN (:groups)')
@@ -72,6 +74,8 @@ class EventRepository extends ServiceEntityRepository
         }
 
         return $this->createQueryBuilder('e')
+            ->select('e, a')
+            ->leftJoin('e.attachments', 'a')
             ->where('e.endsAt >= :monthStart')
             ->andWhere('e.startsAt <= :monthEnd')
             ->setParameters([
