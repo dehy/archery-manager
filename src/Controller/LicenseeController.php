@@ -94,7 +94,7 @@ class LicenseeController extends AbstractController
         );
         foreach ($results as $result) {
             $season = Season::seasonForDate($result->getEvent()->getStartsAt());
-            $seasons[sprintf("Saison %s", $season)] = $season;
+            $seasons[sprintf('Saison %s', $season)] = $season;
             $groupName = sprintf(
                 '%s %s %sm',
                 DisciplineType::getReadableValue($result->getDiscipline()),
@@ -112,11 +112,11 @@ class LicenseeController extends AbstractController
             foreach ($resultsByCategory as $category => $results) {
                 $resultsChart = $chartBuilder->createChart(Chart::TYPE_BAR);
                 $resultsChart->setData([
-                    'labels' => array_map(fn(Result $result) => $result->getEvent()->getName(), $results['results']),
+                    'labels' => array_map(fn (Result $result) => $result->getEvent()->getName(), $results['results']),
                     'datasets' => [
                         [
                             'label' => 'Score Total',
-                            'data' => array_map(fn(Result $result) => $result->getTotal(), $results['results']),
+                            'data' => array_map(fn (Result $result) => $result->getTotal(), $results['results']),
                             'backgroundColor' => 'rgba(227, 29, 2, .5)',
                             'datalabels' => [
                                 'color' => 'white',
@@ -130,14 +130,14 @@ class LicenseeController extends AbstractController
                 ]);
 
                 $lowestScore = min(
-                    array_map(fn(Result $result) => $result->getTotal(), $results['results'])
+                    array_map(fn (Result $result) => $result->getTotal(), $results['results'])
                 );
                 $bestScore = max(
-                    array_map(fn(Result $result) => $result->getTotal(), $results['results'])
+                    array_map(fn (Result $result) => $result->getTotal(), $results['results'])
                 );
 
                 $resultsChart->setOptions([
-                    'aspectRatio' => 5/3,
+                    'aspectRatio' => 5 / 3,
                     'scales' => [
                         'y' => [
                             'min' => floor($lowestScore - 10),

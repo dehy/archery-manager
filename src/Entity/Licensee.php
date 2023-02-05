@@ -5,22 +5,17 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use App\DBAL\Types\LicenseeAttachmentType;
 use App\Repository\LicenseeRepository;
-use DateTime;
-use DateTimeImmutable;
-use DateTimeInterface;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
-use LogicException;
-use Stringable;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LicenseeRepository::class)]
 #[Auditable]
 #[ApiResource]
-class Licensee implements Stringable
+class Licensee implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -41,7 +36,7 @@ class Licensee implements Stringable
     private string $firstname;
 
     #[ORM\Column(type: 'date')]
-    private DateTimeInterface $birthdate;
+    private \DateTimeInterface $birthdate;
 
     #[ORM\Column(type: 'string', length: 7, unique: true, nullable: true)]
     #[Assert\Length(min: 7, max: 7)]
@@ -52,7 +47,7 @@ class Licensee implements Stringable
 
     #[ORM\Column]
     #[Gedmo\Timestampable(on: 'update')]
-    private ?DateTimeImmutable $updatedAt;
+    private ?\DateTimeImmutable $updatedAt;
 
     #[
         ORM\OneToMany(
@@ -119,7 +114,7 @@ class Licensee implements Stringable
 
     public function __construct()
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
         $this->arrows = new ArrayCollection();
         $this->bows = new ArrayCollection();
         $this->licenses = new ArrayCollection();
@@ -201,17 +196,17 @@ class Licensee implements Stringable
         return sprintf('%s %s.', $this->getFirstname(), strtoupper(substr($this->getLastname(), 0, 1)));
     }
 
-    public function getBirthdate(): ?DateTimeInterface
+    public function getBirthdate(): ?\DateTimeInterface
     {
         return $this->birthdate;
     }
 
     public function getAge(): int
     {
-        return $this->getBirthdate()->diff(new DateTime())->y;
+        return $this->getBirthdate()->diff(new \DateTime())->y;
     }
 
-    public function setBirthdate(DateTimeInterface $birthdate): self
+    public function setBirthdate(\DateTimeInterface $birthdate): self
     {
         $this->birthdate = $birthdate;
 
@@ -242,12 +237,12 @@ class Licensee implements Stringable
         return $this;
     }
 
-    public function getUpdatedAt(): ?DateTimeImmutable
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(DateTimeImmutable $updatedAt): self
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
 
@@ -269,10 +264,10 @@ class Licensee implements Stringable
         );
 
         if ($filteredLicenses->count() > 1) {
-            throw new LogicException('Licensee should not have multiple licenses for same season');
+            throw new \LogicException('Licensee should not have multiple licenses for same season');
         }
 
-        return $filteredLicenses->count() === 1
+        return 1 === $filteredLicenses->count()
             ? $filteredLicenses->first()
             : null;
     }

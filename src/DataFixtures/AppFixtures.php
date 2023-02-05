@@ -79,7 +79,7 @@ class AppFixtures extends Fixture
                 ->setLastname($user->getLastname())
                 ->setBirthdate($birthdate)
                 ->setFftaId($fftaId)
-                ->setFftaMemberCode($fftaId . 'F');
+                ->setFftaMemberCode($fftaId.'F');
             $manager->persist($licensee);
 
             $license = new License();

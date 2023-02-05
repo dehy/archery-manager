@@ -57,7 +57,7 @@ final class Version20230109101825 extends AbstractMigration implements Container
             $season = LicenseHelper::getSeasonForDate($participation->getEvent()->getStartsAt());
             $license = $participation->getParticipant()->getLicenseForSeason($season);
             $activity = $license->getActivities()[0];
-            $targetType = $activity === LicenseActivityType::CO ? TargetTypeType::TRISPOT : TargetTypeType::MONOSPOT;
+            $targetType = LicenseActivityType::CO === $activity ? TargetTypeType::TRISPOT : TargetTypeType::MONOSPOT;
 
             $participation->setActivity($activity);
             $participation->setTargetType($targetType);

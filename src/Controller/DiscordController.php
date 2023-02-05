@@ -41,7 +41,7 @@ class DiscordController extends AbstractController
     ): RedirectResponse {
         if ($request->query->get('error')) {
             $description = $request->query->get('error_description');
-            $this->addFlash('warning', 'La connexion à Discord a été refusée : ' . $description);
+            $this->addFlash('warning', 'La connexion à Discord a été refusée : '.$description);
             // Todo add sentry exception
 
             return $this->redirectToRoute('app_user_account');
@@ -64,7 +64,7 @@ class DiscordController extends AbstractController
 
             return $this->redirectToRoute('app_user_account');
         } catch (IdentityProviderException $e) {
-            $this->addFlash('danger', 'Une erreur est survenue durant la connexion à Discord : ' . $e->getMessage());
+            $this->addFlash('danger', 'Une erreur est survenue durant la connexion à Discord : '.$e->getMessage());
             // Todo add sentry exception
 
             return $this->redirectToRoute('app_user_account');

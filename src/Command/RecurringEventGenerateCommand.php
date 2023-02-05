@@ -9,9 +9,7 @@ use App\Entity\Event;
 use App\Entity\Group;
 use App\Entity\HobbyContestEvent;
 use App\Entity\TrainingEvent;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -34,7 +32,7 @@ class RecurringEventGenerateCommand extends Command
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -47,10 +45,10 @@ class RecurringEventGenerateCommand extends Command
         $name = $helper->ask($input, $output, $nameQuestion);
 
         $startsAtQuestion = new Question('Débute le : ');
-        $startsAt = new DateTimeImmutable($helper->ask($input, $output, $startsAtQuestion));
+        $startsAt = new \DateTimeImmutable($helper->ask($input, $output, $startsAtQuestion));
 
         $endsAtQuestion = new Question('Fini le : ');
-        $endsAt = new DateTimeImmutable($helper->ask($input, $output, $endsAtQuestion));
+        $endsAt = new \DateTimeImmutable($helper->ask($input, $output, $endsAtQuestion));
 
         $allDayQuestion = new ConfirmationQuestion('Toute la journée ? ', true);
         $allDay = $helper->ask($input, $output, $allDayQuestion);
@@ -85,7 +83,7 @@ class RecurringEventGenerateCommand extends Command
         $recurrence = $helper->ask($input, $output, $recurringQuestion);
 
         $stopsAtQuestion = new Question("S'arrêter après le : ");
-        $stopsAt = new DateTimeImmutable($helper->ask($input, $output, $stopsAtQuestion));
+        $stopsAt = new \DateTimeImmutable($helper->ask($input, $output, $stopsAtQuestion));
         $stopsAt->setTime(23, 59, 59);
 
         while ($startsAt <= $stopsAt) {
@@ -108,12 +106,12 @@ class RecurringEventGenerateCommand extends Command
                 $event->addAssignedGroup($assignedGroup);
             }
 
-            if ($recurrence === 'Hebdomadaire') {
+            if ('Hebdomadaire' === $recurrence) {
                 $startsAt = $startsAt->modify('+7 days');
                 $endsAt = $endsAt->modify('+7 days');
             }
 
-            $output->writeln('+ new event: ' . $event);
+            $output->writeln('+ new event: '.$event);
 
             $this->entityManager->persist($event);
         }

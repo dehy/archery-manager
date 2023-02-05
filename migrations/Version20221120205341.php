@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\Event;
-use App\Migrations\EntityMigrationInterface;
-use App\Repository\EventRepository;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * Auto-generated Migration: Please modify to your needs!

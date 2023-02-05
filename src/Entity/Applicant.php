@@ -4,16 +4,14 @@ namespace App\Entity;
 
 use App\DBAL\Types\PracticeLevelType;
 use App\Repository\ApplicantRepository;
-use DateTimeImmutable;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
-use Stringable;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ApplicantRepository::class)]
 #[Auditable]
-class Applicant implements Stringable
+class Applicant implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -34,7 +32,7 @@ class Applicant implements Stringable
 
     #[ORM\Column(type: 'date_immutable')]
     #[Assert\LessThanOrEqual('2022/09/24 -8 years')]
-    private DateTimeImmutable $birthdate;
+    private \DateTimeImmutable $birthdate;
 
     #[ORM\Column(type: 'PracticeLevelType', nullable: true)]
     #[DoctrineAssert\EnumType(entity: PracticeLevelType::class)]
@@ -50,7 +48,7 @@ class Applicant implements Stringable
     private ?string $comment = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $registeredAt;
+    private \DateTimeImmutable $registeredAt;
 
     #[ORM\Column(type: 'integer')]
     private int $season = 2023;
@@ -122,17 +120,17 @@ class Applicant implements Stringable
         return $this;
     }
 
-    public function getBirthdate(): ?DateTimeImmutable
+    public function getBirthdate(): ?\DateTimeImmutable
     {
         return $this->birthdate;
     }
 
     public function getAge(): ?int
     {
-        return $this->birthdate->diff(new DateTimeImmutable())->y;
+        return $this->birthdate->diff(new \DateTimeImmutable())->y;
     }
 
-    public function setBirthdate(DateTimeImmutable $birthdate): self
+    public function setBirthdate(\DateTimeImmutable $birthdate): self
     {
         $this->birthdate = $birthdate;
 
@@ -187,12 +185,12 @@ class Applicant implements Stringable
         return $this;
     }
 
-    public function getRegisteredAt(): ?DateTimeImmutable
+    public function getRegisteredAt(): ?\DateTimeImmutable
     {
         return $this->registeredAt;
     }
 
-    public function setRegisteredAt(DateTimeImmutable $registeredAt): self
+    public function setRegisteredAt(\DateTimeImmutable $registeredAt): self
     {
         $this->registeredAt = $registeredAt;
 

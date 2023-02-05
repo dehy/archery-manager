@@ -5,7 +5,6 @@ namespace App\Scrapper;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\Entity\Result;
-use Exception;
 use Smalot\PdfParser\Parser;
 
 /**
@@ -22,14 +21,15 @@ class ResultArcParser
 
     /**
      * @return ResultArcLine[]
-     * @throws Exception
+     *
+     * @throws \Exception
      */
     public function parseFile(string $filepath): array
     {
         $pdf = $this->parser->parseFile($filepath);
 
         $results = [];
-        $re = '/' . $this->searchPattern() . '/m';
+        $re = '/'.$this->searchPattern().'/m';
         foreach (explode(PHP_EOL, $pdf->getText()) as $line) {
             dump($line);
             if (1 === preg_match($re, $line, $matches)) {
@@ -53,7 +53,8 @@ class ResultArcParser
 
     /**
      * @return Result[]
-     * @throws Exception
+     *
+     * @throws \Exception
      */
     public function parseContent(string $fileContent): array
     {
@@ -65,13 +66,13 @@ class ResultArcParser
     protected function parseCategory(string $category): array
     {
         $found = preg_match(
-            '/' . $this->categoryPattern() . '/',
+            '/'.$this->categoryPattern().'/',
             $category,
             $matches,
         );
 
         if (!$found) {
-            throw new Exception('Cannot parse category');
+            throw new \Exception('Cannot parse category');
         }
 
         return [$matches[1], $matches[2]];

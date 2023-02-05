@@ -11,7 +11,6 @@ use App\Repository\ResultRepository;
 use App\Scrapper\CategoryParser;
 use App\Scrapper\FftaResult;
 use Doctrine\ORM\Mapping as ORM;
-use LogicException;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ResultRepository::class)]
@@ -288,14 +287,14 @@ class Result
         LicenseActivityType::assertValidChoice($activity);
         LicenseAgeCategoryType::assertValidChoice($ageCategory);
 
-        if ($contestEvent::class === HobbyContestEvent::class) {
+        if (HobbyContestEvent::class === $contestEvent::class) {
             return self::distanceAndSizeForChallenge33(
                 $contestEvent->getDiscipline(),
                 $activity,
                 $ageCategory,
             );
         }
-        if ($contestEvent::class === ContestEvent::class) {
+        if (ContestEvent::class === $contestEvent::class) {
             return self::distanceAndSizeForFederal(
                 $contestEvent->getDiscipline(),
                 $activity,
@@ -304,7 +303,18 @@ class Result
         }
 
         dd($contestEvent, $activity, $ageCategory);
-        throw new LogicException();
+        throw new \LogicException();
+    }
+
+    public function getMaxTotal(): int
+    {
+        if (EventKindType::CONTEST_OFFICIAL === $this->getEvent()->getKind()) {
+            return match ($this->getDiscipline()) {
+                DisciplineType::INDOOR => 600,
+                DisciplineType::TARGET => 720,
+            };
+        }
+        throw new \LogicException(sprintf('Unknown total for %s - %s', $this->getEvent()->getKind(), $this->getDiscipline()));
     }
 
     private static function distanceAndSizeForChallenge33(
@@ -337,7 +347,7 @@ class Result
             };
         }
 
-        throw new LogicException("Missing handling of discipline {$discipline}");
+        throw new \LogicException("Missing handling of discipline {$discipline}");
     }
 
     private static function distanceAndSizeForFederal(
@@ -374,23 +384,6 @@ class Result
             };
         }
 
-        throw new LogicException("Missing handling of discipline {$discipline}");
-    }
-
-    public function getMaxTotal(): int
-    {
-        if (EventKindType::CONTEST_OFFICIAL === $this->getEvent()->getKind()) {
-            return match($this->getDiscipline()) {
-                DisciplineType::INDOOR => 600,
-                DisciplineType::TARGET => 720,
-            };
-        }
-        throw new LogicException(
-            sprintf(
-                'Unknown total for %s - %s',
-                $this->getEvent()->getKind(),
-                $this->getDiscipline(),
-            )
-        );
+        throw new \LogicException("Missing handling of discipline {$discipline}");
     }
 }

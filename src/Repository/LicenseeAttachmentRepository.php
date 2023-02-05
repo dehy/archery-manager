@@ -9,8 +9,8 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<LicenseeAttachment>
  *
- * @method null|LicenseeAttachment find($id, $lockMode = null, $lockVersion = null)
- * @method null|LicenseeAttachment findOneBy(array $criteria, array $orderBy = null)
+ * @method LicenseeAttachment|null find($id, $lockMode = null, $lockVersion = null)
+ * @method LicenseeAttachment|null findOneBy(array $criteria, array $orderBy = null)
  * @method LicenseeAttachment[]    findAll()
  * @method LicenseeAttachment[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */

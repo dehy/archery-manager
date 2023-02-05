@@ -73,7 +73,7 @@ class FftaFetchParticipatingEvent extends Command
                         $fftaEvent->getDiscipline(),
                     ),
                     $fftaEvent->getSpecifics()
-                        ? '/' . $fftaEvent->getSpecifics()
+                        ? '/'.$fftaEvent->getSpecifics()
                         : '',
                     $fftaEvent->getName(),
                     $fftaEvent->getLocation(),

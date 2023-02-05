@@ -11,8 +11,8 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<EventAttachment>
  *
- * @method null|EventAttachment find($id, $lockMode = null, $lockVersion = null)
- * @method null|EventAttachment findOneBy(array $criteria, array $orderBy = null)
+ * @method EventAttachment|null find($id, $lockMode = null, $lockVersion = null)
+ * @method EventAttachment|null findOneBy(array $criteria, array $orderBy = null)
  * @method EventAttachment[]    findAll()
  * @method EventAttachment[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
@@ -48,7 +48,7 @@ class EventAttachmentRepository extends ServiceEntityRepository
             ->andWhere('ea.type = :type')
             ->setParameters([
                 'event' => $event,
-                'type' => EventAttachmentType::MANDATE
+                'type' => EventAttachmentType::MANDATE,
             ])
             ->getQuery()
             ->getOneOrNullResult();

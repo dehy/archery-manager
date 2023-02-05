@@ -3,10 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\LicenseeAttachmentRepository;
-use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Exception;
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
@@ -30,7 +28,7 @@ class LicenseeAttachment extends Attachment
     private ?string $type = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
-    private ?DateTimeImmutable $documentDate = null;
+    private ?\DateTimeImmutable $documentDate = null;
 
     #[Vich\UploadableField(
         mapping: 'licensees',
@@ -83,12 +81,12 @@ class LicenseeAttachment extends Attachment
         return $this;
     }
 
-    public function getDocumentDate(): ?DateTimeImmutable
+    public function getDocumentDate(): ?\DateTimeImmutable
     {
         return $this->documentDate;
     }
 
-    public function setDocumentDate(DateTimeImmutable $documentDate): self
+    public function setDocumentDate(\DateTimeImmutable $documentDate): self
     {
         $this->documentDate = $documentDate;
 
@@ -102,7 +100,7 @@ class LicenseeAttachment extends Attachment
         if (null !== $file) {
             // It is required that at least one field changes if you are using doctrine
             // otherwise the event listeners won't be called and the file is lost
-            $this->updatedAt = new DateTimeImmutable();
+            $this->updatedAt = new \DateTimeImmutable();
         }
     }
 
@@ -112,7 +110,7 @@ class LicenseeAttachment extends Attachment
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function generateFilename(): string
     {

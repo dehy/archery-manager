@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\PracticeAdviceRepository;
-use DateTimeImmutable;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -41,14 +40,14 @@ class PracticeAdvice
     private Licensee $author;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $archivedAt = null;
+    private ?\DateTimeImmutable $archivedAt = null;
 
     public function __construct()
     {
-        $this->createdAt = new DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -104,24 +103,24 @@ class PracticeAdvice
         return $this;
     }
 
-    public function getCreatedAt(): ?DateTimeImmutable
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(DateTimeImmutable $createdAt): self
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getArchivedAt(): ?DateTimeImmutable
+    public function getArchivedAt(): ?\DateTimeImmutable
     {
         return $this->archivedAt;
     }
 
-    public function setArchivedAt(?DateTimeImmutable $archivedAt): self
+    public function setArchivedAt(?\DateTimeImmutable $archivedAt): self
     {
         $this->archivedAt = $archivedAt;
 

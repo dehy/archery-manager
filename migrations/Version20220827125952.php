@@ -23,7 +23,6 @@ final class Version20220827125952 extends AbstractMigration
         $this->addSql('CREATE TABLE dmishh_settings (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, value LONGTEXT DEFAULT NULL, owner_id VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('INSERT INTO `dmishh_settings` (`id`, `name`, `value`, `owner_id`) VALUES (1,	"pre_registration_waiting_list_activated",	"false",	NULL)');
         $this->addSql('ALTER TABLE applicant ADD on_waiting_list TINYINT(1) NOT NULL DEFAULT 0');
-
     }
 
     public function down(Schema $schema): void

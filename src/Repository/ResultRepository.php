@@ -10,8 +10,8 @@ use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @method null|Result find($id, $lockMode = null, $lockVersion = null)
- * @method null|Result findOneBy(array $criteria, array $orderBy = null)
+ * @method Result|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Result|null findOneBy(array $criteria, array $orderBy = null)
  * @method Result[]    findAll()
  * @method Result[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */

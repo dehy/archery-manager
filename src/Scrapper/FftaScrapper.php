@@ -11,11 +11,7 @@ use App\DBAL\Types\LicenseType;
 use App\Entity\ContestEvent;
 use App\Entity\License;
 use App\Entity\Result;
-use DateTime;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use ErrorException;
-use Exception;
 use Goutte\Client;
 use Symfony\Component\BrowserKit\Response;
 use Symfony\Component\DomCrawler\Crawler;
@@ -38,7 +34,7 @@ class FftaScrapper
         private readonly string $password,
     ) {
         if (!$this->username || !$this->password) {
-            throw new Exception('FFTA Credentials not set');
+            throw new \Exception('FFTA Credentials not set');
         }
     }
 
@@ -115,7 +111,7 @@ class FftaScrapper
             throw new NotFoundHttpException();
         }
 
-        throw new ErrorException('Something went wrong during the request');
+        throw new \ErrorException('Something went wrong during the request');
     }
 
     public function fetchLicenseeProfile(string $fftaId): FftaProfile
@@ -191,7 +187,7 @@ class FftaScrapper
             "descendant-or-self::*[@id = 'identite.dateNaissance']",
         );
         $identity->setDateNaissance(
-            DateTime::createFromFormat(
+            \DateTime::createFromFormat(
                 'd/m/Y',
                 $this->clean($dateNaissanceNode->text()),
             ),
@@ -253,7 +249,8 @@ class FftaScrapper
 
     /**
      * @return array<int, License>
-     * @throws Exception
+     *
+     * @throws \Exception
      */
     public function fetchLicenseeLicenses(
         int $fftaId,
@@ -322,7 +319,7 @@ class FftaScrapper
                     'Jeune' => $licence->setType(LicenseType::JEUNES),
                     'Poussin' => $licence->setType(LicenseType::POUSSINS),
                     'Découverte' => $licence->setType(LicenseType::DECOUVERTE),
-                    default => throw new Exception(sprintf("Unknown licence type '%s'", $libelleStr)),
+                    default => throw new \Exception(sprintf("Unknown licence type '%s'", $libelleStr)),
                 };
             }
 
@@ -440,7 +437,7 @@ class FftaScrapper
 
                         break;
                     default:
-                        throw new Exception(sprintf("Unknown Age Category '%s'", $categorieAgeStr));
+                        throw new \Exception(sprintf("Unknown Age Category '%s'", $categorieAgeStr));
                 }
             }
 
@@ -466,7 +463,7 @@ class FftaScrapper
                         default => null,
                     };
                     if (!$activity) {
-                        throw new Exception(sprintf("Unknown Activity '%s'", $activiteStr));
+                        throw new \Exception(sprintf("Unknown Activity '%s'", $activiteStr));
                     }
                     if (!$licenseActivities->contains($activity)) {
                         $licenseActivities->add($activity);
@@ -535,10 +532,10 @@ class FftaScrapper
 
             $event = (new FftaEvent())
                 ->setFrom(
-                    DateTimeImmutable::createFromFormat('!d/m/Y', $fromDate),
+                    \DateTimeImmutable::createFromFormat('!d/m/Y', $fromDate),
                 )
                 ->setTo(
-                    DateTimeImmutable::createFromFormat(
+                    \DateTimeImmutable::createFromFormat(
                         '!d/m/Y',
                         $toDate,
                     )->setTime(23, 59, 59),

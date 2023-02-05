@@ -2,8 +2,6 @@
 
 namespace App\Scrapper;
 
-use DateTime;
-
 class FftaProfile
 {
     public ?int $id = null;
@@ -12,7 +10,7 @@ class FftaProfile
     public ?string $nom = null;
     public ?string $prenom = null;
     public ?string $mobile = null;
-    public ?DateTime $dateNaissance = null;
+    public ?\DateTime $dateNaissance = null;
     public ?string $sexe = null;
 
     public function getId(): ?int
@@ -87,14 +85,14 @@ class FftaProfile
         return $this->mobile;
     }
 
-    public function setDateNaissance(?DateTime $dateNaissance): FftaProfile
+    public function setDateNaissance(?\DateTime $dateNaissance): FftaProfile
     {
         $this->dateNaissance = $dateNaissance;
 
         return $this;
     }
 
-    public function getDateNaissance(): ?DateTime
+    public function getDateNaissance(): ?\DateTime
     {
         return $this->dateNaissance;
     }

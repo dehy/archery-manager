@@ -214,8 +214,8 @@ class EventCrudController extends AbstractCrudController
                     ->unsetAll()
                     ->setController(ResultCrudController::class)
                     ->setAction(Action::INDEX)
-                    ->generateUrl() .
-                '&filters[event][comparison]==&filters[event][value]=' .
+                    ->generateUrl().
+                '&filters[event][comparison]==&filters[event][value]='.
                 $event->getId(),
             );
         }

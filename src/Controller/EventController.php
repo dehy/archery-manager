@@ -23,11 +23,8 @@ use App\Repository\ContestEventRepository;
 use App\Repository\EventAttachmentRepository;
 use App\Repository\EventRepository;
 use App\Repository\ResultRepository;
-use DateTime;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use League\Flysystem\FilesystemOperator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,19 +37,19 @@ use Symfony\Component\Routing\RouterInterface;
 class EventController extends AbstractController
 {
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     #[Route('/events', name: 'app_event_index')]
     public function index(Request $request, EventRepository $eventRepository): Response
     {
-        $now = new DateTime();
+        $now = new \DateTime();
         $month = $request->query->get('m', (int) $now->format('n'));
         $year = $request->query->get('y', (int) $now->format('Y'));
 
         /** @var Event[] $events */
         $events = $eventRepository->findForMonthAndYear($month, $year);
 
-        $firstDate = (new DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
+        $firstDate = (new \DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
         $lastDate = (clone $firstDate)->modify('last day of this month');
         if (1 !== (int) $firstDate->format('N')) {
             $firstDate->modify('previous monday');
@@ -63,8 +60,8 @@ class EventController extends AbstractController
 
         $calendar = [];
         for ($currentDate = $firstDate; $currentDate <= $lastDate; $currentDate->modify('+1 day')) {
-            $startOfDay = DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0);
-            $endOfDay = DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
+            $startOfDay = \DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0);
+            $endOfDay = \DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
             $eventsForThisDay = array_filter(
                 $events,
                 fn (Event $event) => ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
@@ -143,7 +140,7 @@ class EventController extends AbstractController
 
         return $response;
     }
-    
+
     #[Route('/events/{slug}/mandate/edit', name: 'events_mandate_edit')]
     public function attachmentEdit(
         string $slug,
@@ -181,7 +178,7 @@ class EventController extends AbstractController
             }
             if (null === $mandate->getId()) {
                 $entityManager->flush();
-                $mandate->setUpdatedAt(new DateTimeImmutable());
+                $mandate->setUpdatedAt(new \DateTimeImmutable());
             }
             $entityManager->flush();
 
@@ -259,7 +256,7 @@ class EventController extends AbstractController
         ]);
 
         foreach ($event->getParticipations() as $participation) {
-            if ($participation->getParticipationState() === EventParticipationStateType::NOT_GOING) {
+            if (EventParticipationStateType::NOT_GOING === $participation->getParticipationState()) {
                 continue;
             }
             $foundResult = false;

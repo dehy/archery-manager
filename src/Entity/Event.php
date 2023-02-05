@@ -6,11 +6,9 @@ use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventKindType;
 use App\Repository\EventRepository;
 use Cocur\Slugify\Slugify;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Stringable;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
 #[ORM\InheritanceType('SINGLE_TABLE')]
@@ -22,7 +20,7 @@ use Stringable;
     EventKindType::OTHER => Event::class,
 ])]
 #[ORM\HasLifecycleCallbacks]
-class Event implements Stringable
+class Event implements \Stringable
 {
     #[ORM\Column(type: 'string', length: 255)]
     protected string $name;
@@ -38,10 +36,10 @@ class Event implements Stringable
     protected bool $allDay = false;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    protected DateTimeImmutable $startsAt;
+    protected \DateTimeImmutable $startsAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    protected DateTimeImmutable $endsAt;
+    protected \DateTimeImmutable $endsAt;
 
     #[ORM\Column(type: 'string', length: 255)]
     protected string $address;
@@ -71,7 +69,7 @@ class Event implements Stringable
     protected ?string $longitude = null;
 
     #[ORM\Column]
-    protected ?DateTimeImmutable $updatedAt = null;
+    protected ?\DateTimeImmutable $updatedAt = null;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -106,12 +104,12 @@ class Event implements Stringable
         return $this;
     }
 
-    public function getStartsAt(): ?DateTimeImmutable
+    public function getStartsAt(): ?\DateTimeImmutable
     {
         return $this->startsAt;
     }
 
-    public function setStartsAt(DateTimeImmutable $startsAt): self
+    public function setStartsAt(\DateTimeImmutable $startsAt): self
     {
         $this->startsAt = $startsAt;
 
@@ -261,12 +259,12 @@ class Event implements Stringable
         return $this;
     }
 
-    public function getEndsAt(): ?DateTimeImmutable
+    public function getEndsAt(): ?\DateTimeImmutable
     {
         return $this->endsAt;
     }
 
-    public function setEndsAt(DateTimeImmutable $endsAt): self
+    public function setEndsAt(\DateTimeImmutable $endsAt): self
     {
         $this->endsAt = $endsAt;
 
@@ -283,7 +281,7 @@ class Event implements Stringable
                 sprintf('%s-%s', $this->getStartsAt()->format('d-m-Y'), $this->getTitle())
             )
         );
-        $this->setUpdatedAt(new DateTimeImmutable());
+        $this->setUpdatedAt(new \DateTimeImmutable());
     }
 
     public function getTitle(): string
@@ -337,12 +335,12 @@ class Event implements Stringable
         return $this->getStartsAt()->format('d/m/Y') !== $this->getEndsAt()->format('d/m/Y');
     }
 
-    public function getUpdatedAt(): ?DateTimeImmutable
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(DateTimeImmutable $updatedAt): self
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
 
