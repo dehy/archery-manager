@@ -37,6 +37,7 @@ import {
   faComment,
   faDownload,
   faEllipsis,
+  faFloppyDisk,
   faGaugeHigh,
   faHeart,
   faHourglass,
@@ -65,6 +66,12 @@ import {
 import {faApple, faDiscord, faGoogle, faWaze} from "@fortawesome/free-brands-svg-icons";
 import {faFile} from "@fortawesome/free-regular-svg-icons";
 
+import Chart from 'chart.js/auto';
+import annotationPlugin from "chartjs-plugin-annotation";
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+
+Chart.register(annotationPlugin, ChartDataLabels);
+
 library.add(
     faAddressCard,
     faAngleLeft,
@@ -90,6 +97,7 @@ library.add(
     faDownload,
     faEllipsis,
     faFile,
+    faFloppyDisk,
     faGaugeHigh,
     faGoogle,
     faInfoCircle,
@@ -127,4 +135,7 @@ dom.watch();
     tooltipTriggerList.forEach(
         (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
     );
+
+    const collections = [...document.querySelectorAll('.collection')];
+    //formCollection(collections);
 })();
