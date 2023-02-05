@@ -62,7 +62,7 @@ class ContestEvent extends Event
         return $this->contestType;
     }
 
-    public function setContestType($contestType): self
+    public function setContestType(string $contestType): self
     {
         $this->contestType = $contestType;
 

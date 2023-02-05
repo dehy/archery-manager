@@ -6,6 +6,7 @@ use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventAttachmentType;
 use App\DBAL\Types\EventKindType;
+use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\EventAttachment;
 use App\Entity\Licensee;
@@ -133,7 +134,7 @@ class EventCrudController extends AbstractCrudController
         EntityManagerInterface $entityManager,
         FilesystemOperator $eventsStorage,
     ): Response {
-        /** @var Event $event */
+        /** @var ContestEvent $event */
         $event = $context->getEntity()->getInstance();
 
         $form = $this->createFormBuilder()
