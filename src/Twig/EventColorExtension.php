@@ -2,7 +2,8 @@
 
 namespace App\Twig;
 
-use App\DBAL\Types\EventKindType;
+use App\DBAL\Types\EventType;
+use App\Entity\Event;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 
@@ -15,8 +16,8 @@ class EventColorExtension extends AbstractExtension
         ];
     }
 
-    public function eventColor(string $eventKind): string
+    public function eventColor(Event $event): string
     {
-        return EventKindType::colorCode($eventKind);
+        return EventType::colorCode($event);
     }
 }

@@ -2,7 +2,7 @@
 
 {% set licensee = licenseeHelper.licenseeFromSession %}
 {% set license = licenseHelper.currentLicenseeCurrentLicense %}
-{% set canAttend = licenseHelper.licenseIsValidForEventKind(license, event.kind) and date() < event.endsAt %}
+{% set canAttend = licenseHelper.licenseIsValidForEvent(license, event) and date() < event.endsAt %}
 {% set licenseeParticipation = eventHelper.licenseeParticipationToEvent(licensee, event) %}
 
 {% block return_link %}
@@ -118,7 +118,7 @@
                 <div class="d-flex flex-row">
                     <dl>
                         <dt>Type</dt>
-                        <dd>{{ event.kind|readable_enum }}</dd>
+                        <dd>{{ event|get_class|readable_enum }}</dd>
                     </dl>
                     <dl class="ms-3">
                         <dt>Discipline</dt>

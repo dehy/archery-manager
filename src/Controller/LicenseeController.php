@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
-use App\DBAL\Types\EventKindType;
+use App\DBAL\Types\EventType;
 use App\DBAL\Types\LicenseActivityType;
 use App\Entity\Licensee;
 use App\Entity\LicenseeAttachment;
@@ -88,9 +88,7 @@ class LicenseeController extends AbstractController
         $seasons = [];
         /** @var Result[] $results */
         $results = $resultRepository->findForLicensee(
-            $licensee,
-            EventKindType::CONTEST_OFFICIAL,
-            ContestType::INDIVIDUAL
+            $licensee
         );
         foreach ($results as $result) {
             $season = Season::seasonForDate($result->getEvent()->getStartsAt());

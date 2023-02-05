@@ -3,7 +3,7 @@
 namespace App\Command;
 
 use App\DBAL\Types\DisciplineType;
-use App\DBAL\Types\EventKindType;
+use App\DBAL\Types\EventType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\Group;
@@ -58,7 +58,7 @@ class RecurringEventGenerateCommand extends Command
 
         $kindQuestion = new ChoiceQuestion(
             'Type : ',
-            EventKindType::getReadableValues(),
+            EventType::getReadableValues(),
         );
         $kind = $helper->ask($input, $output, $kindQuestion);
 
@@ -88,9 +88,9 @@ class RecurringEventGenerateCommand extends Command
 
         while ($startsAt <= $stopsAt) {
             $eventClass = match ($kind) {
-                EventKindType::CONTEST_OFFICIAL => ContestEvent::class,
-                EventKindType::CONTEST_HOBBY => HobbyContestEvent::class,
-                EventKindType::TRAINING => TrainingEvent::class,
+                EventType::CONTEST_OFFICIAL => ContestEvent::class,
+                EventType::CONTEST_HOBBY => HobbyContestEvent::class,
+                EventType::TRAINING => TrainingEvent::class,
                 default => Event::class,
             };
             $event = new $eventClass();
@@ -99,7 +99,6 @@ class RecurringEventGenerateCommand extends Command
                 ->setStartsAt($startsAt)
                 ->setEndsAt($endsAt)
                 ->setAllDay($allDay)
-                ->setKind($kind)
                 ->setDiscipline($discipline);
 
             foreach ($assignedGroups as $assignedGroup) {

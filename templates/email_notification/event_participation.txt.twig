@@ -4,7 +4,7 @@
 {{ licensee.fullname }} vient de mettre à jour sa participation à {{ event }} :
 
 {{ event_participation.participationState|readable_enum }}
-{% if event.kind is same as constant('App\\DBAL\\Types\\EventKindType::CONTEST_OFFICIAL') or event.kind is same as constant('App\\DBAL\\Types\\EventKindType::CONTEST_HOBBY') %}
+{% if event is instanceof('ContestEvent') %}
 Départ n°{{ event_participation.departure }}
 {% endif %}
 

@@ -2,17 +2,21 @@
 
 namespace App\DBAL\Types;
 
+use App\Entity\ContestEvent;
+use App\Entity\Event;
+use App\Entity\HobbyContestEvent;
+use App\Entity\TrainingEvent;
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 
 /**
  * @extends AbstractEnumType<string, string>
  */
-final class EventKindType extends AbstractEnumType
+final class EventType extends AbstractEnumType
 {
-    public const TRAINING = 'training';
-    public const CONTEST_OFFICIAL = 'contest_official';
-    public const CONTEST_HOBBY = 'contest_hobby';
-    public const OTHER = 'other';
+    public const TRAINING = TrainingEvent::class;
+    public const CONTEST_OFFICIAL = ContestEvent::class;
+    public const CONTEST_HOBBY = HobbyContestEvent::class;
+    public const OTHER = Event::class;
 
     protected static array $choices = [
         self::TRAINING => 'Entraînement',
@@ -21,9 +25,9 @@ final class EventKindType extends AbstractEnumType
         self::OTHER => 'Autre',
     ];
 
-    public static function colorCode(string $choice): string
+    public static function colorCode(Event $event): string
     {
-        return match ($choice) {
+        return match ($event::class) {
             self::TRAINING => '#00CC00',
             self::CONTEST_OFFICIAL => '#CC0000',
             self::CONTEST_HOBBY => '#0000CC',

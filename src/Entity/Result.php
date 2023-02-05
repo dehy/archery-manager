@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\DBAL\Types\DisciplineType;
-use App\DBAL\Types\EventKindType;
+use App\DBAL\Types\EventType;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\Repository\ResultRepository;
@@ -308,13 +308,13 @@ class Result
 
     public function getMaxTotal(): int
     {
-        if (EventKindType::CONTEST_OFFICIAL === $this->getEvent()->getKind()) {
+        if (ContestEvent::class === $this->getEvent()::class) {
             return match ($this->getDiscipline()) {
                 DisciplineType::INDOOR => 600,
                 DisciplineType::TARGET => 720,
             };
         }
-        throw new \LogicException(sprintf('Unknown total for %s - %s', $this->getEvent()->getKind(), $this->getDiscipline()));
+        throw new \LogicException(sprintf('Unknown total for %s - %s', $this->getEvent()::class, $this->getDiscipline()));
     }
 
     private static function distanceAndSizeForChallenge33(

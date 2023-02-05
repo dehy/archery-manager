@@ -33,6 +33,7 @@ final class Version20230109101825 extends AbstractMigration implements Container
         $this->addSql('UPDATE event SET discr = kind');
         $this->addSql('UPDATE event SET contest_type = \'individual\' WHERE contest_type IS NOT NULL');
         $this->addSql('ALTER TABLE event CHANGE `contest_type` `contest_type` ENUM(\'individual\', \'team\') DEFAULT NULL COMMENT \'(DC2Type:ContestType)\'');
+        $this->addSql('ALTER TABLE event DROP `kind`');
     }
 
     public function down(Schema $schema): void

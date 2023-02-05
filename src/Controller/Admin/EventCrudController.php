@@ -5,7 +5,7 @@ namespace App\Controller\Admin;
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventAttachmentType;
-use App\DBAL\Types\EventKindType;
+use App\DBAL\Types\EventType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\EventAttachment;
@@ -59,7 +59,7 @@ class EventCrudController extends AbstractCrudController
             DateTimeField::new('endsAt'),
             BooleanField::new('allDay')->renderAsSwitch(false),
             ChoiceField::new('type')
-                ->setChoices(EventKindType::getChoices())
+                ->setChoices(EventType::getChoices())
                 ->renderExpanded(),
             ChoiceField::new('contestType')->setChoices(
                 ContestType::getChoices(),
@@ -84,7 +84,7 @@ class EventCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return parent::configureFilters($filters)
-            ->add(ChoiceFilter::new('type')->setChoices(EventKindType::getChoices()))
+            ->add(ChoiceFilter::new('type')->setChoices(EventType::getChoices()))
             ->add(ChoiceFilter::new('discipline')->setChoices(DisciplineType::getChoices()));
     }
 

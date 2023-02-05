@@ -1,6 +1,6 @@
 {% set licensee = licenseeHelper.licenseeFromSession %}
 {% set license = licenseHelper.currentLicenseeCurrentLicense %}
-{% set canAttend = licenseHelper.licenseIsValidForEventKind(license, event.kind) %}
+{% set canAttend = licenseHelper.licenseIsValidForEvent(license, event) %}
 {% if not canAttend %}
     <div class="alert alert-warning">
         Ta licence ne te permet pas de participer à ce type d'évènement.
@@ -83,7 +83,7 @@
 
 
 {% macro attachment(event, type, plural = false) %}
-    {% if event.kind in ['contest_official', 'contest_hobby'] %}
+    {% if event is instanceof('ContestEvent') %}
         <dt class="col-3 text-end">{{ type|readable_enum('EventAttachmentType')|lower }}</dt>
         <dd class="col-9">
             {% if not event.attachments(type).empty %}

@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use App\DBAL\Types\DisciplineType;
-use App\DBAL\Types\EventKindType;
+use App\DBAL\Types\EventType;
 use App\Repository\EventRepository;
 use Cocur\Slugify\Slugify;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -14,20 +14,16 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\InheritanceType('SINGLE_TABLE')]
 #[ORM\DiscriminatorColumn(name: 'discr', type: 'string')]
 #[ORM\DiscriminatorMap([
-    EventKindType::CONTEST_OFFICIAL => ContestEvent::class,
-    EventKindType::CONTEST_HOBBY => HobbyContestEvent::class,
-    EventKindType::TRAINING => TrainingEvent::class,
-    EventKindType::OTHER => Event::class,
+    'contest_official' => ContestEvent::class,
+    'contest_hobby' => HobbyContestEvent::class,
+    'training' => TrainingEvent::class,
+    'other' => Event::class,
 ])]
 #[ORM\HasLifecycleCallbacks]
 class Event implements \Stringable
 {
     #[ORM\Column(type: 'string', length: 255)]
     protected string $name;
-
-    // TODO remove $kind and use get_class($entity) to test event kind
-    #[ORM\Column(type: 'EventKindType')]
-    protected string $kind;
 
     #[ORM\Column(type: 'DisciplineType')]
     protected string $discipline;
@@ -87,7 +83,7 @@ class Event implements \Stringable
         return sprintf(
             '%s - %s - %s',
             $this->getStartsAt()->format('d/m/Y'),
-            EventKindType::getReadableValue($this->getKind()),
+            EventType::getReadableValue(self::class),
             $this->getName(),
         );
     }
@@ -112,18 +108,6 @@ class Event implements \Stringable
     public function setStartsAt(\DateTimeImmutable $startsAt): self
     {
         $this->startsAt = $startsAt;
-
-        return $this;
-    }
-
-    public function getKind(): string
-    {
-        return $this->kind;
-    }
-
-    public function setKind($kind): self
-    {
-        $this->kind = $kind;
 
         return $this;
     }
@@ -288,7 +272,7 @@ class Event implements \Stringable
     {
         return sprintf(
             '%s %s %s',
-            ucfirst(EventKindType::getReadableValue($this->getKind())),
+            ucfirst(EventType::getReadableValue(self::class)),
             lcfirst(DisciplineType::getReadableValue($this->getDiscipline())),
             $this->getName()
         );

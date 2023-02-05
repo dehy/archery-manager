@@ -26,7 +26,7 @@ deps: start
 migratedb: start
 	$(BASE_EXEC) php bin/console doctrine:migrations:migrate
 
-quality:
+qa:
 	php -d "memory_limit=512M" vendor/bin/rector process; \
 	php -d "memory_limit=512M" vendor/bin/php-cs-fixer fix --allow-risky=yes; \
-	php -d "memory_limit=512M" vendor/bin/phpstan analyze
+	php -d "memory_limit=512M" vendor/bin/phpstan analyze --xdebug

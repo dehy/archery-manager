@@ -3,15 +3,17 @@
 namespace App\Controller;
 
 use App\DBAL\Types\EventAttachmentType;
-use App\DBAL\Types\EventKindType;
+use App\DBAL\Types\EventType;
 use App\DBAL\Types\EventParticipationStateType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\TargetTypeType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\EventAttachment;
+use App\Entity\HobbyContestEvent;
 use App\Entity\Result;
 use App\Entity\Season;
+use App\Entity\TrainingEvent;
 use App\Factory\IcsFactory;
 use App\Form\EventMandateType;
 use App\Form\EventParticipationType;
@@ -227,9 +229,9 @@ class EventController extends AbstractController
         }
 
         $modalTemplate = $request->query->getBoolean('modal');
-        $templateSuffix = match ($event->getKind()) {
-            EventKindType::CONTEST_OFFICIAL, EventKindType::CONTEST_HOBBY => '_contest',
-            EventKindType::TRAINING => '_training',
+        $templateSuffix = match ($event::class) {
+            ContestEvent::class, HobbyContestEvent::class => '_contest',
+            TrainingEvent::class => '_training',
             default => '_default',
         };
         $template = $modalTemplate ? 'event/show.modal.html.twig' : sprintf('event/show%s.html.twig', $templateSuffix);

@@ -65,7 +65,7 @@
                             {% set link_style = "min-height: 1rem;" %}
                             {% if event.allDay %}
                                 {% set link_class = "badge text-bg-primary mb-1 all-day-event" %}
-                                {% set link_style = "#{link_style} background-color: " ~ event.kind|eventColor ~ " !important;" %}
+                                {% set link_style = "#{link_style} background-color: " ~ event|eventColor ~ " !important;" %}
                             {% else %}
                                 {% set link_class = "" %}
                                 {% set link_style = "#{link_style}" %}
@@ -88,7 +88,7 @@
                             >
                                 <div class="event-name">
                                     {% if not event.allDay %}
-                                    <div class="event-pill" style="background-color: {{ event.kind|eventColor }}"></div>
+                                    <div class="event-pill" style="background-color: {{ event|eventColor }}"></div>
                                     {% endif %}
                                     {{ event_name }}
                                 </div>
@@ -118,7 +118,7 @@
                                        class="d-flex flex-row link-unstyled p-2"
                                     >
                                         <div class="event-pill me-1"
-                                             style="background-color: {{ event.kind|eventColor }}">
+                                             style="background-color: {{ event|eventColor }}">
                                         </div>
                                         <div class="d-flex flex-column">
                                             <div class="time">
@@ -130,7 +130,7 @@
                                                 {% endif %}
                                             </div>
                                             <div class="name">
-                                                {{ event.kind|readable_enum }} - {{ event.name }}
+                                                {{ event|get_class|readable_enum }} - {{ event.name }}
                                                 {% if event.attachments|length > 0 %}
                                                     <em class="fa-solid fa-paperclip"></em>
                                                 {% endif %}

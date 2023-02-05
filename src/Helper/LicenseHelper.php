@@ -2,10 +2,13 @@
 
 namespace App\Helper;
 
-use App\DBAL\Types\EventKindType;
+use App\DBAL\Types\EventType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
+use App\Entity\ContestEvent;
+use App\Entity\Event;
+use App\Entity\HobbyContestEvent;
 use App\Entity\License;
 
 class LicenseHelper
@@ -44,22 +47,21 @@ class LicenseHelper
         return $licensee->getLicenseForSeason($this->season);
     }
 
-    public function licenseIsValidForEventKind(License $license, string $eventKind): bool
+    public function licenseIsValidForEvent(License $license, Event $event): bool
     {
-        EventKindType::assertValidChoice($eventKind);
         $licenseType = $license->getType();
         $isValid = false;
-        if (EventKindType::CONTEST_OFFICIAL === $eventKind) {
+        if (ContestEvent::class === $event::class) {
             if (\in_array($licenseType, [LicenseType::ADULTES_COMPETITION, LicenseType::JEUNES])) {
                 $isValid = true;
             }
-        } elseif (EventKindType::CONTEST_HOBBY === $eventKind) {
+        } elseif (HobbyContestEvent::class === $event::class) {
             if (\in_array($licenseType, [LicenseType::ADULTES_CLUB, LicenseType::JEUNES, LicenseType::POUSSINS])) {
                 $isValid = true;
             }
-        } elseif (EventKindType::TRAINING) {
+        } elseif (EventType::TRAINING) {
             $isValid = true;
-        } elseif (EventKindType::OTHER) {
+        } elseif (EventType::OTHER) {
             $isValid = true;
         }
 

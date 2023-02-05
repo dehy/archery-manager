@@ -5,7 +5,7 @@ namespace App\Entity;
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventAttachmentType;
-use App\DBAL\Types\EventKindType;
+use App\DBAL\Types\EventType;
 use App\DBAL\Types\EventParticipationStateType;
 use App\Repository\ContestEventRepository;
 use App\Scrapper\FftaEvent;
@@ -31,7 +31,6 @@ class ContestEvent extends Event
     {
         parent::__construct();
         $this->results = new ArrayCollection();
-        $this->setKind(EventKindType::CONTEST_OFFICIAL);
     }
 
     public function __toString(): string
@@ -39,7 +38,7 @@ class ContestEvent extends Event
         return sprintf(
             '%s - %s %s - %s',
             $this->getStartsAt()->format('d/m/Y'),
-            EventKindType::getReadableValue($this->getKind()),
+            EventType::getReadableValue(self::class),
             DisciplineType::getReadableValue($this->getDiscipline()),
             $this->getName(),
         );
@@ -47,14 +46,16 @@ class ContestEvent extends Event
 
     public static function fromFftaEvent(FftaEvent $fftaEvent): self
     {
-        return (new self())
-            ->setAddress($fftaEvent->getLocation())
-            ->setKind(EventKindType::CONTEST_OFFICIAL)
+        $event = new self();
+        $event
             ->setContestType(ContestType::INDIVIDUAL)
+            ->setAddress($fftaEvent->getLocation())
             ->setDiscipline($fftaEvent->getDiscipline())
             ->setEndsAt($fftaEvent->getTo())
             ->setName($fftaEvent->getName())
             ->setStartsAt($fftaEvent->getFrom());
+
+        return $event;
     }
 
     public function getContestType(): ?string
@@ -148,7 +149,7 @@ class ContestEvent extends Event
     {
         return sprintf(
             '%s %s %s',
-            ucfirst(EventKindType::getReadableValue($this->getKind())),
+            ucfirst(EventType::getReadableValue(self::class)),
             lcfirst(DisciplineType::getReadableValue($this->getDiscipline())),
             $this->getName()
         );
