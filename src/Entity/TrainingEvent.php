@@ -13,4 +13,14 @@ class TrainingEvent extends Event
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
+
+    public function __toString(): string
+    {
+        return sprintf(
+            '%s - %s - %s',
+            $this->getStartsAt()->format('d/m/Y'),
+            EventType::getReadableValue(self::class),
+            $this->getName(),
+        );
+    }
 }
