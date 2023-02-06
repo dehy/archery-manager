@@ -149,7 +149,7 @@ class ContestEvent extends Event
     {
         return sprintf(
             '%s %s %s',
-            ucfirst(EventType::getReadableValue(self::class)),
+            ucfirst(EventType::getReadableValue(static::class)),
             lcfirst(DisciplineType::getReadableValue($this->getDiscipline())),
             $this->getName()
         );

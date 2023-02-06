@@ -83,7 +83,7 @@ class Event implements \Stringable
         return sprintf(
             '%s - %s - %s',
             $this->getStartsAt()->format('d/m/Y'),
-            EventType::getReadableValue(self::class),
+            EventType::getReadableValue(static::class),
             $this->getName(),
         );
     }
@@ -272,7 +272,7 @@ class Event implements \Stringable
     {
         return sprintf(
             '%s %s %s',
-            ucfirst(EventType::getReadableValue(self::class)),
+            ucfirst(EventType::getReadableValue(static::class)),
             lcfirst(DisciplineType::getReadableValue($this->getDiscipline())),
             $this->getName()
         );
