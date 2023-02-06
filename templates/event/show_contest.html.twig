@@ -30,7 +30,7 @@
                     <h4 class="alert-heading"><em class="fa-solid fa-screwdriver-wrench"></em> Administration</h4>
                     <a href="{{
                     adminUrlGenerator
-                        .setController('App\\Controller\\Admin\\EventCrudController')
+                        .setController('App\\Controller\\Admin\\' ~ event|get_short_class ~ 'CrudController')
                         .setAction('edit')
                         .setEntityId(event.id)
                     .generateUrl
