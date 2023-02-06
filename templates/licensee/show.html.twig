@@ -147,6 +147,25 @@
                                         {% for category, chart in charts_by_category %}
                                             <div class="tab-pane fade {{ loop.first ? "show active" }}" id="{{ category|slug|lower }}-tab-pane" role="tabpanel" aria-labelledby="{{ category }}-tab" tabindex="0">
                                                 {{ render_chart(chart, {'data-controller': 'results-chart'}) }}
+                                                {#<table class="table mt-3 text-center align-middle">
+                                                    <tr>
+                                                        {% set color_lowest = '#FCE4D6' %}
+                                                        {% set color_best = '#C6E0B4' %}
+                                                        {% set score_diff = score_best - score_lowest %}
+                                                        {% for result in results_by_season[season][category].results %}
+                                                            {% set ratio = (result.total - score_lowest) / score_diff %}
+                                                            <td style="background-color: {{ color_ratio(ratio) }}">
+                                                                <small>
+                                                                    {{ result.score1 }}
+                                                                    {% if result.score1 and result.score2 %}/{% endif %}
+                                                                    {{ result.score2 }}
+                                                                </small>
+                                                                {% if result.score1 and result.score2 %}<br>{% endif %}
+                                                                {{ result.total }}
+                                                            </td>
+                                                        {% endfor %}
+                                                    </tr>
+                                                </table>#}
                                             </div>
                                         {% endfor %}
                                     </div>

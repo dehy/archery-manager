@@ -12,6 +12,7 @@ use App\Entity\Result;
 use App\Entity\Season;
 use App\Entity\User;
 use App\Helper\LicenseeHelper;
+use App\Helper\ResultHelper;
 use App\Repository\LicenseeRepository;
 use App\Repository\ResultRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -105,10 +106,24 @@ class LicenseeController extends AbstractController
         krsort($seasons);
 
         $resultsCharts = [];
+        $lowestScore = null;
+        $averageScore = null;
+        $bestScore = null;
 
         foreach ($resultsBySeason as $season => $resultsByCategory) {
-            foreach ($resultsByCategory as $category => $groupResults) {
-                $results = $groupResults['results'];
+            foreach ($resultsByCategory as $category => $categoryResults) {
+                $results = $categoryResults['results'];
+                $resultsTotals = array_map(fn (Result $result) => $result->getTotal(), $results);
+
+                $lowestScore = min($resultsTotals);
+                $bestScore = max($resultsTotals);
+                $highest3Scores = $resultsTotals;
+                sort($highest3Scores);
+                $highest3Scores = \array_slice($highest3Scores, -3, 3);
+                $averageScore = floor(array_sum($highest3Scores) / \count($highest3Scores));
+
+                $scoreDiff = $bestScore - $lowestScore;
+
                 $resultsChart = $chartBuilder->createChart(Chart::TYPE_BAR);
                 $resultsChart->setData([
                     'labels' => array_map(fn (Result $result) => $result->getEvent()->getName(), $results),
@@ -116,7 +131,17 @@ class LicenseeController extends AbstractController
                         [
                             'label' => 'Score Total',
                             'data' => array_map(fn (Result $result) => $result->getTotal(), $results),
-                            'backgroundColor' => 'rgba(227, 29, 2, .5)',
+                            'backgroundColor' => array_map(
+                                function (Result $result) use ($lowestScore, $scoreDiff) {
+                                    if ($scoreDiff === 0) {
+                                        return ResultHelper::colorRatio(1);
+                                    }
+                                    return ResultHelper::colorRatio(
+                                        ($result->getTotal() - $lowestScore) / $scoreDiff
+                                    );
+                                },
+                                $results
+                            ),
                             'datalabels' => [
                                 'color' => 'white',
                                 'font' => [
@@ -128,19 +153,12 @@ class LicenseeController extends AbstractController
                     ],
                 ]);
 
-
-                $resultsTotals = array_map(fn (Result $result) => $result->getTotal(), $results);
-
-                $lowestScore = min($resultsTotals);
-                $averageScore = floor(array_sum($resultsTotals) / \count($results));
-                $bestScore = max($resultsTotals);
-
                 $resultsChart->setOptions([
                     'aspectRatio' => 5 / 3,
                     'scales' => [
                         'y' => [
-                            'min' => floor($lowestScore - 10),
-                            'max' => floor($bestScore + 10),
+                            'min' => floor($lowestScore * 0.98),
+                            'max' => floor($bestScore * 1.02),
                         ],
                     ],
                     'plugins' => [
@@ -157,13 +175,14 @@ class LicenseeController extends AbstractController
                                     'borderWidth' => 2,
                                     'label' => [
                                         'display' => true,
-                                        'backgroundColor' => 'rgba(227, 29, 2, 0.8)',
+                                        'backgroundColor' => 'rgba(227, 29, 2, 0.6)',
                                         'borderRadius' => 7,
                                         'color' => 'white',
                                         'font' => [
                                             'weight' => 'bold',
                                         ],
                                         'content' => sprintf('Meilleur : %s', $bestScore),
+                                        'xAdjust' => -100,
                                     ],
                                 ],
                                 'lineAverage' => [
@@ -175,13 +194,14 @@ class LicenseeController extends AbstractController
                                     'borderDash' => [15, 10],
                                     'label' => [
                                         'display' => true,
-                                        'backgroundColor' => 'rgba(18, 95, 155, 0.8)',
+                                        'backgroundColor' => 'rgba(18, 95, 155, 0.6)',
                                         'borderRadius' => 7,
                                         'color' => 'white',
                                         'font' => [
                                             'weight' => 'bold',
                                         ],
                                         'content' => sprintf('Moyenne : %s', $averageScore),
+                                        'xAdjust' => 0,
                                     ],
                                 ],
                             ],
@@ -198,6 +218,10 @@ class LicenseeController extends AbstractController
             'licensee' => $licensee,
             'seasons' => $seasons,
             'results_charts' => $resultsCharts,
+            'results_by_season' => $resultsBySeason,
+            'score_lowest' => $lowestScore,
+            'score_average' => $averageScore,
+            'score_best' => $bestScore,
         ]);
     }
 
