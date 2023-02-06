@@ -86,11 +86,11 @@ class LicenseeController extends AbstractController
 
         $resultsBySeason = [];
         $seasons = [];
-        /** @var Result[] $results */
-        $results = $resultRepository->findForLicensee(
+        /** @var Result[] $licenseeResults */
+        $licenseeResults = $resultRepository->findForLicensee(
             $licensee
         );
-        foreach ($results as $result) {
+        foreach ($licenseeResults as $result) {
             $season = Season::seasonForDate($result->getEvent()->getStartsAt());
             $seasons[sprintf('Saison %s', $season)] = $season;
             $groupName = sprintf(
@@ -107,14 +107,15 @@ class LicenseeController extends AbstractController
         $resultsCharts = [];
 
         foreach ($resultsBySeason as $season => $resultsByCategory) {
-            foreach ($resultsByCategory as $category => $results) {
+            foreach ($resultsByCategory as $category => $groupResults) {
+                $results = $groupResults['results'];
                 $resultsChart = $chartBuilder->createChart(Chart::TYPE_BAR);
                 $resultsChart->setData([
-                    'labels' => array_map(fn (Result $result) => $result->getEvent()->getName(), $results['results']),
+                    'labels' => array_map(fn (Result $result) => $result->getEvent()->getName(), $results),
                     'datasets' => [
                         [
                             'label' => 'Score Total',
-                            'data' => array_map(fn (Result $result) => $result->getTotal(), $results['results']),
+                            'data' => array_map(fn (Result $result) => $result->getTotal(), $results),
                             'backgroundColor' => 'rgba(227, 29, 2, .5)',
                             'datalabels' => [
                                 'color' => 'white',
@@ -127,12 +128,12 @@ class LicenseeController extends AbstractController
                     ],
                 ]);
 
-                $lowestScore = min(
-                    array_map(fn (Result $result) => $result->getTotal(), $results['results'])
-                );
-                $bestScore = max(
-                    array_map(fn (Result $result) => $result->getTotal(), $results['results'])
-                );
+
+                $resultsTotals = array_map(fn (Result $result) => $result->getTotal(), $results);
+
+                $lowestScore = min($resultsTotals);
+                $averageScore = floor(array_sum($resultsTotals) / \count($results));
+                $bestScore = max($resultsTotals);
 
                 $resultsChart->setOptions([
                     'aspectRatio' => 5 / 3,
@@ -152,20 +153,36 @@ class LicenseeController extends AbstractController
                                     'type' => 'line',
                                     'yMin' => $bestScore,
                                     'yMax' => $bestScore,
-                                    'borderColor' => '#e31d02',
+                                    'borderColor' => 'rgba(227, 29, 2, 0.8)',
                                     'borderWidth' => 2,
+                                    'label' => [
+                                        'display' => true,
+                                        'backgroundColor' => 'rgba(227, 29, 2, 0.8)',
+                                        'borderRadius' => 7,
+                                        'color' => 'white',
+                                        'font' => [
+                                            'weight' => 'bold',
+                                        ],
+                                        'content' => sprintf('Meilleur : %s', $bestScore),
+                                    ]
                                 ],
-                                'labelBest' => [
-                                    'type' => 'label',
-                                    'xValue' => 0.5,
-                                    'yValue' => $bestScore,
-                                    'backgroundColor' => '#e31d02',
-                                    'borderRadius' => 7,
-                                    'color' => 'white',
-                                    'font' => [
-                                        'weight' => 'bold',
-                                    ],
-                                    'content' => 'Meilleur',
+                                'lineAverage' => [
+                                    'type' => 'line',
+                                    'yMin' => $averageScore,
+                                    'yMax' => $averageScore,
+                                    'borderColor' => 'rgba(18, 95, 155, 0.8)',
+                                    'borderWidth' => 1,
+                                    'borderDash' => [15, 10],
+                                    'label' => [
+                                        'display' => true,
+                                        'backgroundColor' => 'rgba(18, 95, 155, 0.8)',
+                                        'borderRadius' => 7,
+                                        'color' => 'white',
+                                        'font' => [
+                                            'weight' => 'bold',
+                                        ],
+                                        'content' => sprintf('Moyenne : %s', $averageScore),
+                                    ]
                                 ],
                             ],
                         ],
