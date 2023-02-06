@@ -6,13 +6,15 @@ use App\DBAL\Types\GenderType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\Entity\Applicant;
-use App\Entity\Event;
+use App\Entity\ContestEvent;
 use App\Entity\EventParticipation;
 use App\Entity\Group;
+use App\Entity\HobbyContestEvent;
 use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\PracticeAdvice;
 use App\Entity\Result;
+use App\Entity\TrainingEvent;
 use App\Entity\User;
 use App\Repository\LicenseeRepository;
 use Dmishh\SettingsBundle\Entity\Setting;
@@ -127,9 +129,19 @@ class AdminDashboardController extends AbstractDashboardController
         yield MenuItem::section('Évènements');
 
         yield MenuItem::linkToCrud(
-            'Évènements',
+            'Entrainements',
             'fa-regular fa-calendar',
-            Event::class,
+            TrainingEvent::class,
+        );
+        yield MenuItem::linkToCrud(
+            'Concours',
+            'fa-regular fa-calendar',
+            ContestEvent::class,
+        );
+        yield MenuItem::linkToCrud(
+            'Challenge 33',
+            'fa-regular fa-calendar',
+            HobbyContestEvent::class,
         );
 
         yield MenuItem::linkToCrud(

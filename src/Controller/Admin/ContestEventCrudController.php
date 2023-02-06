@@ -39,7 +39,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class EventCrudController extends AbstractCrudController
+class ContestEventCrudController extends AbstractCrudController
 {
     public function __construct(protected AdminUrlGenerator $urlGenerator)
     {
@@ -47,7 +47,7 @@ class EventCrudController extends AbstractCrudController
 
     public static function getEntityFqcn(): string
     {
-        return Event::class;
+        return ContestEvent::class;
     }
 
     public function configureFields(string $pageName): iterable
@@ -58,9 +58,6 @@ class EventCrudController extends AbstractCrudController
             DateTimeField::new('startsAt'),
             DateTimeField::new('endsAt'),
             BooleanField::new('allDay')->renderAsSwitch(false),
-            ChoiceField::new('type')
-                ->setChoices(EventType::getChoices())
-                ->renderExpanded(),
             ChoiceField::new('contestType')->setChoices(
                 ContestType::getChoices(),
             ),
