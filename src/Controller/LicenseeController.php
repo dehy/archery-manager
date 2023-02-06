@@ -164,7 +164,7 @@ class LicenseeController extends AbstractController
                                             'weight' => 'bold',
                                         ],
                                         'content' => sprintf('Meilleur : %s', $bestScore),
-                                    ]
+                                    ],
                                 ],
                                 'lineAverage' => [
                                     'type' => 'line',
@@ -182,7 +182,7 @@ class LicenseeController extends AbstractController
                                             'weight' => 'bold',
                                         ],
                                         'content' => sprintf('Moyenne : %s', $averageScore),
-                                    ]
+                                    ],
                                 ],
                             ],
                         ],
