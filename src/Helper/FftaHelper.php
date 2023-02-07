@@ -19,7 +19,6 @@ use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToProvideChecksum;
 use Mimey\MimeTypes;
 use Psr\Log\LoggerInterface;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
@@ -36,6 +35,7 @@ class FftaHelper
         protected LoggerInterface $logger,
         protected FilesystemOperator $licenseesStorage,
         protected MimeTypeGuesserInterface $mimeTypeGuesser,
+        protected LicenseeHelper $licenseeHelper,
     ) {
         $this->mimeTypes = new MimeTypes();
     }
@@ -60,17 +60,16 @@ class FftaHelper
         foreach ($fftaIds as $fftaId) {
             $this->logger->info(sprintf('==== %s ====', $fftaId));
 
-            $licensee = $this->syncLicenseeWithId($fftaId);
-
-            $this->syncLicenseForLicensee($licensee, $season);
+            $this->syncLicenseeWithId($fftaId, $season);
         }
     }
 
     /**
      * @throws NonUniqueResultException
      * @throws TransportExceptionInterface
+     * @throws \Exception
      */
-    public function syncLicenseeWithId(string $fftaId): Licensee
+    public function syncLicenseeWithId(string $fftaId, int $season = null): Licensee
     {
         /** @var LicenseeRepository $licenseeRepository */
         $licenseeRepository = $this->entityManager->getRepository(
@@ -112,19 +111,8 @@ class FftaHelper
             $this->entityManager->beginTransaction();
             $this->entityManager->persist($licensee);
 
-            $email = (new TemplatedEmail())
-                ->to($licensee->getUser()->getEmail())
-                ->replyTo('lesarchersdeguyenne@gmail.com')
-                ->subject('Bienvenue aux Archers de Guyenne')
-                ->htmlTemplate(
-                    'licensee/mail_account_created.html.twig',
-                )
-                ->context([
-                    'licensee' => $licensee,
-                ]);
-
             try {
-                $this->mailer->send($email);
+                $this->licenseeHelper->sendWelcomeEmail($licensee);
             } catch (TransportExceptionInterface $exception) {
                 $this->entityManager->rollback();
 
@@ -188,6 +176,8 @@ class FftaHelper
         }
         $this->entityManager->flush();
 
+        $this->syncLicensesForLicensee($licensee, $season);
+
         return $licensee;
     }
 
@@ -196,6 +186,9 @@ class FftaHelper
         return $this->scrapper->fetchLicenseeProfilePicture($licensee->getFftaId());
     }
 
+    /**
+     * @throws \Exception
+     */
     public function profilePictureAttachmentForLicensee(Licensee $licensee): ?LicenseeAttachment
     {
         $fftaPicture = $this->fetchProfilePictureForLicensee($licensee);
@@ -236,65 +229,49 @@ class FftaHelper
      * Fetch license information from the FFTA website and returns a License Entity
      * Creates a new License if none exists for the Licensee and season or merge with the
      * existing one.
+     * @return License[]
+     * @throws \Exception
      */
-    public function syncLicenseForLicensee(Licensee $licensee, int $season): License
+    public function syncLicensesForLicensee(Licensee $licensee, ?int $season = null): array
     {
-        $license = $licensee->getLicenseForSeason($season);
-        $fftaLicense = $this->createLicenseForLicenseeAndSeason(
+        $fftaLicenses = $this->createLicensesForLicenseeAndSeason(
             $licensee,
             $season,
         );
-        if (!$license) {
-            $this->logger->info(sprintf('  + New License for: %s', $season));
-            $license = $fftaLicense;
-            $license->setLicensee($licensee);
-            $this->entityManager->persist($license);
-        } else {
-            $this->logger->info(sprintf('  ~ Merging existing License for: %s', $season));
-            $license->mergeWith($fftaLicense);
+        $licenses = [];
+        foreach ($fftaLicenses as $fftaLicense) {
+            if ($season !== null && $fftaLicense->getSeason() !== $season) {
+                continue;
+            }
+            $license = $licensee->getLicenseForSeason($fftaLicense->getSeason());
+            if (!$license) {
+                $this->logger->info(sprintf('  + New License for: %s', $season));
+                $license = $fftaLicense;
+                $license->setLicensee($licensee);
+                $this->entityManager->persist($license);
+            } else {
+                $this->logger->info(sprintf('  ~ Merging existing License for %s', $fftaLicense->getSeason()));
+                $license->mergeWith($fftaLicense);
+            }
+            $licenses[] = $license;
         }
+
         $this->entityManager->flush();
 
-        return $license;
+        return $licenses;
     }
 
     /**
-     * Creates a Licensee entity from the FFTA licensee profile.
-     *
-     * @throws NonUniqueResultException
-     */
-    public function createLicenseeFromFftaId(int $fftaId): Licensee
-    {
-        $fftaProfile = $this->scrapper->fetchLicenseeProfile($fftaId);
-
-        /** @var UserRepository $userRepository */
-        $userRepository = $this->entityManager->getRepository(User::class);
-        $user = $userRepository->findOneByEmail($fftaProfile->getEmail());
-        $this->entityManager->detach($user);
-
-        if (!$user) {
-            $user = UserFactory::createFromFftaProfile($fftaProfile);
-            $this->entityManager->persist($user);
-        }
-
-        $licensee = LicenseeFactory::createFromFftaProfile($fftaProfile);
-        $licensee->setUser($user);
-
-        return $licensee;
-    }
-
-    /**
+     * @return License[]
      * @throws \Exception
      */
-    public function createLicenseForLicenseeAndSeason(
+    public function createLicensesForLicenseeAndSeason(
         ?Licensee $licensee,
-        int $seasonYear,
-    ): License {
-        $licenses = $this->scrapper->fetchLicenseeLicenses(
+        ?int $seasonYear = null,
+    ): array {
+        return $this->scrapper->fetchLicenseeLicenses(
             $licensee->getFftaId(),
             $seasonYear,
         );
-
-        return $licenses[$seasonYear];
     }
 }

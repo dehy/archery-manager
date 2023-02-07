@@ -9,6 +9,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -33,7 +34,7 @@ class FftaSyncLicenseesCommand extends Command
 
     protected function configure(): void
     {
-        $this->addArgument('season', InputArgument::REQUIRED, 'Season');
+        $this->addOption('season', null, InputOption::VALUE_REQUIRED, 'Season');
     }
 
     /**
@@ -46,7 +47,7 @@ class FftaSyncLicenseesCommand extends Command
     ): int {
         $this->fftaHelper->setLogger(new ConsoleLogger($output));
 
-        $season = (int) $input->getArgument('season');
+        $season = $input->getOption('season') ? (int) $input->getOption('season') : null;
 
         $this->fftaHelper->syncLicensees($season);
 

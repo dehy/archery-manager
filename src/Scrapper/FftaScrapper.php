@@ -293,12 +293,28 @@ class FftaScrapper
             if (0 == $structure->count()) {
                 return;
             }
-            // var_dump($structure_0);
             $clubString = $structure->text();
             $clubId = preg_replace('/^(\d+).*/', '\1', $clubString);
             // Si pas archers de guyenne, on zappe
+            // TODO rendre dynamique
             if ('1033093' != $clubId) {
+                ++$seasonIdx;
                 return;
+            }
+            $etatCrawler = $season->filterXPath(
+                sprintf(
+                    "descendant-or-self::*[@id = 'licence.etat_%s']",
+                    $seasonIdx,
+                ),
+            );
+            if ($etatCrawler->count() > 0) {
+                $etatStr = $this->clean($etatCrawler->text());
+
+                // Si la licence n'est pas active, elle a surement été annulée et remplacée et donc on zappe
+                if ($etatStr !== 'Actif') {
+                    ++$seasonIdx;
+                    return;
+                }
             }
 
             $licence = new License();

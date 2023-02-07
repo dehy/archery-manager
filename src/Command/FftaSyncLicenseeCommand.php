@@ -9,6 +9,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -34,6 +35,7 @@ class FftaSyncLicenseeCommand extends Command
     protected function configure(): void
     {
         $this->addArgument('licenseeCode', InputArgument::REQUIRED, 'Licensee Code');
+        $this->addOption('season', null, InputOption::VALUE_REQUIRED, 'Specific season');
     }
 
     /**
@@ -47,6 +49,7 @@ class FftaSyncLicenseeCommand extends Command
         $this->fftaHelper->setLogger(new ConsoleLogger($output));
 
         $licenseeCode = (int) $input->getArgument('licenseeCode');
+        $season = $input->getOption('season') ? (int) $input->getOption('season') : null;
         $licenseeId = $this->scrapper->findLicenseeIdFromCode($licenseeCode);
 
         if (!$licenseeId) {
@@ -55,7 +58,7 @@ class FftaSyncLicenseeCommand extends Command
             return Command::INVALID;
         }
 
-        $this->fftaHelper->syncLicenseeWithId($licenseeId);
+        $this->fftaHelper->syncLicenseeWithId($licenseeId, $season);
 
         return Command::SUCCESS;
     }
