@@ -12,6 +12,7 @@ use App\Factory\UserFactory;
 use App\Repository\LicenseeRepository;
 use App\Repository\UserRepository;
 use App\Scrapper\FftaScrapper;
+use AsyncAws\S3\Exception\NoSuchKeyException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemOperator;
@@ -77,7 +78,8 @@ class FftaHelper
         );
 
         $licensee = $licenseeRepository->findOneByFftaId($fftaId);
-        $fftaLicensee = $this->createLicenseeFromFftaId($fftaId);
+        $fftaProfile = $this->scrapper->fetchLicenseeProfile($fftaId);
+        $fftaLicensee = LicenseeFactory::createFromFftaProfile($fftaProfile);
         if (!$licensee) {
             $this->logger->info(
                 sprintf(
@@ -88,11 +90,23 @@ class FftaHelper
             );
             $licensee = $fftaLicensee;
 
+            /** @var UserRepository $userRepository */
+            $userRepository = $this->entityManager->getRepository(User::class);
+            $user = $userRepository->findOneByEmail($fftaProfile->getEmail());
+
+            if (!$user) {
+                $user = UserFactory::createFromFftaProfile($fftaProfile);
+                $this->entityManager->persist($user);
+            }
+            $licensee->setUser($user);
+
             $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($licensee);
             if ($fftaProfilePicture) {
                 $this->logger->info('  + Adding profile picture');
                 $licensee->addAttachment($fftaProfilePicture);
                 $this->entityManager->persist($fftaProfilePicture);
+            } else {
+                $this->logger->info('  ! No profile picture');
             }
 
             $this->entityManager->beginTransaction();
@@ -138,7 +152,7 @@ class FftaHelper
                         $dbProfilePicture->getFile()->getName(),
                         ['checksum_algo' => 'sha1']
                     ) : null;
-            } catch (UnableToProvideChecksum) {
+            } catch (UnableToProvideChecksum | NoSuchKeyException) {
                 $dbProfilePicture = null;
                 $dbProfilePictureChecksum = null;
             }
@@ -256,6 +270,7 @@ class FftaHelper
         /** @var UserRepository $userRepository */
         $userRepository = $this->entityManager->getRepository(User::class);
         $user = $userRepository->findOneByEmail($fftaProfile->getEmail());
+        $this->entityManager->detach($user);
 
         if (!$user) {
             $user = UserFactory::createFromFftaProfile($fftaProfile);
