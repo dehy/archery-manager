@@ -81,31 +81,36 @@
                         <div class="alert alert-warning">
                             <h4 class="alert-heading">Administration</h4>
                             {% if is_granted('ROLE_ADMIN') %}
-                            <a href="{{
-                            adminUrlGenerator
-                                .setController('App\\Controller\\Admin\\LicenseeCrudController')
-                                .setAction('edit')
-                                .setEntityId(licensee.id)
-                            .generateUrl
-                            }}" class="btn btn-secondary">
-                                <em class="fa-solid fa-pencil"></em>
-                                Éditer
-                            </a>
-                            <a href="{{
-                            adminUrlGenerator
-                                .setController('App\\Controller\\Admin\\ResultCrudController')
-                                .setAction('index')
-                                .set('filters[licensee][comparison]', '=')
-                                .set('filters[licensee][value]', licensee.id)
-                            .generateUrl
-                            }}" class="btn btn-secondary">
-                                <em class="fa-solid fa-square-poll-vertical"></em>
-                                Résultats
-                            </a>
-                            <a href="{{ path('app_homepage', {'_switch_user': licensee.user.email, '_switch_licensee': licensee.fftaMemberCode}) }}"
-                               class="btn btn-warning">
-                                <em class="fa-solid fa-user-secret"></em> Usurper l'identité
-                            </a>
+                                <a href="{{
+                                adminUrlGenerator
+                                    .setController('App\\Controller\\Admin\\LicenseeCrudController')
+                                    .setAction('edit')
+                                    .setEntityId(licensee.id)
+                                .generateUrl
+                                }}" class="btn btn-secondary">
+                                    <em class="fa-solid fa-pencil"></em>
+                                    Éditer
+                                </a>
+                                <a href="{{
+                                adminUrlGenerator
+                                    .setController('App\\Controller\\Admin\\ResultCrudController')
+                                    .setAction('index')
+                                    .set('filters[licensee][comparison]', '=')
+                                    .set('filters[licensee][value]', licensee.id)
+                                .generateUrl
+                                }}" class="btn btn-secondary">
+                                    <em class="fa-solid fa-square-poll-vertical"></em>
+                                    Résultats
+                                </a>
+                                <a href="{{ path('app_homepage', {'_switch_user': licensee.user.email, '_switch_licensee': licensee.fftaMemberCode}) }}"
+                                   class="btn btn-warning">
+                                    <em class="fa-solid fa-user-secret"></em> Usurper l'identité
+                                </a>
+                                {{ form_start(licensee_sync_form, {'attr': {'class': 'd-inline', 'onclick': 'return confirm("Synchroniser avec la FFTA ? Cela prendra une dizaine de secondes.")'}}) }}
+                                    <button type="submit" class="btn btn-warning" data-bs-toggle="tooltip" title="Synchroniser avec la FFTA. En cas de changements (photo, licence, ...) sur le site de la FFTA, cette action permet de les récupérer dans l'application.">
+                                        <em class="fa-solid fa-arrows-rotate"></em> Synchroniser
+                                    </button>
+                                {{ form_end(licensee_sync_form) }}
                             {% endif %}
                         </div>
                     </div>

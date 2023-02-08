@@ -29,13 +29,13 @@ class FftaHelper
     protected MimeTypes $mimeTypes;
 
     public function __construct(
-        protected FftaScrapper $scrapper,
-        protected EntityManagerInterface $entityManager,
-        protected MailerInterface $mailer,
-        protected LoggerInterface $logger,
-        protected FilesystemOperator $licenseesStorage,
+        protected FftaScrapper             $scrapper,
+        protected EntityManagerInterface   $entityManager,
+        protected MailerInterface          $mailer,
+        protected LoggerInterface          $logger,
+        protected FilesystemOperator       $licenseesStorage,
         protected MimeTypeGuesserInterface $mimeTypeGuesser,
-        protected LicenseeHelper $licenseeHelper,
+        protected EmailHelper              $emailHelper,
     ) {
         $this->mimeTypes = new MimeTypes();
     }
@@ -53,12 +53,12 @@ class FftaHelper
     public function syncLicensees(int $season): void
     {
         $fftaIds = $this->scrapper->fetchLicenseeIdList($season);
-        $this->logger->info(
+        $this->logger->notice(
             sprintf('[FFTA] Found %s licensees in %s', \count($fftaIds), $season),
         );
 
         foreach ($fftaIds as $fftaId) {
-            $this->logger->info(sprintf('==== %s ====', $fftaId));
+            $this->logger->notice(sprintf('==== %s ====', $fftaId));
 
             $this->syncLicenseeWithId($fftaId, $season);
         }
@@ -80,7 +80,7 @@ class FftaHelper
         $fftaProfile = $this->scrapper->fetchLicenseeProfile($fftaId);
         $fftaLicensee = LicenseeFactory::createFromFftaProfile($fftaProfile);
         if (!$licensee) {
-            $this->logger->info(
+            $this->logger->notice(
                 sprintf(
                     '+ New Licensee: %s (%s)',
                     $fftaLicensee->__toString(),
@@ -101,18 +101,18 @@ class FftaHelper
 
             $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($licensee);
             if ($fftaProfilePicture) {
-                $this->logger->info('  + Adding profile picture');
+                $this->logger->notice('  + Adding profile picture');
                 $licensee->addAttachment($fftaProfilePicture);
                 $this->entityManager->persist($fftaProfilePicture);
             } else {
-                $this->logger->info('  ! No profile picture');
+                $this->logger->notice('  ! No profile picture');
             }
 
             $this->entityManager->beginTransaction();
             $this->entityManager->persist($licensee);
 
             try {
-                $this->licenseeHelper->sendWelcomeEmail($licensee);
+                $this->emailHelper->sendWelcomeEmail($licensee);
             } catch (TransportExceptionInterface $exception) {
                 $this->entityManager->rollback();
 
@@ -120,7 +120,7 @@ class FftaHelper
             }
             $this->entityManager->commit();
         } else {
-            $this->logger->info(
+            $this->logger->notice(
                 sprintf(
                     '~ Merging existing Licensee: %s (%s)',
                     $licensee->__toString(),
@@ -148,7 +148,7 @@ class FftaHelper
             if ($dbProfilePicture && $fftaProfilePicture) {
                 // Licensee has already a profile picture
                 if ($dbProfilePictureChecksum !== $fftaProfilePictureChecksum) {
-                    $this->logger->info('  ~ Updating profile picture.');
+                    $this->logger->notice('  ~ Updating profile picture.');
                     $licensee->removeAttachment($dbProfilePicture);
                     $this->entityManager->remove($dbProfilePicture);
 
@@ -156,22 +156,22 @@ class FftaHelper
                     $licensee->setUpdatedAt(new \DateTimeImmutable());
                     $this->entityManager->persist($fftaProfilePicture);
                 } else {
-                    $this->logger->info('  = Same profile picture. Not updating.');
+                    $this->logger->notice('  = Same profile picture. Not updating.');
                 }
             }
             if ($dbProfilePicture && !$fftaProfilePicture) {
-                $this->logger->info('  - Removing profile picture');
+                $this->logger->notice('  - Removing profile picture');
                 $licensee->removeAttachment($dbProfilePicture);
                 $this->entityManager->remove($dbProfilePicture);
             }
             if (!$dbProfilePicture && $fftaProfilePicture) {
-                $this->logger->info('  + Adding profile picture');
+                $this->logger->notice('  + Adding profile picture');
                 $licensee->addAttachment($fftaProfilePicture);
                 $licensee->setUpdatedAt(new \DateTimeImmutable());
                 $this->entityManager->persist($fftaProfilePicture);
             }
             if (!$dbProfilePicture && !$fftaProfilePicture) {
-                $this->logger->info('  ! No profile picture');
+                $this->logger->notice('  ! No profile picture');
             }
         }
         $this->entityManager->flush();
@@ -245,12 +245,12 @@ class FftaHelper
             }
             $license = $licensee->getLicenseForSeason($fftaLicense->getSeason());
             if (!$license) {
-                $this->logger->info(sprintf('  + New License for: %s', $season));
+                $this->logger->notice(sprintf('  + New License for: %s', $season));
                 $license = $fftaLicense;
                 $license->setLicensee($licensee);
                 $this->entityManager->persist($license);
             } else {
-                $this->logger->info(sprintf('  ~ Merging existing License for %s', $fftaLicense->getSeason()));
+                $this->logger->notice(sprintf('  ~ Merging existing License for %s', $fftaLicense->getSeason()));
                 $license->mergeWith($fftaLicense);
             }
             $licenses[] = $license;

@@ -2,15 +2,14 @@
 
 namespace App\Controller;
 
-use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
-use App\DBAL\Types\EventType;
 use App\DBAL\Types\LicenseActivityType;
 use App\Entity\Licensee;
 use App\Entity\LicenseeAttachment;
 use App\Entity\Result;
 use App\Entity\Season;
 use App\Entity\User;
+use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
 use App\Helper\ResultHelper;
 use App\Repository\LicenseeRepository;
@@ -21,10 +20,13 @@ use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
@@ -106,9 +108,6 @@ class LicenseeController extends AbstractController
         krsort($seasons);
 
         $resultsCharts = [];
-        $lowestScore = null;
-        $averageScore = null;
-        $bestScore = null;
 
         foreach ($resultsBySeason as $season => $resultsByCategory) {
             foreach ($resultsByCategory as $category => $categoryResults) {
@@ -214,19 +213,66 @@ class LicenseeController extends AbstractController
         }
         ksort($resultsCharts);
 
+        $licenseeSyncForm = null;
+        if ($this->isGranted('ROLE_ADMIN')) {
+            $licenseeSyncForm = $this->createSyncForm($licensee);
+        }
+
         return $this->render('licensee/show.html.twig', [
             'licensee' => $licensee,
             'seasons' => $seasons,
             'results_charts' => $resultsCharts,
-            'results_by_season' => $resultsBySeason,
-            'score_lowest' => $lowestScore,
-            'score_average' => $averageScore,
-            'score_best' => $bestScore,
+            'licensee_sync_form' => $licenseeSyncForm->createView(),
         ]);
     }
 
     /**
      * @throws NonUniqueResultException
+     * @throws TransportExceptionInterface
+     */
+    #[Route('/licensee/{fftaCode}/sync', methods: ['POST'])]
+    public function sync(
+        string             $fftaCode,
+        LicenseeRepository $licenseeRepository,
+        FftaHelper         $fftaHelper,
+        Request            $request,
+    ): RedirectResponse {
+        $licensee = $licenseeRepository->findOneByCode($fftaCode);
+        if (!$licensee) {
+            throw $this->createNotFoundException();
+        }
+
+        $form = $this->createSyncForm($licensee);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $fftaHelper->syncLicenseeWithId($licensee->getFftaId());
+                $this->addFlash(
+                    'success',
+                    sprintf('Le profil de %s a été synchronisé avec succès !', $licensee->getFirstname())
+                );
+            } catch (\Exception $e) {
+                $this->addFlash(
+                    'danger',
+                    sprintf('Une erreur est survenue durant la synchronisation: %s', $e->getMessage())
+                );
+            }
+        }
+
+        return $this->redirectToRoute('app_licensee_profile', ['fftaCode' => $fftaCode]);
+    }
+
+    private function createSyncForm(Licensee $licensee): FormInterface
+    {
+        return $this->createFormBuilder(null, [
+            'action' => $this->generateUrl('app_licensee_sync', ['fftaCode' => $licensee->getFftaMemberCode()]),
+            'method' => 'POST',
+        ])->getForm();
+    }
+
+    /**
+     * @throws NonUniqueResultException|FilesystemException
      */
     #[
         Route(

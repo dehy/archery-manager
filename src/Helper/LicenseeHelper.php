@@ -4,6 +4,7 @@ namespace App\Helper;
 
 use App\Entity\Licensee;
 use App\Entity\User;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -54,25 +55,5 @@ class LicenseeHelper
         $this->requestStack
             ->getSession()
             ->set(self::SESSION_KEY, $licensee->getFftaMemberCode());
-    }
-
-
-    /**
-     * @throws TransportExceptionInterface
-     */
-    public function sendWelcomeEmail(Licensee $licensee): void
-    {
-        $email = (new TemplatedEmail())
-            ->to($licensee->getUser()->getEmail())
-            ->replyTo('lesarchersdeguyenne@gmail.com')
-            ->subject('Bienvenue aux Archers de Guyenne')
-            ->htmlTemplate(
-                'licensee/mail_account_created.html.twig',
-            )
-            ->context([
-                'licensee' => $licensee,
-            ]);
-
-        $this->mailer->send($email);
     }
 }
