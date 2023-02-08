@@ -87,7 +87,7 @@
                                     .setAction('edit')
                                     .setEntityId(licensee.id)
                                 .generateUrl
-                                }}" class="btn btn-secondary">
+                                }}" class="btn btn-secondary mb-1">
                                     <em class="fa-solid fa-pencil"></em>
                                     Éditer
                                 </a>
@@ -98,16 +98,16 @@
                                     .set('filters[licensee][comparison]', '=')
                                     .set('filters[licensee][value]', licensee.id)
                                 .generateUrl
-                                }}" class="btn btn-secondary">
+                                }}" class="btn btn-secondary mb-1">
                                     <em class="fa-solid fa-square-poll-vertical"></em>
                                     Résultats
                                 </a>
                                 <a href="{{ path('app_homepage', {'_switch_user': licensee.user.email, '_switch_licensee': licensee.fftaMemberCode}) }}"
-                                   class="btn btn-warning">
+                                   class="btn btn-warning mb-1">
                                     <em class="fa-solid fa-user-secret"></em> Usurper l'identité
                                 </a>
                                 {{ form_start(licensee_sync_form, {'attr': {'class': 'd-inline', 'onclick': 'return confirm("Synchroniser avec la FFTA ? Cela prendra une dizaine de secondes.")'}}) }}
-                                    <button type="submit" class="btn btn-warning" data-bs-toggle="tooltip" title="Synchroniser avec la FFTA. En cas de changements (photo, licence, ...) sur le site de la FFTA, cette action permet de les récupérer dans l'application.">
+                                    <button type="submit" class="btn btn-warning mb-1" data-bs-toggle="tooltip" title="Synchroniser avec la FFTA. En cas de changements (photo, licence, ...) sur le site de la FFTA, cette action permet de les récupérer dans l'application.">
                                         <em class="fa-solid fa-arrows-rotate"></em> Synchroniser
                                     </button>
                                 {{ form_end(licensee_sync_form) }}
