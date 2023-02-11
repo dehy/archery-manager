@@ -62,11 +62,24 @@ class EventDateExtension extends AbstractExtension
             $date = sprintf(
                 '%s (%s)',
                 $date,
-                $this->timeExtension->diff($event->getStartsAt(), null, 'fr')
+                $this->diff($event)
             );
         }
 
         return $date;
+    }
+
+    private function diff(Event $event): string
+    {
+        $now = new \DateTime();
+        if ($event->getStartsAt() > $now) {
+            $date = $event->getStartsAt();
+        } elseif ($event->getEndsAt() < $now) {
+            $date = $event->getEndsAt();
+        } else {
+            return 'en ce moment';
+        }
+        return  $this->timeExtension->diff($date, $now, 'fr');
     }
 
     private function formatDate(Environment $environment, \DateTimeInterface $datetime): string
