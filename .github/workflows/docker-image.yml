@@ -55,5 +55,5 @@ jobs:
           docker tag archery-manager:to_test rg.fr-par.scw.cloud/archery-manager/archery-manager:${{ steps.docker_tag.outputs.tag }} \
           && docker push rg.fr-par.scw.cloud/archery-manager/archery-manager:${{ steps.docker_tag.outputs.tag }};
       - name: Reload staging docker service
-        run: curl -X POST ${{ secrets.PORTAINER_RELOAD_SERVICE_WEBHOOK }}
+        run: curl -X POST --fail-with-body ${{ secrets.PORTAINER_RELOAD_SERVICE_WEBHOOK }}
         #if: github.ref == 'refs/heads/main'
