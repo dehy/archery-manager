@@ -8,6 +8,7 @@ use App\Repository\LicenseeRepository;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -19,36 +20,39 @@ class Licensee implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'licensees')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn]
     private User $user;
 
     #[ORM\Column(type: 'GenderType')]
     private string $gender;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
     private string $lastname;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
     private string $firstname;
 
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATE_MUTABLE)]
     private \DateTimeInterface $birthdate;
 
-    #[ORM\Column(type: 'string', length: 7, unique: true, nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 7, unique: true, nullable: true)]
     #[Assert\Length(min: 7, max: 7)]
     private ?string $fftaMemberCode = null;
 
-    #[ORM\Column(type: 'integer', unique: true, nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, unique: true, nullable: true)]
     private ?int $fftaId = null;
 
     #[ORM\Column]
     #[Gedmo\Timestampable(on: 'update')]
     private ?\DateTimeImmutable $updatedAt;
 
+    /**
+     * @var Collection<int, License>|License[]
+     */
     #[
         ORM\OneToMany(
             mappedBy: 'licensee',
@@ -58,6 +62,9 @@ class Licensee implements \Stringable
     ]
     private Collection $licenses;
 
+    /**
+     * @var Collection<int, Bow>|Bow[]
+     */
     #[
         ORM\OneToMany(
             mappedBy: 'owner',
@@ -67,6 +74,9 @@ class Licensee implements \Stringable
     ]
     private Collection $bows;
 
+    /**
+     * @var Collection<int, Arrow>|Arrow[]
+     */
     #[
         ORM\OneToMany(
             mappedBy: 'owner',
@@ -76,6 +86,9 @@ class Licensee implements \Stringable
     ]
     private Collection $arrows;
 
+    /**
+     * @var Collection<int, EventParticipation>|EventParticipation[]
+     */
     #[
         ORM\OneToMany(
             mappedBy: 'participant',
@@ -85,6 +98,9 @@ class Licensee implements \Stringable
     ]
     private Collection $eventParticipations;
 
+    /**
+     * @var Collection<int, Result>|Result[]
+     */
     #[
         ORM\OneToMany(
             mappedBy: 'licensee',
@@ -97,6 +113,9 @@ class Licensee implements \Stringable
     #[ORM\ManyToMany(targetEntity: Group::class, mappedBy: 'licensees')]
     private Collection $groups;
 
+    /**
+     * @var Collection<int, PracticeAdvice>|PracticeAdvice[]
+     */
     #[
         ORM\OneToMany(
             mappedBy: 'licensee',
@@ -106,9 +125,15 @@ class Licensee implements \Stringable
     ]
     private Collection $practiceAdvices;
 
+    /**
+     * @var Collection<int, PracticeAdvice>|PracticeAdvice[]
+     */
     #[ORM\OneToMany(mappedBy: 'author', targetEntity: PracticeAdvice::class)]
     private Collection $givenPracticeAdvices;
 
+    /**
+     * @var Collection<int, LicenseeAttachment>|LicenseeAttachment[]
+     */
     #[ORM\OneToMany(mappedBy: 'licensee', targetEntity: LicenseeAttachment::class, orphanRemoval: true)]
     private Collection $attachments;
 

@@ -97,7 +97,7 @@ class PreRegistrationController extends AbstractController
         }
 
         return $this->render('pre_registration/form.html.twig', [
-            'form' => $form->createView(),
+            'form' => $form,
             'error' => $error,
             'waitingListActivated' => $waitingListActivated,
         ]);
@@ -189,7 +189,7 @@ class PreRegistrationController extends AbstractController
         }
 
         return $this->render('pre_registration/renewal.html.twig', [
-            'form' => $form->createView(),
+            'form' => $form,
             'error' => $error,
         ]);
     }

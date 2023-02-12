@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\SightAdjustmentRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SightAdjustmentRepository::class)]
@@ -10,17 +11,17 @@ class SightAdjustment
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Bow::class, inversedBy: 'sightAdjustments')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?\App\Entity\Bow $bow = null;
+    private ?Bow $bow = null;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $distance = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
     private ?string $setting = null;
 
     public function getId(): ?int

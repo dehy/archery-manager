@@ -2,15 +2,12 @@
 
 namespace App\Tests;
 
-use App\DBAL\Types\EventType;
 use App\DBAL\Types\UserRoleType;
 use App\Entity\Event;
 use App\Repository\EventRepository;
 
 /**
  * @internal
- *
- * @coversNothing
  */
 class SmokeTest extends LoggedInTestCase
 {

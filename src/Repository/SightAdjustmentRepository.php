@@ -4,8 +4,6 @@ namespace App\Repository;
 
 use App\Entity\SightAdjustment;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -21,10 +19,6 @@ class SightAdjustmentRepository extends ServiceEntityRepository
         parent::__construct($registry, SightAdjustment::class);
     }
 
-    /**
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
     public function add(SightAdjustment $entity, bool $flush = true): void
     {
         $this->_em->persist($entity);
@@ -33,10 +27,6 @@ class SightAdjustmentRepository extends ServiceEntityRepository
         }
     }
 
-    /**
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
     public function remove(SightAdjustment $entity, bool $flush = true): void
     {
         $this->_em->remove($entity);

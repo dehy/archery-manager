@@ -6,6 +6,7 @@ use App\Entity\Event;
 use App\Entity\Licensee;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -49,8 +50,8 @@ class EventRepository extends ServiceEntityRepository
                 ->leftJoin('e.assignedGroups', 'g')
                 ->where('e.endsAt >= :now')
                 ->andWhere('g IN (:groups)')
-                ->orderBy('e.startsAt', 'ASC')
-                ->addOrderBy('e.endsAt', 'ASC')
+                ->orderBy('e.startsAt', Criteria::ASC)
+                ->addOrderBy('e.endsAt', Criteria::ASC)
                 ->setParameter('now', new \DateTime())
                 ->setParameter('groups', $licensee->getGroups())
                 ->setMaxResults($limit)

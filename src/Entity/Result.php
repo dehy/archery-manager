@@ -4,12 +4,12 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\DBAL\Types\DisciplineType;
-use App\DBAL\Types\EventType;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\Repository\ResultRepository;
 use App\Scrapper\CategoryParser;
 use App\Scrapper\FftaResult;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -19,7 +19,7 @@ class Result
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: 'results')]
@@ -39,42 +39,42 @@ class Result
     #[ORM\Column(type: 'LicenseActivityType')]
     private string $activity;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
     private int $distance;
 
     #[ORM\Column(type: 'TargetTypeType')]
     private string $targetType;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private int $targetSize;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
     #[Assert\GreaterThanOrEqual(0)]
     #[Assert\LessThanOrEqual(300)]
     private ?int $score1 = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
     #[Assert\GreaterThanOrEqual(0)]
     #[Assert\LessThanOrEqual(300)]
     private ?int $score2 = null;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     #[Assert\NotNull]
     #[Assert\GreaterThanOrEqual(0)]
     #[Assert\LessThanOrEqual(600)]
     private int $total;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
     #[Assert\GreaterThanOrEqual(0)]
     #[Assert\LessThanOrEqual(60)]
     private ?int $nb10 = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
     #[Assert\GreaterThanOrEqual(0)]
     #[Assert\LessThanOrEqual(60)]
     private ?int $nb10p = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
     #[Assert\GreaterThanOrEqual(1)]
     private ?int $position = null;
 

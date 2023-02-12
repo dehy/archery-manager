@@ -8,7 +8,7 @@ use Geocoder\Query\GeocodeQuery;
 class MapHelper
 {
     private const MAPBOX_URL = 'https://api.mapbox.com/styles/v1/{username}/{style_id}/static/{layout}{lon},{lat},{zoom}/{width}x{height}';
-    private array $defaultParameters = [];
+    private readonly array $defaultParameters;
 
     public function __construct(
         string $username,

@@ -30,6 +30,6 @@ fixtures:
 	$(BASE_EXEC) php bin/console doctrine:fixtures:load -n
 
 qa:
-	php -d "memory_limit=512M" vendor/bin/rector process; \
-	php -d "memory_limit=512M" vendor/bin/php-cs-fixer fix --allow-risky=yes; \
-	php -d "memory_limit=512M" vendor/bin/phpstan analyze --xdebug
+	$(BASE_EXEC) php vendor/bin/rector process; \
+	$(BASE_EXEC) php vendor/bin/php-cs-fixer fix; \
+	$(BASE_EXEC) php vendor/bin/phpstan analyze --xdebug

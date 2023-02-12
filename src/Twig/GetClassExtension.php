@@ -2,7 +2,6 @@
 
 namespace App\Twig;
 
-use ReflectionClass;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 
@@ -23,7 +22,8 @@ class GetClassExtension extends AbstractExtension
 
     public function getShortClass(object $object): string
     {
-        $reflect = new ReflectionClass($object);
+        $reflect = new \ReflectionClass($object);
+
         return $reflect->getShortName();
     }
 }

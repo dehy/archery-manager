@@ -2,7 +2,6 @@
 
 namespace App\Helper;
 
-use App\DBAL\Types\EventType;
 use App\DBAL\Types\EventParticipationStateType;
 use App\Entity\Event;
 use App\Entity\EventParticipation;

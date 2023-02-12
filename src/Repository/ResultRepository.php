@@ -5,8 +5,7 @@ namespace App\Repository;
 use App\Entity\Licensee;
 use App\Entity\Result;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -22,10 +21,6 @@ class ResultRepository extends ServiceEntityRepository
         parent::__construct($registry, Result::class);
     }
 
-    /**
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
     public function add(Result $entity, bool $flush = true): void
     {
         $this->_em->persist($entity);
@@ -34,10 +29,6 @@ class ResultRepository extends ServiceEntityRepository
         }
     }
 
-    /**
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
     public function remove(Result $entity, bool $flush = true): void
     {
         $this->_em->remove($entity);
@@ -52,7 +43,7 @@ class ResultRepository extends ServiceEntityRepository
             ->select('r, e')
             ->join('r.event', 'e')
             ->where('r.licensee = :licensee')
-            ->orderBy('e.endsAt', 'DESC')
+            ->orderBy('e.endsAt', Criteria::DESC)
             ->setMaxResults($count)
             ->setParameter('licensee', $licensee)
             ->getQuery()
@@ -64,7 +55,7 @@ class ResultRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')
             ->join('r.event', 'e')
             ->where('r.licensee = :licensee')
-            ->orderBy('e.startsAt', 'ASC')
+            ->orderBy('e.startsAt', Criteria::ASC)
             ->setParameter('licensee', $licensee)
             ->getQuery()
             ->getResult();

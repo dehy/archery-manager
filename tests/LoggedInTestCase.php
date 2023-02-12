@@ -8,8 +8,6 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
  * @internal
- *
- * @coversNothing
  */
 class LoggedInTestCase extends WebTestCase
 {

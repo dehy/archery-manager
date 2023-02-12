@@ -40,6 +40,9 @@ class FftaScrapper
 
     /**
      * @return int[]
+     *
+     * @throws \JsonException
+     * @throws \JsonException
      */
     public function fetchLicenseeIdList(int $season): array
     {
@@ -278,7 +281,7 @@ class FftaScrapper
                 return;
             }
             $blockTitle = $blockContent->text();
-            $year = (int) (str_replace('Saison ', '', $blockTitle));
+            $year = (int) str_replace('Saison ', '', $blockTitle);
 
             if ($requestedSeason && $requestedSeason !== $year) {
                 return;
@@ -299,6 +302,7 @@ class FftaScrapper
             // TODO rendre dynamique
             if ('1033093' != $clubId) {
                 ++$seasonIdx;
+
                 return;
             }
             $etatCrawler = $season->filterXPath(
@@ -311,8 +315,9 @@ class FftaScrapper
                 $etatStr = $this->clean($etatCrawler->text());
 
                 // Si la licence n'est pas active, elle a surement été annulée et remplacée et donc on zappe
-                if ($etatStr !== 'Actif') {
+                if ('Actif' !== $etatStr) {
                     ++$seasonIdx;
+
                     return;
                 }
             }

@@ -21,15 +21,16 @@ return static function (RectorConfig $rectorConfig): void {
     // define sets of rules
     $rectorConfig->sets([
         LevelSetList::UP_TO_PHP_81,
-        // SymfonyLevelSetList::UP_TO_SYMFONY_61,
-        // TwigLevelSetList::UP_TO_TWIG_240,
-        // PHPUnitLevelSetList::UP_TO_PHPUNIT_90,
+        SymfonyLevelSetList::UP_TO_SYMFONY_62,
+        TwigLevelSetList::UP_TO_TWIG_240,
+        PHPUnitLevelSetList::UP_TO_PHPUNIT_90,
 
-        // SymfonySetList::ANNOTATIONS_TO_ATTRIBUTES,
-        // DoctrineSetList::ANNOTATIONS_TO_ATTRIBUTES,
+        SymfonySetList::ANNOTATIONS_TO_ATTRIBUTES,
+        DoctrineSetList::ANNOTATIONS_TO_ATTRIBUTES,
         // DoctrineSetList::DOCTRINE_REPOSITORY_AS_SERVICE,
-        // DoctrineSetList::DOCTRINE_ORM_213,
-        // SensiolabsSetList::ANNOTATIONS_TO_ATTRIBUTES,
+        DoctrineSetList::DOCTRINE_ORM_213,
+        DoctrineSetList::DOCTRINE_CODE_QUALITY,
+        SensiolabsSetList::ANNOTATIONS_TO_ATTRIBUTES,
         // PHPUnitSetList::ANNOTATIONS_TO_ATTRIBUTES,
     ]);
 };

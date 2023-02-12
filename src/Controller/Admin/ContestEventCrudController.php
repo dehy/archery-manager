@@ -30,7 +30,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -121,7 +120,6 @@ class ContestEventCrudController extends AbstractCrudController
     }
 
     /**
-     * @throws FilesystemException
      * @throws NonUniqueResultException
      */
     public function importResults(
@@ -220,7 +218,7 @@ class ContestEventCrudController extends AbstractCrudController
 
         return $this->render('admin/event/importResultArc.html.twig', [
             'event' => $event,
-            'form' => $form->createView(),
+            'form' => $form,
         ]);
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\DBAL\Types\EventAttachmentType;
-use App\DBAL\Types\EventType;
 use App\DBAL\Types\EventParticipationStateType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\TargetTypeType;
@@ -192,7 +191,7 @@ class EventController extends AbstractController
         }
 
         return $this->render('event/mandate_edit.html.twig', [
-            'form' => $form->createView(),
+            'form' => $form,
         ]);
     }
 
@@ -242,7 +241,7 @@ class EventController extends AbstractController
 
         return $this->render($template, [
             'event' => $event,
-            'event_participation_form' => $eventParticipationForm->createView(),
+            'event_participation_form' => $eventParticipationForm,
         ]);
     }
 
@@ -327,7 +326,7 @@ class EventController extends AbstractController
 
         return $this->render('event/results_edit.html.twig', [
             'event' => $event,
-            'results_form' => $resultsForm->createView(),
+            'results_form' => $resultsForm,
         ]);
     }
 }

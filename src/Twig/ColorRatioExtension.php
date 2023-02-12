@@ -9,6 +9,7 @@ use Twig\TwigFunction;
 class ColorRatioExtension extends AbstractExtension
 {
     final public const HEX_FORMAT = '#%02x%02x%02x';
+
     public function getFunctions(): array
     {
         return [

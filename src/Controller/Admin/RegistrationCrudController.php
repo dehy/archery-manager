@@ -6,6 +6,7 @@ use App\Controller\Admin\Field\MoneyField;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\Entity\Applicant;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
@@ -92,7 +93,7 @@ class RegistrationCrudController extends AbstractCrudController
                 ->addSelect(
                     'CONCAT(entity.lastname, \' \', entity.firstname) AS HIDDEN completeName',
                 )
-                ->addOrderBy('completeName', 'ASC');
+                ->addOrderBy('completeName', Criteria::ASC);
         }
 
         return $queryBuilder;

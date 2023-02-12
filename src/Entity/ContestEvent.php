@@ -5,12 +5,13 @@ namespace App\Entity;
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventAttachmentType;
-use App\DBAL\Types\EventType;
 use App\DBAL\Types\EventParticipationStateType;
+use App\DBAL\Types\EventType;
 use App\Repository\ContestEventRepository;
 use App\Scrapper\FftaEvent;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ContestEventRepository::class)]
@@ -18,12 +19,15 @@ class ContestEvent extends Event
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\Column(type: 'ContestType', nullable: true)]
     private ?string $contestType = null;
 
+    /**
+     * @var Collection<int, Result>|Result[]
+     */
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: Result::class)]
     private Collection $results;
 

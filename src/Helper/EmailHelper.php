@@ -11,7 +11,6 @@ class EmailHelper
 {
     public function __construct(protected readonly MailerInterface $mailer)
     {
-
     }
 
     /**

@@ -29,13 +29,13 @@ class FftaHelper
     protected MimeTypes $mimeTypes;
 
     public function __construct(
-        protected FftaScrapper             $scrapper,
-        protected EntityManagerInterface   $entityManager,
-        protected MailerInterface          $mailer,
-        protected LoggerInterface          $logger,
-        protected FilesystemOperator       $licenseesStorage,
+        protected FftaScrapper $scrapper,
+        protected EntityManagerInterface $entityManager,
+        protected MailerInterface $mailer,
+        protected LoggerInterface $logger,
+        protected FilesystemOperator $licenseesStorage,
         protected MimeTypeGuesserInterface $mimeTypeGuesser,
-        protected EmailHelper              $emailHelper,
+        protected EmailHelper $emailHelper,
     ) {
         $this->mimeTypes = new MimeTypes();
     }
@@ -140,7 +140,7 @@ class FftaHelper
                         $dbProfilePicture->getFile()->getName(),
                         ['checksum_algo' => 'sha1']
                     ) : null;
-            } catch (UnableToProvideChecksum | NoSuchKeyException) {
+            } catch (UnableToProvideChecksum|NoSuchKeyException) {
                 $dbProfilePicture = null;
                 $dbProfilePictureChecksum = null;
             }
@@ -229,7 +229,9 @@ class FftaHelper
      * Fetch license information from the FFTA website and returns a License Entity
      * Creates a new License if none exists for the Licensee and season or merge with the
      * existing one.
+     *
      * @return License[]
+     *
      * @throws \Exception
      */
     public function syncLicensesForLicensee(Licensee $licensee, ?int $season = null): array
@@ -240,7 +242,7 @@ class FftaHelper
         );
         $licenses = [];
         foreach ($fftaLicenses as $fftaLicense) {
-            if ($season !== null && $fftaLicense->getSeason() !== $season) {
+            if (null !== $season && $fftaLicense->getSeason() !== $season) {
                 continue;
             }
             $license = $licensee->getLicenseForSeason($fftaLicense->getSeason());
@@ -263,6 +265,7 @@ class FftaHelper
 
     /**
      * @return License[]
+     *
      * @throws \Exception
      */
     public function createLicensesForLicenseeAndSeason(

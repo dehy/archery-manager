@@ -132,9 +132,10 @@ class LicenseeController extends AbstractController
                             'data' => array_map(fn (Result $result) => $result->getTotal(), $results),
                             'backgroundColor' => array_map(
                                 function (Result $result) use ($lowestScore, $scoreDiff) {
-                                    if ($scoreDiff === 0) {
+                                    if (0 === $scoreDiff) {
                                         return ResultHelper::colorRatio(1);
                                     }
+
                                     return ResultHelper::colorRatio(
                                         ($result->getTotal() - $lowestScore) / $scoreDiff
                                     );
@@ -232,10 +233,10 @@ class LicenseeController extends AbstractController
      */
     #[Route('/licensee/{fftaCode}/sync', methods: ['POST'])]
     public function sync(
-        string             $fftaCode,
+        string $fftaCode,
         LicenseeRepository $licenseeRepository,
-        FftaHelper         $fftaHelper,
-        Request            $request,
+        FftaHelper $fftaHelper,
+        Request $request,
     ): RedirectResponse {
         $licensee = $licenseeRepository->findOneByCode($fftaCode);
         if (!$licensee) {

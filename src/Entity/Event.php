@@ -8,6 +8,7 @@ use App\Repository\EventRepository;
 use Cocur\Slugify\Slugify;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
@@ -22,7 +23,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class Event implements \Stringable
 {
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
     protected string $name;
 
     #[ORM\Column(type: 'DisciplineType')]
@@ -31,15 +32,18 @@ class Event implements \Stringable
     #[ORM\Column]
     protected bool $allDay = false;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE)]
     protected \DateTimeImmutable $startsAt;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE)]
     protected \DateTimeImmutable $endsAt;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
     protected string $address;
 
+    /**
+     * @var Collection<int, EventParticipation>|EventParticipation[]
+     */
     #[
         ORM\OneToMany(
             mappedBy: 'event',
@@ -49,6 +53,9 @@ class Event implements \Stringable
     ]
     protected Collection $participations;
 
+    /**
+     * @var Collection<int, EventAttachment>|EventAttachment[]
+     */
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventAttachment::class)]
     protected Collection $attachments;
 
@@ -68,7 +75,7 @@ class Event implements \Stringable
     protected ?\DateTimeImmutable $updatedAt = null;
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $id = null;
 
     public function __construct()
@@ -187,7 +194,7 @@ class Event implements \Stringable
     }
 
     /**
-     * @return Collection<int, PracticeAdviceAttachment>
+     * @return Collection<int, EventAttachment>
      */
     public function getAttachments(?string $type = null): Collection
     {

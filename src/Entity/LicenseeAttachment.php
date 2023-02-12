@@ -27,7 +27,7 @@ class LicenseeAttachment extends Attachment
     #[ORM\Column(type: 'LicenseeAttachmentType')]
     private ?string $type = null;
 
-    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $documentDate = null;
 
     #[Vich\UploadableField(

@@ -8,6 +8,7 @@ use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\Repository\LicenseRepository;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -25,10 +26,10 @@ class License
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
+    private ?int $id = null;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $season = null;
 
     #[ORM\Column(type: 'LicenseType')]
@@ -45,9 +46,9 @@ class License
 
     #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: 'licenses')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?\App\Entity\Licensee $licensee = null;
+    private ?Licensee $licensee = null;
 
-    #[ORM\Column(type: 'simple_array')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::SIMPLE_ARRAY)]
     private array $activities = [];
 
     public function getId(): ?int

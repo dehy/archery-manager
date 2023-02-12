@@ -4,12 +4,9 @@ namespace App\Helper;
 
 use App\Entity\Licensee;
 use App\Entity\User;
-use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 
 class LicenseeHelper

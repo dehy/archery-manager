@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ArrowRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ArrowRepository::class)]
@@ -10,7 +11,7 @@ class Arrow
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: 'arrows')]
@@ -20,7 +21,7 @@ class Arrow
     #[ORM\Column(type: 'ArrowType')]
     private string $type;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private int $spine;
 
     #[ORM\Column(type: 'FletchingType')]

@@ -5,8 +5,6 @@ namespace App\Repository;
 use App\Entity\Licensee;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -22,10 +20,6 @@ class LicenseeRepository extends ServiceEntityRepository
         parent::__construct($registry, Licensee::class);
     }
 
-    /**
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
     public function add(Licensee $entity, bool $flush = true): void
     {
         $this->_em->persist($entity);

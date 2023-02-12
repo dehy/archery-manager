@@ -4,9 +4,7 @@ namespace App\DataFixtures;
 
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
-use App\DBAL\Types\EventType;
 use App\Entity\ContestEvent;
-use App\Entity\Event;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker;

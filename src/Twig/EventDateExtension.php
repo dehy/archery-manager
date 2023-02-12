@@ -79,7 +79,8 @@ class EventDateExtension extends AbstractExtension
         } else {
             return 'en ce moment';
         }
-        return  $this->timeExtension->diff($date, $now, 'fr');
+
+        return $this->timeExtension->diff($date, $now, 'fr');
     }
 
     private function formatDate(Environment $environment, \DateTimeInterface $datetime): string

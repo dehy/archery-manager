@@ -84,9 +84,7 @@ class ApplicantCrudController extends AbstractCrudController
         return $actions->add(Crud::PAGE_INDEX, Action::DETAIL);
     }
 
-    /**
-     * @Route("/admin/applicants/stats", name="app_admin_applicants_stats")
-     */
+    #[Route(path: '/admin/applicants/stats', name: 'app_admin_applicants_stats')]
     public function applicantStatistics(
         Request $request,
         ApplicantRepository $applicantRepository,
@@ -105,7 +103,7 @@ class ApplicantCrudController extends AbstractCrudController
                 $data['waitingListActivated'] ?? false,
             );
 
-            return $this->redirect($adminUrlGenerator->generateUrl());
+            return $this->redirectToRoute(null);
         }
 
         $applicants = $applicantRepository->findBy(['season' => 2023]);
@@ -157,7 +155,7 @@ class ApplicantCrudController extends AbstractCrudController
         return $this->render('admin/pre_registration/stats.html.twig', [
             'stats' => $stats,
             'applicants' => $applicants,
-            'form' => $settingsForm->createView(),
+            'form' => $settingsForm,
         ]);
     }
 }
