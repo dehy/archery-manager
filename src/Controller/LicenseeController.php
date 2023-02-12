@@ -222,7 +222,7 @@ class LicenseeController extends AbstractController
             'licensee' => $licensee,
             'seasons' => $seasons,
             'results_charts' => $resultsCharts,
-            'licensee_sync_form' => $licenseeSyncForm->createView(),
+            'licensee_sync_form' => $licenseeSyncForm?->createView(),
         ]);
     }
 
