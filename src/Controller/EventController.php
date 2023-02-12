@@ -216,7 +216,11 @@ class EventController extends AbstractController
             $licenseeHelper->getLicenseeFromSession(),
             $event
         );
-        $eventParticipationForm = $this->createForm(EventParticipationType::class, $eventParticipation);
+        $eventParticipationForm = $this->createForm(EventParticipationType::class, $eventParticipation, [
+            'license_context' => $licenseeHelper
+                ->getLicenseeFromSession()
+                ->getLicenseForSeason(Season::seasonForDate($event->getStartsAt())),
+        ]);
 
         $eventParticipationForm->handleRequest($request);
         if ($eventParticipationForm->isSubmitted() && $eventParticipationForm->isValid()) {

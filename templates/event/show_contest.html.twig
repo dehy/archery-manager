@@ -347,6 +347,7 @@
     <div class="modal" id="participationModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
+                {% form_theme event_participation_form 'bootstrap_5_layout.html.twig' %}
                 {{ form_start(event_participation_form) }}
                 <div class="modal-header">
                     <h5 class="modal-title">Ma participation</h5>
@@ -359,6 +360,7 @@
                             {{ form_widget(event_participation_form.participationState) }}
                         </div>
                     </div>
+                    {{ form_row(event_participation_form.activity) }}
                     {{ form_row(event_participation_form.targetType) }}
                     {{ form_row(event_participation_form.departure) }}
                     <div class="alert alert-warning">

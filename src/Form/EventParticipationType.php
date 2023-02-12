@@ -2,7 +2,10 @@
 
 namespace App\Form;
 
+use App\DBAL\Types\LicenseActivityType;
 use App\Entity\EventParticipation;
+use App\Entity\License;
+use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -14,9 +17,23 @@ class EventParticipationType extends AbstractType
         FormBuilderInterface $builder,
         array $options,
     ): void {
+        /** @var License|null $license */
+        $license = $options['license_context'];
+        $activityChoices = [];
+        if ($license) {
+            foreach ($license->getActivities() as $activity) {
+                $activityChoices[LicenseActivityType::getReadableValue($activity)] = $activity;
+            }
+        } else {
+            $activityChoices = LicenseActivityType::getChoices();
+        }
+
         $builder
             ->add('participationState', null, [
                 'expanded' => true,
+            ])
+            ->add('activity', null, [
+                'choices' => $activityChoices,
             ])
             ->add('targetType')
             ->add('departure', ChoiceType::class, [
@@ -35,6 +52,7 @@ class EventParticipationType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => EventParticipation::class,
+            'license_context' => null,
         ]);
     }
 }
