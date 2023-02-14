@@ -40,7 +40,6 @@ class ResultRepository extends ServiceEntityRepository
     public function findLastForLicensee(Licensee $licensee, int $count = 5): ?array
     {
         return $this->createQueryBuilder('r')
-            ->select('r, e')
             ->join('r.event', 'e')
             ->where('r.licensee = :licensee')
             ->orderBy('e.endsAt', Criteria::DESC)
