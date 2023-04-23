@@ -29,6 +29,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use League\Flysystem\FilesystemOperator;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
@@ -80,6 +81,7 @@ class ContestEventCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return parent::configureFilters($filters)
+            ->add(EntityFilter::new('club'))
             ->add(ChoiceFilter::new('type')->setChoices(EventType::getChoices()))
             ->add(ChoiceFilter::new('discipline')->setChoices(DisciplineType::getChoices()));
     }

@@ -1,0 +1,79 @@
+App\Entity\TrainingEvent:
+    event_training_ladb_perfectionnement_adultes_{1..10}:
+        club: '@club_ladb'
+        name: Perfectionnement Adultes
+        startsAt: '<recurringDateTimeImmutable("last monday 20:00", "week", $current)>'
+        endsAt: '<($startsAt->modify("+120 min"))>'
+        allDay: false
+        address: '<address()>'
+        discipline: 'indoor'
+        assignedGroups: [ '@group_ladb_perfectionnement_adultes' ]
+    event_training_ladb_competiteurs_adultes_{1..10}:
+        club: '@club_ladb'
+        name: Compétiteurs Adultes
+        startsAt: '<recurringDateTimeImmutable("last tuesday 19:00", "week", $current)>'
+        endsAt: '<($startsAt->modify("+120 min"))>'
+        allDay: false
+        address: '<address()>'
+        discipline: 'indoor'
+        assignedGroups: [ '@group_ladb_competiteurs_adultes' ]
+    event_training_ladb_debutants_jeunes_{1..10}:
+        club: '@club_ladb'
+        name: Débutants Jeunes 8 - 17 ans (2014 - 2005)
+        startsAt: '<recurringDateTimeImmutable("last wednesday 15:00", "week", $current)>'
+        endsAt: '<($startsAt->modify("+90 min"))>'
+        allDay: false
+        address: '<address()>'
+        discipline: 'indoor'
+        assignedGroups: [ '@group_ladb_debutants_jeunes' ]
+    event_training_ladb__{1..10}:
+        club: '@club_ladb'
+        name: Compétiteurs Jeunes & Perfectionnement Jeunes
+        startsAt: '<recurringDateTimeImmutable("last wednesday 16:30", "week", $current)>'
+        endsAt: '<($startsAt->modify("+120 min"))>'
+        allDay: false
+        address: '<address()>'
+        discipline: 'indoor'
+        assignedGroups:
+          - '@group_ladb_competiteurs_jeunes'
+          - '@group_ladb_perfectionnement_jeunes'
+    event_training_ladb_debutant_adultes_1800_{1..10}:
+        club: '@club_ladb'
+        name: Débutants Adultes & Compétiteurs Jeunes
+        startsAt: '<recurringDateTimeImmutable("last friday 18:00", "week", $current)>'
+        endsAt: '<($startsAt->modify("+120 min"))>'
+        allDay: false
+        address: '<address()>'
+        discipline: 'indoor'
+        assignedGroups:
+            - '@group_ladb_debutants_adultes'
+            - '@group_ladb_competiteurs_jeunes'
+    event_training_ladb_debutant_adultes_2000_{1..10}:
+        club: '@club_ladb'
+        name: Débutants Adultes & Compétiteurs Adultes
+        startsAt: '<recurringDateTimeImmutable("last friday 20:00", "week", $current)>'
+        endsAt: '<($startsAt->modify("+120 min"))>'
+        allDay: false
+        address: '<address()>'
+        discipline: 'indoor'
+        assignedGroups:
+            - '@group_ladb_debutants_adultes'
+            - '@group_ladb_competiteurs_adultes'
+    event_training_ladb_handisport_{1..10}:
+        club: '@club_ladb'
+        name: Handisport
+        startsAt: '<recurringDateTimeImmutable("last saturday 09:00", "week", $current)>'
+        endsAt: '<($startsAt->modify("+120 min"))>'
+        allDay: false
+        address: '<address()>'
+        discipline: 'indoor'
+        assignedGroups: [ '@group_ladb_handisport' ]
+    event_training_ladb_baby_{1..10}:
+        club: '@club_ladb'
+        name: Baby 5 - 7 ans
+        startsAt: '<recurringDateTimeImmutable("last saturday 11:00", "week", $current)>'
+        endsAt: '<($startsAt->modify("+45 min"))>'
+        allDay: false
+        address: '<address()>'
+        discipline: 'indoor'
+        assignedGroups: [ '@group_ladb_baby' ]

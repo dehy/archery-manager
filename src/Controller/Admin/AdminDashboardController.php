@@ -6,6 +6,7 @@ use App\DBAL\Types\GenderType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\Entity\Applicant;
+use App\Entity\Club;
 use App\Entity\ContestEvent;
 use App\Entity\EventParticipation;
 use App\Entity\Group;
@@ -26,6 +27,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\UX\Chartjs\Builder\ChartBuilder;
+use Symfony\UX\Chartjs\Model\Chart;
 
 class AdminDashboardController extends AbstractDashboardController
 {
@@ -38,55 +41,12 @@ class AdminDashboardController extends AbstractDashboardController
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
-        /** @var LicenseeRepository $licenseeRepository */
-        $licenseeRepository = $this->entityManager->getRepository(
-            Licensee::class,
-        );
-        $licensees = new ArrayCollection(
-            $licenseeRepository->findByLicenseYear(2023),
-        );
-
-        $usersCount = $licensees->count();
-        $womenCount = 0;
-        $menCount = 0;
-
-        $licenseTypesCount = array_fill_keys(LicenseType::getValues(), 0);
-        $licenseAgeCategoryCount = array_fill_keys(
-            LicenseAgeCategoryType::getValues(),
-            0,
-        );
-
-        foreach ($licensees as $licensee) {
-            if (GenderType::FEMALE === $licensee->getGender()) {
-                ++$womenCount;
-            } else {
-                ++$menCount;
-            }
-            if ($license = $licensee->getLicenseForSeason(2023)) {
-                ++$licenseTypesCount[$license->getType()];
-                ++$licenseAgeCategoryCount[$license->getAgeCategory()];
-            }
-        }
-        $licenseTypesCount = array_filter($licenseTypesCount, fn ($v) => $v > 0);
-        $licenseAgeCategoryCount = array_filter(
-            $licenseAgeCategoryCount,
-            fn ($v) => $v > 0,
-        );
-
-        return $this->render('admin/dashboard.html.twig', [
-            'licensees' => [
-                'women' => $womenCount,
-                'men' => $menCount,
-                'total' => $usersCount,
-            ],
-            'licensesTypes' => $licenseTypesCount,
-            'licenseAgeCategories' => $licenseAgeCategoryCount,
-        ]);
+        return $this->render('admin/dashboard.html.twig');
     }
 
     public function configureDashboard(): Dashboard
     {
-        return Dashboard::new()->setTitle('Les Archers de Bordeaux Guyenne');
+        return Dashboard::new()->setTitle('Mon Club de Tir à l\'Arc');
     }
 
     public function configureMenuItems(): iterable
@@ -95,6 +55,10 @@ class AdminDashboardController extends AbstractDashboardController
             'Tableau de bord',
             'fa-solid fa-gauge-high',
         );
+
+        yield MenuItem::section();
+
+        yield MenuItem::linkToCrud('Clubs', 'fa-regular fa-building', Club::class);
 
         yield MenuItem::section();
 

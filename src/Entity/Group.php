@@ -14,13 +14,17 @@ class Group implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
+    #[ORM\ManyToOne(targetEntity: Club::class, inversedBy: 'groups')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Club $club = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::TEXT, nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
     #[ORM\ManyToMany(targetEntity: Licensee::class, inversedBy: 'groups')]
@@ -43,6 +47,18 @@ class Group implements \Stringable
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getClub(): ?Club
+    {
+        return $this->club;
+    }
+
+    public function setClub(?Club $club): Group
+    {
+        $this->club = $club;
+
+        return $this;
     }
 
     public function getName(): ?string

@@ -27,7 +27,7 @@ services:
 
     App\Command\DiscordBotRunCommand:
         arguments:
-            $botToken: '%env(DISCORD_TOKEN)%'
+            $botToken: '%env(DISCORD_BOT_TOKEN)%'
 
     App\Helper\MapHelper:
         arguments:
@@ -50,3 +50,8 @@ services:
                 accessKeyId: '%env(SCALEWAY_OBJECT_STORAGE_ID)%'
                 accessKeySecret: '%env(SCALEWAY_OBJECT_STORAGE_SECRET)%'
                 region: '%env(SCALEWAY_OBJECT_STORAGE_REGION)%'
+
+    App\DataFixtures\Faker\Provider\EnumProvider: ~
+    App\DataFixtures\Faker\Provider\DateTimeImmutableProvider: ~
+    App\DataFixtures\Faker\Provider\RecurringDateTimeProvider: ~
+    App\DataFixtures\Faker\Provider\FftaCodeProvider: ~

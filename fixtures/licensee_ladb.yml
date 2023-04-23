@@ -1,0 +1,31 @@
+App\Entity\User:
+    user_ladb_adult_{1..10}:
+        email: 'adult<current()>\@ladb.com'
+        roles: [ 'ROLE_USER' ]
+        password: '\$2y\$13\$CGDD6CfkN8pHT/hKhml2RuA28Ba48QE86SlrjPssIcfXmRsNrzh1W' # user
+        gender: '<enum("GenderType")>'
+        lastname: <lastname()>
+        firstname: <firstname()>
+        phoneNumber: <e164PhoneNumber()>
+
+App\Entity\Licensee:
+    licensee_ladb_adult_{1..10}:
+        user: '@user_ladb_adult_<current()>'
+        gender: '@user_ladb_adult_<current()>->gender'
+        lastname: '@user_ladb_adult_<current()>->lastname'
+        firstname: '@user_ladb_adult_<current()>->firstname'
+        birthdate: '<dateTimeBetween("-75 years", "-22 years")>'
+        fftaId (unique): '<fftaId()>'
+        fftaMemberCode (unique): '<fftaCode($fftaId)>'
+        groups:
+          - '@group_ladb_competiteurs_adultes'
+
+App\Entity\License:
+    license_licensee_ladg_adult_{1..10}:
+        season: 2023
+        type: 'A'
+        category: 'A'
+        ageCategory: 'S1'
+        licensee: '@licensee_ladb_adult_<current()>'
+        activities: ['CL']
+        club: '@club_ladb'

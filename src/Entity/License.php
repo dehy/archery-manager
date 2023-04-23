@@ -51,6 +51,10 @@ class License
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::SIMPLE_ARRAY)]
     private array $activities = [];
 
+    #[ORM\ManyToOne(inversedBy: 'licenses')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Club $club = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -137,5 +141,17 @@ class License
         $this->setCategory($license->getCategory());
         $this->setSeason($license->getSeason());
         $this->setType($license->getType());
+    }
+
+    public function getClub(): ?Club
+    {
+        return $this->club;
+    }
+
+    public function setClub(?Club $club): self
+    {
+        $this->club = $club;
+
+        return $this;
     }
 }

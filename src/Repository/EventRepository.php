@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Event;
+use App\Entity\License;
 use App\Entity\Licensee;
+use App\Entity\Season;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
@@ -43,15 +45,31 @@ class EventRepository extends ServiceEntityRepository
         Licensee $licensee,
         ?int $limit = null,
     ): ArrayCollection {
+        $season = Season::seasonForDate(new \DateTimeImmutable());
+
+        $qb = $this->createQueryBuilder('e');
+
         return new ArrayCollection(
-            $this->createQueryBuilder('e')
+            $qb->select('e, ep')
                 ->leftJoin('e.assignedGroups', 'g')
-                ->where('e.endsAt >= :now')
-                ->andWhere('g IN (:groups)')
+                ->leftJoin('e.participations', 'ep')
+                ->andWhere(
+                    'e.endsAt >= :now',
+                    $qb->expr()->orX(
+                        'e.club = :club',
+                        'e.club IS NULL',
+                    ),
+                    $qb->expr()->orX(
+                        'g.club IN (:club)',
+                        'g.club IS NULL',
+                    ),
+                    'g IN (:groups)',
+                )
                 ->orderBy('e.startsAt', Criteria::ASC)
                 ->addOrderBy('e.endsAt', Criteria::ASC)
                 ->setParameter('now', new \DateTime())
                 ->setParameter('groups', $licensee->getGroups())
+                ->setParameter('club', $licensee->getLicenseForSeason($season)?->getClub())
                 ->setMaxResults($limit)
                 ->getQuery()
                 ->getResult(),
@@ -61,8 +79,11 @@ class EventRepository extends ServiceEntityRepository
     /**
      * @throws \Exception
      */
-    public function findForMonthAndYear(int $month, int $year): array
+    public function findForLicenseeByMonthAndYear(Licensee $licensee, int $month, int $year): array
     {
+        $clubs = $licensee->getLicenses()->map(fn (License $license) => $license->getClub());
+        $clubs = \array_unique($clubs->toArray());
+
         $firstDate = new \DateTime(sprintf('%s-%s-01 midnight', $year, $month));
         $lastDate = (clone $firstDate)->modify('last day of this month');
         if (1 !== (int) $firstDate->format('N')) {
@@ -77,9 +98,11 @@ class EventRepository extends ServiceEntityRepository
             ->leftJoin('e.attachments', 'a')
             ->where('e.endsAt >= :monthStart')
             ->andWhere('e.startsAt <= :monthEnd')
+            ->andWhere('e.club IN (:clubs) OR e.club IS NULL')
             ->setParameters([
                 'monthStart' => $firstDate,
                 'monthEnd' => $lastDate,
+                'clubs' => $clubs,
             ])
             ->getQuery()
             ->getResult();

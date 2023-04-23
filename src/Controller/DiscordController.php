@@ -10,6 +10,7 @@ use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Annotation\Route;
 use Wohali\OAuth2\Client\Provider\DiscordResourceOwner;
 
@@ -19,7 +20,7 @@ class DiscordController extends AbstractController
      * Link to this controller to start the "connect" process.
      */
     #[Route('/connect/discord', name: 'connect_discord_start')]
-    public function connect(ClientRegistry $clientRegistry): RedirectResponse
+    public function connect(ClientRegistry $clientRegistry, RequestStack $requestStack): RedirectResponse
     {
         return $clientRegistry
             ->getClient('discord') // key used in config/packages/knpu_oauth2_client.yaml
@@ -37,12 +38,13 @@ class DiscordController extends AbstractController
     public function connectCheck(
         Request $request,
         EntityManagerInterface $entityManager,
-        ClientRegistry $clientRegistry
+        ClientRegistry $clientRegistry,
+        RequestStack $requestStack,
     ): RedirectResponse {
         if ($request->query->get('error')) {
             $description = $request->query->get('error_description');
             $this->addFlash('warning', 'La connexion à Discord a été refusée : '.$description);
-            // Todo add sentry exception
+            // TODO add sentry exception
 
             return $this->redirectToRoute('app_user_account');
         }
@@ -51,13 +53,14 @@ class DiscordController extends AbstractController
         $client = $clientRegistry->getClient('discord');
 
         try {
+            $accessToken = $client->getAccessToken();
             /** @var DiscordResourceOwner $discordUser */
-            $discordUser = $client->fetchUser();
+            $discordUser = $client->fetchUserFromToken($accessToken);
 
             /** @var User $user */
             $user = $this->getUser();
             $user->setDiscordId($discordUser->getId());
-            $user->setDiscordAccessToken($client->getAccessToken());
+            $user->setDiscordAccessToken(json_encode($accessToken->jsonSerialize()));
             $entityManager->flush();
 
             $this->addFlash('success', 'Association à Discord réussie !');
@@ -77,6 +80,7 @@ class DiscordController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
         $user->setDiscordId(null);
+        $user->setDiscordAccessToken(null);
         $entityManager->flush();
 
         return $this->redirectToRoute('app_user_account');

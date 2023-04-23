@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use SpecShaper\EncryptBundle\Annotations\Encrypted;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -26,29 +27,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 180, unique: true)]
+    #[ORM\Column(type: Types::STRING, length: 180, unique: true)]
     #[Assert\Email]
     private string $email;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::JSON)]
+    #[ORM\Column(type: Types::JSON)]
     private array $roles = [];
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING)]
+    #[ORM\Column(type: Types::STRING)]
     private string $password;
 
     #[ORM\Column(type: 'GenderType')]
     private string $gender;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255)]
     private string $lastname;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255)]
     private string $firstname;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 12, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 12, nullable: true)]
     private ?string $phoneNumber = null;
 
     /**
@@ -69,8 +70,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     #[ORM\Column(nullable: true)]
     private ?string $discordId = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?array $discordAccessToken = null;
+    #[Encrypted]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $discordAccessToken = null;
 
     public function __construct()
     {
@@ -287,12 +289,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         return $this;
     }
 
-    public function getDiscordAccessToken(): array
+    public function getDiscordAccessToken(): string
     {
         return $this->discordAccessToken;
     }
 
-    public function setDiscordAccessToken(?array $discordAccessToken): self
+    public function setDiscordAccessToken(?string $discordAccessToken): self
     {
         $this->discordAccessToken = $discordAccessToken;
 

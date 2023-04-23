@@ -9,7 +9,7 @@ use Symfony\Component\Mailer\MailerInterface;
 
 class EmailHelper
 {
-    public function __construct(protected readonly MailerInterface $mailer)
+    public function __construct(protected readonly MailerInterface $mailer, protected readonly ClubHelper $clubHelper)
     {
     }
 
@@ -18,15 +18,17 @@ class EmailHelper
      */
     public function sendWelcomeEmail(Licensee $licensee): void
     {
+        $club = $this->clubHelper->activeClubFor($licensee);
         $email = (new TemplatedEmail())
             ->to($licensee->getUser()->getEmail())
-            ->replyTo('lesarchersdeguyenne@gmail.com')
-            ->subject('Bienvenue aux Archers de Guyenne')
+            ->replyTo($club->getContactEmail())
+            ->subject(sprintf('Bienvenue aux %s', $club->getName()))
             ->htmlTemplate(
                 'licensee/mail_account_created.html.twig',
             )
             ->context([
                 'licensee' => $licensee,
+                'club' => $club,
             ]);
 
         $this->mailer->send($email);

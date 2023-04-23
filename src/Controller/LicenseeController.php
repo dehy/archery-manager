@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\LicenseActivityType;
+use App\DBAL\Types\UserRoleType;
 use App\Entity\Licensee;
 use App\Entity\LicenseeAttachment;
 use App\Entity\Result;
@@ -11,7 +12,9 @@ use App\Entity\Season;
 use App\Entity\User;
 use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
+use App\Helper\LicenseHelper;
 use App\Helper\ResultHelper;
+use App\Helper\SeasonHelper;
 use App\Repository\LicenseeRepository;
 use App\Repository\ResultRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -31,14 +34,19 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 
-class LicenseeController extends AbstractController
+class LicenseeController extends BaseController
 {
     #[Route('/licensees', name: 'app_licensee_index')]
-    public function index(LicenseeRepository $licenseeRepository): Response
-    {
-        $year = 2023;
+    public function index(
+        LicenseeRepository $licenseeRepository,
+        LicenseHelper $licenseHelper,
+    ): Response {
+        $this->assertHasValidLicense();
+
+        $season = $this->seasonHelper->getSelectedSeason();
+        $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
         $licensees = new ArrayCollection(
-            $licenseeRepository->findByLicenseYear($year),
+            $licenseeRepository->findByLicenseYear($club, $season),
         );
 
         /** @var ArrayCollection<int, Licensee> $orderedLicensees */
@@ -51,7 +59,7 @@ class LicenseeController extends AbstractController
 
         return $this->render('licensee/index.html.twig', [
             'licensees' => $orderedLicensees,
-            'year' => $year,
+            'year' => $season,
         ]);
     }
 
@@ -66,17 +74,18 @@ class LicenseeController extends AbstractController
     public function show(
         LicenseeRepository $licenseeRepository,
         ResultRepository $resultRepository,
-        LicenseeHelper $licenseeHelper,
         ChartBuilderInterface $chartBuilder,
         ?string $fftaCode,
     ): Response {
+        $this->assertHasValidLicense();
+
         /** @var User $user */
         $user = $this->getUser();
 
         if ($fftaCode) {
             $licensee = $licenseeRepository->findOneByCode($fftaCode);
         } else {
-            $licensee = $licenseeHelper->getLicenseeFromSession();
+            $licensee = $this->licenseeHelper->getLicenseeFromSession();
         }
 
         if (
@@ -238,6 +247,9 @@ class LicenseeController extends AbstractController
         FftaHelper $fftaHelper,
         Request $request,
     ): RedirectResponse {
+        $this->assertHasValidLicense();
+        $this->isGranted(UserRoleType::ADMIN);
+
         $licensee = $licenseeRepository->findOneByCode($fftaCode);
         if (!$licensee) {
             throw $this->createNotFoundException();
@@ -343,8 +355,11 @@ class LicenseeController extends AbstractController
     }
 
     #[Route('/licensees/attachments/{attachment}', name: 'licensees_attachements_download')]
-    public function downloadAttachement(Request $request, LicenseeAttachment $attachment, FilesystemOperator $licenseesStorage): Response
-    {
+    public function downloadAttachement(
+        Request $request,
+        LicenseeAttachment $attachment,
+        FilesystemOperator $licenseesStorage
+    ): Response {
         $forceDownload = $request->query->get('forceDownload');
         $contentDisposition = sprintf(
             '%s; filename="%s"',

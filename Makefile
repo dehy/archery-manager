@@ -12,6 +12,9 @@ container:
 start:
 	$(DOCKER_COMPOSE) up -d
 
+stop:
+	$(DOCKER_COMPOSE) stop
+
 shell: start
 	$(BASE_EXEC) bash
 
@@ -24,12 +27,14 @@ deps: start
 	$(BASE_EXEC) yarn run encore dev
 
 migratedb: start
-	$(BASE_EXEC) php bin/console doctrine:migrations:migrate
+	$(BASE_EXEC) php bin/console doctrine:migrations:migrate -n
 
-fixtures:
-	$(BASE_EXEC) php bin/console doctrine:fixtures:load -n
+fixtures: migratedb
+	$(BASE_EXEC) php bin/console hautelook:fixtures:load -n
 
 qa:
 	$(BASE_EXEC) php vendor/bin/rector process; \
 	$(BASE_EXEC) php vendor/bin/php-cs-fixer fix; \
 	$(BASE_EXEC) php vendor/bin/phpstan analyze --xdebug
+
+.PHONY: fixtures

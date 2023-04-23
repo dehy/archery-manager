@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Club;
 use App\Entity\Licensee;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -60,7 +61,7 @@ class LicenseeRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findByLicenseYear(int $year): array
+    public function findByLicenseYear(Club $club, int $year): array
     {
         return $this->createQueryBuilder('l')
             ->select('l, li, a, g')
@@ -68,7 +69,9 @@ class LicenseeRepository extends ServiceEntityRepository
             ->leftJoin('l.attachments', 'a')
             ->leftJoin('l.groups', 'g')
             ->where('li.season = :year')
+            ->andWhere('li.club = :club')
             ->setParameter('year', $year)
+            ->setParameter('club', $club)
             ->getQuery()
             ->getResult();
     }

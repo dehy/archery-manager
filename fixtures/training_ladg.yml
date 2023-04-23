@@ -1,0 +1,38 @@
+App\Entity\TrainingEvent:
+    event_training_ladg_loisirs_{1..10}:
+        club: '@club_ladg'
+        name: Loisir
+        startsAt: '<recurringDateTimeImmutable("last saturday 8:45", "week", $current)>'
+        endsAt: '<($startsAt->modify("+75 min"))>'
+        allDay: false
+        address: '<address()>'
+        discipline: 'indoor'
+        assignedGroups: [ '@group_ladg_loisirs' ]
+    event_training_ladg_familles_{1..10}:
+        club: '@club_ladg'
+        name: Familles
+        startsAt: '<recurringDateTimeImmutable("last saturday 10:00", "week", $current)>'
+        endsAt: '<($startsAt->modify("+60 min"))>'
+        allDay: false
+        address: '<address()>'
+        discipline: 'indoor'
+        assignedGroups: [ '@group_ladg_familles' ]
+    event_training_ladg_competiteurs_{1..10}:
+        club: '@club_ladg'
+        name: Compétiteurs
+        startsAt: '<recurringDateTimeImmutable("last saturday 10:45", "week", $current)>'
+        endsAt: '<($startsAt->modify("+90 min"))>'
+        allDay: false
+        address: '<address()>'
+        discipline: 'indoor'
+        assignedGroups: ['@group_ladg_competiteurs']
+    event_training_ladg_competiteurs_libre_{1..10}:
+        club: '@club_ladg'
+        name: Compétiteurs Perfectionnement
+        startsAt: '<recurringDateTimeImmutable("last tuesday 19:15", "week", $current)>'
+        endsAt: '<($startsAt->modify("+90 min"))>'
+        allDay: false
+        address: '<address()>'
+        discipline: 'indoor'
+        assignedGroups: ['@group_ladg_competiteurs']
+
