@@ -1,0 +1,199 @@
+{% extends 'base.html.twig' %}
+
+{% set licensee = licenseeHelper.licenseeFromSession %}
+{% set license = licenseHelper.currentLicenseeCurrentLicense %}
+{% set canAttend = licenseHelper.licenseIsValidForEvent(license, event) %}
+{% set licenseeParticipation = eventHelper.licenseeParticipationToEvent(licensee, event) %}
+
+{% block return_link %}
+    {{ path('app_event_index') }}
+{% endblock %}
+
+{% block return_text %}
+    Calendrier
+{% endblock %}
+
+{% block title %}
+    {{ event.title }}
+{% endblock %}
+
+{% block body %}
+    <div class="row my-3">
+        <div class="col-12">
+            <h4>{{ event.title }}</h4>
+        </div>
+    </div>
+    {% if is_granted('ROLE_ADMIN') %}
+        <div class="row">
+            <div class="col">
+                <div class="alert alert-warning">
+                    <h4 class="alert-heading"><em class="fa-solid fa-screwdriver-wrench"></em> Administration</h4>
+                    <a href="{{
+                    adminUrlGenerator
+                        .setController('App\\Controller\\Admin\\TrainingEventCrudController')
+                        .setAction('edit')
+                        .setEntityId(event.id)
+                    .generateUrl
+                    }}" class="btn btn-secondary">
+                        <em class="fa-solid fa-pencil"></em>
+                        Modifier
+                    </a>
+                    <a href="{{
+                    adminUrlGenerator
+                        .setController('App\\Controller\\Admin\\EventParticipationCrudController')
+                        .setAction('index')
+                        .set('filters[event][comparison]', '=')
+                        .set('filters[event][value]', event.id)
+                    .generateUrl
+                    }}" class="btn btn-secondary">
+                        <em class="fa-solid fa-people-group"></em>
+                        Participations
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    {% if licenseeParticipation.participationState is same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-warning">
+                    <em class="fa-solid fa-user-xmark"></em>
+                    Tu as indiqué que tu ne seras pas présent à cet entraînement.
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="row">
+                <div class="col-sm-6">
+                    <h5>
+                        <em class="fa-solid fa-calendar-alt"></em> Date
+                        <a href="{{ path('app_event_ics', {slug: event.slug}) }}"
+                           class="btn btn-secondary btn-sm">
+                            <em class="fa-solid fa-calendar-plus fa-fw"></em>
+                            Ajouter à mon calendrier
+                        </a>
+                    </h5>
+                    <p>{{ event|event_date(diff=true) }}</p>
+                </div>
+
+                <div class="col-sm-6">
+                    <h5><em class="fa-solid fa-bullseye"></em> Catégorie et Type</h5>
+                    <dl>
+                        <dt>Type</dt>
+                        <dd>{{ event|get_class|readable_enum }}</dd>
+                        <dt>Discipline</dt>
+                        <dd>{{ event.discipline|readable_enum }}</dd>
+                    </dl>
+                </div>
+
+                <div class="col-sm-12">
+                    <h5>
+                        <em class="fa-solid fa-people-group"></em> Participation
+                        {% if licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
+                            {% set participationButtonLabel = 'Absent•e' %}
+                            {% set participationButtonColor = 'danger' %}
+                        {% elseif licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') %}
+                            {% set participationButtonLabel = 'Participe' %}
+                            {% set participationButtonColor = 'success' %}
+                        {% else %}
+                            {% set participationButtonLabel = 'Indisponible ?' %}
+                            {% set participationButtonColor = 'secondary' %}
+                        {% endif %}
+                        <button type="button"
+                                class="btn btn-sm btn-{{ participationButtonColor }} {{ not canAttend ? 'disabled' }}"
+                                data-bs-toggle="modal" data-bs-target="#participationModal"
+                        >
+                            <em class="fa-solid fa-pencil-alt fa-fw"></em> {{ participationButtonLabel }}
+                        </button>
+                    </h5>
+                    <div>
+                        {% set participants = event.participations|filter(p => p.participationState is not same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
+                        {% set absents = event.participations|filter(p => p.participationState is same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
+                        <h6>Participants</h6>
+                        {% if participants is not empty %}
+                            {{ participants|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => p.participant.firstnameWithInitial)|join(', ') }}
+                        {% else %}
+                            <em>Aucun</em>
+                        {% endif %}
+                    </div>
+                    <div class="mt-3">
+                        <h6>Absents</h6>
+                        {% if absents is not empty %}
+                            {{ absents|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => p.participant.firstnameWithInitial)|join(', ') }}
+                        {% else %}
+                            <em>Aucun</em>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-sm-12 p-3">
+                    <h5>
+                        <em class="fa-solid fa-map"></em>
+                        Adresse
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-secondary btn-sm dropdown-toggle"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                Ouvrir dans
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="https://maps.apple.com/?q={{ event.address|url_encode }}">
+                                        <em class="fa-brands fa-apple fa-fw"></em>
+                                        Apple Plans
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="https://www.google.com/maps/search/?api=1&query={{ event.address|url_encode }}">
+                                        <em class="fa-brands fa-google fa-fw"></em>
+                                        Google Maps
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="https://waze.com/ul?q={{ event.address|url_encode }}">
+                                        <em class="fa-brands fa-waze fa-fw"></em>
+                                        Waze
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </h5>
+                    <address>{{ event.address }}</address>
+                </div>
+                <div class="col-sm-6">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="participationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                {{ form_start(event_participation_form) }}
+                <div class="modal-header">
+                    <h5 class="modal-title">Ma participation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Ma participation au {{ event.title[:1]|lower ~ event.title[1:] }}</p>
+                    <div class="mb-3 row text-center mt-3">
+                        <div class="col-12">
+                            {{ form_widget(event_participation_form.participationState) }}
+                        </div>
+                    </div>
+                    {{ form_row(event_participation_form.departure) }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+                {{ form_end(event_participation_form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
