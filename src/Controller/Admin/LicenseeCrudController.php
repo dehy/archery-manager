@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Controller\Admin\Filter\ClubFilter;
 use App\Controller\Admin\Filter\LicenseSeasonFilter;
 use App\DBAL\Types\GenderType;
 use App\Entity\Licensee;
@@ -25,8 +26,10 @@ use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class LicenseeCrudController extends AbstractCrudController
 {
-    public function __construct(protected AdminUrlGenerator $urlGenerator, protected EmailHelper $emailHelper)
-    {
+    public function __construct(
+        protected AdminUrlGenerator $urlGenerator,
+        protected readonly EmailHelper $emailHelper
+    ) {
     }
 
     public static function getEntityFqcn(): string
@@ -51,9 +54,11 @@ class LicenseeCrudController extends AbstractCrudController
             'Usurper l\'identité',
             'fa-solid fa-user-secret'
         )->linkToUrl(fn (Licensee $licensee) => sprintf(
+            return sprintf(
             '/?_switch_user=%s&_switch_licensee=%s',
             $licensee->getUser()->getEmail(),
             $licensee->getFftaMemberCode()
+            );
         ));
 
         $resendWelcomeEmail = Action::new(
@@ -90,7 +95,9 @@ class LicenseeCrudController extends AbstractCrudController
 
     public function configureFilters(Filters $filters): Filters
     {
-        return $filters->add(LicenseSeasonFilter::new())
+        return $filters
+            ->add(LicenseSeasonFilter::new())
+            ->add(ClubFilter::new())
             ->add('groups');
     }
 

@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col">
+            <h1>Bonjour {{ user.firstname }}!</h1>
+
+            <p>Vous n'avez aucune licence.</p>
+
+            <a href="" class="btn btn-primary disabled">Demande de licence</a>
+        </div>
+    </div>
+{% endblock %}

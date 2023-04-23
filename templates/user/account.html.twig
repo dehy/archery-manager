@@ -30,7 +30,7 @@
                 <dd>{{ user.lastname }}</dd>
 
                 <dt>Numéro de téléphone</dt>
-                <dd>{{ user.phoneNumber }}</dd>
+                <dd>{% if user.phoneNumber %}{{ user.phoneNumber }}{% else %}<em>Non défini</em>{% endif %}</dd>
 
                 <dt>Discord</dt>
                 <dd>
@@ -55,22 +55,43 @@
 
         <div class="col-md-6">
             <p>Ce compte gère {{ user.licensees|length }} licencié{{ user.licensees|length > 1 ? 's' }}:</p>
-            <ul>
+            <div class="list-group">
                 {% for licensee in user.licensees %}
-                    <li>
-                        <a href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}">
-                            {{ licensee.fullname }}
-                        </a>
-                    </li>
+                <a href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex justify-content-between">
+                        <img class="rounded-circle me-3" style="height:60px;width:60px;object-fit: cover" src="{{ licenseeHelper.licenseeFromSession and licenseeHelper.licenseeFromSession.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}">
+                        <div class="d-flex flex-column flex-grow-1">
+                            <h5 class="mb-1">{{ licensee.fullname }}</h5>
+                            <small>
+                                {{ licensee.licenseForSeason(seasonHelper.selectedSeason).club.name ?? "Aucune license en seasonHelper.selectedSeason" }}
+                            </small>
+
+                        </div>
+                        <button class="btn btn-secondary {{ licensee == licenseeHelper.licenseeFromSession ? "disabled" }}">
+                            {% if licensee == licenseeHelper.licenseeFromSession %}
+                                Sélectionné
+                            {% endif %}
+                        </button>
+                    </div>
+                </a>
                 {% endfor %}
-            </ul>
+            </div>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
             <p>
-                Une erreur ? Un changement ? Contacter le club à <a href="mailto:secretaire.bordeauxguyenne@gmail.com">secretaire.bordeauxguyenne@gmail.com</a>
+                Une erreur ? Un changement ?
+                {% if licenseHelper.currentLicenseeCurrentLicense %}
+                    Contacter le club à
+                    <a href="mailto:{{ licenseHelper.currentLicenseeCurrentLicense.club.contactEmail }}">
+                        {{ licenseHelper.currentLicenseeCurrentLicense.club.contactEmail }}
+                    </a>
+                {% else %}
+                    Tu n'as actuellement aucune licence dans un club FFTA. Contacte le support à
+                    <a href="mailto:arnaud@flyingpingu.com">arnaud@flyingpingu.com</a>
+                {% endif %}
             </p>
         </div>
     </div>

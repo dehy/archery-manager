@@ -14,6 +14,11 @@
 
     {% block stylesheets %}
         {{ encore_entry_link_tags('app') }}
+        <style>
+            .text-bg-primary, .bg-primary {
+                background-color: {{ clubHelper.activeClub.primaryColor ?? '#999999' }} !important;
+            }
+        </style>
     {% endblock %}
 
     {% block javascripts %}
@@ -33,6 +38,7 @@
                 Accueil
             </a>
         </li>
+        {% if licenseHelper.currentLicenseeCurrentLicense %}
         <li class="nav-item">
             <a href="{{ path('app_licensee_index') }}" class="nav-link {{ _self.isActive('app_licensee_') }}">
                 <div class="icon">
@@ -49,20 +55,23 @@
                 Calendrier
             </a>
         </li>
+        {% endif %}
         <li class="nav-item">
             <a href="{{ path('app_mobile_othermenu') }}" class="nav-link {{ _self.isActive('app_mobile_othermenu') }}">
                 <div class="icon">
                     <em class="fa-solid fa-ellipsis"></em>
                 </div>
-                {{ licenseeHelper.licenseeFromSession.firstname }}
+                {{ licenseeHelper.licenseeFromSession.firstname ?? app.user.firstname }}
             </a>
         </li>
     </ul>
 </div>
 <nav class="top-navbar navbar navbar-expand-lg navbar-dark bg-primary mb-3">
     <div class="container">
-        <img src="{{ asset('build/logo-archers-de-guyenne.svg') }}" height="40" class="me-2 d-none d-md-inline" alt="">
-        <h1 class="navbar-brand mb-0 h1 d-none d-md-inline">Les Archers de Guyenne</h1>
+        <img src="{{ clubHelper.activeClub and clubHelper.activeClub.logoName ? clubHelper.activeClub|public_url('logo') : asset('/build/logo-horizontal.svg') }}" height="40" class="me-2 d-none d-md-inline" alt="">
+        <h1 class="navbar-brand mb-0 h1 d-none d-md-inline">
+            {{ clubHelper.activeClub.name ?? 'Mon Club de Tir à l\'Arc' }}
+        </h1>
         {% if block('return_link') is defined %}
         <div class="d-inline d-md-none text-white mt-2 h6">
             <a href="{{- block('return_link') -}}" class="text-bg-primary text-decoration-none">
@@ -71,7 +80,7 @@
             </a>
         </div>
         {% else %}
-            <img src="{{ asset('build/logo-archers-de-guyenne.svg') }}" height="40" class="me-2 d-md-none" alt="">
+            <img src="{{ clubHelper.activeClub and clubHelper.activeClub.logoName ? clubHelper.activeClub|public_url('logo') : asset('/build/logo.svg') }}" height="40" class="me-2 d-md-none" alt="">
         {% endif %}
         <h1 class="text-bg-primary mx-auto h5 mt-1 overflow-auto d-md-none">{{ block('title') }}</h1>
         <button class="navbar-toggler ms-auto d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
@@ -80,6 +89,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                {% if licenseHelper.currentLicenseeCurrentLicense %}
                 <li class="nav-item">
                     <a class="nav-link {{ _self.isActive('app_homepage') }}" href="{{ path('app_homepage') }}">
                         <em class="fa-solid fa-gauge-high"></em>
@@ -99,19 +109,24 @@
                         Calendrier
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" target="_blank" href="https://discord.com/app">
-                        <em class="fa-brands fa-discord"></em>
-                        Serveur Discord
-                    </a>
-                </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link {{ _self.isActive('app_license_application') }}" href="{{ path('app_license_application') }}">
+                            <em class="fa-solid fa-id-badge"></em>
+                            Demande de licence
+                        </a>
+                    </li>
+                {% endif %}
             </ul>
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <li class="nav-item dropdown">
-                    <a class="nav-link {{ _self.isActive('app_licensee_my_profile') }} {{ _self.isActive('app_user_account') }} dropdown-toggle text-end"
-                       href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown"
-                       aria-expanded="false">
-                        <em class="fa-solid fa-address-card fa-fw"></em> {{ licenseeHelper.licenseeFromSession.fullname }}
+                    <a class="nav-link d-flex flex-row align-items-center {{ _self.isActive('app_licensee_my_profile') }} {{ _self.isActive('app_user_account') }} dropdown-toggle text-end p-0"
+                       href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img class="rounded-circle me-3" style="height:40px;width:40px;object-fit: cover" src="{{ licenseeHelper.licenseeFromSession and licenseeHelper.licenseeFromSession.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}" alt="">
+                        <div class="d-inline-flex flex-column me-1" style="line-height: 1.1rem">
+                            {{ licenseeHelper.licenseeFromSession.fullname ?? app.user.fullname }}
+                            <small><em>Saison {{ seasonHelper.selectedSeason }}</em></small>
+                        </div>
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
                         {% if (is_granted("ROLE_ADMIN")) %}
@@ -125,20 +140,15 @@
                                 <hr class="dropdown-divider">
                             </li>
                         {% endif %}
-                        <li>
-                            <a class="dropdown-item {{ _self.isActive('app_user_account') }}"
-                               href="{{ path('app_user_account') }}">
-                                <em class="fa-solid fa-user-gear fa-fw"></em>
-                                Mon compte
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item {{ _self.isActive('app_licensee_my_profile') }}"
-                               href="{{ path('app_licensee_my_profile') }}">
-                                <em class="fa-solid fa-address-card fa-fw"></em>
-                                Mon profil
-                            </a>
-                        </li>
+                        {% if licenseHelper.currentLicenseeCurrentLicense %}
+                            <li>
+                                <a class="dropdown-item {{ _self.isActive('app_licensee_my_profile') }}"
+                                   href="{{ path('app_licensee_my_profile') }}">
+                                    <em class="fa-solid fa-address-card fa-fw"></em>
+                                    Mon profil
+                                </a>
+                            </li>
+                        {% endif %}
                         {% if app.user.licensees|length > 1 %}
                             <li>
                                 <hr class="dropdown-divider">
@@ -153,6 +163,16 @@
                                 </li>
                             {% endfor %}
                         {% endif %}
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item {{ _self.isActive('app_user_account') }}"
+                               href="{{ path('app_user_account') }}">
+                                <em class="fa-solid fa-user-gear fa-fw"></em>
+                                Mon compte
+                            </a>
+                        </li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>

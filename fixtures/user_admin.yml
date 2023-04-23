@@ -1,0 +1,9 @@
+App\Entity\User:
+    user_admin:
+        email: 'admin\@acme.org'
+        roles: [ 'ROLE_ADMIN', 'ROLE_USER' ]
+        password: '\$2y\$13\$AXw36f3KDVUmodygNIT.Su5vCtf1OU2ftjFRsTZmvdsqkw0UhtRKi' # admin
+        gender: 'M'
+        lastname: Admin
+        firstname: Admin
+        phoneNumber: +336123456789

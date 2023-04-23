@@ -32,6 +32,7 @@ class TrainingEventCrudController extends AbstractCrudController
     {
         return [
             IdField::new('id')->hideOnForm(),
+            AssociationField::new('club'),
             TextField::new('name'),
             DateTimeField::new('startsAt'),
             DateTimeField::new('endsAt'),
@@ -54,6 +55,7 @@ class TrainingEventCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return parent::configureFilters($filters)
+            ->add(EntityFilter::new('club'))
             ->add(EntityFilter::new('assignedGroups'))
             ->add(ChoiceFilter::new('discipline')->setChoices(DisciplineType::getChoices()));
     }

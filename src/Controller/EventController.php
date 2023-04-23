@@ -36,7 +36,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
 
-class EventController extends AbstractController
+class EventController extends BaseController
 {
     /**
      * @throws \Exception
@@ -44,12 +44,15 @@ class EventController extends AbstractController
     #[Route('/events', name: 'app_event_index')]
     public function index(Request $request, EventRepository $eventRepository): Response
     {
+        $this->assertHasValidLicense();
+
         $now = new \DateTime();
         $month = $request->query->get('m', (int) $now->format('n'));
         $year = $request->query->get('y', (int) $now->format('Y'));
 
         /** @var Event[] $events */
-        $events = $eventRepository->findForMonthAndYear($month, $year);
+        $events = $eventRepository
+            ->findForLicenseeByMonthAndYear($this->licenseeHelper->getLicenseeFromSession(), $month, $year);
 
         $firstDate = (new \DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
         $lastDate = (clone $firstDate)->modify('last day of this month');
@@ -78,7 +81,7 @@ class EventController extends AbstractController
                     return $b->isAllDay() <=> $a->isAllDay();
                 }
 
-                return $a->getName() <=> $b->getName();
+                return $a->getStartsAt() <=> $b->getStartsAt();
             });
             $calendar[$currentDate->format('Y-m-j')] = $eventsForThisDay;
         }
@@ -96,6 +99,8 @@ class EventController extends AbstractController
     #[Route('/events/{slug}.ics', name: 'app_event_ics')]
     public function ics(string $slug, EventRepository $eventRepository): Response
     {
+        $this->assertHasValidLicense();
+
         $event = $eventRepository->findBySlug($slug);
 
         if (!$event) {
@@ -121,6 +126,8 @@ class EventController extends AbstractController
         EventAttachment $attachment,
         FilesystemOperator $eventsStorage
     ): Response {
+        $this->assertHasValidLicense();
+
         $forceDownload = $request->query->get('forceDownload');
         $contentDisposition = sprintf(
             '%s; filename="%s"',
@@ -154,6 +161,8 @@ class EventController extends AbstractController
         EntityManagerInterface $entityManager,
         RouterInterface $router
     ): Response {
+        $this->assertHasValidLicense();
+
         /** @var EventRepository $eventRepository */
         $eventRepository = $entityManager->getRepository(Event::class);
         $event = $eventRepository->findBySlug($slug);
@@ -204,6 +213,8 @@ class EventController extends AbstractController
         EventHelper $eventHelper,
         LicenseeHelper $licenseeHelper,
     ): Response {
+        $this->assertHasValidLicense();
+
         /** @var EventRepository $eventRepository */
         $eventRepository = $entityManager->getRepository(Event::class);
         $event = $eventRepository->findBySlug($slug);
@@ -252,8 +263,9 @@ class EventController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         RouterInterface $router,
-        LicenseHelper $licenseHelper,
     ): Response {
+        $this->assertHasValidLicense();
+
         /** @var ContestEventRepository $contestEventRepository */
         $contestEventRepository = $entityManager->getRepository(ContestEvent::class);
         /** @var ContestEvent $event */

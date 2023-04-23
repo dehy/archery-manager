@@ -3,7 +3,14 @@
 {% block title %}Trombinoscope{% endblock %}
 
 {% block body %}
-    <h2 class="mb-3">Trombinoscope {{ year }}</h2>
+    <h2 class="mb-3">
+        Trombinoscope {{ year }}
+        {% if is_granted('ROLE_ADMIN') %}
+            <button class="btn btn-warning disabled">
+                <em class="fa-solid fa-arrows-rotate"></em> Sync
+            </button>
+        {% endif %}
+    </h2>
 
     <div class="row">
         {% for licensee in licensees %}

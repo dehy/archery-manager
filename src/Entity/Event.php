@@ -23,23 +23,27 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class Event implements \Stringable
 {
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
-    protected string $name;
+    #[ORM\ManyToOne(targetEntity: Club::class, inversedBy: 'events')]
+    #[ORM\JoinColumn(nullable: true)]
+    protected ?Club $club = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255)]
+    protected ?string $name = null;
 
     #[ORM\Column(type: 'DisciplineType')]
-    protected string $discipline;
+    protected ?string $discipline = null;
 
     #[ORM\Column]
     protected bool $allDay = false;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE)]
-    protected \DateTimeImmutable $startsAt;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    protected ?\DateTimeImmutable $startsAt = null;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE)]
-    protected \DateTimeImmutable $endsAt;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    protected ?\DateTimeImmutable $endsAt = null;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
-    protected string $address;
+    #[ORM\Column(type: Types::STRING, length: 255)]
+    protected ?string $address = null;
 
     /**
      * @var Collection<int, EventParticipation>|EventParticipation[]
@@ -75,7 +79,7 @@ class Event implements \Stringable
     protected ?\DateTimeImmutable $updatedAt = null;
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     public function __construct()
@@ -93,6 +97,18 @@ class Event implements \Stringable
             EventType::getReadableValue(static::class),
             $this->getName(),
         );
+    }
+
+    public function getClub(): ?Club
+    {
+        return $this->club;
+    }
+
+    public function setClub(Club $club): Event
+    {
+        $this->club = $club;
+
+        return $this;
     }
 
     public function getName(): ?string
@@ -278,9 +294,8 @@ class Event implements \Stringable
     public function getTitle(): string
     {
         return sprintf(
-            '%s %s %s',
+            '%s %s',
             ucfirst(EventType::getReadableValue(static::class)),
-            lcfirst(DisciplineType::getReadableValue($this->getDiscipline())),
             $this->getName()
         );
     }

@@ -4,6 +4,8 @@ namespace App\Controller\Admin;
 
 use App\DBAL\Types\GenderType;
 use App\Entity\User;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -50,7 +52,9 @@ class UserCrudController extends AbstractCrudController
 
     public function configureFilters(Filters $filters): Filters
     {
-        return $filters->add('lastname')->add('firstname');
+        return $filters
+            ->add('lastname')
+            ->add('firstname');
     }
 
     public function configureCrud(Crud $crud): Crud
@@ -59,5 +63,11 @@ class UserCrudController extends AbstractCrudController
             'lastname' => 'ASC',
             'firstname' => 'ASC',
         ]);
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        return $actions
+            ->add(Crud::PAGE_INDEX, Action::DETAIL);
     }
 }

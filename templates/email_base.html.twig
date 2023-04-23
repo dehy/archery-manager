@@ -11,11 +11,11 @@
         }
 
         a {
-            color: #e31d02;
+            color: {{ club.primaryColor ?? clubHelper.defaultColor }};
         }
 
         .body-drip {
-            border-top: 8px solid #e31d02;
+            border-top: 8px solid {{ club.primaryColor ?? clubHelper.defaultColor }};
         }
     </style>
     <!-- move the above styles into your custom stylesheet -->
@@ -27,7 +27,7 @@
         <row class="collapse">
             <columns>
                 <center>
-                    <img src="{{ absolute_url(asset('build/logo-archers-de-guyenne-160.png')) }}" alt="Les Archers de Guyenne">
+                    <img src="{{ club and club.logoName ? club|public_url('logo') : absolute_url(asset('/build/logo.svg')) }}" height="160" alt="{{ club.name }}">
                 </center>
             </columns>
         </row>
@@ -50,8 +50,8 @@
         <row class="collapsed footer">
             <columns>
                 <spacer size="16"></spacer>
-                <p class="text-center">Les Archers de Guyenne<br/>
-                    <a href="mailto:lesarchersdeguyenne@gmail.com">lesarchersdeguyenne@gmail.com</a></p>
+                <p class="text-center">{{ club.name }}<br/>
+                    <a href="mailto:{{ club.contactEmail }}">{{ club.contactEmail }}</a></p>
                 <center>
                     <menu>
                         <item>

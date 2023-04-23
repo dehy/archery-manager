@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g transform="matrix(0.835883,0,0,0.835883,1.35697,24.7684)">
+        <text x="1.956px" y="142.165px" style="font-family:'BigCaslon-Medium', 'Big Caslon';font-weight:500;font-size:30px;fill:rgb(91,60,17);">MON CLUB DE</text>
+        <text x="24.846px" y="172.705px" style="font-family:'BigCaslon-Medium', 'Big Caslon';font-weight:500;font-size:30px;fill:rgb(91,60,17);">TIR À L&apos;ARC</text>
+    </g>
+    <g transform="matrix(1,0,0,1,-0.0632956,0)">
+        <path d="M89.542,95.171L89.639,88.161L97.158,82.275L97.254,102.99L89.383,109.201L89.445,101.571" style="fill:rgb(255,79,25);stroke:black;stroke-width:2px;"/>
+        <path d="M103.343,102.615L110.662,108.426L110.743,87.834L103.258,82.435" style="fill:rgb(255,79,25);stroke:black;stroke-width:2px;"/>
+        <path d="M103.242,41.584L106.771,41.629L100.102,32.882L92.619,41.676L96.97,41.555" style="fill:rgb(183,183,183);stroke:black;stroke-width:2px;"/>
+        <path d="M103.125,51.245L103.268,41.595L96.97,41.555L97.254,102.99L103.344,102.816L103.156,58.246" style="fill:url(#_Linear1);stroke:black;stroke-width:2px;"/>
+    </g>
+    <defs>
+        <linearGradient id="_Linear1" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(6.37378,0,0,61.4344,96.9699,72.2724)"><stop offset="0" style="stop-color:rgb(255,223,170);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(255,175,88);stop-opacity:1"/></linearGradient>
+    </defs>
+</svg>

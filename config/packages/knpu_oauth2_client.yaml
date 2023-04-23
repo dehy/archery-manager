@@ -11,4 +11,4 @@ knpu_oauth2_client:
             redirect_route: connect_discord_check
             redirect_params: { }
             # whether to check OAuth2 "state": defaults to true
-            # use_state: true
+            use_state: true

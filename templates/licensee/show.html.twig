@@ -51,6 +51,10 @@
                     {% else %}
                         <ul class="list-unstyled mb-0">
                             <li>
+                                <em class="fa-solid fa-building fa-fw"></em>
+                                {{ license.club.name }}
+                            </li>
+                            <li>
                                 <em class="fa-solid fa-people-group fa-fw"></em>
                                 {{ license.ageCategory|readable_enum }}
                             </li>

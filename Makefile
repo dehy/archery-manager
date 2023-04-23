@@ -12,6 +12,9 @@ container:
 start:
 	$(DOCKER_COMPOSE) up -d
 
+stop:
+	$(DOCKER_COMPOSE) stop
+
 shell: start
 	$(BASE_EXEC) bash
 
@@ -24,10 +27,10 @@ deps: start
 	$(BASE_EXEC) yarn run encore dev
 
 migratedb: start
-	$(BASE_EXEC) php bin/console doctrine:migrations:migrate
+	$(BASE_EXEC) php bin/console doctrine:migrations:migrate -n
 
-fixtures:
-	$(BASE_EXEC) php bin/console doctrine:fixtures:load -n
+fixtures: migratedb
+	$(BASE_EXEC) php bin/console hautelook:fixtures:load -n
 
 qa:
 	$(BASE_EXEC) php vendor/bin/rector process; \
@@ -36,3 +39,5 @@ qa:
 
 test:
 	$(DOCKER_COMPOSE) -p archery_test -f docker-compose.test.yml up --build --abort-on-container-exit --force-recreate
+
+.PHONY: fixtures

@@ -1,0 +1,38 @@
+App\Entity\Group:
+    group_ladg_loisirs:
+        club: '@club_ladg'
+        name: Groupe Loisir
+        description: <text()>
+    group_ladg_familles:
+        club: '@club_ladg'
+        name: Groupe Familles
+        description: <text()>
+    group_ladg_competiteurs:
+        club: '@club_ladg'
+        name: Groupe Compétiteurs
+        description: <text()>
+
+    group_ladb_debutants_adultes:
+        club: '@club_ladb'
+        name: 'Débutants Adultes'
+    group_ladb_perfectionnement_adultes:
+        club: '@club_ladb'
+        name: 'Perfectionnement Adultes'
+    group_ladb_competiteurs_adultes:
+        club: '@club_ladb'
+        name: 'Compétiteurs Adultes'
+    group_ladb_debutants_jeunes:
+        club: '@club_ladb'
+        name: 'Débutants Jeunes'
+    group_ladb_competiteurs_jeunes:
+        club: '@club_ladb'
+        name: 'Compétiteurs Jeunes'
+    group_ladb_perfectionnement_jeunes:
+        club: '@club_ladb'
+        name: 'Perfectionnement Jeunes'
+    group_ladb_handisport:
+        club: '@club_ladb'
+        name: 'Handisport'
+    group_ladb_baby:
+        club: '@club_ladb'
+        name: 'Baby'

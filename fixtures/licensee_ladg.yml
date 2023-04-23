@@ -1,0 +1,37 @@
+App\Entity\User:
+    user_ladg_{1..10}:
+        email: 'user<current()>\@ladg.com'
+        roles: ['ROLE_USER']
+        password: '\$2y\$13\$CGDD6CfkN8pHT/hKhml2RuA28Ba48QE86SlrjPssIcfXmRsNrzh1W' # user
+        gender: '<enum("GenderType")>'
+        lastname: <lastname()>
+        firstname: <firstname()>
+        phoneNumber: <e164PhoneNumber()>
+    user_ladb_{1..10}:
+        email: 'user<current()>\@ladb.com'
+        roles: [ 'ROLE_USER' ]
+        password: '\$2y\$13\$CGDD6CfkN8pHT/hKhml2RuA28Ba48QE86SlrjPssIcfXmRsNrzh1W' # user
+        gender: '<enum("GenderType")>'
+        lastname: <lastname()>
+        firstname: <firstname()>
+        phoneNumber: <e164PhoneNumber()>
+
+App\Entity\Licensee:
+    licensee_ladg_{1..10}:
+        user: '@user_ladg_<current()>'
+        gender: '@user_ladg_<current()>->gender'
+        lastname: '@user_ladg_<current()>->lastname'
+        firstname: '@user_ladg_<current()>->firstname'
+        birthdate: '<dateTimeBetween("-75 years", "-10 years")>'
+        fftaId (unique): '<fftaId()>'
+        fftaMemberCode (unique): '<fftaCode($fftaId)>'
+
+App\Entity\License:
+    license_licensee_ladg_{1..10}:
+        season: 2023
+        type: 'A'
+        category: 'A'
+        ageCategory: 'S1'
+        licensee: '@licensee_ladg_<current()>'
+        activities: ['CL']
+        club: '@club_ladg'
