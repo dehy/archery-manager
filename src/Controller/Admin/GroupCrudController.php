@@ -4,11 +4,13 @@ namespace App\Controller\Admin;
 
 use App\Entity\Group;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 
 class GroupCrudController extends AbstractCrudController
 {
@@ -25,6 +27,12 @@ class GroupCrudController extends AbstractCrudController
             TextEditorField::new('description'),
             AssociationField::new('licensees'),
         ];
+    }
+
+    public function configureFilters(Filters $filters): Filters
+    {
+        return $filters
+            ->add(EntityFilter::new('club'));
     }
 
     public function configureCrud(Crud $crud): Crud

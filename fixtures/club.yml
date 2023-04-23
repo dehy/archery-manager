@@ -1,0 +1,15 @@
+App\Entity\Club:
+    club_ladg:
+        name: Les Archers de Guyenne
+        city: Bordeaux
+        logoName: les-archers-de-guyenne.svg
+        primaryColor: '#e31d02'
+        fftaCode: '1033093'
+        contactEmail: 'lesarchersdeguyenne@gmail.com'
+    club_ladb:
+        name: Les Archers du Bosquet
+        city: Le Bouscat
+        logoName: les-archers-du-bosquet.png
+        primaryColor: '#b0c7da'
+        fftaCode: '1033078'
+        contactEmail: 'usb.archers.bosquet@free.fr'

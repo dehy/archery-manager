@@ -1,0 +1,10 @@
+App\Entity\ContestEvent:
+    event_contest_{1..7}:
+        contestType: 'individual'
+        name (unique): '<randomElement(["Bordeaux", "Le Bouscat", "Mérignac", "Auros", "Andernos", "St Médard", "Arsac"])>'
+        startsAt: '<recurringDateTimeImmutable("last saturday", "week", $current)>'
+        endsAt: '<($startsAt->modify("+1 day"))>'
+        allDay: true
+        address: '<address()>'
+        discipline: 'indoor'
+        assigned_groups: ['@group_ladg_competiteurs']

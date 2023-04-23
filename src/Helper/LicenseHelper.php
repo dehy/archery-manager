@@ -13,8 +13,6 @@ use App\Entity\License;
 
 class LicenseHelper
 {
-    protected int $season = 2024;
-
     protected array $mappingSeason = [
         2023 => [
             '<1964-01-01' => LicenseAgeCategoryType::SENIOR_3,
@@ -50,11 +48,11 @@ class LicenseHelper
         return $dateTime->format('n') >= 9 ? ($dateYear + 1) : $dateYear;
     }
 
-    public function getCurrentLicenseeCurrentLicense(): License
+    public function getCurrentLicenseeCurrentLicense(): ?License
     {
         $licensee = $this->licenseeHelper->getLicenseeFromSession();
 
-        return $licensee->getLicenseForSeason($this->season);
+        return $licensee?->getLicenseForSeason($this->season);
     }
 
     public function licenseIsValidForEvent(License $license, Event $event): bool

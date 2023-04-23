@@ -1,6 +1,13 @@
 # Read the documentation at https://github.com/thephpleague/flysystem-bundle/blob/master/docs/1-getting-started.md
 flysystem:
     storages:
+        clubs.logos.storage:
+            adapter: 'asyncaws'
+            visibility: public
+            options:
+                client: 'scaleway_object_storage_client'
+                bucket: '%env(STORAGE_BUCKET_MYARCHERYCLUB)%'
+                prefix: 'clubs'
         licensees.storage:
             adapter: 'asyncaws'
             options:

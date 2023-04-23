@@ -8,23 +8,40 @@ use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\DBAL\Types\UserRoleType;
+use App\Entity\Club;
+use App\Entity\Group;
 use App\Entity\License;
 use App\Entity\Licensee;
+use App\Entity\Season;
 use App\Entity\User;
 use App\Helper\LicenseHelper;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Faker;
 
-class AppFixtures extends Fixture
+class LicenseeFixtures extends Fixture implements DependentFixtureInterface
 {
     public function __construct(private readonly LicenseHelper $licenseHelper)
     {
     }
 
+    public function getDependencies()
+    {
+        return [
+            ClubFixtures::class,
+        ];
+    }
+
     public function load(ObjectManager $manager): void
     {
         $faker = Faker\Factory::create('fr');
+        /** @var Club $defaultClub */
+        $defaultClub = $this->getReference(ClubFixtures::DEFAULT_CLUB_REFERENCE);
+        $nottinghamClub = $this->getReference(ClubFixtures::NOTTINGHAM_CLUB_REFERENCE);
+
+        /** @var Group $group1 */
+        $group1 = $this->getReference(GroupFixtures::DEFAULT_GROUP_1);
 
         $admin = new User();
         $admin->setRoles([UserRoleType::ADMIN, UserRoleType::USER])
@@ -46,26 +63,24 @@ class AppFixtures extends Fixture
             ->setFftaMemberCode('0123456F');
         $manager->persist($licensee);
 
-        $license = new License();
-        $license
-            ->setLicensee($licensee)
-            ->setSeason(2024)
-            ->setType(LicenseType::ADULTES_COMPETITION)
-            ->setActivities([LicenseActivityType::CL])
-            ->setAgeCategory(LicenseAgeCategoryType::SENIOR_1)
-            ->setCategory(LicenseCategoryType::ADULTES);
-        $manager->persist($license);
+        $users = [
+            [GenderType::MALE, 'Robin', 'de Locksley', 'robin.delocksley@joyeux-compagnons.co.uk', $defaultClub, $group1],
+            [GenderType::MALE, 'Frère', 'Tuck', 'frere.tuck@joyeux-compagnons.co.uk', $defaultClub],
+            [GenderType::MALE, 'Petit', 'Jean', 'petit.jean@joyeux-compagnons.co.uk', $defaultClub],
+            [GenderType::FEMALE, 'Belle', 'Marianne', 'belle.marianne@joyeux-compagnons.co.uk', $defaultClub],
+            [GenderType::MALE, 'Shérif', 'de Nottingham', 'sherif.denottingham@nottingham.co.uk', $nottinghamClub],
+            [GenderType::MALE, 'Prince', 'Jean', 'prince.jean@nottingham.co.uk', $nottinghamClub],
+            [GenderType::MALE, 'Guy', 'de Gisbourne', 'guy.degisbourne@nottingham.co.uk', $nottinghamClub],
+        ];
 
-        for ($i = 1; $i <= 5; ++$i) {
-            $gender = random_int(0, 1) ? GenderType::MALE : GenderType::FEMALE;
-
+        for ($i = 0; $i < count($users); ++$i) {
             $user = new User();
             $user->setRoles([UserRoleType::USER])
-                ->setEmail(sprintf('user%d@acme.org', $i))
+                ->setEmail($users[$i][3])
                 ->setPassword('$2y$13$CGDD6CfkN8pHT/hKhml2RuA28Ba48QE86SlrjPssIcfXmRsNrzh1W') // user
-                ->setFirstname($faker->firstName(GenderType::MALE === $gender ? 'male' : 'female'))
-                ->setLastname($faker->lastName())
-                ->setGender($gender);
+                ->setFirstname($users[$i][1])
+                ->setLastname($users[$i][2])
+                ->setGender($users[$i][0]);
             $manager->persist($user);
 
             $fftaId = $faker->randomNumber(7, true);
@@ -80,13 +95,17 @@ class AppFixtures extends Fixture
                 ->setBirthdate($birthdate)
                 ->setFftaId($fftaId)
                 ->setFftaMemberCode($fftaId.strtoupper($faker->randomLetter()));
+            if (isset($users[$i][5])) {
+                $licensee->addGroup($users[$i][5]);
+            }
             $manager->persist($licensee);
 
             $license = new License();
             $license
+                ->setClub($users[$i][4])
                 ->setLicensee($licensee)
-                ->setSeason(2024)
-                ->setType($this->licenseHelper->licenseTypeForBirthdate($birthdate, (bool) random_int(0, 1)))
+                ->setSeason(Season::seasonForDate(new \DateTimeImmutable()))
+                ->setType($this->licenseHelper->licenseTypeForBirthdate($birthdate, $faker->boolean()))
                 ->setActivities([LicenseActivityType::CL])
                 ->setAgeCategory($this->licenseHelper->ageCategoryForBirthdate($birthdate))
                 ->setCategory($this->licenseHelper->licenseCategoryTypeForBirthdate($birthdate));

@@ -12,6 +12,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 
 class LicenseCrudController extends AbstractCrudController
 {
@@ -25,6 +26,7 @@ class LicenseCrudController extends AbstractCrudController
         return [
             AssociationField::new('licensee'),
             IntegerField::new('season'),
+            AssociationField::new('club'),
             ChoiceField::new('type')->setChoices(LicenseType::getChoices()),
             ChoiceField::new('category')->setChoices(
                 LicenseCategoryType::getChoices(),
@@ -40,6 +42,9 @@ class LicenseCrudController extends AbstractCrudController
 
     public function configureFilters(Filters $filters): Filters
     {
-        return $filters->add('licensee')->add('season');
+        return $filters
+            ->add(EntityFilter::new('club'))
+            ->add('licensee')
+            ->add('season');
     }
 }

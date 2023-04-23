@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 115 65" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g transform="matrix(1,0,0,1,-220,-5.66214e-15)">
+        <g id="Plan-de-travail2" serif:id="Plan de travail2" transform="matrix(0.569468,0,0,0.331027,93.2165,-0.54791)">
+            <rect x="222.635" y="1.655" width="201.943" height="196.358" style="fill:none;"/>
+            <g transform="matrix(4.06774e-16,4.24282,-2.46632,7.19676e-16,500.74,-324.717)">
+                <path d="M89.542,95.171L89.639,88.161L97.158,82.275L97.254,102.99L89.383,109.201L89.445,101.571" style="fill:rgb(255,79,25);stroke:black;stroke-width:1.42px;"/>
+                <path d="M103.343,102.615L110.662,108.426L110.743,87.834L103.258,82.435" style="fill:rgb(255,79,25);stroke:black;stroke-width:1.42px;"/>
+                <path d="M103.242,41.584L106.771,41.629L100.102,32.882L92.619,41.676L96.97,41.555" style="fill:rgb(183,183,183);stroke:black;stroke-width:1.42px;"/>
+                <path d="M103.125,51.245L103.268,41.595L96.97,41.555L97.254,102.99L103.344,102.816L103.156,58.246" style="fill:url(#_Linear1);stroke:black;stroke-width:1.42px;"/>
+            </g>
+        </g>
+    </g>
+    <defs>
+        <linearGradient id="_Linear1" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(6.37378,0,0,61.4344,96.9699,72.2724)"><stop offset="0" style="stop-color:rgb(255,223,170);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(255,175,88);stop-opacity:1"/></linearGradient>
+    </defs>
+</svg>

@@ -18,7 +18,8 @@ class SwitchUserSubscriber implements EventSubscriberInterface
     {
         /** @var User $user */
         $user = $event->getTargetUser();
-        $this->licenseeHelper->setSelectedLicensee($user->getLicensees()->first());
+        $licensee = $user->getLicensees()->count() > 0 ? $user->getLicensees()->first() : null;
+        $this->licenseeHelper->setSelectedLicensee($licensee);
     }
 
     public static function getSubscribedEvents(): array

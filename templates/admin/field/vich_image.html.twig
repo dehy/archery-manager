@@ -1,0 +1,7 @@
+{% if field.value %}
+    <img src="{{ entity.instance|public_url(field.property) }}" alt="{{ entity.name }}" class="img-fluid">
+{% else %}
+    <span class="badge badge-secondary">
+        Empty
+    </span>
+{% endif %}
