@@ -10,8 +10,8 @@ use Vich\UploaderBundle\Mapping\Annotation\UploadableField;
 
 class PublicUrlExtension extends AbstractExtension
 {
-    public function __construct(private readonly FilesystemOperator $clubsLogosStorage) {
-
+    public function __construct(private readonly FilesystemOperator $clubsLogosStorage)
+    {
     }
 
     public function getFilters(): array
@@ -21,26 +21,42 @@ class PublicUrlExtension extends AbstractExtension
         ];
     }
 
-    public function publicUrl(mixed $object, string $propertyName): string
+    public function publicUrl(mixed $object, ?string $propertyName): string
     {
-        $reflectionProperty = new \ReflectionProperty(ClassUtils::getRealClass(get_class($object)), $propertyName);
-        $reflectionAttributes = $reflectionProperty->getAttributes();
-        foreach ($reflectionAttributes as $reflectionAttribute) {
-            if (UploadableField::class === $reflectionAttribute->getName()) {
-                /** @var UploadableField $uploadableField */
-                $uploadableField = $reflectionAttribute->newInstance();
-                $mapping = $uploadableField->getMapping();
-                $parts = array_map(fn (string $part) => ucfirst($part), explode('.', $mapping));
-                $storageName = lcfirst(implode("", $parts).'Storage');
+        $reflectionAttributes = [];
 
-                /** @var FilesystemOperator $operator */
-                $operator = $this->{$storageName};
-
-                $getter = sprintf('get%s', ucfirst($propertyName));
-                return $operator->publicUrl($object->$getter());
+        $reflectionClass = new \ReflectionClass(ClassUtils::getRealClass($object::class));
+        if (null !== $propertyName) {
+            $reflectionProperty = $reflectionClass->getProperty($propertyName);
+            $reflectionAttributes = $reflectionProperty->getAttributes(UploadableField::class);
+        } else {
+            foreach ($reflectionClass->getProperties() as $reflectionProperty) {
+                $reflectionAttributes += $reflectionProperty->getAttributes(UploadableField::class);
             }
         }
 
-        throw new \Exception('Was not able to get the public URL');
+        if (empty($reflectionAttributes)) {
+            throw new \Exception(sprintf('No uploaded file found in object of class %s', $object::class));
+        }
+        if (\count($reflectionAttributes) > 1) {
+            throw new \Exception(sprintf('Multiple UploadableField found for object of class %s. Restrict with $propertyName property.', $object::class));
+        }
+
+        $reflectionAttribute = $reflectionAttributes[0];
+
+        /** @var UploadableField $uploadableField */
+        $uploadableField = $reflectionAttribute->newInstance();
+        $mapping = $uploadableField->getMapping();
+        $parts = array_map(fn (string $part) => ucfirst($part), explode('.', $mapping));
+        $storageName = lcfirst(implode('', $parts).'Storage');
+
+        $filenameProperty = $uploadableField->getFileNameProperty();
+
+        /** @var FilesystemOperator $operator */
+        $operator = $this->{$storageName};
+
+        $getter = sprintf('get%s', ucfirst($filenameProperty));
+
+        return $operator->publicUrl($object->$getter());
     }
 }
