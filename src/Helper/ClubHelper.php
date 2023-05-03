@@ -8,8 +8,9 @@ use App\Entity\Season;
 
 class ClubHelper
 {
-    public function __construct(private readonly LicenseHelper $licenseHelper)
-    {
+    public function __construct(
+        private readonly LicenseHelper $licenseHelper,
+    ) {
     }
 
     public function activeClub(): ?Club
@@ -31,5 +32,4 @@ class ClubHelper
     {
         return '#999999';
     }
-
 }
