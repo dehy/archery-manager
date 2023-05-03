@@ -1,4 +1,4 @@
-<?PHP
+<?php
 
 namespace App\Controller\Admin\Field;
 
@@ -21,6 +21,6 @@ final class VichImageField implements FieldInterface
             // you can use your own form types too
             ->setFormType(VichImageType::class)
             ->addCssClass('field-vich-image')
-            ;
+        ;
     }
 }
