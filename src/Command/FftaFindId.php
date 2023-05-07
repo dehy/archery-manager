@@ -2,12 +2,14 @@
 
 namespace App\Command;
 
+use App\Entity\Club;
+use App\Repository\ClubRepository;
 use App\Scrapper\FftaScrapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -27,10 +29,10 @@ class FftaFindId extends Command
 
     protected function configure(): void
     {
-        $this->addOption(
+        $this->addArgument('clubId', InputArgument::REQUIRED, 'Club Code');
+        $this->addArgument(
             'code',
-            null,
-            InputOption::VALUE_REQUIRED,
+            InputArgument::REQUIRED,
             'FFTA Member Code',
         );
     }
@@ -44,15 +46,15 @@ class FftaFindId extends Command
     ): int {
         $io = new SymfonyStyle($input, $output);
 
-        $code = $input->getOption('code');
+        $clubId = $input->getArgument('clubId');
+        $code = $input->getArgument('code');
 
-        if (!$code) {
-            $io->error(
-                'You should provide a FFTA member code with the `--code <code>` option',
-            );
-        }
+        /** @var ClubRepository $clubRepository */
+        $clubRepository = $this->entityManager->getRepository(Club::class);
+        $club = $clubRepository->findOneByCode($clubId);
+        $scrapper = new FftaScrapper($club);
 
-        $id = $this->scrapper->findLicenseeIdFromCode($code);
+        $id = $scrapper->findLicenseeIdFromCode($code);
 
         $io->success(sprintf('Licensee %s has id #%s', $code, $id));
 

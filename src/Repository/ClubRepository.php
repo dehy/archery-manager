@@ -39,6 +39,15 @@ class ClubRepository extends ServiceEntityRepository
         }
     }
 
+    public function findOneByCode(string $code): ?Club
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.fftaCode = :code')
+            ->setParameter('code', $code)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 //    /**
 //     * @return Club[] Returns an array of Club objects
 //     */

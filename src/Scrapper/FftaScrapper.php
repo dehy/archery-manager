@@ -35,7 +35,8 @@ class FftaScrapper
 
     private array $cachedResponse;
 
-    public function __construct(private readonly Club $club) {
+    public function __construct(private readonly Club $club)
+    {
         if (!$this->club->getFftaUsername() || !$this->club->getFftaPassword()) {
             throw new \Exception('FFTA Credentials not set');
         }

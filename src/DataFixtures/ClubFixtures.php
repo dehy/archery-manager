@@ -5,12 +5,11 @@ namespace App\DataFixtures;
 use App\Entity\Club;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use Faker;
 
 class ClubFixtures extends Fixture
 {
-    public const DEFAULT_CLUB_REFERENCE = 'default-club';
-    public const NOTTINGHAM_CLUB_REFERENCE = 'nottingham-club';
+    final public const DEFAULT_CLUB_REFERENCE = 'default-club';
+    final public const NOTTINGHAM_CLUB_REFERENCE = 'nottingham-club';
 
     public function load(ObjectManager $manager): void
     {
