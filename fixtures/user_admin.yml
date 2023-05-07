@@ -7,3 +7,25 @@ App\Entity\User:
         lastname: Admin
         firstname: Admin
         phoneNumber: +336123456789
+
+App\Entity\Licensee:
+    licensee_admin:
+        user: '@user_admin'
+        gender: '@user_admin->gender'
+        lastname: '@user_admin->lastname'
+        firstname: '@user_admin->firstname'
+        birthdate: '<dateTimeBetween("-75 years", "-22 years")>'
+        fftaId (unique): '<fftaId()>'
+        fftaMemberCode (unique): '<fftaCode($fftaId)>'
+        groups:
+            - '@group_ladb_competiteurs_adultes'
+
+App\Entity\License:
+    license_licensee_admin:
+        season: 2023
+        type: 'A'
+        category: 'A'
+        ageCategory: 'S1'
+        licensee: '@licensee_admin'
+        activities: ['CL']
+        club: '@club_ladb'
