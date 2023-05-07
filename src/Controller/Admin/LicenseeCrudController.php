@@ -54,11 +54,9 @@ class LicenseeCrudController extends AbstractCrudController
             'Usurper l\'identité',
             'fa-solid fa-user-secret'
         )->linkToUrl(fn (Licensee $licensee) => sprintf(
-            return sprintf(
             '/?_switch_user=%s&_switch_licensee=%s',
             $licensee->getUser()->getEmail(),
             $licensee->getFftaMemberCode()
-            );
         ));
 
         $resendWelcomeEmail = Action::new(
@@ -122,6 +120,8 @@ class LicenseeCrudController extends AbstractCrudController
         $licensee = $context->getEntity()->getInstance();
         $this->emailHelper->sendWelcomeEmail($licensee);
 
-        return $this->redirect($this->urlGenerator->setAction('detail')->generateUrl());
+        $detailUrl = $this->urlGenerator->setAction('detail')->generateUrl();
+
+        return $this->redirect($detailUrl);
     }
 }

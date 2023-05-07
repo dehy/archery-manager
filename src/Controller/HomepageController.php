@@ -21,7 +21,7 @@ class HomepageController extends AbstractController
         EntityManagerInterface $entityManager,
         LicenseeHelper $licenseeHelper,
     ): Response {
-        if ($licenseeHelper->getLicenseeFromSession() === null) {
+        if (null === $licenseeHelper->getLicenseeFromSession()) {
             return $this->render('homepage/blank_account.html.twig', [
                 'user' => $this->getUser(),
             ]);

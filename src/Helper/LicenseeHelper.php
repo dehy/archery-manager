@@ -33,7 +33,7 @@ class LicenseeHelper
             $licenseeCode = null;
         }
         if (null === $licenseeCode) {
-            if ($user->getLicensees()->count() === 0) {
+            if (0 === $user->getLicensees()->count()) {
                 return null;
             }
             $licensee = $user->getLicensees()->first();

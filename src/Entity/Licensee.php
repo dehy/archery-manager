@@ -19,7 +19,7 @@ class Licensee implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: Types::INTEGER)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'licensees')]
@@ -29,20 +29,20 @@ class Licensee implements \Stringable
     #[ORM\Column(type: 'GenderType')]
     private string $gender;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
     private string $lastname;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
     private string $firstname;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATE_MUTABLE)]
     private \DateTimeInterface $birthdate;
 
-    #[ORM\Column(type: Types::STRING, length: 8, unique: true, nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 8, unique: true, nullable: true)]
     #[Assert\Length(min: 8, max: 8)]
     private ?string $fftaMemberCode = null;
 
-    #[ORM\Column(type: Types::INTEGER, unique: true, nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, unique: true, nullable: true)]
     private ?int $fftaId = null;
 
     #[ORM\Column]
@@ -601,7 +601,7 @@ class Licensee implements \Stringable
      */
     public function getClubs(): ArrayCollection
     {
-        if (!$this->clubs === null) {
+        if (null === !$this->clubs) {
             $this->clubs = new ArrayCollection();
             foreach ($this->getLicenses() as $license) {
                 $club = $license->getClub();

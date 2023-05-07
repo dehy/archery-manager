@@ -6,8 +6,6 @@ use App\DBAL\Types\UserRoleType;
 use App\Entity\Event;
 use App\Entity\Season;
 use App\Entity\User;
-use App\Helper\LicenseeHelper;
-use App\Helper\LicenseHelper;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -15,11 +13,11 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class EventVoter extends Voter
 {
-    public const EDIT = 'EVENT_EDIT';
-    public const VIEW = 'EVENT_VIEW';
+    final public const EDIT = 'EVENT_EDIT';
+    final public const VIEW = 'EVENT_VIEW';
 
     public function __construct(
-        private Security $security,
+        private readonly Security $security,
     ) {
     }
 

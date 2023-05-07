@@ -60,7 +60,7 @@ class DiscordController extends AbstractController
             /** @var User $user */
             $user = $this->getUser();
             $user->setDiscordId($discordUser->getId());
-            $user->setDiscordAccessToken(json_encode($accessToken->jsonSerialize()));
+            $user->setDiscordAccessToken(json_encode($accessToken->jsonSerialize(), \JSON_THROW_ON_ERROR));
             $entityManager->flush();
 
             $this->addFlash('success', 'Association à Discord réussie !');

@@ -5,7 +5,6 @@ namespace App\Command;
 use App\Entity\Licensee;
 use App\Helper\FftaHelper;
 use App\Repository\LicenseeRepository;
-use App\Scrapper\FftaScrapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

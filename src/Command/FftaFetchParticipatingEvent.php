@@ -3,11 +3,13 @@
 namespace App\Command;
 
 use App\DBAL\Types\DisciplineType;
+use App\Entity\Club;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\Licensee;
 use App\Entity\Result;
 use App\Factory\ResultFactory;
+use App\Repository\ClubRepository;
 use App\Repository\EventRepository;
 use App\Repository\LicenseeRepository;
 use App\Repository\ResultRepository;
@@ -37,6 +39,11 @@ class FftaFetchParticipatingEvent extends Command
     protected function configure(): void
     {
         $this->addArgument(
+            'clubId',
+            InputArgument::REQUIRED,
+            'Club code'
+        );
+        $this->addArgument(
             'season',
             InputArgument::OPTIONAL,
             'Season of the events',
@@ -50,9 +57,15 @@ class FftaFetchParticipatingEvent extends Command
     ): int {
         $io = new SymfonyStyle($input, $output);
 
+        $clubId = $input->getArgument('clubId');
         $season = $input->getArgument('season');
 
-        $fftaEvents = $this->scrapper->fetchEvents($season);
+        /** @var ClubRepository $clubRepository */
+        $clubRepository = $this->entityManager->getRepository(Club::class);
+        $club = $clubRepository->findOneByCode($clubId);
+        $scrapper = new FftaScrapper($club);
+
+        $fftaEvents = $scrapper->fetchEvents($season);
 
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->entityManager->getRepository(Event::class);
@@ -125,7 +138,7 @@ class FftaFetchParticipatingEvent extends Command
                 $this->entityManager->persist($event);
             }
             // Fetch results
-            $fftaResults = $this->scrapper->fetchFftaResultsForFftaEvent(
+            $fftaResults = $scrapper->fetchFftaResultsForFftaEvent(
                 $fftaEvent,
             );
 
