@@ -2,7 +2,9 @@
 
 namespace App\Command;
 
+use App\Entity\Licensee;
 use App\Helper\FftaHelper;
+use App\Repository\LicenseeRepository;
 use App\Scrapper\FftaScrapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -24,7 +26,6 @@ use Symfony\Component\Mailer\MailerInterface;
 class FftaSyncLicenseeCommand extends Command
 {
     public function __construct(
-        protected readonly FftaScrapper $scrapper,
         protected readonly EntityManagerInterface $entityManager,
         protected readonly MailerInterface $mailer,
         protected readonly FftaHelper $fftaHelper,
@@ -50,7 +51,13 @@ class FftaSyncLicenseeCommand extends Command
 
         $licenseeCode = (int) $input->getArgument('licenseeCode');
         $season = $input->getOption('season') ? (int) $input->getOption('season') : null;
-        $licenseeId = $this->scrapper->findLicenseeIdFromCode($licenseeCode);
+
+        /** @var LicenseeRepository $licenseeRepository */
+        $licenseeRepository = $this->entityManager->getRepository(Licensee::class);
+        $licensee = $licenseeRepository->findOneByCode($licenseeCode);
+        $license = $licensee->getLicenseForSeason($season);
+
+        $licenseeId = $this->fftaHelper->getScrapper($license->getClub())->findLicenseeIdFromCode($licenseeCode);
 
         if (!$licenseeId) {
             $output->writeln(sprintf('Licensee with code %s not found.', $licenseeCode));
@@ -58,7 +65,7 @@ class FftaSyncLicenseeCommand extends Command
             return Command::INVALID;
         }
 
-        $this->fftaHelper->syncLicenseeWithId($licenseeId, $season);
+        $this->fftaHelper->syncLicenseeWithId($license->getClub(), $licenseeId, $season);
 
         return Command::SUCCESS;
     }

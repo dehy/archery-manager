@@ -19,11 +19,7 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
-
-    App\Scrapper\FftaScrapper:
-        arguments:
-            $username: '%env(FFTA_USERNAME)%'
-            $password: '%env(FFTA_PASSWORD)%'
+            - '../src/Scrapper/FftaScrapper.php'
 
     App\Command\DiscordBotRunCommand:
         arguments:

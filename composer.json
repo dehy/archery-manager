@@ -33,6 +33,7 @@
         "knpuniversity/oauth2-client-bundle": "^2.10",
         "league/flysystem-async-aws-s3": "^3.0",
         "league/flysystem-bundle": "^3.0",
+        "michaeldegroot/doctrine-encrypt-bundle": "^5.1",
         "moneyphp/money": "^4.0",
         "nelmio/cors-bundle": "^2.2",
         "phpdocumentor/reflection-docblock": "^5.3",

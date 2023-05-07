@@ -132,10 +132,15 @@ class Licensee implements \Stringable
     private Collection $givenPracticeAdvices;
 
     /**
-     * @var Collection<int, LicenseeAttachment>|LicenseeAttachment[]
+     * @var Collection<int, LicenseeAttachment>
      */
     #[ORM\OneToMany(mappedBy: 'licensee', targetEntity: LicenseeAttachment::class, orphanRemoval: true)]
     private Collection $attachments;
+
+    /**
+     * @var ArrayCollection<int, Club>
+     */
+    protected ArrayCollection $clubs;
 
     public function __construct()
     {
@@ -590,5 +595,23 @@ class Licensee implements \Stringable
         }
 
         return null;
+    }
+
+    /**
+     * @return ArrayCollection<int, Club>
+     */
+    public function getClubs(): ArrayCollection
+    {
+        if (!$this->clubs === null) {
+            $this->clubs = new ArrayCollection();
+            foreach ($this->getLicenses() as $license) {
+                $club = $license->getClub();
+                if (!$this->clubs->contains($club)) {
+                    $this->clubs->add($club);
+                }
+            }
+        }
+
+        return $this->clubs;
     }
 }

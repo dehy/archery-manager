@@ -8,6 +8,7 @@ use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
+use App\Entity\Club;
 use App\Entity\ContestEvent;
 use App\Entity\License;
 use App\Entity\Result;
@@ -29,11 +30,8 @@ class FftaScrapper
     private string $goalBaseUrl = 'https://ffta-goal.multimediabs.com';
     private string $extranetBaseUrl = 'https://extranet.ffta.fr';
 
-    public function __construct(
-        private readonly string $username,
-        private readonly string $password,
-    ) {
-        if (!$this->username || !$this->password) {
+    public function __construct(private readonly Club $club) {
+        if (!$this->club->getFftaUsername() || !$this->club->getFftaPassword()) {
             throw new \Exception('FFTA Credentials not set');
         }
     }
@@ -539,7 +537,7 @@ class FftaScrapper
             $url = $row->attr('data-modal');
 
             $characteristicsCell = $row->filter('td:nth-child(5)')->html();
-            $characteristics = preg_match(
+            preg_match(
                 '/^<strong>(.*)<\\/strong>( - (.*))?<br>Saison \\d+<br>(.*<br>)+$/',
                 $characteristicsCell,
                 $characteristicsMatches,
@@ -664,8 +662,8 @@ class FftaScrapper
         );
         $form = $crawler->selectButton('CONNEXION')->form();
         $this->fftaGoalClient->submit($form, [
-            'username' => $this->username,
-            'password' => $this->password,
+            'username' => $this->club->getFftaUsername(),
+            'password' => $this->club->getFftaPassword(),
         ]);
 
         /** @var Response $response */
@@ -688,8 +686,8 @@ class FftaScrapper
 
         $form = $crawler->filter('form[name=identification]')->form();
         $this->fftaExtranetClient->submit($form, [
-            'login[identifiant]' => $this->username,
-            'login[idpassword]' => $this->password,
+            'login[identifiant]' => $this->club->getFftaUsername(),
+            'login[idpassword]' => $this->club->getFftaPassword(),
         ]);
 
         /** @var Response $response */

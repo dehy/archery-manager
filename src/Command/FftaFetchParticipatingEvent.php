@@ -29,7 +29,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class FftaFetchParticipatingEvent extends Command
 {
     public function __construct(
-        protected readonly FftaScrapper $scrapper,
         protected EntityManagerInterface $entityManager,
     ) {
         parent::__construct();

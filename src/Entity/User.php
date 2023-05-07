@@ -59,7 +59,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         ORM\OneToMany(
             mappedBy: 'user',
             targetEntity: Licensee::class,
-            indexBy: 'fftaMemberCode',
+            cascade: ['remove']
         ),
     ]
     private Collection $licensees;
