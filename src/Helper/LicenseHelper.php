@@ -26,9 +26,10 @@ class LicenseHelper
         ],
     ];
 
-    public function __construct(private readonly LicenseeHelper $licenseeHelper)
-    {
-        $this->season = 2023;
+    public function __construct(
+        private readonly LicenseeHelper $licenseeHelper,
+        private readonly SeasonHelper $seasonHelper,
+    ) {
     }
 
     public static function getSeasonForDate(\DateTimeInterface $dateTime): int
@@ -42,7 +43,7 @@ class LicenseHelper
     {
         $licensee = $this->licenseeHelper->getLicenseeFromSession();
 
-        return $licensee?->getLicenseForSeason($this->season);
+        return $licensee?->getLicenseForSeason($this->seasonHelper->getSelectedSeason());
     }
 
     public function licenseIsValidForEvent(License $license, Event $event): bool
@@ -107,7 +108,7 @@ class LicenseHelper
     public function ageCategoryForBirthdate(
         \DateTimeInterface $birthdate,
     ): string {
-        $mapping = $this->mappingSeason[$this->season];
+        $mapping = $this->mappingSeason[$this->seasonHelper->getSelectedSeason()];
 
         foreach ($mapping as $dateKey => $ageCategory) {
             $parts = explode('_', (string) $dateKey);

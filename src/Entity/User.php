@@ -27,29 +27,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: Types::INTEGER)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING, length: 180, unique: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 180, unique: true)]
     #[Assert\Email]
     private string $email;
 
-    #[ORM\Column(type: Types::JSON)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::JSON)]
     private array $roles = [];
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING)]
     private string $password;
 
     #[ORM\Column(type: 'GenderType')]
     private string $gender;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
     private string $lastname;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
     private string $firstname;
 
-    #[ORM\Column(type: Types::STRING, length: 12, nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 12, nullable: true)]
     private ?string $phoneNumber = null;
 
     /**
@@ -71,7 +71,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     private ?string $discordId = null;
 
     #[Encrypted]
-    #[ORM\Column(type: Types::STRING, nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, nullable: true)]
     private ?string $discordAccessToken = null;
 
     public function __construct()

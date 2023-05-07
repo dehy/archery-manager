@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventType;
 use App\Repository\EventRepository;
 use Cocur\Slugify\Slugify;
@@ -24,10 +23,10 @@ use Doctrine\ORM\Mapping as ORM;
 class Event implements \Stringable
 {
     #[ORM\ManyToOne(targetEntity: Club::class, inversedBy: 'events')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn]
     protected ?Club $club = null;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
     protected ?string $name = null;
 
     #[ORM\Column(type: 'DisciplineType')]
@@ -36,13 +35,13 @@ class Event implements \Stringable
     #[ORM\Column]
     protected bool $allDay = false;
 
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE)]
     protected ?\DateTimeImmutable $startsAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE)]
     protected ?\DateTimeImmutable $endsAt = null;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
     protected ?string $address = null;
 
     /**
@@ -79,7 +78,7 @@ class Event implements \Stringable
     protected ?\DateTimeImmutable $updatedAt = null;
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: Types::INTEGER)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $id = null;
 
     public function __construct()
@@ -104,7 +103,7 @@ class Event implements \Stringable
         return $this->club;
     }
 
-    public function setClub(Club $club): Event
+    public function setClub(Club $club): self
     {
         $this->club = $club;
 

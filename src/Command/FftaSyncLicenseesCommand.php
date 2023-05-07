@@ -4,15 +4,14 @@ namespace App\Command;
 
 use App\Entity\Club;
 use App\Helper\FftaHelper;
-use App\Scrapper\FftaScrapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 
@@ -46,11 +45,19 @@ class FftaSyncLicenseesCommand extends Command
         InputInterface $input,
         OutputInterface $output,
     ): int {
+        $io = new SymfonyStyle($input, $output);
+
         $this->fftaHelper->setLogger(new ConsoleLogger($output));
 
-        $fftaCode = $input->getArgument('club_code');
+        $fftaClubCode = $input->getArgument('club_code');
         $clubRepository = $this->entityManager->getRepository(Club::class);
-        $fftaCode = $clubRepository->findOneBy(['fftaCode' => $fftaCode]);
+        $club = $clubRepository->findOneBy(['fftaCode' => $fftaClubCode]);
+
+        if (!$club) {
+            $io->error(sprintf('Unknown club %s', $fftaClubCode));
+
+            return Command::INVALID;
+        }
 
         $season = (int) $input->getArgument('season');
 

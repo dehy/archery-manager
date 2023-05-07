@@ -15,7 +15,7 @@ class EventParticipation
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: Types::INTEGER)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: 'participations')]
@@ -37,7 +37,7 @@ class EventParticipation
     #[ORM\Column(type: 'TargetTypeType')]
     private ?string $targetType = null;
 
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
     private ?int $departure = null;
 
     #[ORM\OneToOne(targetEntity: Result::class, cascade: ['persist', 'remove'])]

@@ -198,6 +198,7 @@ class FftaHelper
     public function fetchProfilePictureForLicensee(Club $club, Licensee $licensee): ?string
     {
         $scrapper = $this->getScrapper($club);
+
         return $scrapper->fetchLicenseeProfilePicture($licensee->getFftaId());
     }
 
@@ -290,6 +291,7 @@ class FftaHelper
         ?int $seasonYear = null,
     ): array {
         $scrapper = $this->getScrapper($club);
+
         return $scrapper->fetchLicenseeLicenses(
             $licensee->getFftaId(),
             $seasonYear,

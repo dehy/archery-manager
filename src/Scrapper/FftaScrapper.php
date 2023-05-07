@@ -30,7 +30,8 @@ class FftaScrapper
     private string $goalBaseUrl = 'https://ffta-goal.multimediabs.com';
     private string $extranetBaseUrl = 'https://extranet.ffta.fr';
 
-    public function __construct(private readonly Club $club) {
+    public function __construct(private readonly Club $club)
+    {
         if (!$this->club->getFftaUsername() || !$this->club->getFftaPassword()) {
             throw new \Exception('FFTA Credentials not set');
         }

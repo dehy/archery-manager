@@ -6,12 +6,11 @@ namespace App\DataFixtures\Faker\Provider;
 
 use Faker\Provider\Base;
 use Faker\Provider\DateTime;
-use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 
 final class DateTimeImmutableProvider extends Base
 {
     /**
-     * Get a datetime immutable object for a date between January 1, 1970 and now
+     * Get a datetime immutable object for a date between January 1, 1970 and now.
      *
      * @param \DateTime|int|string $max      maximum timestamp used as random end limit, default to "now"
      * @param string               $timezone time zone in which the date time should be set, default to DateTime::$defaultTimezone, if set, otherwise the result of `date_default_timezone_get`

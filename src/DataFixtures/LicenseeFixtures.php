@@ -4,9 +4,6 @@ namespace App\DataFixtures;
 
 use App\DBAL\Types\GenderType;
 use App\DBAL\Types\LicenseActivityType;
-use App\DBAL\Types\LicenseAgeCategoryType;
-use App\DBAL\Types\LicenseCategoryType;
-use App\DBAL\Types\LicenseType;
 use App\DBAL\Types\UserRoleType;
 use App\Entity\Club;
 use App\Entity\Group;
@@ -73,7 +70,7 @@ class LicenseeFixtures extends Fixture implements DependentFixtureInterface
             [GenderType::MALE, 'Guy', 'de Gisbourne', 'guy.degisbourne@nottingham.co.uk', $nottinghamClub],
         ];
 
-        for ($i = 0; $i < count($users); ++$i) {
+        for ($i = 0; $i < \count($users); ++$i) {
             $user = new User();
             $user->setRoles([UserRoleType::USER])
                 ->setEmail($users[$i][3])

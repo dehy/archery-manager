@@ -10,7 +10,7 @@ use Doctrine\Persistence\ObjectManager;
 
 class GroupFixtures extends Fixture implements DependentFixtureInterface
 {
-    public const DEFAULT_GROUP_1 = 'default_group_1';
+    final public const DEFAULT_GROUP_1 = 'default_group_1';
 
     public function getDependencies()
     {

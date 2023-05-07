@@ -14,7 +14,7 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[Vich\Uploadable]
 #[ORM\Entity(repositoryClass: ClubRepository::class)]
-class Club
+class Club implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -48,12 +48,21 @@ class Club
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt;
 
+    /**
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Event>|\App\Entity\Event[]
+     */
     #[ORM\OneToMany(mappedBy: 'club', targetEntity: Event::class)]
     private Collection $events;
 
+    /**
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Group>|\App\Entity\Group[]
+     */
     #[ORM\OneToMany(mappedBy: 'club', targetEntity: Group::class)]
     private Collection $groups;
 
+    /**
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\License>|\App\Entity\License[]
+     */
     #[ORM\OneToMany(mappedBy: 'club', targetEntity: License::class)]
     private Collection $licenses;
 
@@ -114,8 +123,6 @@ class Club
      * bundle's configuration parameter 'inject_on_load' is set to 'true' this setter
      * must be able to accept an instance of 'File' as the bundle will inject one here
      * during Doctrine hydration.
-     *
-     * @param File|UploadedFile|null $logo
      */
     public function setLogo(?File $logo = null): void
     {
@@ -240,7 +247,7 @@ class Club
         return $this->events;
     }
 
-    public function setEvents(?Collection $events): Club
+    public function setEvents(?Collection $events): self
     {
         $this->events = $events;
 
@@ -252,7 +259,7 @@ class Club
         return $this->groups;
     }
 
-    public function setGroups(?Collection $groups): Club
+    public function setGroups(?Collection $groups): self
     {
         $this->groups = $groups;
 

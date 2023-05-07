@@ -82,7 +82,7 @@ class EventRepository extends ServiceEntityRepository
     public function findForLicenseeByMonthAndYear(Licensee $licensee, int $month, int $year): array
     {
         $clubs = $licensee->getLicenses()->map(fn (License $license) => $license->getClub());
-        $clubs = \array_unique($clubs->toArray());
+        $clubs = array_unique($clubs->toArray());
 
         $firstDate = new \DateTime(sprintf('%s-%s-01 midnight', $year, $month));
         $lastDate = (clone $firstDate)->modify('last day of this month');

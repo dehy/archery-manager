@@ -12,6 +12,7 @@ final class FftaCodeProvider extends Base
     {
         return Base::randomNumber(6, true);
     }
+
     public static function fftaCode(int $id): string
     {
         return sprintf('%s%s', $id, strtoupper(Base::randomLetter()));
