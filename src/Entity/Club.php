@@ -2,11 +2,11 @@
 
 namespace App\Entity;
 
-use Ambta\DoctrineEncryptBundle\Configuration\Encrypted;
 use App\Repository\ClubRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use SpecShaper\EncryptBundle\Annotations\Encrypted;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\AsciiSlugger;
