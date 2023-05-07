@@ -92,7 +92,7 @@ class SmokeTest extends LoggedInTestCase
         self::assertResponseIsSuccessful();
     }
 
-    private function findEvent(int $id): Event
+    private function findEvent(int $id): ?Event
     {
         $eventRepository = self::getContainer()->get(EventRepository::class);
 

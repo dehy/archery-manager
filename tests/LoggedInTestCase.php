@@ -25,7 +25,7 @@ class LoggedInTestCase extends WebTestCase
     {
         $client = parent::createClient();
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneByEmail('user1@acme.org');
+        $user = $userRepository->findOneByEmail('user1@ladg.com');
         $client->loginUser($user);
 
         return $client;
