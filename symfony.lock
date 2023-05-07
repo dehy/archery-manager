@@ -259,9 +259,6 @@
     "lorenzo/pinky": {
         "version": "1.0.6"
     },
-    "michaeldegroot/doctrine-encrypt-bundle": {
-        "version": "v5.1.0"
-    },
     "monolog/monolog": {
         "version": "2.3.5"
     },
