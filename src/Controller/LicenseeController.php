@@ -10,6 +10,7 @@ use App\Entity\LicenseeAttachment;
 use App\Entity\Result;
 use App\Entity\Season;
 use App\Entity\User;
+use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
 use App\Helper\LicenseHelper;
@@ -245,6 +246,7 @@ class LicenseeController extends BaseController
         string $fftaCode,
         LicenseeRepository $licenseeRepository,
         FftaHelper $fftaHelper,
+        ClubHelper $clubHelper,
         Request $request,
     ): RedirectResponse {
         $this->assertHasValidLicense();
@@ -260,12 +262,18 @@ class LicenseeController extends BaseController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $fftaHelper->syncLicenseeWithId($licensee->getFftaId(), Season::seasonForDate(new \DateTimeImmutable()));
+                $fftaHelper->syncLicenseeWithId(
+                    $clubHelper->activeClub(),
+                    $licensee->getFftaId()
+                );
                 $this->addFlash(
                     'success',
                     sprintf('Le profil de %s a été synchronisé avec succès !', $licensee->getFirstname())
                 );
             } catch (\Exception $e) {
+                if ($this->getParameter('kernel.debug')) {
+                    throw $e;
+                }
                 $this->addFlash(
                     'danger',
                     sprintf('Une erreur est survenue durant la synchronisation: %s', $e->getMessage())

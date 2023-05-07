@@ -2,11 +2,13 @@
 
 namespace App\Command;
 
+use App\Entity\Club;
 use App\Helper\FftaHelper;
 use App\Scrapper\FftaScrapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Logger\ConsoleLogger;
@@ -23,7 +25,6 @@ use Symfony\Component\Mailer\MailerInterface;
 class FftaSyncLicenseesCommand extends Command
 {
     public function __construct(
-        protected readonly FftaScrapper $scrapper,
         protected readonly EntityManagerInterface $entityManager,
         protected readonly MailerInterface $mailer,
         protected readonly FftaHelper $fftaHelper,
@@ -33,7 +34,8 @@ class FftaSyncLicenseesCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption('season', null, InputOption::VALUE_REQUIRED, 'Season');
+        $this->addArgument('club_code', InputArgument::REQUIRED, 'Code Club');
+        $this->addArgument('season', InputArgument::REQUIRED, 'Season');
     }
 
     /**
@@ -46,9 +48,13 @@ class FftaSyncLicenseesCommand extends Command
     ): int {
         $this->fftaHelper->setLogger(new ConsoleLogger($output));
 
-        $season = $input->getOption('season') ? (int) $input->getOption('season') : null;
+        $fftaCode = $input->getArgument('club_code');
+        $clubRepository = $this->entityManager->getRepository(Club::class);
+        $fftaCode = $clubRepository->findOneBy(['fftaCode' => $fftaCode]);
 
-        $this->fftaHelper->syncLicensees($season);
+        $season = (int) $input->getArgument('season');
+
+        $this->fftaHelper->syncLicensees($club, $season);
 
         return Command::SUCCESS;
     }
