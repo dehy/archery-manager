@@ -3,6 +3,7 @@
 namespace App\Helper;
 
 use App\DBAL\Types\LicenseeAttachmentType;
+use App\Entity\Club;
 use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\LicenseeAttachment;
@@ -28,8 +29,9 @@ class FftaHelper
 {
     protected MimeTypes $mimeTypes;
 
+    protected array $scrappers = [];
+
     public function __construct(
-        protected FftaScrapper $scrapper,
         protected EntityManagerInterface $entityManager,
         protected MailerInterface $mailer,
         protected LoggerInterface $logger,
@@ -38,6 +40,15 @@ class FftaHelper
         protected EmailHelper $emailHelper,
     ) {
         $this->mimeTypes = new MimeTypes();
+    }
+
+    public function getScrapper(Club $club): FftaScrapper
+    {
+        if (!isset($this->scrappers[$club->getId()])) {
+            $this->scrappers[$club->getId()] = new FftaScrapper($club);
+        }
+
+        return $this->scrappers[$club->getId()];
     }
 
     public function setLogger(LoggerInterface $logger): void
@@ -50,9 +61,10 @@ class FftaHelper
      * @throws TransportExceptionInterface
      * @throws \Exception
      */
-    public function syncLicensees(int $season): void
+    public function syncLicensees(Club $club, int $season): void
     {
-        $fftaIds = $this->scrapper->fetchLicenseeIdList($season);
+        $scrapper = $this->getScrapper($club);
+        $fftaIds = $scrapper->fetchLicenseeIdList($season);
         $this->logger->notice(
             sprintf('[FFTA] Found %s licensees in %s', \count($fftaIds), $season),
         );
@@ -60,7 +72,7 @@ class FftaHelper
         foreach ($fftaIds as $fftaId) {
             $this->logger->notice(sprintf('==== %s ====', $fftaId));
 
-            $this->syncLicenseeWithId($fftaId, $season);
+            $this->syncLicenseeWithId($club, $fftaId, $season);
         }
     }
 
@@ -69,15 +81,17 @@ class FftaHelper
      * @throws TransportExceptionInterface
      * @throws \Exception
      */
-    public function syncLicenseeWithId(string $fftaId, int $season): Licensee
+    public function syncLicenseeWithId(Club $club, string $fftaId, int $season): Licensee
     {
+        $scrapper = $this->getScrapper($club);
+
         /** @var LicenseeRepository $licenseeRepository */
         $licenseeRepository = $this->entityManager->getRepository(
             Licensee::class,
         );
 
         $licensee = $licenseeRepository->findOneByFftaId($fftaId);
-        $fftaProfile = $this->scrapper->fetchLicenseeProfile($fftaId, $season);
+        $fftaProfile = $scrapper->fetchLicenseeProfile($fftaId, $season);
         $fftaLicensee = LicenseeFactory::createFromFftaProfile($fftaProfile);
         if (!$licensee) {
             $this->logger->notice(
@@ -99,7 +113,7 @@ class FftaHelper
             }
             $licensee->setUser($user);
 
-            $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($licensee);
+            $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
             if ($fftaProfilePicture) {
                 $this->logger->notice('  + Adding profile picture');
                 $licensee->addAttachment($fftaProfilePicture);
@@ -129,7 +143,7 @@ class FftaHelper
             );
             $licensee->mergeWith($fftaLicensee);
             // TODO check image date (with its filename) instead of downloading files and calculating checksums
-            $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($licensee);
+            $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
             $fftaProfilePictureContent = $fftaProfilePicture?->getUploadedFile()?->getContent();
             $fftaProfilePictureChecksum = $fftaProfilePicture ? sha1($fftaProfilePictureContent) : null;
             $dbProfilePicture = $licensee->getProfilePicture();
@@ -176,22 +190,23 @@ class FftaHelper
         }
         $this->entityManager->flush();
 
-        $this->syncLicenseForLicensee($licensee, $season);
+        $this->syncLicenseForLicensee($club, $licensee, $season);
 
         return $licensee;
     }
 
-    public function fetchProfilePictureForLicensee(Licensee $licensee): ?string
+    public function fetchProfilePictureForLicensee(Club $club, Licensee $licensee): ?string
     {
-        return $this->scrapper->fetchLicenseeProfilePicture($licensee->getFftaId());
+        $scrapper = $this->getScrapper($club);
+        return $scrapper->fetchLicenseeProfilePicture($licensee->getFftaId());
     }
 
     /**
      * @throws \Exception
      */
-    public function profilePictureAttachmentForLicensee(Licensee $licensee): ?LicenseeAttachment
+    public function profilePictureAttachmentForLicensee(Club $club, Licensee $licensee): ?LicenseeAttachment
     {
-        $fftaPicture = $this->fetchProfilePictureForLicensee($licensee);
+        $fftaPicture = $this->fetchProfilePictureForLicensee($club, $licensee);
         if ($fftaPicture) {
             $temporaryPPPath = tempnam(sys_get_temp_dir(), sprintf('pp_%s_', $licensee->getFftaMemberCode()));
             if (false === $temporaryPPPath) {
@@ -232,9 +247,10 @@ class FftaHelper
      *
      * @throws \Exception
      */
-    public function syncLicenseForLicensee(Licensee $licensee, int $season): License
+    public function syncLicenseForLicensee(Club $club, Licensee $licensee, int $season): License
     {
         $fftaLicense = $this->createLicenseForLicenseeAndSeason(
+            $club,
             $licensee,
             $season,
         );
@@ -258,10 +274,12 @@ class FftaHelper
      * @throws \Exception
      */
     public function createLicenseForLicenseeAndSeason(
+        Club $club,
         Licensee $licensee,
         int $seasonYear,
     ): License {
-        return $this->scrapper->fetchLicenseeLicense(
+        $scrapper = $this->getScrapper($club);
+        return $scrapper->fetchLicenseeLicense(
             $licensee->getFftaId(),
             $seasonYear,
         );

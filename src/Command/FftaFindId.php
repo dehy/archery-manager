@@ -20,7 +20,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class FftaFindId extends Command
 {
     public function __construct(
-        protected readonly FftaScrapper $scrapper,
         protected readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();

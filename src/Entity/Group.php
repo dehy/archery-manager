@@ -40,7 +40,7 @@ class Group implements \Stringable
 
     public function __toString(): string
     {
-        return (string) $this->getName();
+        return sprintf('%s - %s', $this->getClub(), $this->getName());
     }
 
     public function getId(): ?int

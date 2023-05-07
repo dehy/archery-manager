@@ -8,6 +8,7 @@ use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
+use App\Entity\Club;
 use App\Entity\ContestEvent;
 use App\Entity\License;
 use App\Entity\Result;
@@ -34,11 +35,8 @@ class FftaScrapper
 
     private array $cachedResponse;
 
-    public function __construct(
-        private readonly string $username,
-        private readonly string $password,
-    ) {
-        if (!$this->username || !$this->password) {
+    public function __construct(private readonly Club $club) {
+        if (!$this->club->getFftaUsername() || !$this->club->getFftaPassword()) {
             throw new \Exception('FFTA Credentials not set');
         }
 
@@ -539,7 +537,7 @@ class FftaScrapper
             $url = $row->attr('data-modal');
 
             $characteristicsCell = $row->filter('td:nth-child(5)')->html();
-            $characteristics = preg_match(
+            preg_match(
                 '/^<strong>(.*)<\\/strong>( - (.*))?<br>Saison \\d+<br>(.*<br>)+$/',
                 $characteristicsCell,
                 $characteristicsMatches,

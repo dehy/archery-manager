@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Ambta\DoctrineEncryptBundle\Configuration\Encrypted;
 use App\Repository\ClubRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -20,7 +21,7 @@ class Club
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
@@ -38,7 +39,7 @@ class Club
     #[ORM\Column(length: 255)]
     private ?string $contactEmail = null;
 
-    #[ORM\Column(length: 8)]
+    #[ORM\Column(length: 8, unique: true)]
     private ?string $fftaCode = null;
 
     #[ORM\Column]
@@ -55,6 +56,14 @@ class Club
 
     #[ORM\OneToMany(mappedBy: 'club', targetEntity: License::class)]
     private Collection $licenses;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Encrypted]
+    private ?string $fftaUsername = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Encrypted]
+    private ?string $fftaPassword = null;
 
     public function __construct()
     {
@@ -253,5 +262,29 @@ class Club
     public function generateLogoName(): string
     {
         return strtolower((new AsciiSlugger())->slug($this->getName()));
+    }
+
+    public function getFftaUsername(): ?string
+    {
+        return $this->fftaUsername;
+    }
+
+    public function setFftaUsername(?string $fftaUsername): self
+    {
+        $this->fftaUsername = $fftaUsername;
+
+        return $this;
+    }
+
+    public function getFftaPassword(): ?string
+    {
+        return $this->fftaPassword;
+    }
+
+    public function setFftaPassword(?string $fftaPassword): self
+    {
+        $this->fftaPassword = $fftaPassword;
+
+        return $this;
     }
 }
