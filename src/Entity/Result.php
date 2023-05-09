@@ -367,9 +367,11 @@ class Result
             }
 
             return match ($ageCategory) {
-                LicenseAgeCategoryType::POUSSIN => [18, 80],
+                LicenseAgeCategoryType::POUSSIN, LicenseAgeCategoryType::U11 => [18, 80],
                 LicenseAgeCategoryType::BENJAMIN,
-                LicenseAgeCategoryType::MINIME => [18, 60],
+                LicenseAgeCategoryType::MINIME,
+                LicenseAgeCategoryType::U13,
+                LicenseAgeCategoryType::U15 => [18, 60],
                 default => [18, 40],
             };
         }
@@ -379,12 +381,14 @@ class Result
             }
 
             return match ($ageCategory) {
-                LicenseAgeCategoryType::POUSSIN => [20, 80],
-                LicenseAgeCategoryType::BENJAMIN => [30, 80],
-                LicenseAgeCategoryType::MINIME => [40, 80],
+                LicenseAgeCategoryType::POUSSIN, LicenseAgeCategoryType::U11 => [20, 80],
+                LicenseAgeCategoryType::BENJAMIN, LicenseAgeCategoryType::U13 => [30, 80],
+                LicenseAgeCategoryType::MINIME, LicenseAgeCategoryType::U15 => [40, 80],
                 LicenseAgeCategoryType::CADET,
-                LicenseAgeCategoryType::SENIOR_3 => [60, 122],
+                LicenseAgeCategoryType::SENIOR_3,
+                LicenseAgeCategoryType::U18 => [60, 122],
                 LicenseAgeCategoryType::JUNIOR,
+                LicenseAgeCategoryType::U21,
                 LicenseAgeCategoryType::SENIOR_1,
                 LicenseAgeCategoryType::SENIOR_2 => [70, 122],
             };
