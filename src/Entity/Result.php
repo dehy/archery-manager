@@ -50,28 +50,28 @@ class Result
 
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
     #[Assert\GreaterThanOrEqual(0)]
-    #[Assert\LessThanOrEqual(300)]
+    #[Assert\LessThanOrEqual(360)]
     private ?int $score1 = null;
 
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
     #[Assert\GreaterThanOrEqual(0)]
-    #[Assert\LessThanOrEqual(300)]
+    #[Assert\LessThanOrEqual(360)]
     private ?int $score2 = null;
 
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     #[Assert\NotNull]
     #[Assert\GreaterThanOrEqual(0)]
-    #[Assert\LessThanOrEqual(600)]
+    #[Assert\LessThanOrEqual(720)]
     private int $total;
 
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
     #[Assert\GreaterThanOrEqual(0)]
-    #[Assert\LessThanOrEqual(60)]
+    #[Assert\LessThanOrEqual(72)]
     private ?int $nb10 = null;
 
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
     #[Assert\GreaterThanOrEqual(0)]
-    #[Assert\LessThanOrEqual(60)]
+    #[Assert\LessThanOrEqual(72)]
     private ?int $nb10p = null;
 
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
