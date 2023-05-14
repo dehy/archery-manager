@@ -9,18 +9,26 @@
             {% if age_category != license.ageCategory %}
                 {% set age_category = license.ageCategory %}
                 <thead>
+                <tr class="d-sm-none text-center">
+                    <th colspan="3">{{ age_category|readable_enum }}</th>
+                </tr>
                 <tr class="text-center">
-                    <th class="text-start">{{ age_category|readable_enum }}</th>
+                    <th class="text-start d-none d-sm-table-cell">{{ age_category|readable_enum }}</th>
                     <th>Série 1</th>
                     <th>Série 2</th>
                     <th>Total*</th>
                 </tr>
                 </thead>
             {% endif %}
+            {% set licensee_row = _self.licensee_row(result_form) %}
+            <tr class="d-sm-none">
+                <td colspan="3">
+                    {{ licensee_row }}
+                </td>
+            </tr>
             <tr>
-                <td>
-                    {{ form_errors(result_form.licensee) }}
-                    {{ form_widget(result_form.licensee) }}
+                <td class="d-none d-sm-table-cell">
+                    {{ licensee_row }}
                 </td>
                 <td style="width: 90px">
                     {{ form_errors(result_form.score1) }}
@@ -39,3 +47,8 @@
     </table>
 </div>
 {{ form_end(results_form) }}
+
+{% macro licensee_row(result_form) %}
+    {{ form_errors(result_form.licensee) }}
+    {{ form_widget(result_form.licensee) }}
+{% endmacro %}
