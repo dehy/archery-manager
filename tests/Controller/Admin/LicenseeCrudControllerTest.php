@@ -33,7 +33,7 @@ class LicenseeCrudControllerTest extends LoggedInTestCase
         $this->assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Créer')->form();
-        $form['Licensee[user]'] = $userId;
+        $form['Licensee[user]'] = (string) $userId;
         $form['Licensee[gender]'] = GenderType::MALE;
         $form['Licensee[firstname]'] = 'John';
         $form['Licensee[lastname]'] = 'Doe';

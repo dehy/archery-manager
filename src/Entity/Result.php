@@ -9,7 +9,6 @@ use App\DBAL\Types\LicenseAgeCategoryType;
 use App\Repository\ResultRepository;
 use App\Scrapper\CategoryParser;
 use App\Scrapper\FftaResult;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 

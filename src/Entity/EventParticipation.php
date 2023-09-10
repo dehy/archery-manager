@@ -5,7 +5,6 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\EventParticipationRepository;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EventParticipationRepository::class)]

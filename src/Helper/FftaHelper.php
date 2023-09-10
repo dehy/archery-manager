@@ -234,7 +234,7 @@ class FftaHelper
      *
      * @throws \Exception
      */
-    public function syncLicensesForLicensee(Licensee $licensee, ?int $season = null): array
+    public function syncLicensesForLicensee(Licensee $licensee, int $season = null): array
     {
         $fftaLicenses = $this->createLicensesForLicenseeAndSeason(
             $licensee,
@@ -270,7 +270,7 @@ class FftaHelper
      */
     public function createLicensesForLicenseeAndSeason(
         ?Licensee $licensee,
-        ?int $seasonYear = null,
+        int $seasonYear = null,
     ): array {
         return $this->scrapper->fetchLicenseeLicenses(
             $licensee->getFftaId(),

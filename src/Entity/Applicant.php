@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\DBAL\Types\PracticeLevelType;
 use App\Repository\ApplicantRepository;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use Symfony\Component\Validator\Constraints as Assert;

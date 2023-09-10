@@ -8,7 +8,6 @@ use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\Repository\LicenseRepository;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;

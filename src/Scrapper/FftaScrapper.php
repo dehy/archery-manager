@@ -257,7 +257,7 @@ class FftaScrapper
      */
     public function fetchLicenseeLicenses(
         int $fftaId,
-        ?int $requestedSeason = null,
+        int $requestedSeason = null,
     ): array {
         $this->loginFftaGoal();
 

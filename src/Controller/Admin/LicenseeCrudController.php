@@ -71,7 +71,7 @@ class LicenseeCrudController extends AbstractCrudController
             ->add('groups');
     }
 
-    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance) : void
+    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         $entityManager->persist($entityInstance);
         $entityManager->beginTransaction();

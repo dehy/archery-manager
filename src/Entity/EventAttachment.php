@@ -70,7 +70,7 @@ class EventAttachment extends Attachment
         return $this;
     }
 
-    public function setUploadedFile(?File $file = null): void
+    public function setUploadedFile(File $file = null): void
     {
         $this->uploadedFile = $file;
 

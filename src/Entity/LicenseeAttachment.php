@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\LicenseeAttachmentRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
@@ -93,7 +92,7 @@ class LicenseeAttachment extends Attachment
         return $this;
     }
 
-    public function setUploadedFile(?File $file = null): void
+    public function setUploadedFile(File $file = null): void
     {
         $this->uploadedFile = $file;
 

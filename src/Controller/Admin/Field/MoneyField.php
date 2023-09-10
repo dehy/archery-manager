@@ -31,7 +31,7 @@ class MoneyField implements FieldInterface
 
     public static function new(
         string $propertyName,
-        ?string $label = null,
+        string $label = null,
     ): self {
         return (new self())
             ->setProperty($propertyName)

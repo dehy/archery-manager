@@ -8,7 +8,6 @@ use App\Repository\EventRepository;
 use Cocur\Slugify\Slugify;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
@@ -196,7 +195,7 @@ class Event implements \Stringable
     /**
      * @return Collection<int, EventAttachment>
      */
-    public function getAttachments(?string $type = null): Collection
+    public function getAttachments(string $type = null): Collection
     {
         if ($type) {
             return $this->attachments
