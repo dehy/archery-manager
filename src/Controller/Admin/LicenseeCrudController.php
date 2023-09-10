@@ -5,6 +5,8 @@ namespace App\Controller\Admin;
 use App\Controller\Admin\Filter\LicenseSeasonFilter;
 use App\DBAL\Types\GenderType;
 use App\Entity\Licensee;
+use App\Helper\EmailHelper;
+use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -17,10 +19,11 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class LicenseeCrudController extends AbstractCrudController
 {
-    public function __construct(protected AdminUrlGenerator $urlGenerator)
+    public function __construct(protected AdminUrlGenerator $urlGenerator, protected EmailHelper $emailHelper)
     {
     }
 
@@ -66,5 +69,19 @@ class LicenseeCrudController extends AbstractCrudController
     {
         return $filters->add(LicenseSeasonFilter::new())
             ->add('groups');
+    }
+
+    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance) : void
+    {
+        $entityManager->persist($entityInstance);
+        $entityManager->beginTransaction();
+        try {
+            $this->emailHelper->sendWelcomeEmail($entityInstance);
+            $entityManager->flush();
+            $entityManager->commit();
+        } catch (TransportExceptionInterface $exception) {
+            $entityManager->rollback();
+            throw $exception;
+        }
     }
 }
