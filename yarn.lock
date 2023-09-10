@@ -1520,11 +1520,11 @@ __metadata:
 
 "@symfony/ux-chartjs@file:vendor/symfony/ux-chartjs/assets::locator=root-workspace-0b6124%40workspace%3A.":
   version: 1.1.0
-  resolution: "@symfony/ux-chartjs@file:vendor/symfony/ux-chartjs/assets#vendor/symfony/ux-chartjs/assets::hash=a2ff3f&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@symfony/ux-chartjs@file:vendor/symfony/ux-chartjs/assets#vendor/symfony/ux-chartjs/assets::hash=a1af15&locator=root-workspace-0b6124%40workspace%3A."
   peerDependencies:
     "@hotwired/stimulus": ^3.0.0
-    chart.js: ^3.4.1
-  checksum: 7d6b61421d937dd1ca8b73f1a88b89991160b89b346a6c371db05ab9c785293ce12d0852933fc9c33f7a7ba6319a2f4611e16cdd37e30ebc85f123a135961d60
+    chart.js: ^3.4.1 <3.9
+  checksum: 834a91222c4a79184775b7b3515bc755edf9136fd5b058775e3fd804428221f42660118a2685a97a046261c822ade27ffeac64015c46dcf02ca4ea6bbf451937
   languageName: node
   linkType: hard
 
