@@ -38,8 +38,8 @@ class Licensee implements \Stringable
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATE_MUTABLE)]
     private \DateTimeInterface $birthdate;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 7, unique: true, nullable: true)]
-    #[Assert\Length(min: 7, max: 7)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 8, unique: true, nullable: true)]
+    #[Assert\Length(min: 8, max: 8)]
     private ?string $fftaMemberCode = null;
 
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, unique: true, nullable: true)]

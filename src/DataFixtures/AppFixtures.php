@@ -43,7 +43,7 @@ class AppFixtures extends Fixture
             ->setLastname($admin->getLastname())
             ->setBirthdate($faker->dateTimeInInterval('-39 years', '-21 years'))
             ->setFftaId(123456)
-            ->setFftaMemberCode('123456F');
+            ->setFftaMemberCode('0123456F');
         $manager->persist($licensee);
 
         $license = new License();
@@ -68,7 +68,7 @@ class AppFixtures extends Fixture
                 ->setGender($gender);
             $manager->persist($user);
 
-            $fftaId = $faker->randomNumber(6);
+            $fftaId = $faker->randomNumber(7, true);
             $birthdate = $faker->dateTimeInInterval('-65 years', '-18 years');
 
             $licensee = new Licensee();
@@ -79,7 +79,7 @@ class AppFixtures extends Fixture
                 ->setLastname($user->getLastname())
                 ->setBirthdate($birthdate)
                 ->setFftaId($fftaId)
-                ->setFftaMemberCode($fftaId.'F');
+                ->setFftaMemberCode($fftaId.strtoupper($faker->randomLetter()));
             $manager->persist($licensee);
 
             $license = new License();
