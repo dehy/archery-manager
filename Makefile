@@ -33,3 +33,6 @@ qa:
 	$(BASE_EXEC) php vendor/bin/rector process; \
 	$(BASE_EXEC) php vendor/bin/php-cs-fixer fix; \
 	$(BASE_EXEC) php vendor/bin/phpstan analyze --xdebug
+
+test:
+	$(DOCKER_COMPOSE) -p archery_test -f docker-compose.test.yml up --build --abort-on-container-exit --force-recreate
