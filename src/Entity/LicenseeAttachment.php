@@ -123,4 +123,17 @@ class LicenseeAttachment extends Attachment
 
         return sprintf('%s-%s-%s', $licensee->getFftaMemberCode(), $type, $randomStr);
     }
+
+    public function __serialize()
+    {
+        $toSerialize = new \stdClass();
+        $toSerialize->id = $this->getId();
+        $toSerialize->licensee = $this->getLicensee()->getId();
+        $toSerialize->season = $this->getSeason();
+        $toSerialize->type = $this->getType();
+        $toSerialize->documentDate = $this->getDocumentDate();
+        $toSerialize->uploadedFile = $this->getUploadedFile()->getFilename();
+
+        return (array) $toSerialize;
+    }
 }

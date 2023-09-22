@@ -161,9 +161,6 @@
     "egulias/email-validator": {
         "version": "3.1.2"
     },
-    "fabpot/goutte": {
-        "version": "v4.0.2"
-    },
     "fresh/doctrine-enum-bundle": {
         "version": "8.1",
         "recipe": {

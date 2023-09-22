@@ -69,7 +69,7 @@ class FftaHelper
      * @throws TransportExceptionInterface
      * @throws \Exception
      */
-    public function syncLicenseeWithId(string $fftaId, int $season = null): Licensee
+    public function syncLicenseeWithId(string $fftaId, int $season): Licensee
     {
         /** @var LicenseeRepository $licenseeRepository */
         $licenseeRepository = $this->entityManager->getRepository(
@@ -77,7 +77,7 @@ class FftaHelper
         );
 
         $licensee = $licenseeRepository->findOneByFftaId($fftaId);
-        $fftaProfile = $this->scrapper->fetchLicenseeProfile($fftaId);
+        $fftaProfile = $this->scrapper->fetchLicenseeProfile($fftaId, $season);
         $fftaLicensee = LicenseeFactory::createFromFftaProfile($fftaProfile);
         if (!$licensee) {
             $this->logger->notice(
@@ -176,7 +176,7 @@ class FftaHelper
         }
         $this->entityManager->flush();
 
-        $this->syncLicensesForLicensee($licensee, $season);
+        $this->syncLicenseForLicensee($licensee, $season);
 
         return $licensee;
     }
@@ -230,49 +230,38 @@ class FftaHelper
      * Creates a new License if none exists for the Licensee and season or merge with the
      * existing one.
      *
-     * @return License[]
-     *
      * @throws \Exception
      */
-    public function syncLicensesForLicensee(Licensee $licensee, int $season = null): array
+    public function syncLicenseForLicensee(Licensee $licensee, int $season): License
     {
-        $fftaLicenses = $this->createLicensesForLicenseeAndSeason(
+        $fftaLicense = $this->createLicenseForLicenseeAndSeason(
             $licensee,
             $season,
         );
-        $licenses = [];
-        foreach ($fftaLicenses as $fftaLicense) {
-            if (null !== $season && $fftaLicense->getSeason() !== $season) {
-                continue;
-            }
-            $license = $licensee->getLicenseForSeason($fftaLicense->getSeason());
-            if (!$license) {
-                $this->logger->notice(sprintf('  + New License for: %s', $season));
-                $license = $fftaLicense;
-                $license->setLicensee($licensee);
-                $this->entityManager->persist($license);
-            } else {
-                $this->logger->notice(sprintf('  ~ Merging existing License for %s', $fftaLicense->getSeason()));
-                $license->mergeWith($fftaLicense);
-            }
-            $licenses[] = $license;
+        $license = $licensee->getLicenseForSeason($fftaLicense->getSeason());
+        if (!$license) {
+            $this->logger->notice(sprintf('  + New License for: %s', $season));
+            $license = $fftaLicense;
+            $license->setLicensee($licensee);
+            $this->entityManager->persist($license);
+        } else {
+            $this->logger->notice(sprintf('  ~ Merging existing License for %s', $fftaLicense->getSeason()));
+            $license->mergeWith($fftaLicense);
         }
 
         $this->entityManager->flush();
 
-        return $licenses;
+        return $license;
     }
 
     /**
-     * @return License[]
-     *
      * @throws \Exception
      */
-    public function createLicensesForLicenseeAndSeason(
-        ?Licensee $licensee,
-        int $seasonYear = null,
-    ): array {
-        return $this->scrapper->fetchLicenseeLicenses(
+    public function createLicenseForLicenseeAndSeason(
+        Licensee $licensee,
+        int $seasonYear,
+    ): License {
+        return $this->scrapper->fetchLicenseeLicense(
             $licensee->getFftaId(),
             $seasonYear,
         );

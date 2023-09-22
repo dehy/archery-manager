@@ -48,7 +48,7 @@ class FftaSyncLicenseeCommand extends Command
     ): int {
         $this->fftaHelper->setLogger(new ConsoleLogger($output));
 
-        $licenseeCode = (int) $input->getArgument('licenseeCode');
+        $licenseeCode = $input->getArgument('licenseeCode');
         $season = $input->getOption('season') ? (int) $input->getOption('season') : null;
         $licenseeId = $this->scrapper->findLicenseeIdFromCode($licenseeCode);
 

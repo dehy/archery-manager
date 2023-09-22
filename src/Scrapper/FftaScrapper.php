@@ -11,23 +11,28 @@ use App\DBAL\Types\LicenseType;
 use App\Entity\ContestEvent;
 use App\Entity\License;
 use App\Entity\Result;
-use Doctrine\Common\Collections\ArrayCollection;
-use Goutte\Client;
+use Symfony\Component\BrowserKit\HttpBrowser;
 use Symfony\Component\BrowserKit\Response;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class FftaScrapper
 {
-    protected Client $fftaGoalClient;
-    protected bool $fftaGoalIsConnected = false;
+    protected HttpBrowser $managerSpaceBrowser;
+    protected bool $managerSpaceIsConnected = false;
 
-    protected Client $fftaExtranetClient;
-    protected bool $fftaExtranetIsConnected = false;
-    private string $goalBaseUrl = 'https://ffta-goal.multimediabs.com';
-    private string $extranetBaseUrl = 'https://extranet.ffta.fr';
+    protected HttpBrowser $myFftaSpaceBrowser;
+    protected bool $myFftaSpaceIsConnected = false;
+    private string $managerSpaceBaseUrl = 'https://dirigeant.ffta.fr';
+    private string $myFftaSpaceBaseUrl = 'https://monespace.ffta.fr';
+    private int $structureId = 556;
+    private int $season = 2024;
+    private array $defaultParameters;
+
+    private array $cachedResponse;
 
     public function __construct(
         private readonly string $username,
@@ -36,6 +41,183 @@ class FftaScrapper
         if (!$this->username || !$this->password) {
             throw new \Exception('FFTA Credentials not set');
         }
+
+        $this->defaultParameters = [
+            'draw' => '1',
+            'columns[0][data]' => 'code_adherent',
+            'columns[0][name]' => 'personnes.code_adherent',
+            'columns[0][searchable]' => 'true',
+            'columns[0][orderable]' => 'true',
+            'columns[0][search][value]' => '',
+            'columns[0][search][regex]' => 'false',
+            'columns[1][data]' => 'nom',
+            'columns[1][name]' => 'personnes.nom',
+            'columns[1][searchable]' => 'true',
+            'columns[1][orderable]' => 'true',
+            'columns[1][search][value]' => '',
+            'columns[1][search][regex]' => 'false',
+            'columns[2][data]' => 'prenom',
+            'columns[2][name]' => 'personnes.prenom',
+            'columns[2][searchable]' => 'true',
+            'columns[2][orderable]' => 'true',
+            'columns[2][search][value]' => '',
+            'columns[2][search][regex]' => 'false',
+            'columns[3][data]' => 'sexe',
+            'columns[3][name]' => 'personnes.sexe',
+            'columns[3][searchable]' => 'true',
+            'columns[3][orderable]' => 'true',
+            'columns[3][search][value]' => '',
+            'columns[3][search][regex]' => 'false',
+            'columns[4][data]' => 'ddn',
+            'columns[4][name]' => 'personnes.ddn',
+            'columns[4][searchable]' => 'true',
+            'columns[4][orderable]' => 'true',
+            'columns[4][search][value]' => '',
+            'columns[4][search][regex]' => 'false',
+            'columns[5][data]' => 'etat',
+            'columns[5][name]' => 'licences.etat',
+            'columns[5][searchable]' => 'true',
+            'columns[5][orderable]' => 'true',
+            'columns[5][search][value]' => '',
+            'columns[5][search][regex]' => 'false',
+            'columns[6][data]' => 'date_demande',
+            'columns[6][name]' => 'licences.date_demande',
+            'columns[6][searchable]' => 'true',
+            'columns[6][orderable]' => 'true',
+            'columns[6][search][value]' => '',
+            'columns[6][search][regex]' => 'false',
+            'columns[7][data]' => 'type_libelle',
+            'columns[7][name]' => 'licences_types.libelle',
+            'columns[7][searchable]' => 'true',
+            'columns[7][orderable]' => 'true',
+            'columns[7][search][value]' => '',
+            'columns[7][search][regex]' => 'false',
+            'columns[8][data]' => 'discipline',
+            'columns[8][name]' => 'licences_types.libelle',
+            'columns[8][searchable]' => 'true',
+            'columns[8][orderable]' => 'true',
+            'columns[8][search][value]' => '',
+            'columns[8][search][regex]' => 'false',
+            'columns[9][data]' => 'categorie_age',
+            'columns[9][name]' => 'licences_types.libelle',
+            'columns[9][searchable]' => 'true',
+            'columns[9][orderable]' => 'true',
+            'columns[9][search][value]' => '',
+            'columns[9][search][regex]' => 'false',
+            'columns[10][data]' => 'mutation',
+            'columns[10][name]' => 'licences_types.libelle',
+            'columns[10][searchable]' => 'true',
+            'columns[10][orderable]' => 'true',
+            'columns[10][search][value]' => '',
+            'columns[10][search][regex]' => 'false',
+            'columns[11][data]' => 'surclassement',
+            'columns[11][name]' => 'licences_types.libelle',
+            'columns[11][searchable]' => 'true',
+            'columns[11][orderable]' => 'true',
+            'columns[11][search][value]' => '',
+            'columns[11][search][regex]' => 'false',
+            'columns[12][data]' => 'mail',
+            'columns[12][name]' => 'adresses.mail',
+            'columns[12][searchable]' => 'true',
+            'columns[12][orderable]' => 'true',
+            'columns[12][search][value]' => '',
+            'columns[12][search][regex]' => 'false',
+            'columns[13][data]' => 'telephone',
+            'columns[13][name]' => 'adresses.tel',
+            'columns[13][searchable]' => 'true',
+            'columns[13][orderable]' => 'true',
+            'columns[13][search][value]' => '',
+            'columns[13][search][regex]' => 'false',
+            'columns[14][data]' => 'adresse',
+            'columns[14][name]' => 'adresses.num_voie',
+            'columns[14][searchable]' => 'true',
+            'columns[14][orderable]' => 'true',
+            'columns[14][search][value]' => '',
+            'columns[14][search][regex]' => 'false',
+            'columns[15][data]' => 'code_postal',
+            'columns[15][name]' => 'adresses.code_postal_fr',
+            'columns[15][searchable]' => 'true',
+            'columns[15][orderable]' => 'true',
+            'columns[15][search][value]' => '',
+            'columns[15][search][regex]' => 'false',
+            'columns[16][data]' => 'commune',
+            'columns[16][name]' => 'adresses.commune',
+            'columns[16][searchable]' => 'true',
+            'columns[16][orderable]' => 'true',
+            'columns[16][search][value]' => '',
+            'columns[16][search][regex]' => 'false',
+            'columns[17][data]' => 'representant_legal_1',
+            'columns[17][name]' => 'licences.date_demande',
+            'columns[17][searchable]' => 'true',
+            'columns[17][orderable]' => 'true',
+            'columns[17][search][value]' => '',
+            'columns[17][search][regex]' => 'false',
+            'columns[18][data]' => 'representant_legal_2',
+            'columns[18][name]' => 'licences.date_demande',
+            'columns[18][searchable]' => 'true',
+            'columns[18][orderable]' => 'true',
+            'columns[18][search][value]' => '',
+            'columns[18][search][regex]' => 'false',
+            'order[0][column]' => '1',
+            'order[0][dir]' => 'asc',
+            'start' => '0',
+            // 'length' => '25',
+            'search[value]' => '',
+            'search[regex]' => 'false',
+            'filtres[personne]' => '',
+            'filtres[sexe]' => '',
+            'filtres[saison]' => '',
+            'filtres[etat]' => '*A',
+            'filtres[structure]' => $this->structureId,
+            '_' => time(),
+        ];
+    }
+
+    private function setStructureId(int $structureId): void
+    {
+        $this->structureId = $structureId;
+        $this->defaultParameters['filtres[structure]'] = (string) $structureId;
+    }
+
+    private function setSeason(int $season): void
+    {
+        $this->defaultParameters['filtres[saison]'] = (string) $season;
+    }
+
+    private function fetchLicenseeList(int $season): array
+    {
+        if (!isset($this->cachedResponse) || !$this->cachedResponse) {
+            $this->loginManagerSpace();
+            $this->setSeason($season);
+
+            $parameters = $this->defaultParameters;
+            $queryParameters = http_build_query($parameters, encoding_type: \PHP_QUERY_RFC3986);
+
+            $url = sprintf(
+                '%s/structures/fiche/%s/licencies/ajax?%s',
+                $this->managerSpaceBaseUrl,
+                $this->structureId,
+                $queryParameters,
+            );
+            $this->managerSpaceBrowser->xmlHttpRequest(
+                'GET',
+                $url,
+                [],
+                [],
+                [
+                    'HTTP_ACCEPT' => 'application/json, text/javascript, */*; q=0.01',
+                ],
+            );
+
+            $this->cachedResponse = json_decode(
+                (string) $this->managerSpaceBrowser->getResponse()->getContent(),
+                true,
+                512,
+                \JSON_THROW_ON_ERROR,
+            );
+        }
+
+        return $this->cachedResponse;
     }
 
     /**
@@ -46,34 +228,11 @@ class FftaScrapper
      */
     public function fetchLicenseeIdList(int $season): array
     {
-        $this->loginFftaGoal();
+        $licenseeList = $this->fetchLicenseeList($season);
 
-        $url = sprintf(
-            '%s/licences/afficherlistelicencies?editionAttestation=&idSaison=%s&actifs=false',
-            $this->goalBaseUrl,
-            $season,
-        );
-        $this->fftaGoalClient->xmlHttpRequest(
-            'GET',
-            $url,
-            [],
-            [],
-            [
-                'HTTP_ACCEPT' => 'application/json, text/javascript, */*; q=0.01',
-            ],
-        );
-
-        $licensesData = json_decode(
-            (string) $this->fftaGoalClient->getResponse()->getContent(),
-            true,
-            512,
-            \JSON_THROW_ON_ERROR,
-        );
         $ids = [];
-        foreach ($licensesData['licences'] as $licenseData) {
-            $html = $licenseData[9];
-            $id = preg_replace("/.*FichePersonne_(\\d+)'.*/", '\\1', (string) $html);
-            $ids[] = (int) $id;
+        foreach ($licenseeList['data'] as $licenseeData) {
+            $ids[] = (int) $licenseeData['personne_id'];
         }
 
         return $ids;
@@ -81,126 +240,74 @@ class FftaScrapper
 
     public function findLicenseeIdFromCode(string $memberCode): ?int
     {
-        $this->loginFftaGoal();
+        $this->loginManagerSpace();
 
-        $formUrl = sprintf(
-            '%s/recherchesmulticriteres/rechercherpersonnes',
-            $this->goalBaseUrl,
+        $url = sprintf(
+            '%s/personnes/recherche?personnes_q=%s',
+            $this->managerSpaceBaseUrl,
+            $memberCode,
         );
-        $crawler = $this->fftaGoalClient->request('GET', $formUrl);
+        $this->managerSpaceBrowser->followRedirects(false);
+        $crawler = $this->managerSpaceBrowser->request('GET', $url);
 
-        $form = $crawler
-            ->filter('#formSearchPersonne')
-            ->form(['inputAdherent' => $memberCode]);
-        $crawler = $this->fftaGoalClient->submit($form);
+        $searchStatusCode = $this->managerSpaceBrowser->getResponse()->getStatusCode();
+        // if redirected to /personnes/fiche/$memberid, we got a match
+        if (302 === $searchStatusCode) {
+            $licenseeRecordUrl = $this->managerSpaceBrowser->getResponse()->getHeader('location');
+            preg_match("%/fiche/(\d+)%", (string) $licenseeRecordUrl, $matches);
 
-        $requestUriComponents = parse_url(
-            (string) $this->fftaGoalClient->getRequest()->getUri(),
-        );
-        if ('/personnes/show' === $requestUriComponents['path']) {
-            parse_str($requestUriComponents['query'], $queryParameters);
-
-            /** @var ?int $idPersonne */
-            $idPersonne = $queryParameters['idPersonne'] ?? null;
-            if ($idPersonne) {
-                return (int) $idPersonne;
-            }
-        }
-        $feedbackPanel = $crawler->filter('#feedbackPanel');
-        if (
-            $feedbackPanel->count() > 0
-            && str_contains($feedbackPanel->text(), 'Aucune personne trouv')
-        ) {
+            return (int) $matches[1];
+        } elseif (200 === $searchStatusCode) { // still on /personnes/recherche, no luck
             throw new NotFoundHttpException();
         }
 
         throw new \ErrorException('Something went wrong during the request');
     }
 
-    public function fetchLicenseeProfile(string $fftaId): FftaProfile
+    public function fetchLicenseeProfile(int $fftaId, int $season): FftaProfile
     {
-        $this->loginFftaGoal();
+        $licenseeList = $this->fetchLicenseeList($season);
 
-        $url = sprintf(
-            '%s/personnes/gettabpanel?personne.id=%s&tabId=Coordonnees_Personne',
-            $this->goalBaseUrl,
-            $fftaId,
-        );
-        $crawler = $this->fftaGoalClient->request('GET', $url);
+        $selectedLicenseeData = null;
+        foreach ($licenseeList['data'] as $licenseeData) {
+            if ($fftaId === $licenseeData['personne_id']) {
+                $selectedLicenseeData = $licenseeData;
+                break;
+            }
+        }
 
         $identity = new FftaProfile();
         $identity
             ->setId($fftaId)
             ->setCodeAdherent(
                 $this->clean(
-                    $crawler
-                        ->filterXPath(
-                            "descendant-or-self::*[@id = 'identite.codeAdherent']",
-                        )
-                        ->text(),
+                    $selectedLicenseeData['code_adherent']
                 ),
             )
-            ->setEmail(
-                $this->clean(
-                    $crawler
-                        ->filterXPath("descendant-or-self::*[@id = 'email']")
-                        ->text(),
-                ),
-            )
+            ->setEmail($this->clean($selectedLicenseeData['mail']))
             ->setNom(
                 $this->clean(
-                    $crawler
-                        ->filterXPath(
-                            "descendant-or-self::*[@id = 'identite.nom']",
-                        )
-                        ->text(),
+                    $selectedLicenseeData['nom'],
                     true,
                 ),
             )
             ->setPrenom(
                 $this->clean(
-                    $crawler
-                        ->filterXPath(
-                            "descendant-or-self::*[@id = 'identite.prenom']",
-                        )
-                        ->text(),
+                    $selectedLicenseeData['prenom'],
                     true,
                 ),
-            );
+            )
+            ->setMobile($this->cleanPhoneNumber($selectedLicenseeData['telephone']));
 
-        $mobileNode = $crawler->filterXPath(
-            "descendant-or-self::*[@id = 'mobile']",
-        );
-        $telephoneNode = $crawler->filterXPath(
-            "descendant-or-self::*[@id = 'telephone']",
-        );
-        $phone = null;
-        if ($mobileNode->count() > 0) {
-            $phone = $this->cleanPhoneNumber(
-                $this->clean($mobileNode->text(), true),
-            );
-        } elseif ($telephoneNode->count() > 0) {
-            $phone = $this->cleanPhoneNumber(
-                $this->clean($telephoneNode->text(), true),
-            );
-        }
-        $identity->setMobile($phone);
-
-        $dateNaissanceNode = $crawler->filterXPath(
-            "descendant-or-self::*[@id = 'identite.dateNaissance']",
-        );
         $identity->setDateNaissance(
             \DateTime::createFromFormat(
                 'd/m/Y',
-                $this->clean($dateNaissanceNode->text()),
+                $this->clean($selectedLicenseeData['ddn']),
             ),
         );
 
-        $sexeNode = $crawler->filterXPath(
-            "descendant-or-self::*[@id = 'identite.sexe']",
-        );
         $identity->setSexe(
-            'Homme' === $this->clean($sexeNode->text())
+            'Masculin' === $this->clean($selectedLicenseeData['sexe'])
                 ? GenderType::MALE
                 : GenderType::FEMALE,
         );
@@ -208,27 +315,27 @@ class FftaScrapper
         return $identity;
     }
 
-    public function fetchLicenseeProfilePicture(string $fftaId): ?string
+    public function fetchLicenseeProfilePicture(int $fftaId): ?string
     {
-        $this->loginFftaGoal();
+        $this->loginManagerSpace();
 
         $url = sprintf(
-            '%s/personnes/gettabpanel?personne.id=%s&tabId=Coordonnees_Personne',
-            $this->goalBaseUrl,
+            '%s/personnes/fiche/%s/infos',
+            $this->managerSpaceBaseUrl,
             $fftaId,
         );
-        $crawler = $this->fftaGoalClient->request('GET', $url);
+        $crawler = $this->managerSpaceBrowser->request('GET', $url);
 
-        $profilePictureCrawler = $crawler->filter('[alt="Photo Identité"]');
+        $profilePictureCrawler = $crawler->filter('img.border-white.rounded-circle');
         if (0 === $profilePictureCrawler->count()) {
             return null;
         }
 
         $profilePictureUrl = $profilePictureCrawler->attr('src');
-        $this->fftaGoalClient->request('GET', $profilePictureUrl);
+        $this->managerSpaceBrowser->request('GET', $profilePictureUrl);
 
         /** @var Response $response */
-        $response = $this->fftaGoalClient->getResponse();
+        $response = $this->managerSpaceBrowser->getResponse();
         $content = $response->getContent();
 
         if (200 !== $response->getStatusCode()) {
@@ -243,7 +350,7 @@ class FftaScrapper
             $content = stream_get_contents($stream);
             $contentType = 'image/jpg';
         }
-        if ('image/jpg' !== $contentType) {
+        if ('image/jpeg' !== $contentType && 'image/jpg' !== $contentType) {
             throw new BadRequestException(sprintf('Wrong mimetype for profile picture: %s', $contentType));
         }
 
@@ -251,253 +358,146 @@ class FftaScrapper
     }
 
     /**
-     * @return array<int, License>
-     *
      * @throws \Exception
      */
-    public function fetchLicenseeLicenses(
+    public function fetchLicenseeLicense(
         int $fftaId,
-        int $requestedSeason = null,
-    ): array {
-        $this->loginFftaGoal();
+        int $season,
+    ): License {
+        $this->loginManagerSpace();
 
-        $licences = [];
+        $licenseeList = $this->fetchLicenseeList($season);
 
-        $url = sprintf(
-            '%s/personnes/gettabpanel?personne.id=%s&tabId=Licences_Personne',
-            $this->goalBaseUrl,
-            $fftaId,
-        );
-        $crawler = $this->fftaGoalClient->request('GET', $url);
-        $seasons = $crawler->filter('.dd-item.dd2-item');
-        $seasonIdx = 0;
-        $seasons->each(function ($season) use (
-            &$seasonIdx,
-            &$licences,
-            $requestedSeason,
-        ) {
-            $blockContent = $season->filter('.dd2-content');
-            if (0 == $blockContent->count()) {
-                return;
+        $selectedLicenseeData = null;
+        foreach ($licenseeList['data'] as $licenseeData) {
+            if ($fftaId === $licenseeData['personne_id']) {
+                $selectedLicenseeData = $licenseeData;
+                break;
             }
-            $blockTitle = $blockContent->text();
-            $year = (int) str_replace('Saison ', '', $blockTitle);
+        }
 
-            if ($requestedSeason && $requestedSeason !== $year) {
-                return;
-            }
+        $licence = new License();
+        $licence->setSeason($season);
+        $licence->setActivities([LicenseActivityType::CL]);
 
-            $structure = $season->filterXPath(
-                sprintf(
-                    "descendant-or-self::*[@id = 'licence.structure_%s']",
-                    $seasonIdx,
-                ),
-            );
-            if (0 == $structure->count()) {
-                return;
-            }
-            $clubString = $structure->text();
-            $clubId = preg_replace('/^(\d+).*/', '\1', $clubString);
-            // Si pas archers de guyenne, on zappe
-            // TODO rendre dynamique
-            if ('1033093' != $clubId) {
-                ++$seasonIdx;
+        match ($selectedLicenseeData['type_libelle']) {
+            'Adulte pratique en compétition' => $licence->setType(LicenseType::ADULTES_COMPETITION),
+            'Adulte pratique en club' => $licence->setType(LicenseType::ADULTES_CLUB),
+            'Jeune' => $licence->setType(LicenseType::JEUNES),
+            'Poussin' => $licence->setType(LicenseType::POUSSINS),
+            'Découverte' => $licence->setType(LicenseType::DECOUVERTE),
+            default => throw new \Exception(sprintf("Unknown licence type '%s'", $selectedLicenseeData['type_libelle'])),
+        };
 
-                return;
-            }
-            $etatCrawler = $season->filterXPath(
-                sprintf(
-                    "descendant-or-self::*[@id = 'licence.etat_%s']",
-                    $seasonIdx,
-                ),
-            );
-            if ($etatCrawler->count() > 0) {
-                $etatStr = $this->clean($etatCrawler->text());
-
-                // Si la licence n'est pas active, elle a surement été annulée et remplacée et donc on zappe
-                if ('Actif' !== $etatStr) {
-                    ++$seasonIdx;
-
-                    return;
-                }
-            }
-
-            $licence = new License();
-            $licence->setSeason($year);
-
-            $libelleCrawler = $season->filterXPath(
-                sprintf(
-                    "descendant-or-self::*[@id = 'licence.libelle_%s']",
-                    $seasonIdx,
-                ),
-            );
-            if ($libelleCrawler->count() > 0) {
-                $libelleStr = $this->clean($libelleCrawler->text());
-
-                match ($libelleStr) {
-                    'ADULTE Pratique en compétition' => $licence->setType(LicenseType::ADULTES_COMPETITION),
-                    'ADULTE Pratique en club' => $licence->setType(LicenseType::ADULTES_CLUB),
-                    'Jeune' => $licence->setType(LicenseType::JEUNES),
-                    'Poussin' => $licence->setType(LicenseType::POUSSINS),
-                    'Découverte' => $licence->setType(LicenseType::DECOUVERTE),
-                    default => throw new \Exception(sprintf("Unknown licence type '%s'", $libelleStr)),
-                };
-            }
-
-            $categorieAgeCrawler = $season->filterXPath(
-                sprintf(
-                    "descendant-or-self::*[@id = 'licence.categorieAge_%s']",
-                    $seasonIdx,
-                ),
-            );
-            if ($categorieAgeCrawler->count() > 0) {
-                $categorieAgeStr = $this->clean($categorieAgeCrawler->text());
-
-                switch ($categorieAgeStr) {
-                    case 'Poussin':
-                        $licence->setCategory(LicenseCategoryType::POUSSINS);
-                        $licence->setAgeCategory(
-                            LicenseAgeCategoryType::POUSSIN,
-                        );
-
-                        break;
-                    case 'Benjamin':
-                        $licence->setCategory(LicenseCategoryType::JEUNES);
-                        $licence->setAgeCategory(
-                            LicenseAgeCategoryType::BENJAMIN,
-                        );
-
-                        break;
-                    case 'Minime':
-                        $licence->setCategory(LicenseCategoryType::JEUNES);
-                        $licence->setAgeCategory(
-                            LicenseAgeCategoryType::MINIME,
-                        );
-
-                        break;
-                    case 'Cadet':
-                        $licence->setCategory(LicenseCategoryType::JEUNES);
-                        $licence->setAgeCategory(LicenseAgeCategoryType::CADET);
-
-                        break;
-                    case 'Junior':
-                        $licence->setCategory(LicenseCategoryType::JEUNES);
-                        $licence->setAgeCategory(
-                            LicenseAgeCategoryType::JUNIOR,
-                        );
-
-                        break;
-                    case 'Sénior 1':
-                        $licence->setCategory(LicenseCategoryType::ADULTES);
-                        $licence->setAgeCategory(
-                            LicenseAgeCategoryType::SENIOR_1,
-                        );
-
-                        break;
-                    case 'Sénior 2':
-                        $licence->setCategory(LicenseCategoryType::ADULTES);
-                        $licence->setAgeCategory(
-                            LicenseAgeCategoryType::SENIOR_2,
-                        );
-
-                        break;
-                    case 'Sénior 3':
-                        $licence->setCategory(LicenseCategoryType::ADULTES);
-                        $licence->setAgeCategory(
-                            LicenseAgeCategoryType::SENIOR_3,
-                        );
-
-                        break;
-                    case 'Sénior':
-                    case 'Senior':
-                        $licence->setCategory(LicenseCategoryType::ADULTES);
-                        $licence->setAgeCategory(
-                            LicenseAgeCategoryType::SENIOR,
-                        );
-
-                        break;
-                    case 'U11':
-                        $licence->setCategory(LicenseCategoryType::POUSSINS);
-                        $licence->setAgeCategory(LicenseAgeCategoryType::U11);
-
-                        break;
-                    case 'U13':
-                        $licence->setCategory(LicenseCategoryType::JEUNES);
-                        $licence->setAgeCategory(LicenseAgeCategoryType::U13);
-
-                        break;
-                    case 'U15':
-                        $licence->setCategory(LicenseCategoryType::JEUNES);
-                        $licence->setAgeCategory(LicenseAgeCategoryType::U15);
-
-                        break;
-                    case 'U18':
-                        $licence->setCategory(LicenseCategoryType::JEUNES);
-                        $licence->setAgeCategory(LicenseAgeCategoryType::U18);
-
-                        break;
-                    case 'U21':
-                        $licence->setCategory(LicenseCategoryType::JEUNES);
-                        $licence->setAgeCategory(LicenseAgeCategoryType::U21);
-
-                        break;
-                    case 'Vétéran':
-                    case 'Veteran':
-                        $licence->setCategory(LicenseCategoryType::ADULTES);
-                        $licence->setAgeCategory(
-                            LicenseAgeCategoryType::VETERAN,
-                        );
-
-                        break;
-                    case 'Super Vétéran':
-                    case 'Super Veteran':
-                        $licence->setCategory(LicenseCategoryType::ADULTES);
-                        $licence->setAgeCategory(
-                            LicenseAgeCategoryType::SUPER_VETERAN,
-                        );
-
-                        break;
-                    default:
-                        throw new \Exception(sprintf("Unknown Age Category '%s'", $categorieAgeStr));
-                }
-            }
-
-            $activitesCrawler = $season->filterXPath(
-                sprintf(
-                    "descendant-or-self::*[@id = 'licence%s.activite']",
-                    $seasonIdx + 1,
-                ),
-            );
-            if ($activitesCrawler->count() > 0) {
-                $licenseActivities = new ArrayCollection(
-                    $licence->getActivities(),
+        switch ($selectedLicenseeData['categorie_age']) {
+            case 'Poussin':
+                $licence->setCategory(LicenseCategoryType::POUSSINS);
+                $licence->setAgeCategory(
+                    LicenseAgeCategoryType::POUSSIN,
                 );
-                $listeActivites = explode(',', (string) $activitesCrawler->text());
-                foreach ($listeActivites as $activite) {
-                    $activiteStr = $this->clean($activite);
-                    $activity = match ($activiteStr) {
-                        'Arc Chasse' => LicenseActivityType::AC,
-                        'Arc Classique' => LicenseActivityType::CL,
-                        'Arc Droit' => LicenseActivityType::AD,
-                        'Arc Nu' => LicenseActivityType::BB,
-                        'Arc à Poulies' => LicenseActivityType::CO,
-                        default => null,
-                    };
-                    if (!$activity) {
-                        throw new \Exception(sprintf("Unknown Activity '%s'", $activiteStr));
-                    }
-                    if (!$licenseActivities->contains($activity)) {
-                        $licenseActivities->add($activity);
-                    }
-                }
-                $licence->setActivities($licenseActivities->toArray());
-            }
 
-            $licences[$year] = $licence;
-            ++$seasonIdx;
-        });
+                break;
+            case 'Benjamin':
+                $licence->setCategory(LicenseCategoryType::JEUNES);
+                $licence->setAgeCategory(
+                    LicenseAgeCategoryType::BENJAMIN,
+                );
 
-        return $licences;
+                break;
+            case 'Minime':
+                $licence->setCategory(LicenseCategoryType::JEUNES);
+                $licence->setAgeCategory(
+                    LicenseAgeCategoryType::MINIME,
+                );
+
+                break;
+            case 'Cadet':
+                $licence->setCategory(LicenseCategoryType::JEUNES);
+                $licence->setAgeCategory(LicenseAgeCategoryType::CADET);
+
+                break;
+            case 'Junior':
+                $licence->setCategory(LicenseCategoryType::JEUNES);
+                $licence->setAgeCategory(
+                    LicenseAgeCategoryType::JUNIOR,
+                );
+
+                break;
+            case 'Sénior 1':
+                $licence->setCategory(LicenseCategoryType::ADULTES);
+                $licence->setAgeCategory(
+                    LicenseAgeCategoryType::SENIOR_1,
+                );
+
+                break;
+            case 'Sénior 2':
+                $licence->setCategory(LicenseCategoryType::ADULTES);
+                $licence->setAgeCategory(
+                    LicenseAgeCategoryType::SENIOR_2,
+                );
+
+                break;
+            case 'Sénior 3':
+                $licence->setCategory(LicenseCategoryType::ADULTES);
+                $licence->setAgeCategory(
+                    LicenseAgeCategoryType::SENIOR_3,
+                );
+
+                break;
+            case 'Sénior':
+            case 'Senior':
+                $licence->setCategory(LicenseCategoryType::ADULTES);
+                $licence->setAgeCategory(
+                    LicenseAgeCategoryType::SENIOR,
+                );
+
+                break;
+            case 'U11':
+                $licence->setCategory(LicenseCategoryType::POUSSINS);
+                $licence->setAgeCategory(LicenseAgeCategoryType::U11);
+
+                break;
+            case 'U13':
+                $licence->setCategory(LicenseCategoryType::JEUNES);
+                $licence->setAgeCategory(LicenseAgeCategoryType::U13);
+
+                break;
+            case 'U15':
+                $licence->setCategory(LicenseCategoryType::JEUNES);
+                $licence->setAgeCategory(LicenseAgeCategoryType::U15);
+
+                break;
+            case 'U18':
+                $licence->setCategory(LicenseCategoryType::JEUNES);
+                $licence->setAgeCategory(LicenseAgeCategoryType::U18);
+
+                break;
+            case 'U21':
+                $licence->setCategory(LicenseCategoryType::JEUNES);
+                $licence->setAgeCategory(LicenseAgeCategoryType::U21);
+
+                break;
+            case 'Vétéran':
+            case 'Veteran':
+                $licence->setCategory(LicenseCategoryType::ADULTES);
+                $licence->setAgeCategory(
+                    LicenseAgeCategoryType::VETERAN,
+                );
+
+                break;
+            case 'Super Vétéran':
+            case 'Super Veteran':
+                $licence->setCategory(LicenseCategoryType::ADULTES);
+                $licence->setAgeCategory(
+                    LicenseAgeCategoryType::SUPER_VETERAN,
+                );
+
+                break;
+            default:
+                throw new \Exception(sprintf("Unknown Age Category '%s'", $selectedLicenseeData['categorie_age']));
+        }
+
+        return $licence;
     }
 
     /**
@@ -505,15 +505,15 @@ class FftaScrapper
      */
     public function fetchEvents(mixed $season): array
     {
-        $this->loginFftaExtranet();
+        $this->loginMyFftaSpace();
 
         $events = [];
 
-        $crawler = $this->fftaExtranetClient->request(
+        $crawler = $this->myFftaSpaceBrowser->request(
             'POST',
             sprintf(
                 '%s/gsportive/resultats-mesarchers.html',
-                $this->extranetBaseUrl,
+                $this->myFftaSpaceBaseUrl,
             ),
             [],
             [],
@@ -586,7 +586,7 @@ class FftaScrapper
         /** @var FftaResult[] $fftaResults */
         $fftaResults = [];
 
-        $crawler = $this->fftaExtranetClient->request(
+        $crawler = $this->myFftaSpaceBrowser->request(
             'GET',
             $fftaEvent->getUrl(),
         );
@@ -647,53 +647,55 @@ class FftaScrapper
 
     protected function cleanPhoneNumber(string $number): string
     {
+        $numbers = explode('</br>', $number);
+        $number = \count($numbers) > 1 ? $numbers[0] : $number;
         $number = str_replace(' ', '', $number);
 
         return preg_replace('/^0/', '+33', $number);
     }
 
-    protected function loginFftaGoal(): void
+    protected function loginManagerSpace(): void
     {
-        if ($this->fftaGoalIsConnected) {
+        if ($this->managerSpaceIsConnected) {
             return;
         }
-        $this->fftaGoalClient = new Client();
-        $crawler = $this->fftaGoalClient->request(
+        $this->managerSpaceBrowser = new HttpBrowser(HttpClient::create());
+        $crawler = $this->managerSpaceBrowser->request(
             'GET',
-            sprintf('%s/login', $this->goalBaseUrl),
+            sprintf('%s/auth/login', $this->managerSpaceBaseUrl),
         );
-        $form = $crawler->selectButton('CONNEXION')->form();
-        $this->fftaGoalClient->submit($form, [
+        $form = $crawler->filter('#form-login')->form();
+        $this->managerSpaceBrowser->submit($form, [
             'username' => $this->username,
             'password' => $this->password,
         ]);
 
         /** @var Response $response */
-        $response = $this->fftaGoalClient->getResponse();
+        $response = $this->managerSpaceBrowser->getResponse();
         if (200 !== $response->getStatusCode()) {
             throw new BadRequestHttpException('Bad response from FFTA login procedure');
         }
     }
 
-    protected function loginFftaExtranet(): void
+    protected function loginMyFftaSpace(): void
     {
-        if ($this->fftaExtranetIsConnected) {
+        if ($this->myFftaSpaceIsConnected) {
             return;
         }
-        $this->fftaExtranetClient = new Client();
-        $crawler = $this->fftaExtranetClient->request(
+        $this->myFftaSpaceBrowser = new HttpBrowser(HttpClient::create());
+        $crawler = $this->myFftaSpaceBrowser->request(
             'GET',
-            sprintf('%s', $this->extranetBaseUrl),
+            sprintf('%s', $this->myFftaSpaceBaseUrl),
         );
 
-        $form = $crawler->filter('form[name=identification]')->form();
-        $this->fftaExtranetClient->submit($form, [
-            'login[identifiant]' => $this->username,
-            'login[idpassword]' => $this->password,
+        $form = $crawler->filter('#form-login')->form();
+        $this->myFftaSpaceBrowser->submit($form, [
+            'username' => $this->username,
+            'password' => $this->password,
         ]);
 
         /** @var Response $response */
-        $response = $this->fftaExtranetClient->getResponse();
+        $response = $this->myFftaSpaceBrowser->getResponse();
         if (200 !== $response->getStatusCode()) {
             throw new BadRequestHttpException('Bad response from FFTA login procedure');
         }

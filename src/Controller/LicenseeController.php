@@ -248,7 +248,7 @@ class LicenseeController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $fftaHelper->syncLicenseeWithId($licensee->getFftaId());
+                $fftaHelper->syncLicenseeWithId($licensee->getFftaId(), Season::seasonForDate(new \DateTimeImmutable()));
                 $this->addFlash(
                     'success',
                     sprintf('Le profil de %s a été synchronisé avec succès !', $licensee->getFirstname())
