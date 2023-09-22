@@ -36,7 +36,7 @@ class LicenseeController extends AbstractController
     #[Route('/licensees', name: 'app_licensee_index')]
     public function index(LicenseeRepository $licenseeRepository): Response
     {
-        $year = 2023;
+        $year = 2024;
         $licensees = new ArrayCollection(
             $licenseeRepository->findByLicenseYear($year),
         );

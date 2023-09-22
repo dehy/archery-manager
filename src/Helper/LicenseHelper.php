@@ -13,7 +13,7 @@ use App\Entity\License;
 
 class LicenseHelper
 {
-    protected int $season = 2023;
+    protected int $season = 2024;
 
     protected array $mappingSeason = [
         2023 => [
@@ -26,11 +26,21 @@ class LicenseHelper
             '>2011-01-01_<2012-12-31' => LicenseAgeCategoryType::U13,
             '>2013-01-01' => LicenseAgeCategoryType::U11,
         ],
+        2024 => [
+            '<1965-01-01' => LicenseAgeCategoryType::SENIOR_3,
+            '>1965-01-01_<1984-12-31' => LicenseAgeCategoryType::SENIOR_2,
+            '>1985-01-01_<2003-12-31' => LicenseAgeCategoryType::SENIOR_1,
+            '>2004-01-01_<2006-12-31' => LicenseAgeCategoryType::U21,
+            '>2007-01-01_<2009-12-31' => LicenseAgeCategoryType::U18,
+            '>2010-01-01_<2011-12-31' => LicenseAgeCategoryType::U15,
+            '>2012-01-01_<2013-12-31' => LicenseAgeCategoryType::U13,
+            '>2014-01-01' => LicenseAgeCategoryType::U11,
+        ],
     ];
 
     public function __construct(private readonly LicenseeHelper $licenseeHelper)
     {
-        $this->season = 2023;
+        $this->season = 2024;
     }
 
     public static function getSeasonForDate(\DateTimeInterface $dateTime): int

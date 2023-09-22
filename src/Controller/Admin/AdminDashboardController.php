@@ -43,7 +43,7 @@ class AdminDashboardController extends AbstractDashboardController
             Licensee::class,
         );
         $licensees = new ArrayCollection(
-            $licenseeRepository->findByLicenseYear(2023),
+            $licenseeRepository->findByLicenseYear(2024),
         );
 
         $usersCount = $licensees->count();
@@ -62,7 +62,7 @@ class AdminDashboardController extends AbstractDashboardController
             } else {
                 ++$menCount;
             }
-            if ($license = $licensee->getLicenseForSeason(2023)) {
+            if ($license = $licensee->getLicenseForSeason(2024)) {
                 ++$licenseTypesCount[$license->getType()];
                 ++$licenseAgeCategoryCount[$license->getAgeCategory()];
             }

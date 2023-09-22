@@ -8,7 +8,7 @@ use Money\Money;
 
 class ApplicantHelper
 {
-    protected static int $season = 2023;
+    protected static int $season = 2024;
     protected static ?self $instance = null;
 
     public function __construct(protected LicenseHelper $licenseHelper)

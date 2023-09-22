@@ -51,7 +51,7 @@ class Applicant implements \Stringable
     private \DateTimeImmutable $registeredAt;
 
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
-    private int $season = 2023;
+    private int $season = 2024;
 
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::BOOLEAN)]
     private bool $renewal = false;

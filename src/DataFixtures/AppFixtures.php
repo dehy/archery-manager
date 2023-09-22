@@ -49,7 +49,7 @@ class AppFixtures extends Fixture
         $license = new License();
         $license
             ->setLicensee($licensee)
-            ->setSeason(2023)
+            ->setSeason(2024)
             ->setType(LicenseType::ADULTES_COMPETITION)
             ->setActivities([LicenseActivityType::CL])
             ->setAgeCategory(LicenseAgeCategoryType::SENIOR_1)
@@ -85,7 +85,7 @@ class AppFixtures extends Fixture
             $license = new License();
             $license
                 ->setLicensee($licensee)
-                ->setSeason(2023)
+                ->setSeason(2024)
                 ->setType($this->licenseHelper->licenseTypeForBirthdate($birthdate, (bool) random_int(0, 1)))
                 ->setActivities([LicenseActivityType::CL])
                 ->setAgeCategory($this->licenseHelper->ageCategoryForBirthdate($birthdate))

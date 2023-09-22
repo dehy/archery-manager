@@ -106,7 +106,7 @@ class ApplicantCrudController extends AbstractCrudController
             return $this->redirectToRoute(null);
         }
 
-        $applicants = $applicantRepository->findBy(['season' => 2023]);
+        $applicants = $applicantRepository->findBy(['season' => 2024]);
         $new = $renewal = 0;
         $newAges = [
             '10 ans et moins' => 0,
