@@ -33,6 +33,9 @@ jobs:
           push: false
           load: true
           tags: archery-manager:to_test
+          build-args: |
+            BUILD_DATE=${{ github.event.repository.updated_at}}
+            VCS_REF=${{ github.sha }}
           cache-from: type=gha, scope=${{ github.workflow }}
           cache-to: type=gha, scope=${{ github.workflow }}
       - name: Image digest

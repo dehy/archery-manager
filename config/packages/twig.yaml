@@ -4,6 +4,7 @@ twig:
     paths:
         '%kernel.project_dir%/assets/styles': styles
     globals:
+        app_revision: '%env(APP_REVISION)%'
         apiUrl: '%env(APP_URL)%/api'
         licenseeHelper: '@App\Helper\LicenseeHelper'
         licenseHelper: '@App\Helper\LicenseHelper'
