@@ -20,7 +20,7 @@ final class DateTimeImmutableProvider extends Base
      *
      * @example DateTimeImmutable('2005-08-16 20:39:21')
      */
-    public static function dateTimeImmutable(\DateTime|int|string $max = 'now', ?string $timezone = null): \DateTimeImmutable
+    public static function dateTimeImmutable(\DateTime|int|string $max = 'now', string $timezone = null): \DateTimeImmutable
     {
         $datetimeMutable = DateTime::dateTime($max, $timezone);
 

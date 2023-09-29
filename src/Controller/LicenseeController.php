@@ -261,7 +261,8 @@ class LicenseeController extends BaseController
             try {
                 $fftaHelper->syncLicenseeWithId(
                     $clubHelper->activeClub(),
-                    $licensee->getFftaId()
+                    $licensee->getFftaId(),
+                    $this->seasonHelper->getSelectedSeason(),
                 );
                 $this->addFlash(
                     'success',
