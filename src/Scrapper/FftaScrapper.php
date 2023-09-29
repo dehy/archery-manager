@@ -665,8 +665,8 @@ class FftaScrapper
         );
         $form = $crawler->filter('#form-login')->form();
         $this->managerSpaceBrowser->submit($form, [
-            'username' => $this->username,
-            'password' => $this->password,
+            'username' => $this->club->getFftaUsername(),
+            'password' => $this->club->getFftaPassword(),
         ]);
 
         /** @var Response $response */
@@ -689,8 +689,8 @@ class FftaScrapper
 
         $form = $crawler->filter('#form-login')->form();
         $this->myFftaSpaceBrowser->submit($form, [
-            'username' => $this->username,
-            'password' => $this->password,
+            'username' => $this->club->getFftaUsername(),
+            'password' => $this->club->getFftaPassword(),
         ]);
 
         /** @var Response $response */

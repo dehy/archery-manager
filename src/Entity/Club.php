@@ -124,7 +124,7 @@ class Club implements \Stringable
      * must be able to accept an instance of 'File' as the bundle will inject one here
      * during Doctrine hydration.
      */
-    public function setLogo(?File $logo = null): void
+    public function setLogo(File $logo = null): void
     {
         $this->logo = $logo;
 

@@ -20,7 +20,7 @@ class TrainingEvent extends Event
         $participations = $this->participations;
         foreach ($this->getAssignedGroups() as $assignedGroup) {
             foreach ($assignedGroup->getLicensees() as $licensee) {
-                if ($this->participations->exists(fn(int $key, EventParticipation $element) => $element->getParticipant() === $licensee)) {
+                if ($this->participations->exists(fn (int $key, EventParticipation $element) => $element->getParticipant() === $licensee)) {
                     continue;
                 }
                 $participations[] = (new EventParticipation())
