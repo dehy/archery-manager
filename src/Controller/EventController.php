@@ -9,6 +9,7 @@ use App\DBAL\Types\TargetTypeType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\EventAttachment;
+use App\Entity\FreeTrainingEvent;
 use App\Entity\HobbyContestEvent;
 use App\Entity\Result;
 use App\Entity\Season;
@@ -234,7 +235,7 @@ class EventController extends AbstractController
         $modalTemplate = $request->query->getBoolean('modal');
         $templateSuffix = match ($event::class) {
             ContestEvent::class, HobbyContestEvent::class => '_contest',
-            TrainingEvent::class => '_training',
+            TrainingEvent::class, FreeTrainingEvent::class => '_training',
             default => '_default',
         };
         $template = $modalTemplate ? 'event/show.modal.html.twig' : sprintf('event/show%s.html.twig', $templateSuffix);

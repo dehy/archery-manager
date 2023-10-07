@@ -6,6 +6,7 @@ use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
+use App\Entity\FreeTrainingEvent;
 use App\Entity\Group;
 use App\Entity\HobbyContestEvent;
 use App\Entity\TrainingEvent;
@@ -91,6 +92,7 @@ class RecurringEventGenerateCommand extends Command
                 EventType::CONTEST_OFFICIAL => ContestEvent::class,
                 EventType::CONTEST_HOBBY => HobbyContestEvent::class,
                 EventType::TRAINING => TrainingEvent::class,
+                EventType::FREE_TRAINING => FreeTrainingEvent::class,
                 default => Event::class,
             };
             $event = new $eventClass();

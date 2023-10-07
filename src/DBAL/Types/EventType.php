@@ -4,6 +4,7 @@ namespace App\DBAL\Types;
 
 use App\Entity\ContestEvent;
 use App\Entity\Event;
+use App\Entity\FreeTrainingEvent;
 use App\Entity\HobbyContestEvent;
 use App\Entity\TrainingEvent;
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
@@ -14,12 +15,14 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 final class EventType extends AbstractEnumType
 {
     public const TRAINING = TrainingEvent::class;
+    public const FREE_TRAINING = FreeTrainingEvent::class;
     public const CONTEST_OFFICIAL = ContestEvent::class;
     public const CONTEST_HOBBY = HobbyContestEvent::class;
     public const OTHER = Event::class;
 
     protected static array $choices = [
         self::TRAINING => 'Entraînement',
+        self::FREE_TRAINING => 'Entraînement libre',
         self::CONTEST_OFFICIAL => 'Concours',
         self::CONTEST_HOBBY => 'Concours Loisir',
         self::OTHER => 'Autre',
@@ -28,10 +31,11 @@ final class EventType extends AbstractEnumType
     public static function colorCode(Event $event): string
     {
         return match ($event::class) {
-            self::TRAINING => '#00CC00',
-            self::CONTEST_OFFICIAL => '#CC0000',
-            self::CONTEST_HOBBY => '#0000CC',
-            default => '#CCCCCC',
+            self::TRAINING => '#00A0FF',
+            self::FREE_TRAINING => '#B3E3FF',
+            self::CONTEST_OFFICIAL => '#FF6700',
+            self::CONTEST_HOBBY => '#FFD2B4',
+            default => '#808080',
         };
     }
 }

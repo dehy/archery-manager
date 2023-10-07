@@ -69,9 +69,11 @@ class LicenseHelper
             if (\in_array($licenseType, [LicenseType::ADULTES_CLUB, LicenseType::JEUNES, LicenseType::POUSSINS])) {
                 $isValid = true;
             }
-        } elseif (EventType::TRAINING) {
+        } elseif (EventType::TRAINING === $event::class) {
             $isValid = true;
-        } elseif (EventType::OTHER) {
+        } elseif (EventType::FREE_TRAINING === $event::class) {
+            $isValid = true;
+        } elseif (EventType::OTHER === $event::class) {
             $isValid = true;
         }
 

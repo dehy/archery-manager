@@ -17,6 +17,7 @@ use Doctrine\ORM\Mapping as ORM;
     'contest_official' => ContestEvent::class,
     'contest_hobby' => HobbyContestEvent::class,
     'training' => TrainingEvent::class,
+    'free_training' => FreeTrainingEvent::class,
     'other' => Event::class,
 ])]
 #[ORM\HasLifecycleCallbacks]

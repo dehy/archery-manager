@@ -8,6 +8,7 @@ use App\DBAL\Types\LicenseType;
 use App\Entity\Applicant;
 use App\Entity\ContestEvent;
 use App\Entity\EventParticipation;
+use App\Entity\FreeTrainingEvent;
 use App\Entity\Group;
 use App\Entity\HobbyContestEvent;
 use App\Entity\License;
@@ -132,6 +133,11 @@ class AdminDashboardController extends AbstractDashboardController
             'Entrainements',
             'fa-regular fa-calendar',
             TrainingEvent::class,
+        );
+        yield MenuItem::linkToCrud(
+            'Entrainements Libres',
+            'fa-regular fa-calendar',
+            FreeTrainingEvent::class,
         );
         yield MenuItem::linkToCrud(
             'Concours',
