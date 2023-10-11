@@ -7,7 +7,6 @@ use App\Controller\Admin\Filter\LicenseSeasonFilter;
 use App\DBAL\Types\GenderType;
 use App\Entity\Licensee;
 use App\Helper\EmailHelper;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -22,7 +21,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class LicenseeCrudController extends AbstractCrudController
 {
@@ -97,21 +95,6 @@ class LicenseeCrudController extends AbstractCrudController
             ->add(LicenseSeasonFilter::new())
             ->add(ClubFilter::new())
             ->add('groups');
-    }
-
-    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
-    {
-        $entityManager->persist($entityInstance);
-        $entityManager->beginTransaction();
-        try {
-            $this->emailHelper->sendWelcomeEmail($entityInstance);
-
-            $entityManager->flush();
-            $entityManager->commit();
-        } catch (TransportExceptionInterface $exception) {
-            $entityManager->rollback();
-            throw $exception;
-        }
     }
 
     public function resendWelcomeEmail(AdminContext $context): RedirectResponse

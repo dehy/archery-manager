@@ -5,6 +5,7 @@ namespace App\Helper;
 use App\Entity\Club;
 use App\Entity\Licensee;
 use App\Entity\Season;
+use App\Exception\NoActiveClubException;
 
 class ClubHelper
 {
@@ -18,9 +19,14 @@ class ClubHelper
         return $this->licenseHelper->getCurrentLicenseeCurrentLicense()?->getClub();
     }
 
-    public function activeClubFor(Licensee $licensee): ?Club
+    public function activeClubFor(Licensee $licensee): Club
     {
-        return $licensee->getLicenseForSeason(Season::seasonForDate(new \DateTimeImmutable()))?->getClub();
+        $club = $licensee->getLicenseForSeason(Season::seasonForDate(new \DateTimeImmutable()))?->getClub();
+        if (!$club) {
+            throw new NoActiveClubException();
+        }
+
+        return $club;
     }
 
     public function primaryColor(): string

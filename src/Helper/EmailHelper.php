@@ -22,7 +22,7 @@ class EmailHelper
         $email = (new TemplatedEmail())
             ->to($licensee->getUser()->getEmail())
             ->replyTo($club->getContactEmail())
-            ->subject(sprintf('Bienvenue aux %s', $club->getName()))
+            ->subject(sprintf('%s - Bienvenue', $club->getName()))
             ->htmlTemplate(
                 'licensee/mail_account_created.html.twig',
             )

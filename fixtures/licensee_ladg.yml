@@ -28,7 +28,7 @@ App\Entity\Licensee:
 
 App\Entity\License:
     license_licensee_ladg_{1..10}:
-        season: 2023
+        season: 2024
         type: 'A'
         category: 'A'
         ageCategory: 'S1'
