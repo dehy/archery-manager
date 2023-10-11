@@ -2,8 +2,6 @@
 
 namespace App\Tests;
 
-use App\DBAL\Types\UserRoleType;
-use App\Entity\Event;
 use App\Repository\EventRepository;
 
 /**
@@ -33,38 +31,47 @@ class SmokeTest extends LoggedInTestCase
     }
 
     /**
-     * @dataProvider privateUrlsProvider
+     * @dataProvider adminPrivateUrlsProvider
      */
-    public function testPrivateUrlsAsAdmin(string $url, string $requiredRole): void
+    public function testPrivateUrlsAsAdmin(string $url): void
     {
         $client = static::createLoggedInAsAdminClient();
         $client->request('GET', $url);
         self::assertResponseIsSuccessful();
     }
 
+    public function adminPrivateUrlsProvider(): array
+    {
+        return [
+            ['/', true],
+            ['/my-account', true],
+            ['/admin', true],
+        ];
+    }
+
     /**
-     * @dataProvider privateUrlsProvider
+     * @dataProvider userPrivateUrlsProvider
      */
-    public function testPrivateUrlsAsUser(string $url, string $requiredRole): void
+    public function testPrivateUrlsAsUser(string $url, bool $authorized): void
     {
         $client = static::createLoggedInAsUserClient();
         $client->request('GET', $url);
-        if (UserRoleType::USER === $requiredRole) {
+        if ($authorized) {
             self::assertResponseIsSuccessful();
         } else {
             self::assertResponseStatusCodeSame(403);
         }
     }
 
-    public function privateUrlsProvider(): array
+    public function userPrivateUrlsProvider(): array
     {
         return [
-            ['/', UserRoleType::USER],
-            ['/licensees', UserRoleType::USER],
-            ['/events', UserRoleType::USER],
-            ['/my-account', UserRoleType::USER],
-            ['/my-profile', UserRoleType::USER],
-            ['/admin', UserRoleType::ADMIN],
+            ['/', true],
+            ['/licensees', true],
+            ['/events', true],
+            ['/my-account', true],
+            ['/my-profile', true],
+            ['/admin', false],
         ];
     }
 
@@ -83,19 +90,14 @@ class SmokeTest extends LoggedInTestCase
     {
         $client = static::createLoggedInAsUserClient();
 
-        $event = $this->findEvent(1);
+        $eventRepository = self::getContainer()->get(EventRepository::class);
+        $events = $eventRepository->findAll();
+        $event = reset($events);
         $crawler = $client->request('GET', '/events/'.$event->getSlug());
 
         $calendarLink = $crawler->selectLink('Ajouter à mon calendrier')->link();
         $client->click($calendarLink);
 
         self::assertResponseIsSuccessful();
-    }
-
-    private function findEvent(int $id): ?Event
-    {
-        $eventRepository = self::getContainer()->get(EventRepository::class);
-
-        return $eventRepository->find($id);
     }
 }
