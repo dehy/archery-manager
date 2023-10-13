@@ -52,13 +52,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     private ?string $phoneNumber = null;
 
     /**
-     * @var Collection<int, Licensee>|Licensee[]
+     * @var Collection<int, Licensee>
      */
     #[
         ORM\OneToMany(
             mappedBy: 'user',
             targetEntity: Licensee::class,
-            cascade: ['remove']
+            cascade: ['remove'],
+            fetch: 'EAGER',
         ),
     ]
     private Collection $licensees;
@@ -256,12 +257,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
 
     public function hasLicenseeWithCode(string $fftaCode): bool
     {
-        return isset($this->getLicensees()[$fftaCode]);
+        return null !== $this->getLicenseeWithCode($fftaCode);
     }
 
     public function getLicenseeWithCode(string $fftaCode): ?Licensee
     {
-        return $this->getLicensees()[$fftaCode] ?? null;
+        foreach ($this->getLicensees() as $licensee) {
+            if ($licensee->getFftaMemberCode() === $fftaCode) {
+                return $licensee;
+            }
+        }
+
+        return null;
     }
 
     public function isIsVerified(): ?bool

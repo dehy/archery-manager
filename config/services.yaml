@@ -53,3 +53,11 @@ services:
     App\DataFixtures\Faker\Provider\DateTimeImmutableProvider: ~
     App\DataFixtures\Faker\Provider\RecurringDateTimeProvider: ~
     App\DataFixtures\Faker\Provider\FftaCodeProvider: ~
+
+when@test:
+    services:
+        App\Security\TokenStorageDecorator:
+            decorates: 'security.token_storage'
+            arguments:
+                $storage: '@security.untracked_token_storage'
+                $container: '@service_container'

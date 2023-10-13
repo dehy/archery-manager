@@ -29,7 +29,7 @@ class LicenseeHelper
         $licenseeCode = $this->requestStack
             ->getSession()
             ->get(self::SESSION_KEY);
-        if (null !== $licenseeCode && !$user->getLicensees()->containsKey($licenseeCode)) {
+        if (null !== $licenseeCode && !$user->hasLicenseeWithCode($licenseeCode)) {
             $licenseeCode = null;
         }
         if (null === $licenseeCode) {
@@ -41,13 +41,8 @@ class LicenseeHelper
 
             return $licensee;
         }
-        foreach ($user->getLicensees() as $licensee) {
-            if ($licensee->getFftaMemberCode() === $licenseeCode) {
-                return $licensee;
-            }
-        }
 
-        throw new \LogicException('Should have get a licensee.');
+        return $user->getLicenseeWithCode($licenseeCode);
     }
 
     public function setSelectedLicensee(?Licensee $licensee): void
