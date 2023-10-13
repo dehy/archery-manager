@@ -3,7 +3,7 @@
 namespace App\Twig;
 
 use App\Entity\Event;
-use Knp\Bundle\TimeBundle\Twig\Extension\TimeExtension;
+use Knp\Bundle\TimeBundle\DateTimeFormatter;
 use Twig\Environment;
 use Twig\Extension\AbstractExtension;
 use Twig\Extra\Intl\IntlExtension;
@@ -13,7 +13,7 @@ class EventDateExtension extends AbstractExtension
 {
     public function __construct(
         private readonly IntlExtension $intlExtension,
-        private readonly TimeExtension $timeExtension
+        private readonly DateTimeFormatter $dateTimeFormatter
     ) {
     }
 
@@ -80,7 +80,7 @@ class EventDateExtension extends AbstractExtension
             return 'en ce moment';
         }
 
-        return $this->timeExtension->diff($date, $now, 'fr');
+        return $this->dateTimeFormatter->formatDiff($date, $now, 'fr');
     }
 
     private function formatDate(Environment $environment, \DateTimeInterface $datetime): string
