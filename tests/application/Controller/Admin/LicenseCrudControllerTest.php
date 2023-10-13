@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Controller\Admin;
+namespace App\Tests\application\Controller\Admin;
 
 use App\DBAL\Types\GenderType;
 use App\DBAL\Types\LicenseActivityType;
@@ -8,7 +8,7 @@ use App\DBAL\Types\LicenseType;
 use App\Entity\Licensee;
 use App\Entity\Season;
 use App\Entity\User;
-use App\Tests\LoggedInTestCase;
+use App\Tests\application\LoggedInTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 
 class LicenseCrudControllerTest extends LoggedInTestCase

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests;
+namespace App\Tests\application;
 
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -14,6 +14,7 @@ class LoggedInTestCase extends WebTestCase
     protected static function createLoggedInAsAdminClient(): KernelBrowser
     {
         $client = parent::createClient();
+        /** @var UserRepository $userRepository */
         $userRepository = static::getContainer()->get(UserRepository::class);
         $admin = $userRepository->findOneByEmail('admin@acme.org');
         $client->loginUser($admin);
@@ -24,6 +25,7 @@ class LoggedInTestCase extends WebTestCase
     protected static function createLoggedInAsUserClient(): KernelBrowser
     {
         $client = parent::createClient();
+        /** @var UserRepository $userRepository */
         $userRepository = static::getContainer()->get(UserRepository::class);
         $user = $userRepository->findOneByEmail('user1@ladg.com');
         $client->loginUser($user);
