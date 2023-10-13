@@ -25,6 +25,8 @@ App\Entity\Licensee:
         birthdate: '<dateTimeBetween("-75 years", "-10 years")>'
         fftaId (unique): '<fftaId()>'
         fftaMemberCode (unique): '<fftaCode($fftaId)>'
+        groups:
+            - '@group_ladg_competiteurs'
     licensee_ladg_{11..20}:
         user: '@user_ladg_<($current-10)>'
         gender: '<enum("GenderType")>'

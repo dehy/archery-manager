@@ -67,6 +67,7 @@ class EventRepository extends ServiceEntityRepository
                 )
                 ->orderBy('e.startsAt', Criteria::ASC)
                 ->addOrderBy('e.endsAt', Criteria::ASC)
+                ->groupBy('e.id')
                 ->setParameter('now', new \DateTime())
                 ->setParameter('groups', $licensee->getGroups())
                 ->setParameter('club', $licensee->getLicenseForSeason($season)?->getClub())
