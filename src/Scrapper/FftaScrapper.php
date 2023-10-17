@@ -383,7 +383,7 @@ class FftaScrapper
             'Adulte pratique en compétition' => $licence->setType(LicenseType::ADULTES_COMPETITION),
             'Adulte pratique en club' => $licence->setType(LicenseType::ADULTES_CLUB),
             'Jeune' => $licence->setType(LicenseType::JEUNES),
-            'Poussin' => $licence->setType(LicenseType::POUSSINS),
+            'U11' => $licence->setType(LicenseType::POUSSINS),
             'Découverte' => $licence->setType(LicenseType::DECOUVERTE),
             default => throw new \Exception(sprintf("Unknown licence type '%s'", $selectedLicenseeData['type_libelle'])),
         };
