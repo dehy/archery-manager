@@ -126,7 +126,7 @@ class FftaHelper
             $this->entityManager->persist($licensee);
 
             try {
-                $this->emailHelper->sendWelcomeEmail($licensee);
+                $this->emailHelper->sendWelcomeEmail($licensee, $club);
             } catch (TransportExceptionInterface $exception) {
                 $this->entityManager->rollback();
 

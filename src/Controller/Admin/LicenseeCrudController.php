@@ -6,6 +6,7 @@ use App\Controller\Admin\Filter\ClubFilter;
 use App\Controller\Admin\Filter\LicenseSeasonFilter;
 use App\DBAL\Types\GenderType;
 use App\Entity\Licensee;
+use App\Helper\ClubHelper;
 use App\Helper\EmailHelper;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -26,7 +27,8 @@ class LicenseeCrudController extends AbstractCrudController
 {
     public function __construct(
         protected AdminUrlGenerator $urlGenerator,
-        protected readonly EmailHelper $emailHelper
+        protected readonly EmailHelper $emailHelper,
+        protected readonly ClubHelper $clubHelper,
     ) {
     }
 
@@ -101,7 +103,8 @@ class LicenseeCrudController extends AbstractCrudController
     {
         /** @var Licensee $licensee */
         $licensee = $context->getEntity()->getInstance();
-        $this->emailHelper->sendWelcomeEmail($licensee);
+        $club = $this->clubHelper->activeClubFor($licensee);
+        $this->emailHelper->sendWelcomeEmail($licensee, $club);
 
         $detailUrl = $this->urlGenerator->setAction('detail')->generateUrl();
 

@@ -62,7 +62,7 @@ class LicenseCrudController extends AbstractCrudController
         $entityManager->persist($license);
         $entityManager->beginTransaction();
         try {
-            $this->emailHelper->sendWelcomeEmail($license->getLicensee());
+            $this->emailHelper->sendWelcomeEmail($license->getLicensee(), $license->getClub());
 
             $entityManager->flush();
             $entityManager->commit();
