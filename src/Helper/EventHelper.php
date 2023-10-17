@@ -2,11 +2,9 @@
 
 namespace App\Helper;
 
-use App\DBAL\Types\EventParticipationStateType;
 use App\Entity\Event;
 use App\Entity\EventParticipation;
 use App\Entity\Licensee;
-use App\Entity\TrainingEvent;
 use App\Repository\EventParticipationRepository;
 
 class EventHelper
@@ -26,9 +24,6 @@ class EventHelper
             $eventParticipation = new EventParticipation();
             $eventParticipation->setEvent($event);
             $eventParticipation->setParticipant($licensee);
-            if (TrainingEvent::class === $event::class) {
-                $eventParticipation->setParticipationState(EventParticipationStateType::REGISTERED);
-            }
         }
 
         return $eventParticipation;
