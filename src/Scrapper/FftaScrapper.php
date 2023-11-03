@@ -376,6 +376,7 @@ class FftaScrapper
         }
 
         $licence = new License();
+        $licence->setClub($this->club);
         $licence->setSeason($season);
         $licence->setActivities([LicenseActivityType::CL]);
 

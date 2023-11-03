@@ -126,14 +126,14 @@ class LicenseeAttachment extends Attachment
 
     public function __serialize()
     {
-        $toSerialize = new \stdClass();
-        $toSerialize->id = $this->getId();
-        $toSerialize->licensee = $this->getLicensee()->getId();
-        $toSerialize->season = $this->getSeason();
-        $toSerialize->type = $this->getType();
-        $toSerialize->documentDate = $this->getDocumentDate();
-        $toSerialize->uploadedFile = $this->getUploadedFile()->getFilename();
+        $array = [];
+        $array['id'] = $this->getId();
 
-        return (array) $toSerialize;
+        return $array;
+    }
+
+    public function __unserialize(array $data)
+    {
+        $this->id = $data['id'];
     }
 }
