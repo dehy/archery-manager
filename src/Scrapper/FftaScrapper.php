@@ -375,120 +375,120 @@ class FftaScrapper
             }
         }
 
-        $licence = new License();
-        $licence->setClub($this->club);
-        $licence->setSeason($season);
-        $licence->setActivities([LicenseActivityType::CL]);
+        $license = new License();
+        $license->setClub($this->club);
+        $license->setSeason($season);
+        $license->setActivities([LicenseActivityType::CL]);
 
         match ($selectedLicenseeData['type_libelle']) {
-            'Adulte pratique en compétition' => $licence->setType(LicenseType::ADULTES_COMPETITION),
-            'Adulte pratique en club' => $licence->setType(LicenseType::ADULTES_CLUB),
-            'Jeune' => $licence->setType(LicenseType::JEUNES),
-            'U11' => $licence->setType(LicenseType::POUSSINS),
-            'Découverte' => $licence->setType(LicenseType::DECOUVERTE),
+            'Adulte pratique en compétition' => $license->setType(LicenseType::ADULTES_COMPETITION),
+            'Adulte pratique en club' => $license->setType(LicenseType::ADULTES_CLUB),
+            'Jeune' => $license->setType(LicenseType::JEUNES),
+            'U11' => $license->setType(LicenseType::POUSSINS),
+            'Découverte' => $license->setType(LicenseType::DECOUVERTE),
             default => throw new \Exception(sprintf("Unknown licence type '%s'", $selectedLicenseeData['type_libelle'])),
         };
 
         switch ($selectedLicenseeData['categorie_age']) {
             case 'Poussin':
-                $licence->setCategory(LicenseCategoryType::POUSSINS);
-                $licence->setAgeCategory(
+                $license->setCategory(LicenseCategoryType::POUSSINS);
+                $license->setAgeCategory(
                     LicenseAgeCategoryType::POUSSIN,
                 );
 
                 break;
             case 'Benjamin':
-                $licence->setCategory(LicenseCategoryType::JEUNES);
-                $licence->setAgeCategory(
+                $license->setCategory(LicenseCategoryType::JEUNES);
+                $license->setAgeCategory(
                     LicenseAgeCategoryType::BENJAMIN,
                 );
 
                 break;
             case 'Minime':
-                $licence->setCategory(LicenseCategoryType::JEUNES);
-                $licence->setAgeCategory(
+                $license->setCategory(LicenseCategoryType::JEUNES);
+                $license->setAgeCategory(
                     LicenseAgeCategoryType::MINIME,
                 );
 
                 break;
             case 'Cadet':
-                $licence->setCategory(LicenseCategoryType::JEUNES);
-                $licence->setAgeCategory(LicenseAgeCategoryType::CADET);
+                $license->setCategory(LicenseCategoryType::JEUNES);
+                $license->setAgeCategory(LicenseAgeCategoryType::CADET);
 
                 break;
             case 'Junior':
-                $licence->setCategory(LicenseCategoryType::JEUNES);
-                $licence->setAgeCategory(
+                $license->setCategory(LicenseCategoryType::JEUNES);
+                $license->setAgeCategory(
                     LicenseAgeCategoryType::JUNIOR,
                 );
 
                 break;
             case 'Sénior 1':
-                $licence->setCategory(LicenseCategoryType::ADULTES);
-                $licence->setAgeCategory(
+                $license->setCategory(LicenseCategoryType::ADULTES);
+                $license->setAgeCategory(
                     LicenseAgeCategoryType::SENIOR_1,
                 );
 
                 break;
             case 'Sénior 2':
-                $licence->setCategory(LicenseCategoryType::ADULTES);
-                $licence->setAgeCategory(
+                $license->setCategory(LicenseCategoryType::ADULTES);
+                $license->setAgeCategory(
                     LicenseAgeCategoryType::SENIOR_2,
                 );
 
                 break;
             case 'Sénior 3':
-                $licence->setCategory(LicenseCategoryType::ADULTES);
-                $licence->setAgeCategory(
+                $license->setCategory(LicenseCategoryType::ADULTES);
+                $license->setAgeCategory(
                     LicenseAgeCategoryType::SENIOR_3,
                 );
 
                 break;
             case 'Sénior':
             case 'Senior':
-                $licence->setCategory(LicenseCategoryType::ADULTES);
-                $licence->setAgeCategory(
+                $license->setCategory(LicenseCategoryType::ADULTES);
+                $license->setAgeCategory(
                     LicenseAgeCategoryType::SENIOR,
                 );
 
                 break;
             case 'U11':
-                $licence->setCategory(LicenseCategoryType::POUSSINS);
-                $licence->setAgeCategory(LicenseAgeCategoryType::U11);
+                $license->setCategory(LicenseCategoryType::POUSSINS);
+                $license->setAgeCategory(LicenseAgeCategoryType::U11);
 
                 break;
             case 'U13':
-                $licence->setCategory(LicenseCategoryType::JEUNES);
-                $licence->setAgeCategory(LicenseAgeCategoryType::U13);
+                $license->setCategory(LicenseCategoryType::JEUNES);
+                $license->setAgeCategory(LicenseAgeCategoryType::U13);
 
                 break;
             case 'U15':
-                $licence->setCategory(LicenseCategoryType::JEUNES);
-                $licence->setAgeCategory(LicenseAgeCategoryType::U15);
+                $license->setCategory(LicenseCategoryType::JEUNES);
+                $license->setAgeCategory(LicenseAgeCategoryType::U15);
 
                 break;
             case 'U18':
-                $licence->setCategory(LicenseCategoryType::JEUNES);
-                $licence->setAgeCategory(LicenseAgeCategoryType::U18);
+                $license->setCategory(LicenseCategoryType::JEUNES);
+                $license->setAgeCategory(LicenseAgeCategoryType::U18);
 
                 break;
             case 'U21':
-                $licence->setCategory(LicenseCategoryType::JEUNES);
-                $licence->setAgeCategory(LicenseAgeCategoryType::U21);
+                $license->setCategory(LicenseCategoryType::JEUNES);
+                $license->setAgeCategory(LicenseAgeCategoryType::U21);
 
                 break;
             case 'Vétéran':
             case 'Veteran':
-                $licence->setCategory(LicenseCategoryType::ADULTES);
-                $licence->setAgeCategory(
+                $license->setCategory(LicenseCategoryType::ADULTES);
+                $license->setAgeCategory(
                     LicenseAgeCategoryType::VETERAN,
                 );
 
                 break;
             case 'Super Vétéran':
             case 'Super Veteran':
-                $licence->setCategory(LicenseCategoryType::ADULTES);
-                $licence->setAgeCategory(
+                $license->setCategory(LicenseCategoryType::ADULTES);
+                $license->setAgeCategory(
                     LicenseAgeCategoryType::SUPER_VETERAN,
                 );
 
@@ -497,7 +497,7 @@ class FftaScrapper
                 throw new \Exception(sprintf("Unknown Age Category '%s'", $selectedLicenseeData['categorie_age']));
         }
 
-        return $licence;
+        return $license;
     }
 
     /**
