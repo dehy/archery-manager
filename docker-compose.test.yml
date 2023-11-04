@@ -15,7 +15,7 @@ services:
     command: sut
 
   database:
-    image: mariadb:${MARIADB_VERSION:-10.8.2}
+    image: mariadb:${MARIADB_VERSION:-10.11.5}
     environment:
       MARIADB_RANDOM_ROOT_PASSWORD: "yes"
       MARIADB_DATABASE: app_test
