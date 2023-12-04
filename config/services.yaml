@@ -35,6 +35,9 @@ services:
     Twig\Extra\Intl\IntlExtension:
         alias: 'twig.extension.intl'
 
+    Doctrine\Common\Annotations\Reader:
+        class: Doctrine\Common\Annotations\AnnotationReader
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 

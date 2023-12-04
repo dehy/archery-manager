@@ -276,3 +276,7 @@ yarn-error.log
 ###< friendsofphp/php-cs-fixer ###
 
 /REVISION
+
+###> phpstan/phpstan ###
+phpstan.neon
+###< phpstan/phpstan ###

@@ -16,11 +16,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ContestEventRepository::class)]
 class ContestEvent extends Event
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
-    private ?int $id = null;
-
     #[ORM\Column(type: 'ContestType', nullable: true)]
     private ?string $contestType = null;
 

@@ -22,6 +22,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class Event implements \Stringable
 {
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
+    private ?int $id = null;
+
     #[ORM\ManyToOne(targetEntity: Club::class, inversedBy: 'events')]
     #[ORM\JoinColumn]
     protected ?Club $club = null;
@@ -76,10 +81,6 @@ class Event implements \Stringable
 
     #[ORM\Column]
     protected ?\DateTimeImmutable $updatedAt = null;
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
-    private ?int $id = null;
 
     public function __construct()
     {
