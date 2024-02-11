@@ -53,7 +53,7 @@ class EventController extends BaseController
             ->findForLicenseeByMonthAndYear($this->licenseeHelper->getLicenseeFromSession(), $month, $year);
 
         $firstDate = (new \DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
-        $lastDate = (clone $firstDate)->modify('last day of this month');
+        $lastDate = (clone $firstDate)->modify('last day of this month')->setTime(23, 59, 59);
         if (1 !== (int) $firstDate->format('N')) {
             $firstDate->modify('previous monday');
         }
