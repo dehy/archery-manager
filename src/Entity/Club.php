@@ -63,7 +63,7 @@ class Club implements \Stringable
     /**
      * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\License>|\App\Entity\License[]
      */
-    #[ORM\OneToMany(mappedBy: 'club', targetEntity: License::class)]
+    #[ORM\OneToMany(mappedBy: 'club', targetEntity: License::class, cascade: ['persist'])]
     private Collection $licenses;
 
     #[ORM\Column(length: 255, nullable: true)]

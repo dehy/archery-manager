@@ -27,7 +27,7 @@ class Event implements \Stringable
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Club::class, inversedBy: 'events')]
+    #[ORM\ManyToOne(targetEntity: Club::class, cascade: ['persist'], inversedBy: 'events')]
     #[ORM\JoinColumn]
     protected ?Club $club = null;
 
@@ -62,7 +62,7 @@ class Event implements \Stringable
     protected ?string $address = null;
 
     /**
-     * @var Collection<int, EventParticipation>|EventParticipation[]
+     * @var Collection<int, EventParticipation>
      */
     #[
         ORM\OneToMany(
@@ -74,7 +74,7 @@ class Event implements \Stringable
     protected Collection $participations;
 
     /**
-     * @var Collection<int, EventAttachment>|EventAttachment[]
+     * @var Collection<int, EventAttachment>
      */
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventAttachment::class)]
     protected Collection $attachments;

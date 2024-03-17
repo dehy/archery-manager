@@ -43,7 +43,7 @@ class License
     #[DoctrineAssert\EnumType(entity: LicenseAgeCategoryType::class)]
     private $ageCategory;
 
-    #[ORM\ManyToOne(targetEntity: Licensee::class, inversedBy: 'licenses')]
+    #[ORM\ManyToOne(targetEntity: Licensee::class, cascade: ['persist'], inversedBy: 'licenses')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Licensee $licensee = null;
 
@@ -150,6 +150,8 @@ class License
     public function setClub(?Club $club): self
     {
         $this->club = $club;
+
+        $club->addLicense($this);
 
         return $this;
     }
