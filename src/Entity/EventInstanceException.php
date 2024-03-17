@@ -19,7 +19,7 @@ class EventInstanceException
     private ?Event $event = null;
 
     #[ORM\Column]
-    private ?bool $isResecheduled = null;
+    private ?bool $isRescheduled = null;
 
     #[ORM\Column]
     private ?bool $isCancelled = null;
@@ -65,12 +65,12 @@ class EventInstanceException
 
     public function isIsResecheduled(): ?bool
     {
-        return $this->isResecheduled;
+        return $this->isRescheduled;
     }
 
-    public function setIsResecheduled(bool $isResecheduled): static
+    public function setIsRescheduled(bool $isRescheduled): static
     {
-        $this->isResecheduled = $isResecheduled;
+        $this->isRescheduled = $isRescheduled;
 
         return $this;
     }
