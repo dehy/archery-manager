@@ -24,6 +24,7 @@ doctrine:
             LicenseType: App\DBAL\Types\LicenseType
             PracticeAdviceAttachmentType: App\DBAL\Types\PracticeAdviceAttachmentType
             PracticeLevelType: App\DBAL\Types\PracticeLevelType
+            RecurringType: App\DBAL\Types\RecurringType
             TargetTypeType: App\DBAL\Types\TargetTypeType
     orm:
         auto_generate_proxy_classes: true

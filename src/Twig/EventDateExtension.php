@@ -30,30 +30,30 @@ class EventDateExtension extends AbstractExtension
         bool $includeTime = true,
         bool $diff = false
     ): string {
-        if (1 === $event->getEndsAt()->diff($event->getStartsAt())->days) {
+        if (1 === $event->getEndTime()->diff($event->getStartTime())->days) {
             $date = sprintf(
                 'les %s et %s',
-                $event->getStartsAt()->format('j'),
-                $this->formatDate($environment, $event->getEndsAt())
+                $event->getStartTime()->format('j'),
+                $this->formatDate($environment, $event->getEndTime())
             );
-        } elseif ($event->getStartsAt()->format('d-m-Y') !== $event->getEndsAt()->format('d-m-Y')) {
+        } elseif ($event->getStartTime()->format('d-m-Y') !== $event->getEndTime()->format('d-m-Y')) {
             $date = sprintf(
                 'du %s au %s',
-                $event->getStartsAt()->format('j'),
-                $this->formatDate($environment, $event->getEndsAt())
+                $event->getStartTime()->format('j'),
+                $this->formatDate($environment, $event->getEndTime())
             );
         } else {
-            if ($includeTime && !$event->isAllDay()) {
+            if ($includeTime && !$event->isFullDayEvent()) {
                 $date = sprintf(
                     'le %s de %s à %s',
-                    $this->formatDate($environment, $event->getStartsAt()),
-                    $event->getStartsAt()->format('H:i'),
-                    $event->getEndsAt()->format('H:i'),
+                    $this->formatDate($environment, $event->getStartTime()),
+                    $event->getStartTime()->format('H:i'),
+                    $event->getEndTime()->format('H:i'),
                 );
             } else {
                 $date = sprintf(
                     'le %s',
-                    $this->formatDate($environment, $event->getStartsAt()),
+                    $this->formatDate($environment, $event->getStartTime()),
                 );
             }
         }
@@ -72,10 +72,10 @@ class EventDateExtension extends AbstractExtension
     private function diff(Event $event): string
     {
         $now = new \DateTime();
-        if ($event->getStartsAt() > $now) {
-            $date = $event->getStartsAt();
-        } elseif ($event->getEndsAt() < $now) {
-            $date = $event->getEndsAt();
+        if ($event->getStartTime() > $now) {
+            $date = $event->getStartTime();
+        } elseif ($event->getEndTime() < $now) {
+            $date = $event->getEndTime();
         } else {
             return 'en ce moment';
         }

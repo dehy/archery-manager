@@ -34,7 +34,7 @@ final class Version20221115093357 extends AbstractMigration
                 ->setStartsAt(new \DateTimeImmutable($eventAssoc['starts_at']))
             ;
             $slug = $slugify->slugify(
-                sprintf('%s-%s', $event->getStartsAt()->format('d-m-Y'), $event->getTitle())
+                sprintf('%s-%s', $event->getStartTime()->format('d-m-Y'), $event->getName())
             );
             $this->addSql('UPDATE event SET slug = :slug WHERE id = :id', ['slug' => $slug, 'id' => $eventAssoc['id']]);
         }

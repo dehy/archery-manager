@@ -2,7 +2,7 @@
 
 {% set licensee = licenseeHelper.licenseeFromSession %}
 {% set license = licenseHelper.currentLicenseeCurrentLicense %}
-{% set canAttend = licenseHelper.licenseIsValidForEvent(license, event) and date() < event.endsAt %}
+{% set canAttend = licenseHelper.licenseIsValidForEvent(license, event) and date() <= event.endDate %}
 {% set licenseeParticipation = eventHelper.licenseeParticipationToEvent(licensee, event) %}
 
 {% block return_link %}

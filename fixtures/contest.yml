@@ -2,9 +2,12 @@ App\Entity\ContestEvent:
     event_contest_{1..7}:
         contestType: 'individual'
         name (unique): '<randomElement(["Bordeaux", "Le Bouscat", "Mérignac", "Auros", "Andernos", "St Médard", "Arsac"])>'
-        startsAt: '<recurringDateTimeImmutable("last saturday", "week", $current)>'
-        endsAt: '<($startsAt->modify("+1 day"))>'
-        allDay: true
+        startDate: '<recurringDateTimeImmutable("first saturday of this month", "week", $current)>'
+        endDate: '<($startDate->modify("+1 day"))>'
+        fullDayEvent: true
+        recurring: false
         address: '<address()>'
         discipline: 'indoor'
-        assigned_groups: ['@group_ladg_competiteurs']
+        assigned_groups: ['@group_ladb_perfectionnement_adultes']
+        createdAt: '<(new DateTime())>'
+        createdBy: '@user_admin'

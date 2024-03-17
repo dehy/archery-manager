@@ -1,38 +1,83 @@
 App\Entity\TrainingEvent:
-    event_training_ladg_loisirs_{1..10}:
+    event_training_ladg_loisirs_1:
         club: '@club_ladg'
         name: Loisir
-        startsAt: '<recurringDateTimeImmutable("last saturday 8:45", "week", $current)>'
-        endsAt: '<($startsAt->modify("+75 min"))>'
-        allDay: false
+        startDate: '<(new DateTime("first saturday of this month"))>'
+        endDate: '<(new DateTime("last saturday +4 months"))>'
+        startTime: '<(new DateTime("08:45"))>'
+        endTime: '<(new DateTime("10:00"))>'
+        fullDayEvent: false
+        recurring: true
         address: '<address()>'
         discipline: 'indoor'
         assignedGroups: [ '@group_ladg_loisirs' ]
-    event_training_ladg_familles_{1..10}:
+        createdAt: '<(new DateTime())>'
+        createdBy: '@user_admin'
+    event_training_ladg_familles_1:
         club: '@club_ladg'
         name: Familles
-        startsAt: '<recurringDateTimeImmutable("last saturday 10:00", "week", $current)>'
-        endsAt: '<($startsAt->modify("+60 min"))>'
-        allDay: false
+        startDate: '<(new DateTime("first saturday of this month"))>'
+        endDate: '<(new DateTime("last saturday +4 months"))>'
+        startTime: '<(new DateTime("09:45"))>'
+        endTime: '<(new DateTime("11:00"))>'
+        fullDayEvent: false
+        recurring: true
         address: '<address()>'
         discipline: 'indoor'
         assignedGroups: [ '@group_ladg_familles' ]
-    event_training_ladg_competiteurs_{1..10}:
+        createdAt: '<(new DateTime())>'
+        createdBy: '@user_admin'
+    event_training_ladg_competiteurs_1:
         club: '@club_ladg'
         name: Compétiteurs
-        startsAt: '<recurringDateTimeImmutable("last saturday 10:45", "week", $current)>'
-        endsAt: '<($startsAt->modify("+90 min"))>'
-        allDay: false
+        startDate: '<(new DateTime("first saturday of this month"))>'
+        endDate: '<(new DateTime("last saturday +4 months"))>'
+        startTime: '<(new DateTime("10:45"))>'
+        endTime: '<(new DateTime("12:15"))>'
+        fullDayEvent: false
+        recurring: true
         address: '<address()>'
         discipline: 'indoor'
         assignedGroups: ['@group_ladg_competiteurs']
-    event_training_ladg_competiteurs_libre_{1..10}:
+        createdAt: '<(new DateTime())>'
+        createdBy: '@user_admin'
+    event_training_ladg_competiteurs_libre_1:
         club: '@club_ladg'
         name: Compétiteurs Perfectionnement
-        startsAt: '<recurringDateTimeImmutable("last tuesday 19:15", "week", $current)>'
-        endsAt: '<($startsAt->modify("+90 min"))>'
-        allDay: false
+        startDate: '<(new DateTime("first tuesday of this month"))>'
+        endDate: '<(new DateTime("last tuesday +4 months"))>'
+        startTime: '<(new DateTime("19:15"))>'
+        endTime: '<(new DateTime("21:15"))>'
+        fullDayEvent: false
+        recurring: true
         address: '<address()>'
         discipline: 'indoor'
         assignedGroups: ['@group_ladg_competiteurs']
+        createdAt: '<(new DateTime())>'
+        createdBy: '@user_admin'
 
+App\Entity\EventRecurringPattern:
+    event_recurring_training_ladg_loisirs_1:
+        event: '@event_training_ladg_loisirs_1'
+        recurringType: 'weekly'
+        separationCount: 0
+        maxNumOfOccurrences: null
+        dayOfWeek: 6
+    event_reccuring_training_ladg_familles_1:
+        event: '@event_training_ladg_familles_1'
+        recurringType: 'weekly'
+        separationCount: 0
+        maxNumOfOccurrences: null
+        dayOfWeek: 6
+    event_reccuringtraining_ladg_competiteurs_1:
+        event: '@event_training_ladg_competiteurs_1'
+        recurringType: 'weekly'
+        separationCount: 0
+        maxNumOfOccurrences: null
+        dayOfWeek: 6
+    event_reccuring_training_ladg_competiteurs_libre_1:
+        event: '@event_training_ladg_competiteurs_libre_1'
+        recurringType: 'weekly'
+        separationCount: 0
+        maxNumOfOccurrences: null
+        dayOfWeek: 2

@@ -101,7 +101,7 @@ class LicenseeController extends BaseController
             $licensee
         );
         foreach ($licenseeResults as $result) {
-            $season = Season::seasonForDate($result->getEvent()->getStartsAt());
+            $season = Season::seasonForDate($result->getEvent()->getStartTime());
             $seasons[sprintf('Saison %s', $season)] = $season;
             $groupName = sprintf(
                 '%s %s %sm',

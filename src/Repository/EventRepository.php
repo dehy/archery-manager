@@ -54,7 +54,7 @@ class EventRepository extends ServiceEntityRepository
                 ->leftJoin('e.assignedGroups', 'g')
                 ->leftJoin('e.participations', 'ep')
                 ->andWhere(
-                    'e.endsAt >= :now',
+                    'e.endDate >= :now',
                     $qb->expr()->orX(
                         'e.club = :club',
                         'e.club IS NULL',
@@ -65,8 +65,10 @@ class EventRepository extends ServiceEntityRepository
                     ),
                     'g IN (:groups)',
                 )
-                ->orderBy('e.startsAt', Criteria::ASC)
-                ->addOrderBy('e.endsAt', Criteria::ASC)
+                ->orderBy('e.startDate', Criteria::ASC)
+                ->addOrderBy('e.startTime', Criteria::ASC)
+                ->addOrderBy('e.endDate', Criteria::ASC)
+                ->addOrderBy('e.endTime', Criteria::ASC)
                 ->groupBy('e.id')
                 ->setParameter('now', new \DateTime())
                 ->setParameter('groups', $licensee->getGroups())
@@ -80,29 +82,22 @@ class EventRepository extends ServiceEntityRepository
     /**
      * @throws \Exception
      */
-    public function findForLicenseeByMonthAndYear(Licensee $licensee, int $month, int $year): array
-    {
+    public function findForLicenseeFromDateToDate(
+        Licensee $licensee,
+        \DateTimeInterface $startDate,
+        \DateTimeInterface $endDate
+    ): array {
         $clubs = $licensee->getLicenses()->map(fn (License $license) => $license->getClub());
         $clubs = array_unique($clubs->toArray());
 
-        $firstDate = new \DateTime(sprintf('%s-%s-01 midnight', $year, $month));
-        $lastDate = (clone $firstDate)->modify('last day of this month');
-        if (1 !== (int) $firstDate->format('N')) {
-            $firstDate->modify('previous monday');
-        }
-        if (false !== $lastDate && 7 !== (int) $lastDate->format('N')) {
-            $lastDate->modify('next sunday 23:59:59');
-        }
-
         return $this->createQueryBuilder('e')
-            ->select('e, a')
             ->leftJoin('e.attachments', 'a')
-            ->where('e.endsAt >= :monthStart')
-            ->andWhere('e.startsAt <= :monthEnd')
+            ->where('e.endDate >= :startDate OR e.endDate IS NULL')
+            ->andWhere('e.startDate <= :endDate')
             ->andWhere('e.club IN (:clubs) OR e.club IS NULL')
             ->setParameters([
-                'monthStart' => $firstDate,
-                'monthEnd' => $lastDate,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
                 'clubs' => $clubs,
             ])
             ->getQuery()

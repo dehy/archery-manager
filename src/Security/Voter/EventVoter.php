@@ -33,7 +33,7 @@ class EventVoter extends Voter
     {
         /** @var Event $event */
         $event = $subject;
-        $eventSeason = Season::seasonForDate($event->getEndsAt());
+        $eventSeason = Season::seasonForDate($event->getEndTime());
 
         /** @var User $user */
         $user = $token->getUser();

@@ -10,9 +10,11 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -34,9 +36,11 @@ class TrainingEventCrudController extends AbstractCrudController
             IdField::new('id')->hideOnForm(),
             AssociationField::new('club'),
             TextField::new('name'),
-            DateTimeField::new('startsAt'),
-            DateTimeField::new('endsAt'),
-            BooleanField::new('allDay')->renderAsSwitch(false),
+            DateField::new('startDate'),
+            TimeField::new('startTime'),
+            DateField::new('endDate'),
+            TimeField::new('endTime'),
+            BooleanField::new('fullDayEvent')->renderAsSwitch(false),
             ChoiceField::new('discipline')->setChoices(
                 DisciplineType::getChoices(),
             ),
@@ -49,7 +53,12 @@ class TrainingEventCrudController extends AbstractCrudController
 
     public function configureCrud(Crud $crud): Crud
     {
-        return $crud->setDefaultSort(['startsAt' => 'DESC', 'endsAt' => 'DESC']);
+        return $crud->setDefaultSort([
+            'startDate' => 'DESC',
+            'startTime' => 'DESC',
+            'endDate' => 'DESC',
+            'endTime' => 'DESC'
+        ]);
     }
 
     public function configureFilters(Filters $filters): Filters

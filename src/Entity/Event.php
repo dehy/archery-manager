@@ -34,19 +34,31 @@ class Event implements \Stringable
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
     protected ?string $name = null;
 
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::TEXT, nullable: true)]
+    protected ?string $description = null;
+
     #[ORM\Column(type: 'DisciplineType')]
     protected ?string $discipline = null;
 
-    #[ORM\Column]
-    protected bool $allDay = false;
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATE_IMMUTABLE)]
+    protected ?\DateTimeImmutable $startDate;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE)]
-    protected ?\DateTimeImmutable $startsAt = null;
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATE_IMMUTABLE, nullable: true)]
+    protected ?\DateTimeImmutable $endDate;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE)]
-    protected ?\DateTimeImmutable $endsAt = null;
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::TIME_IMMUTABLE, nullable: true)]
+    protected ?\DateTimeImmutable $startTime = null;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::TIME_IMMUTABLE, nullable: true)]
+    protected ?\DateTimeImmutable $endTime = null;
+
+    #[ORM\Column(nullable: false)]
+    protected bool $fullDayEvent = false;
+
+    #[ORM\Column(nullable: false)]
+    protected bool $recurring = false;
+
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255, nullable: true)]
     protected ?string $address = null;
 
     /**
@@ -79,24 +91,47 @@ class Event implements \Stringable
     #[ORM\Column(length: 16, nullable: true)]
     protected ?string $longitude = null;
 
-    #[ORM\Column]
+    #[ORM\ManyToOne(targetEntity: User::class, cascade: ['persist'])]
+    #[ORM\JoinColumn(nullable: false)]
+    protected ?User $createdBy = null;
+
+    #[ORM\Column(nullable: false)]
+    protected ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column(nullable: true)]
     protected ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    protected ?Event $parentEvent = null;
+
+    #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventInstanceException::class, cascade: ['persist'], orphanRemoval: true)]
+    private Collection $eventInstanceExceptions;
+
+    #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventRecurringPattern::class, cascade: ['persist'], orphanRemoval: true)]
+    private Collection $recurringPatterns;
 
     public function __construct()
     {
         $this->participations = new ArrayCollection();
         $this->attachments = new ArrayCollection();
         $this->assignedGroups = new ArrayCollection();
+        $this->eventInstanceExceptions = new ArrayCollection();
+        $this->recurringPatterns = new ArrayCollection();
     }
 
     public function __toString(): string
     {
         return sprintf(
             '%s - %s - %s',
-            $this->getStartsAt()->format('d/m/Y'),
+            $this->getStartTime()->format('d/m/Y'),
             EventType::getReadableValue(static::class),
             $this->getName(),
         );
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function getClub(): ?Club
@@ -123,26 +158,86 @@ class Event implements \Stringable
         return $this;
     }
 
-    public function getStartsAt(): ?\DateTimeImmutable
+    public function getDescription(): ?string
     {
-        return $this->startsAt;
+        return $this->description;
     }
 
-    public function setStartsAt(\DateTimeImmutable $startsAt): self
+    public function setDescription(?string $description): self
     {
-        $this->startsAt = $startsAt;
+        $this->description = $description;
 
         return $this;
     }
 
-    public function getDiscipline(): string
+    public function getStartDate(): ?\DateTimeImmutable
     {
-        return $this->discipline;
+        return $this->startDate;
     }
 
-    public function setDiscipline(string $discipline): self
+    public function setStartDate(?\DateTimeImmutable $startDate): self
     {
-        $this->discipline = $discipline;
+        $this->startDate = $startDate;
+
+        return $this;
+    }
+
+    public function getEndDate(): ?\DateTimeImmutable
+    {
+        return $this->endDate;
+    }
+
+    public function setEndDate(?\DateTimeImmutable $endDate): self
+    {
+        $this->endDate = $endDate;
+
+        return $this;
+    }
+
+    public function getStartTime(): ?\DateTimeImmutable
+    {
+        return $this->startTime;
+    }
+
+    public function setStartTime(?\DateTimeImmutable $startTime): self
+    {
+        $this->startTime = $startTime;
+
+        return $this;
+    }
+
+    public function getEndTime(): ?\DateTimeImmutable
+    {
+        return $this->endTime;
+    }
+
+    public function setEndTime(?\DateTimeImmutable $endTime): self
+    {
+        $this->endTime = $endTime;
+
+        return $this;
+    }
+
+    public function isFullDayEvent(): bool
+    {
+        return $this->fullDayEvent;
+    }
+
+    public function setFullDayEvent(bool $fullDayEvent): self
+    {
+        $this->fullDayEvent = $fullDayEvent;
+
+        return $this;
+    }
+
+    public function isRecurring(): bool
+    {
+        return $this->recurring;
+    }
+
+    public function setRecurring(bool $recurring): self
+    {
+        $this->recurring = $recurring;
 
         return $this;
     }
@@ -159,9 +254,16 @@ class Event implements \Stringable
         return $this;
     }
 
-    public function getId(): ?int
+    public function getDiscipline(): string
     {
-        return $this->id;
+        return $this->discipline;
+    }
+
+    public function setDiscipline(string $discipline): self
+    {
+        $this->discipline = $discipline;
+
+        return $this;
     }
 
     public function addParticipation(EventParticipation $participation): self
@@ -266,18 +368,6 @@ class Event implements \Stringable
         return $this;
     }
 
-    public function getEndsAt(): ?\DateTimeImmutable
-    {
-        return $this->endsAt;
-    }
-
-    public function setEndsAt(\DateTimeImmutable $endsAt): self
-    {
-        $this->endsAt = $endsAt;
-
-        return $this;
-    }
-
     #[ORM\PrePersist]
     #[ORM\PreUpdate]
     public function onUpdate(): void
@@ -285,7 +375,7 @@ class Event implements \Stringable
         $slugify = new Slugify();
         $this->setSlug(
             $slugify->slugify(
-                sprintf('%s-%s', $this->getStartsAt()->format('d-m-Y'), $this->getTitle())
+                sprintf('%s-%s', $this->getStartDate()->format('d-m-Y'), $this->getName())
             )
         );
         $this->setUpdatedAt(new \DateTimeImmutable());
@@ -324,21 +414,33 @@ class Event implements \Stringable
         return $this;
     }
 
-    public function isAllDay(): bool
+    public function spanMultipleDays(): bool
     {
-        return $this->allDay;
+        return $this->getStartTime()->format('d/m/Y') !== $this->getEndTime()->format('d/m/Y');
     }
 
-    public function setAllDay(bool $allDay): self
+    public function getCreatedBy(): ?User
     {
-        $this->allDay = $allDay;
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(User $createdBy): self
+    {
+        $this->createdBy = $createdBy;
 
         return $this;
     }
 
-    public function spanMultipleDays(): bool
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
-        return $this->getStartsAt()->format('d/m/Y') !== $this->getEndsAt()->format('d/m/Y');
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
     }
 
     public function getUpdatedAt(): ?\DateTimeImmutable
@@ -349,6 +451,78 @@ class Event implements \Stringable
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getParentEvent(): ?self
+    {
+        return $this->parentEvent;
+    }
+
+    public function setParentEvent(?self $parentEvent): self
+    {
+        $this->parentEvent = $parentEvent;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EventInstanceException>
+     */
+    public function getEventInstanceExceptions(): Collection
+    {
+        return $this->eventInstanceExceptions;
+    }
+
+    public function addEventInstanceException(EventInstanceException $eventInstanceException): static
+    {
+        if (!$this->eventInstanceExceptions->contains($eventInstanceException)) {
+            $this->eventInstanceExceptions->add($eventInstanceException);
+            $eventInstanceException->setEvent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEventInstanceException(EventInstanceException $eventInstanceException): static
+    {
+        if ($this->eventInstanceExceptions->removeElement($eventInstanceException)) {
+            // set the owning side to null (unless already changed)
+            if ($eventInstanceException->getEvent() === $this) {
+                $eventInstanceException->setEvent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EventRecurringPattern>
+     */
+    public function getRecurringPatterns(): Collection
+    {
+        return $this->recurringPatterns;
+    }
+
+    public function addRecurringPattern(EventRecurringPattern $recurringPattern): static
+    {
+        if (!$this->recurringPatterns->contains($recurringPattern)) {
+            $this->recurringPatterns->add($recurringPattern);
+            $recurringPattern->setEvent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRecurringPattern(EventRecurringPattern $recurringPattern): static
+    {
+        if ($this->recurringPatterns->removeElement($recurringPattern)) {
+            // set the owning side to null (unless already changed)
+            if ($recurringPattern->getEvent() === $this) {
+                $recurringPattern->setEvent(null);
+            }
+        }
 
         return $this;
     }

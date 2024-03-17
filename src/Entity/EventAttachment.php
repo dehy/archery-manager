@@ -99,7 +99,7 @@ class EventAttachment extends Attachment
 
         return sprintf(
             '%s-%s-%s-%s-%s',
-            $event->getStartsAt()->format('Y-m-d'),
+            $event->getStartTime()->format('Y-m-d'),
             $type,
             $discipline,
             $name,

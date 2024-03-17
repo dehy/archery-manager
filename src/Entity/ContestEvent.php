@@ -35,7 +35,7 @@ class ContestEvent extends Event
     {
         return sprintf(
             '%s - %s %s - %s',
-            $this->getStartsAt()->format('d/m/Y'),
+            $this->getStartTime()->format('d/m/Y'),
             EventType::getReadableValue(self::class),
             DisciplineType::getReadableValue($this->getDiscipline()),
             $this->getName(),
@@ -49,9 +49,9 @@ class ContestEvent extends Event
             ->setContestType(ContestType::INDIVIDUAL)
             ->setAddress($fftaEvent->getLocation())
             ->setDiscipline($fftaEvent->getDiscipline())
-            ->setEndsAt($fftaEvent->getTo())
+            ->setEndTime($fftaEvent->getTo())
             ->setName($fftaEvent->getName())
-            ->setStartsAt($fftaEvent->getFrom());
+            ->setStartTime($fftaEvent->getFrom());
 
         return $event;
     }
@@ -105,8 +105,8 @@ class ContestEvent extends Event
 
     public function getSeason(): int
     {
-        $month = (int) $this->getStartsAt()->format('m');
-        $year = (int) $this->getStartsAt()->format('Y');
+        $month = (int) $this->getStartTime()->format('m');
+        $year = (int) $this->getStartTime()->format('Y');
         if ($month >= 9 && $month <= 12) {
             return $year + 1;
         }
@@ -141,15 +141,5 @@ class ContestEvent extends Event
         ksort($departures);
 
         return $departures;
-    }
-
-    public function getTitle(): string
-    {
-        return sprintf(
-            '%s %s %s',
-            ucfirst(EventType::getReadableValue(static::class)),
-            lcfirst(DisciplineType::getReadableValue($this->getDiscipline())),
-            $this->getName()
-        );
     }
 }
