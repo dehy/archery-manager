@@ -9,6 +9,7 @@ use App\DBAL\Types\TargetTypeType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\EventAttachment;
+use App\Entity\EventOccurrence;
 use App\Entity\FreeTrainingEvent;
 use App\Entity\HobbyContestEvent;
 use App\Entity\Result;
@@ -24,6 +25,7 @@ use App\Repository\ContestEventRepository;
 use App\Repository\EventAttachmentRepository;
 use App\Repository\EventRepository;
 use App\Repository\ResultRepository;
+use App\Service\EventService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemOperator;
@@ -40,7 +42,7 @@ class EventController extends BaseController
      * @throws \Exception
      */
     #[Route('/events', name: 'app_event_index')]
-    public function index(Request $request, EventRepository $eventRepository): Response
+    public function index(Request $request, EventService $eventService): Response
     {
         $this->assertHasValidLicense();
 
@@ -48,40 +50,47 @@ class EventController extends BaseController
         $month = $request->query->get('m', (int) $now->format('n'));
         $year = $request->query->get('y', (int) $now->format('Y'));
 
-        /** @var Event[] $events */
-        $events = $eventRepository
-            ->findForLicenseeByMonthAndYear($this->licenseeHelper->getLicenseeFromSession(), $month, $year);
+        $startDate = new \DateTime("$year-$month-01");
+        $endDate = new \DateTime("$year-$month-".cal_days_in_month(\CAL_GREGORIAN, $month, $year));
 
         $firstDate = (new \DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
         $lastDate = (clone $firstDate)->modify('last day of this month')->setTime(23, 59, 59);
-        if (1 !== (int) $firstDate->format('N')) {
-            $firstDate->modify('previous monday');
+        if (1 !== (int) $startDate->format('N')) {
+            $startDate->modify('previous monday');
         }
-        if (7 !== (int) $lastDate->format('N')) {
-            $lastDate->modify('next sunday 23:59:59');
+        if (7 !== (int) $endDate->format('N')) {
+            $endDate->modify('next sunday 23:59:59');
         }
+
+        $eventOccurrences = $eventService->getEventOccurrencesForLicenseeFromDateToDate(
+            $this->licenseeHelper->getLicenseeFromSession(),
+            $startDate,
+            $endDate,
+        );
 
         $calendar = [];
-        for ($currentDate = $firstDate; $currentDate <= $lastDate; $currentDate->modify('+1 day')) {
+        for ($currentDate = $startDate; $currentDate <= $endDate; $currentDate->modify('+1 day')) {
             $startOfDay = \DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0);
             $endOfDay = \DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
-            $eventsForThisDay = array_filter(
-                $events,
-                fn (Event $event) => ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
-                    || ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay)
+            $eventOccurrencesForThisDay = array_filter(
+                $eventOccurrences,
+                fn (EventOccurrence $eventOccurrence) => $eventOccurrence->getOccurrenceDate() >= $startOfDay
+                    && $eventOccurrence->getOccurrenceDate() <= $endOfDay
             );
             // Sort events: multi-day all-day events, single-day all-day events, then other events
-            usort($eventsForThisDay, function (Event $a, Event $b) {
-                if ($a->spanMultipleDays() !== $b->spanMultipleDays()) {
-                    return $b->spanMultipleDays() <=> $a->spanMultipleDays();
+            usort($eventOccurrencesForThisDay, function (EventOccurrence $a, EventOccurrence $b) {
+                $origEventA = $a->getEvent();
+                $origEventB = $b->getEvent();
+                if ($origEventA->spanMultipleDays() !== $origEventB->spanMultipleDays()) {
+                    return $origEventB->spanMultipleDays() <=> $origEventA->spanMultipleDays();
                 }
-                if ($a->isAllDay() !== $b->isAllDay()) {
-                    return $b->isAllDay() <=> $a->isAllDay();
+                if ($origEventA->isFullDayEvent() !== $origEventB->isFullDayEvent()) {
+                    return $origEventB->isFullDayEvent() <=> $origEventA->isFullDayEvent();
                 }
 
-                return $a->getStartsAt() <=> $b->getStartsAt();
+                return $origEventA->getStartTime() <=> $origEventB->getStartTime();
             });
-            $calendar[$currentDate->format('Y-m-j')] = $eventsForThisDay;
+            $calendar[$currentDate->format('Y-m-j')] = $eventOccurrencesForThisDay;
         }
 
         return $this->render('event/index.html.twig', [
@@ -105,11 +114,11 @@ class EventController extends BaseController
             throw $this->createNotFoundException();
         }
 
-        $ics = IcsFactory::new($event->getTitle())
-            ->setStart($event->getStartsAt())
-            ->setEnd($event->getEndsAt())
+        $ics = IcsFactory::new($event->getName())
+            ->setStart($event->getStartTime())
+            ->setEnd($event->getEndTime())
             ->setLocation($event->getAddress())
-            ->setAllDay($event->isAllDay())
+            ->setAllDay($event->isFullDayEvent())
             ->getICS();
 
         return new Response($ics, 200, [
@@ -228,7 +237,7 @@ class EventController extends BaseController
         $eventParticipationForm = $this->createForm(EventParticipationType::class, $eventParticipation, [
             'license_context' => $licenseeHelper
                 ->getLicenseeFromSession()
-                ->getLicenseForSeason(Season::seasonForDate($event->getStartsAt())),
+                ->getLicenseForSeason(Season::seasonForDate($event->getStartTime())),
         ]);
 
         $eventParticipationForm->handleRequest($request);
@@ -286,7 +295,7 @@ class EventController extends BaseController
                 }
             }
             if (!$foundResult) {
-                $season = Season::seasonForDate($event->getStartsAt());
+                $season = Season::seasonForDate($event->getStartTime());
                 $license = $participation->getParticipant()->getLicenseForSeason($season);
                 $licensee = $participation->getParticipant();
 

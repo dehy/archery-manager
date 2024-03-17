@@ -416,7 +416,7 @@ class Event implements \Stringable
 
     public function spanMultipleDays(): bool
     {
-        return $this->getStartTime()->format('d/m/Y') !== $this->getEndTime()->format('d/m/Y');
+        return $this->getStartDate()->format('Y-m-d') !== $this->getEndDate()->format('Y-m-d');
     }
 
     public function getCreatedBy(): ?User
