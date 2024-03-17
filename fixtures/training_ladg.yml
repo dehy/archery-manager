@@ -2,8 +2,8 @@ App\Entity\TrainingEvent:
     event_training_ladg_loisirs_1:
         club: '@club_ladg'
         name: Loisir
-        startDate: '<(new DateTime("first saturday of this month"))>'
-        endDate: '<(new DateTime("last saturday +4 months"))>'
+        startDate: '<(new DateTime("2023-09-09"))>'
+        endDate: '<(new DateTime("2024-06-29"))>'
         startTime: '<(new DateTime("08:45"))>'
         endTime: '<(new DateTime("10:00"))>'
         fullDayEvent: false
@@ -16,8 +16,8 @@ App\Entity\TrainingEvent:
     event_training_ladg_familles_1:
         club: '@club_ladg'
         name: Familles
-        startDate: '<(new DateTime("first saturday of this month"))>'
-        endDate: '<(new DateTime("last saturday +4 months"))>'
+        startDate: '<(new DateTime("2023-09-09"))>'
+        endDate: '<(new DateTime("2024-06-29"))>'
         startTime: '<(new DateTime("09:45"))>'
         endTime: '<(new DateTime("11:00"))>'
         fullDayEvent: false
@@ -30,8 +30,8 @@ App\Entity\TrainingEvent:
     event_training_ladg_competiteurs_1:
         club: '@club_ladg'
         name: Compétiteurs
-        startDate: '<(new DateTime("first saturday of this month"))>'
-        endDate: '<(new DateTime("last saturday +4 months"))>'
+        startDate: '<(new DateTime("2023-09-09"))>'
+        endDate: '<(new DateTime("2024-06-29"))>'
         startTime: '<(new DateTime("10:45"))>'
         endTime: '<(new DateTime("12:15"))>'
         fullDayEvent: false
@@ -41,11 +41,12 @@ App\Entity\TrainingEvent:
         assignedGroups: ['@group_ladg_competiteurs']
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+App\Entity\FreeTrainingEvent:
     event_training_ladg_competiteurs_libre_1:
         club: '@club_ladg'
         name: Compétiteurs Perfectionnement
-        startDate: '<(new DateTime("first tuesday of this month"))>'
-        endDate: '<(new DateTime("last tuesday +4 months"))>'
+        startDate: '<(new DateTime("2023-09-12"))>'
+        endDate: '<(new DateTime("2024-06-25"))>'
         startTime: '<(new DateTime("19:15"))>'
         endTime: '<(new DateTime("21:15"))>'
         fullDayEvent: false
