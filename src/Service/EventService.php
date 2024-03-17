@@ -4,7 +4,7 @@ namespace App\Service;
 
 use App\DBAL\Types\RecurringType;
 use App\Entity\Event;
-use App\Entity\EventOccurrence;
+use App\Entity\EventInstance;
 use App\Entity\Licensee;
 use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,11 +29,11 @@ class EventService
     }
 
     /**
-     * @return EventOccurrence[]
+     * @return EventInstance[]
      *
      * @throws \Exception
      */
-    public function getEventOccurrencesForLicenseeFromDateToDate(
+    public function getEventInstancesForLicenseeFromDateToDate(
         Licensee $licensee,
         \DateTimeInterface $startDate = null,
         \DateTimeInterface $endDate = null,
@@ -41,32 +41,32 @@ class EventService
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->entityManager->getRepository('App\Entity\Event');
 
-        /** @var EventOccurrence[] $eventOccurrences */
-        $eventOccurrences = [];
+        /** @var EventInstance[] $eventInstances */
+        $eventInstances = [];
 
         /** @var Event[] $events */
         $events = $eventRepository->findForLicenseeFromDateToDate($licensee, $startDate, $endDate);
         foreach ($events as $event) {
-            $occurrenceDates = $this->getRecurringOccurrences(
+            $instanceDates = $this->getRecurringInstancesDates(
                 $event,
                 $startDate,
                 $endDate,
             );
-            foreach ($occurrenceDates as $occurrenceDate) {
-                $eventOccurrence = (new EventOccurrence())
+            foreach ($instanceDates as $instanceDate) {
+                $eventInstance = (new EventInstance())
                     ->setEvent($event)
-                    ->setOccurrenceDate($occurrenceDate);
-                $eventOccurrences[] = $eventOccurrence;
+                    ->setInstanceDate($instanceDate);
+                $eventInstances[] = $eventInstance;
             }
         }
 
-        return $eventOccurrences;
+        return $eventInstances;
     }
 
     /**
      * @return \DateTimeInterface[]
      */
-    public function getRecurringOccurrences(
+    public function getRecurringInstancesDates(
         Event $event,
         \DateTimeInterface $startDate = null,
         \DateTimeInterface $endDate = null,
@@ -83,7 +83,7 @@ class EventService
             return [];
         }
 
-        $occurrences = $startDate <= $eventStartDate ? [$eventStartDate] : [];
+        $instances = $startDate <= $eventStartDate ? [$eventStartDate] : [];
         $recurringPatterns = $event->getRecurringPatterns();
 
         foreach ($recurringPatterns as $pattern) {
@@ -104,10 +104,10 @@ class EventService
                 if ($currentDate > $endDate || $currentDate > $eventEndDate) {
                     break;
                 }
-                $occurrences[] = clone $currentDate;
+                $instances[] = clone $currentDate;
             }
         }
 
-        return $occurrences;
+        return $instances;
     }
 }

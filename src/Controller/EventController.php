@@ -9,7 +9,7 @@ use App\DBAL\Types\TargetTypeType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\EventAttachment;
-use App\Entity\EventOccurrence;
+use App\Entity\EventInstance;
 use App\Entity\FreeTrainingEvent;
 use App\Entity\HobbyContestEvent;
 use App\Entity\Result;
@@ -62,7 +62,7 @@ class EventController extends BaseController
             $endDate->modify('next sunday 23:59:59');
         }
 
-        $eventOccurrences = $eventService->getEventOccurrencesForLicenseeFromDateToDate(
+        $EventInstances = $eventService->getEventInstancesForLicenseeFromDateToDate(
             $this->licenseeHelper->getLicenseeFromSession(),
             $startDate,
             $endDate,
@@ -72,13 +72,13 @@ class EventController extends BaseController
         for ($currentDate = $startDate; $currentDate <= $endDate; $currentDate->modify('+1 day')) {
             $startOfDay = \DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0);
             $endOfDay = \DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
-            $eventOccurrencesForThisDay = array_filter(
-                $eventOccurrences,
-                fn (EventOccurrence $eventOccurrence) => $eventOccurrence->getOccurrenceDate() >= $startOfDay
-                    && $eventOccurrence->getOccurrenceDate() <= $endOfDay
+            $EventInstancesForThisDay = array_filter(
+                $EventInstances,
+                fn (EventInstance $EventInstance) => $EventInstance->getInstanceDate() >= $startOfDay
+                    && $EventInstance->getInstanceDate() <= $endOfDay
             );
             // Sort events: multi-day all-day events, single-day all-day events, then other events
-            usort($eventOccurrencesForThisDay, function (EventOccurrence $a, EventOccurrence $b) {
+            usort($EventInstancesForThisDay, function (EventInstance $a, EventInstance $b) {
                 $origEventA = $a->getEvent();
                 $origEventB = $b->getEvent();
                 if ($origEventA->spanMultipleDays() !== $origEventB->spanMultipleDays()) {
@@ -90,7 +90,7 @@ class EventController extends BaseController
 
                 return $origEventA->getStartTime() <=> $origEventB->getStartTime();
             });
-            $calendar[$currentDate->format('Y-m-j')] = $eventOccurrencesForThisDay;
+            $calendar[$currentDate->format('Y-m-j')] = $EventInstancesForThisDay;
         }
 
         return $this->render('event/index.html.twig', [

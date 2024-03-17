@@ -21,7 +21,7 @@ class EventServiceTest extends KernelTestCase
 {
     use ReloadDatabaseTrait;
 
-    public function testGetEventsWithOccurrencesForLicenseeFromDateToDate()
+    public function testGetEventsWithInstancesForLicenseeFromDateToDate()
     {
         self::bootKernel();
         $container = static::getContainer();
@@ -34,19 +34,19 @@ class EventServiceTest extends KernelTestCase
         $weeklyEvent->setClub($license->getClub());
         $eventService->save($weeklyEvent);
 
-        $eventOccurrences = $eventService->getEventOccurrencesForLicenseeFromDateToDate(
+        $EventInstances = $eventService->getEventInstancesForLicenseeFromDateToDate(
             $license->getLicensee(),
             new \DateTimeImmutable('2024-04-01T00:00:00+01:00'),
             new \DateTimeImmutable('2024-04-30T00:00:00+01:00')
         );
 
-        static::assertCount(4, $eventOccurrences);
-        foreach ($eventOccurrences as $eventOccurrence) {
-            static::assertSame($weeklyEvent, $eventOccurrence->getEvent());
+        static::assertCount(4, $EventInstances);
+        foreach ($EventInstances as $EventInstance) {
+            static::assertSame($weeklyEvent, $EventInstance->getEvent());
         }
     }
 
-    public function testGetRecurringOccurrencesOfNonRecurringEvent(): void
+    public function testGetRecurringInstancesOfNonRecurringEvent(): void
     {
         self::bootKernel();
         $container = static::getContainer();
@@ -54,13 +54,13 @@ class EventServiceTest extends KernelTestCase
         $eventService = $container->get(EventService::class);
 
         $testEvent = $this->testEvent();
-        $occurrences = $eventService->getRecurringOccurrences($testEvent);
+        $instances = $eventService->getRecurringInstancesDates($testEvent);
 
-        self::assertCount(1, $occurrences);
-        self::assertEquals('2024-03-16', $occurrences[0]->format('Y-m-d'));
+        self::assertCount(1, $instances);
+        self::assertEquals('2024-03-16', $instances[0]->format('Y-m-d'));
     }
 
-    public function testGetAllRecurringOccurrencesOfEvent(): void
+    public function testGetAllRecurringInstancesOfEvent(): void
     {
         self::bootKernel();
         $container = static::getContainer();
@@ -68,19 +68,19 @@ class EventServiceTest extends KernelTestCase
         $eventService = $container->get(EventService::class);
 
         $testEvent = $this->testEvent();
-        $occurrences = $eventService->getRecurringOccurrences($this->weeklyTestEvent($testEvent));
+        $instances = $eventService->getRecurringInstancesDates($this->weeklyTestEvent($testEvent));
 
-        self::assertCount(7, $occurrences);
-        self::assertEquals('2024-03-16', $occurrences[0]->format('Y-m-d'));
-        self::assertEquals('2024-03-23', $occurrences[1]->format('Y-m-d'));
-        self::assertEquals('2024-03-30', $occurrences[2]->format('Y-m-d'));
-        self::assertEquals('2024-04-06', $occurrences[3]->format('Y-m-d'));
-        self::assertEquals('2024-04-13', $occurrences[4]->format('Y-m-d'));
-        self::assertEquals('2024-04-20', $occurrences[5]->format('Y-m-d'));
-        self::assertEquals('2024-04-27', $occurrences[6]->format('Y-m-d'));
+        self::assertCount(7, $instances);
+        self::assertEquals('2024-03-16', $instances[0]->format('Y-m-d'));
+        self::assertEquals('2024-03-23', $instances[1]->format('Y-m-d'));
+        self::assertEquals('2024-03-30', $instances[2]->format('Y-m-d'));
+        self::assertEquals('2024-04-06', $instances[3]->format('Y-m-d'));
+        self::assertEquals('2024-04-13', $instances[4]->format('Y-m-d'));
+        self::assertEquals('2024-04-20', $instances[5]->format('Y-m-d'));
+        self::assertEquals('2024-04-27', $instances[6]->format('Y-m-d'));
     }
 
-    public function testGetRecurringOccurrencesWithEventStartingWithinAndFinishingAfter(): void
+    public function testGetRecurringInstancesWithEventStartingWithinAndFinishingAfter(): void
     {
         self::bootKernel();
         $container = static::getContainer();
@@ -88,19 +88,19 @@ class EventServiceTest extends KernelTestCase
         $eventService = $container->get(EventService::class);
 
         $testEvent = $this->testEvent();
-        $occurrences = $eventService->getRecurringOccurrences(
+        $instances = $eventService->getRecurringInstancesDates(
             $this->weeklyTestEvent($testEvent),
             new \DateTimeImmutable('2024-03-01'),
             new \DateTimeImmutable('2024-03-31'),
         );
 
-        self::assertCount(3, $occurrences);
-        self::assertEquals('2024-03-16', $occurrences[0]->format('Y-m-d'));
-        self::assertEquals('2024-03-23', $occurrences[1]->format('Y-m-d'));
-        self::assertEquals('2024-03-30', $occurrences[2]->format('Y-m-d'));
+        self::assertCount(3, $instances);
+        self::assertEquals('2024-03-16', $instances[0]->format('Y-m-d'));
+        self::assertEquals('2024-03-23', $instances[1]->format('Y-m-d'));
+        self::assertEquals('2024-03-30', $instances[2]->format('Y-m-d'));
     }
 
-    public function testGetRecurringOccurrencesWithEventStartingBeforeAndFinishingWithin(): void
+    public function testGetRecurringInstancesWithEventStartingBeforeAndFinishingWithin(): void
     {
         self::bootKernel();
         $container = static::getContainer();
@@ -108,17 +108,17 @@ class EventServiceTest extends KernelTestCase
         $eventService = $container->get(EventService::class);
 
         $testEvent = $this->testEvent();
-        $occurrences = $eventService->getRecurringOccurrences(
+        $instances = $eventService->getRecurringInstancesDates(
             $this->weeklyTestEvent($testEvent),
             new \DateTimeImmutable('2024-04-01'),
             new \DateTimeImmutable('2024-04-30'),
         );
 
-        self::assertCount(4, $occurrences);
-        self::assertEquals('2024-04-06', $occurrences[0]->format('Y-m-d'));
-        self::assertEquals('2024-04-13', $occurrences[1]->format('Y-m-d'));
-        self::assertEquals('2024-04-20', $occurrences[2]->format('Y-m-d'));
-        self::assertEquals('2024-04-27', $occurrences[3]->format('Y-m-d'));
+        self::assertCount(4, $instances);
+        self::assertEquals('2024-04-06', $instances[0]->format('Y-m-d'));
+        self::assertEquals('2024-04-13', $instances[1]->format('Y-m-d'));
+        self::assertEquals('2024-04-20', $instances[2]->format('Y-m-d'));
+        self::assertEquals('2024-04-27', $instances[3]->format('Y-m-d'));
     }
 
     protected function testEvent(): Event

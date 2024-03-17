@@ -2,10 +2,10 @@
 
 namespace App\Entity;
 
-class EventOccurrence implements \Stringable
+class EventInstance implements \Stringable
 {
     public Event $event;
-    public \DateTimeInterface $occurrenceDate;
+    public \DateTimeInterface $instanceDate;
 
     public function __toString()
     {
@@ -24,14 +24,14 @@ class EventOccurrence implements \Stringable
         return $this;
     }
 
-    public function getOccurrenceDate(): \DateTimeInterface
+    public function getInstanceDate(): \DateTimeInterface
     {
-        return $this->occurrenceDate;
+        return $this->instanceDate;
     }
 
-    public function setOccurrenceDate(\DateTimeInterface $occurrenceDate): self
+    public function setInstanceDate(\DateTimeInterface $instanceDate): self
     {
-        $this->occurrenceDate = $occurrenceDate;
+        $this->instanceDate = $instanceDate;
 
         return $this;
     }
