@@ -2,6 +2,6 @@ framework:
     mailer:
         dsn: '%env(MAILER_DSN)%'
         envelope:
-            sender: 'secretaire.bordeauxguyenne@gmail.com'
+            sender: 'contact@monclubdetiralarc.fr'
         headers:
-            From: 'Archers de Guyenne <secretaire.bordeauxguyenne@gmail.com>'
+            From: "Mon Club de Tir à l'Arc <contact@monclubdetiralarc.fr>"

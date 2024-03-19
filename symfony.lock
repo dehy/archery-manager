@@ -515,15 +515,6 @@
             "src/Kernel.php"
         ]
     },
-    "symfony/google-mailer": {
-        "version": "6.0",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "4.4",
-            "ref": "f8fd4ddb9b477510f8f4bce2b9c054ab428c0120"
-        }
-    },
     "symfony/http-client": {
         "version": "v6.0.3"
     },
@@ -692,6 +683,15 @@
     },
     "symfony/runtime": {
         "version": "v6.0.3"
+    },
+    "symfony/scaleway-mailer": {
+        "version": "6.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "6.4",
+            "ref": "e6c1cd194f4c1ffda138785d827abb9f8dd04559"
+        }
     },
     "symfony/security-bundle": {
         "version": "6.4",
