@@ -5,7 +5,7 @@ namespace App\Entity;
 class EventInstance implements \Stringable
 {
     public Event $event;
-    public \DateTimeInterface $instanceDate;
+    public \DateTimeImmutable $instanceDate;
 
     public function __toString()
     {
@@ -24,12 +24,12 @@ class EventInstance implements \Stringable
         return $this;
     }
 
-    public function getInstanceDate(): \DateTimeInterface
+    public function getInstanceDate(): \DateTimeImmutable
     {
         return $this->instanceDate;
     }
 
-    public function setInstanceDate(\DateTimeInterface $instanceDate): self
+    public function setInstanceDate(\DateTimeImmutable $instanceDate): self
     {
         $this->instanceDate = $instanceDate;
 

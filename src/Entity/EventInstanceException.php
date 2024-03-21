@@ -63,7 +63,7 @@ class EventInstanceException
         return $this;
     }
 
-    public function isIsResecheduled(): ?bool
+    public function isRescheduled(): ?bool
     {
         return $this->isRescheduled;
     }
@@ -75,7 +75,7 @@ class EventInstanceException
         return $this;
     }
 
-    public function isIsCancelled(): ?bool
+    public function isCancelled(): ?bool
     {
         return $this->isCancelled;
     }

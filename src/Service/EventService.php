@@ -5,6 +5,7 @@ namespace App\Service;
 use App\DBAL\Types\RecurringType;
 use App\Entity\Event;
 use App\Entity\EventInstance;
+use App\Entity\EventInstanceException;
 use App\Entity\Licensee;
 use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -35,8 +36,8 @@ class EventService
      */
     public function getEventInstancesForLicenseeFromDateToDate(
         Licensee $licensee,
-        \DateTimeInterface $startDate = null,
-        \DateTimeInterface $endDate = null,
+        \DateTimeInterface $windowStart = null,
+        \DateTimeInterface $windowEnd = null,
     ): array {
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->entityManager->getRepository('App\Entity\Event');
@@ -45,50 +46,41 @@ class EventService
         $eventInstances = [];
 
         /** @var Event[] $events */
-        $events = $eventRepository->findForLicenseeFromDateToDate($licensee, $startDate, $endDate);
+        $events = $eventRepository->findForLicenseeFromDateToDate($licensee, $windowStart, $windowEnd);
         foreach ($events as $event) {
-            $instanceDates = $this->getRecurringInstancesDates(
-                $event,
-                $startDate,
-                $endDate,
-            );
-            foreach ($instanceDates as $instanceDate) {
-                $eventInstance = (new EventInstance())
-                    ->setEvent($event)
-                    ->setInstanceDate($instanceDate);
-                $eventInstances[] = $eventInstance;
-            }
+            $eventInstances += $this->getEventInstances($event, $windowStart, $windowEnd);
         }
 
         return $eventInstances;
     }
 
     /**
-     * @return \DateTimeInterface[]
+     * @return \DateTimeImmutable[]
      */
-    public function getRecurringInstancesDates(
+    protected function getRecurringInstancesDates(
         Event $event,
-        \DateTimeInterface $startDate = null,
-        \DateTimeInterface $endDate = null,
+        \DateTimeImmutable $windowStart = null,
+        \DateTimeImmutable $windowEnd = null,
     ): array {
         $eventStartDate = $event->getStartDate()->setTime(0, 0);
-        $eventEndDate = $event->getEndDate()->setTime(0, 0);
+        $eventEndDate = $event->getEndDate()?->setTime(0, 0);
 
-        $startDate ??= $event->getStartDate()->setTime(0, 0);
+        $windowStart ??= $event->getStartDate()->setTime(0, 0);
         // If no end date is provided, retrieve only one year
-        $endDate ??= $event->getEndDate()->setTime(0, 0) ??
-            \DateTimeImmutable::createFromInterface($startDate)->modify('+ 1 year');
+        $windowEnd ??= $event->getEndDate()?->setTime(0, 0) ??
+            \DateTimeImmutable::createFromInterface($windowStart)->modify('+ 1 year');
 
-        if ($eventStartDate > $endDate || $eventEndDate < $startDate) {
+        if ($eventStartDate > $windowEnd || (null !== $eventEndDate && $eventEndDate < $windowStart)) {
             return [];
         }
 
-        $instances = $startDate <= $eventStartDate ? [$eventStartDate] : [];
+        $instances = $windowStart <= $eventStartDate ? [$eventStartDate] : [];
         $recurringPatterns = $event->getRecurringPatterns();
 
         foreach ($recurringPatterns as $pattern) {
             $currentDate = $eventStartDate;
-            while ($currentDate > $startDate || $currentDate < $endDate) {
+            $maxNumOfOccurrences = $pattern->getMaxNumOfOccurrences();
+            while ($currentDate > $windowStart || $currentDate < $windowEnd) {
                 $recurrenceItem = match ($pattern->getRecurringType()) {
                     RecurringType::WEEKLY => 'week',
                     RecurringType::DAILY => 'day',
@@ -98,10 +90,13 @@ class EventService
                 $currentDate = $currentDate->modify(
                     sprintf('+%s %s', $pattern->getSeparationCount() + 1, $recurrenceItem)
                 );
-                if ($currentDate < $startDate || $currentDate < $eventStartDate) {
+                if ($currentDate < $windowStart || $currentDate < $eventStartDate) {
                     continue;
                 }
-                if ($currentDate > $endDate || $currentDate > $eventEndDate) {
+                if ($currentDate > $windowEnd
+                    || (null !== $eventEndDate && $currentDate > $eventEndDate)
+                    || (null !== $maxNumOfOccurrences && \count($instances) >= $maxNumOfOccurrences)
+                ) {
                     break;
                 }
                 $instances[] = clone $currentDate;

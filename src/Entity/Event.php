@@ -526,4 +526,32 @@ class Event implements \Stringable
 
         return $this;
     }
+
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    public function consistencyChecks(): void
+    {
+        // Recurring event should have at least one EventRecurringPattern
+        if ($this->recurring) {
+            if (0 === \count($this->getRecurringPatterns())) {
+                throw new \LogicException('Recurring Event should have at least one EventRecurringPattern relation');
+            }
+            $this->getRecurringPatterns()->map(function (EventRecurringPattern $recurringPattern) {
+                if (null !== $this->getEndDate() && null !== $recurringPattern->getMaxNumOfOccurrences()) {
+                    throw new \LogicException('Recurring Event with endDate should not have any MaxNumOfOccurrences set');
+                }
+                if (null === $this->getEndDate() && null === $recurringPattern->getMaxNumOfOccurrences()) {
+                    throw new \LogicException('Recurring Event with NO endDate MUST have MaxNumOfOccurrences set');
+                }
+            });
+        }
+        if (!$this->recurring) {
+            if (\count($this->getRecurringPatterns()) >= 1) {
+                throw new \LogicException('Non-Recurring Event should NOT have any EventRecurringPattern relation');
+            }
+            if (\count($this->getEventInstanceExceptions()) >= 1) {
+                throw new \LogicException('Non-Recurring Event should NOT have any EventInstanceException relation');
+            }
+        }
+    }
 }

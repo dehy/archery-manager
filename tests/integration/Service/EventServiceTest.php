@@ -2,195 +2,196 @@
 
 namespace App\Tests\integration\Service;
 
-use App\DBAL\Types\DisciplineType;
-use App\DBAL\Types\GenderType;
-use App\DBAL\Types\LicenseActivityType;
-use App\DBAL\Types\LicenseType;
-use App\DBAL\Types\RecurringType;
-use App\Entity\Club;
-use App\Entity\Event;
-use App\Entity\EventRecurringPattern;
-use App\Entity\License;
-use App\Entity\Licensee;
-use App\Entity\User;
+use App\Factory\EventFactory;
+use App\Factory\LicenseFactory;
 use App\Service\EventService;
-use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Zenstruck\Foundry\Test\Factories;
+use Zenstruck\Foundry\Test\ResetDatabase;
 
 class EventServiceTest extends KernelTestCase
 {
-    use ReloadDatabaseTrait;
+    use Factories;
+    use ResetDatabase;
 
     public function testGetEventsWithInstancesForLicenseeFromDateToDate()
     {
+        // 1. "Arrange"
+        $license = LicenseFactory::createOne([
+            'season' => 2024,
+        ]);
+
+        $event = EventFactory::new([
+            'club' => $license->getClub(),
+        ])->weeklyRecurrent()->create();
+
+        // 2. "Act"
         self::bootKernel();
         $container = static::getContainer();
         /** @var EventService $eventService */
         $eventService = $container->get(EventService::class);
 
-        $license = $this->license_club_2024($this->licensee(), $this->club());
-
-        $weeklyEvent = $this->weeklyTestEvent($this->testEvent());
-        $weeklyEvent->setClub($license->getClub());
-        $eventService->save($weeklyEvent);
-
-        $EventInstances = $eventService->getEventInstancesForLicenseeFromDateToDate(
+        $eventInstances = $eventService->getEventInstancesForLicenseeFromDateToDate(
             $license->getLicensee(),
             new \DateTimeImmutable('2024-04-01T00:00:00+01:00'),
             new \DateTimeImmutable('2024-04-30T00:00:00+01:00')
         );
 
-        static::assertCount(4, $EventInstances);
-        foreach ($EventInstances as $EventInstance) {
-            static::assertSame($weeklyEvent, $EventInstance->getEvent());
+        static::assertCount(4, $eventInstances);
+        foreach ($eventInstances as $eventInstance) {
+            static::assertSame($event->object(), $eventInstance->getEvent());
         }
     }
 
-    public function testGetRecurringInstancesOfNonRecurringEvent(): void
+    public function testGetEventInstancesOfNonRecurringEvent(): void
     {
+        // 1. Arrange
+        $event = EventFactory::createOne([
+            'startDate' => new \DateTimeImmutable('2024-03-16'),
+            'endDate' => new \DateTimeImmutable('2024-03-16'),
+        ]);
+
+        // 2. Act
         self::bootKernel();
         $container = static::getContainer();
         /** @var EventService $eventService */
         $eventService = $container->get(EventService::class);
 
-        $testEvent = $this->testEvent();
-        $instances = $eventService->getRecurringInstancesDates($testEvent);
+        $instances = $eventService->getEventInstances($event->object());
 
+        // 3. Assert
         self::assertCount(1, $instances);
-        self::assertEquals('2024-03-16', $instances[0]->format('Y-m-d'));
+        self::assertEquals('2024-03-16', $instances[0]->getInstanceDate()->format('Y-m-d'));
     }
 
-    public function testGetAllRecurringInstancesOfEvent(): void
+    public function testGetEventInstancesOfRecurringEventWithEndDate()
     {
+        // 1. Arrange
+        $event = EventFactory::new([
+            'startDate' => new \DateTimeImmutable('2024-03-16'),
+            'endDate' => new \DateTimeImmutable('2024-04-27'),
+        ])->weeklyRecurrent()->create();
+
+        // 2. Act
         self::bootKernel();
         $container = static::getContainer();
         /** @var EventService $eventService */
         $eventService = $container->get(EventService::class);
 
-        $testEvent = $this->testEvent();
-        $instances = $eventService->getRecurringInstancesDates($this->weeklyTestEvent($testEvent));
+        $instances = $eventService->getEventInstances($event->object());
 
+        // 3. Assert
         self::assertCount(7, $instances);
-        self::assertEquals('2024-03-16', $instances[0]->format('Y-m-d'));
-        self::assertEquals('2024-03-23', $instances[1]->format('Y-m-d'));
-        self::assertEquals('2024-03-30', $instances[2]->format('Y-m-d'));
-        self::assertEquals('2024-04-06', $instances[3]->format('Y-m-d'));
-        self::assertEquals('2024-04-13', $instances[4]->format('Y-m-d'));
-        self::assertEquals('2024-04-20', $instances[5]->format('Y-m-d'));
-        self::assertEquals('2024-04-27', $instances[6]->format('Y-m-d'));
+        self::assertEquals('2024-03-16', $instances[0]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-03-23', $instances[1]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-03-30', $instances[2]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-06', $instances[3]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-13', $instances[4]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-20', $instances[5]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-27', $instances[6]->getInstanceDate()->format('Y-m-d'));
     }
 
-    public function testGetRecurringInstancesWithEventStartingWithinAndFinishingAfter(): void
+    public function testGetEventInstancesOfRecurringEventWithMaxNumOfOccurrences()
     {
+        // 1. Arrange
+        $event = EventFactory::new([
+            'startDate' => new \DateTimeImmutable('2024-03-16'),
+            'endDate' => null,
+        ])->weeklyRecurrent(4)->create();
+
+        // 2. Act
         self::bootKernel();
         $container = static::getContainer();
         /** @var EventService $eventService */
         $eventService = $container->get(EventService::class);
 
-        $testEvent = $this->testEvent();
-        $instances = $eventService->getRecurringInstancesDates(
-            $this->weeklyTestEvent($testEvent),
-            new \DateTimeImmutable('2024-03-01'),
-            new \DateTimeImmutable('2024-03-31'),
-        );
+        $instances = $eventService->getEventInstances($event->object());
 
-        self::assertCount(3, $instances);
-        self::assertEquals('2024-03-16', $instances[0]->format('Y-m-d'));
-        self::assertEquals('2024-03-23', $instances[1]->format('Y-m-d'));
-        self::assertEquals('2024-03-30', $instances[2]->format('Y-m-d'));
-    }
-
-    public function testGetRecurringInstancesWithEventStartingBeforeAndFinishingWithin(): void
-    {
-        self::bootKernel();
-        $container = static::getContainer();
-        /** @var EventService $eventService */
-        $eventService = $container->get(EventService::class);
-
-        $testEvent = $this->testEvent();
-        $instances = $eventService->getRecurringInstancesDates(
-            $this->weeklyTestEvent($testEvent),
-            new \DateTimeImmutable('2024-04-01'),
-            new \DateTimeImmutable('2024-04-30'),
-        );
-
+        // 3. Assert
         self::assertCount(4, $instances);
-        self::assertEquals('2024-04-06', $instances[0]->format('Y-m-d'));
-        self::assertEquals('2024-04-13', $instances[1]->format('Y-m-d'));
-        self::assertEquals('2024-04-20', $instances[2]->format('Y-m-d'));
-        self::assertEquals('2024-04-27', $instances[3]->format('Y-m-d'));
+        self::assertEquals('2024-03-16', $instances[0]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-03-23', $instances[1]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-03-30', $instances[2]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-06', $instances[3]->getInstanceDate()->format('Y-m-d'));
     }
 
-    protected function testEvent(): Event
+    public function testGetEventInstancesOfRecurringEventWithEventStartingWithinWindowAndFinishingAfterWindow(): void
     {
-        return (new Event())
-            ->setName('Test Event')
-            ->setStartDate(new \DateTimeImmutable('2024-03-16T00:00:00+01:00'))
-            ->setEndDate(new \DateTimeImmutable('2024-03-16T00:00:00+01:00'))
-            ->setStartTime(\DateTimeImmutable::createFromFormat('H:i:s', '9:45:00'))
-            ->setEndTime(\DateTimeImmutable::createFromFormat('H:i:s', '11:00:00'))
-            ->setDiscipline(DisciplineType::INDOOR)
-            ->setCreatedAt(new \DateTimeImmutable())
-            ->setCreatedBy($this->user())
-        ;
+        // 1. Arrange
+        $windowStart = new \DateTimeImmutable('2024-03-01');
+        $windowEnd = new \DateTimeImmutable('2024-03-31');
+
+        $event = EventFactory::new([
+            'startDate' => new \DateTimeImmutable('2024-03-16'),
+            'endDate' => new \DateTimeImmutable('2024-04-27'),
+        ])->weeklyRecurrent()->create();
+
+        // 2. Act
+        self::bootKernel();
+        $container = static::getContainer();
+        /** @var EventService $eventService */
+        $eventService = $container->get(EventService::class);
+
+        $instances = $eventService->getEventInstances($event->object(), $windowStart, $windowEnd);
+
+        // 3. Assert
+        self::assertCount(3, $instances);
+        self::assertEquals('2024-03-16', $instances[0]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-03-23', $instances[1]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-03-30', $instances[2]->getInstanceDate()->format('Y-m-d'));
     }
 
-    protected function weeklyTestEvent(Event $event): Event
+    public function testGetEventInstancesOfRecurringEventWithEventStartingBeforeWindowAndFinishingWithinWindow(): void
     {
-        $recurringPattern = (new EventRecurringPattern())
-            ->setEvent($this->testEvent())
-            ->setRecurringType(RecurringType::WEEKLY)
-            ->setSeparationCount(0)
-            ->setDayOfWeek(6)
-        ;
+        // 1. Arrange
+        $windowStart = new \DateTimeImmutable('2024-04-01');
+        $windowEnd = new \DateTimeImmutable('2024-04-30');
 
-        $event
-            ->setEndDate(new \DateTimeImmutable('2024-04-27T00:00:00+01:00'))
-            ->addRecurringPattern($recurringPattern)
-            ->setRecurring(true);
+        $event = EventFactory::new([
+            'startDate' => new \DateTimeImmutable('2024-03-16'),
+            'endDate' => new \DateTimeImmutable('2024-04-27'),
+        ])->weeklyRecurrent()->create();
 
-        return $event;
+        // 2. Act
+        self::bootKernel();
+        $container = static::getContainer();
+        /** @var EventService $eventService */
+        $eventService = $container->get(EventService::class);
+
+        $instances = $eventService->getEventInstances($event->object(), $windowStart, $windowEnd);
+
+        // 3. Assert
+        self::assertCount(4, $instances);
+        self::assertEquals('2024-04-06', $instances[0]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-13', $instances[1]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-20', $instances[2]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-27', $instances[3]->getInstanceDate()->format('Y-m-d'));
     }
 
-    protected function license_club_2024(Licensee $licensee, Club $club): License
+    public function testGetEventInstancesOfRecurringEventWithEventStartingBeforeWindowAndFinishingAfterWindow(): void
     {
-        return (new License())
-            ->setLicensee($licensee)
-            ->setClub($club)
-            ->setSeason(2024)
-            ->setType(LicenseType::ADULTES_CLUB)
-            ->setActivities([LicenseActivityType::CL])
-        ;
-    }
+        // 1. Arrange
+        $windowStart = new \DateTimeImmutable('2024-04-01');
+        $windowEnd = new \DateTimeImmutable('2024-04-30');
 
-    protected function licensee(): Licensee
-    {
-        return (new Licensee())
-            ->setFirstname('Firstname')
-            ->setLastname('Lastname')
-            ->setGender(GenderType::FEMALE)
-            ->setBirthdate(new \DateTimeImmutable('1986-05-12'))
-        ;
-    }
+        $event = EventFactory::new([
+            'startDate' => new \DateTimeImmutable('2024-03-16'),
+            'endDate' => new \DateTimeImmutable('2024-05-11'),
+        ])->weeklyRecurrent()->create();
 
-    protected function user(): User
-    {
-        return (new User())
-            ->setFirstname('Firstname')
-            ->setLastname('Lastname')
-            ->setGender(GenderType::FEMALE)
-            ->setEmail('firstname.lastname@test')
-            ->setPassword('test_passwd')
-        ;
-    }
+        // 2. Act
+        self::bootKernel();
+        $container = static::getContainer();
+        /** @var EventService $eventService */
+        $eventService = $container->get(EventService::class);
 
-    protected function club(): Club
-    {
-        return (new Club())
-            ->setName('Test Club')
-            ->setCity('Test City')
-            ->setPrimaryColor('#FF0000')
-            ->setContactEmail('test@test')
-            ->setFftaCode('1234567F');
+        $instances = $eventService->getEventInstances($event->object(), $windowStart, $windowEnd);
+
+        // 3. Assert
+        self::assertCount(4, $instances);
+        self::assertEquals('2024-04-06', $instances[0]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-13', $instances[1]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-20', $instances[2]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-27', $instances[3]->getInstanceDate()->format('Y-m-d'));
     }
 }

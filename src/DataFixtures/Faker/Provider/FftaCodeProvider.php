@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\DataFixtures\Faker\Provider;
 
 use Faker\Provider\Base;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
+#[AutoconfigureTag('foundry.faker_provider')]
 final class FftaCodeProvider extends Base
 {
     public static function fftaId(): int
