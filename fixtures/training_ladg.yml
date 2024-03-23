@@ -82,3 +82,21 @@ App\Entity\EventRecurringPattern:
         separationCount: 0
         maxNumOfOccurrences: null
         dayOfWeek: 2
+
+App\Entity\EventInstanceException:
+    event_exception_training_ladg_loisirs_1:
+        event: '@event_training_ladg_loisirs_1'
+        isRescheduled: false
+        isCancelled: true
+        startDate: '<(new DateTimeImmutable("2023-12-23"))>'
+        endDate: '<(new DateTimeImmutable("2023-12-23"))>'
+        createdBy: '@user_admin'
+        createdAt: '<(new DateTimeImmutable())>'
+    event_exception_training_ladg_loisirs_2:
+        event: '@event_training_ladg_loisirs_1'
+        isRescheduled: false
+        isCancelled: true
+        startDate: '<(new DateTimeImmutable("2023-12-30"))>'
+        endDate: '<(new DateTimeImmutable("2023-12-30"))>'
+        createdBy: '@user_admin'
+        createdAt: '<(new DateTimeImmutable())>'
