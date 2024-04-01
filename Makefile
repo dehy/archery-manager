@@ -26,10 +26,18 @@ deps: start
 	$(BASE_EXEC) yarn install
 	$(BASE_EXEC) yarn run encore dev
 
-migratedb: start
+db-reset: db-drop db-create db-migrate
+
+db-drop: start
+	$(BASE_EXEC) php bin/console doctrine:database:drop -f
+
+db-create: start
+	$(BASE_EXEC) php bin/console doctrine:database:create
+
+db-migrate: start
 	$(BASE_EXEC) php bin/console doctrine:migrations:migrate -n
 
-fixtures: migratedb
+fixtures: db-migrate
 	$(BASE_EXEC) php bin/console hautelook:fixtures:load -n
 
 qa:
