@@ -13,6 +13,7 @@ App\Entity\TrainingEvent:
         assignedGroups: [ '@group_ladb_perfectionnement_adultes' ]
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+        recurringPatterns: ['@event_recurring_training_ladb_perfectionnement_adultes']
     event_training_ladb_competiteurs_adultes:
         club: '@club_ladb'
         name: Compétiteurs Adultes
@@ -27,6 +28,7 @@ App\Entity\TrainingEvent:
         assignedGroups: [ '@group_ladb_competiteurs_adultes' ]
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+        recurringPatterns: ['@event_recurring_training_ladb_competiteurs_adultes']
     event_training_ladb_debutants_jeunes:
         club: '@club_ladb'
         name: Débutants Jeunes 8 - 17 ans (2014 - 2005)
@@ -41,6 +43,7 @@ App\Entity\TrainingEvent:
         assignedGroups: [ '@group_ladb_debutants_jeunes' ]
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+        recurringPatterns: ['@event_recurring_training_ladb_debutants_jeunes']
     event_training_ladb_jeunes_perfectionnement:
         club: '@club_ladb'
         name: Compétiteurs Jeunes & Perfectionnement Jeunes
@@ -57,6 +60,7 @@ App\Entity\TrainingEvent:
           - '@group_ladb_perfectionnement_jeunes'
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+        recurringPatterns: ['@event_recurring_training_ladb_jeunes_perfectionnement']
     event_training_ladb_debutant_adultes_1800:
         club: '@club_ladb'
         name: Débutants Adultes & Compétiteurs Jeunes
@@ -73,6 +77,7 @@ App\Entity\TrainingEvent:
             - '@group_ladb_competiteurs_jeunes'
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+        recurringPatterns: ['@event_recurring_training_ladb_debutant_adultes_1800']
     event_training_ladb_debutant_adultes_2000:
         club: '@club_ladb'
         name: Débutants Adultes & Compétiteurs Adultes
@@ -89,6 +94,7 @@ App\Entity\TrainingEvent:
             - '@group_ladb_competiteurs_adultes'
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+        recurringPatterns: ['@event_recurring_training_ladb_debutant_adultes_2000']
     event_training_ladb_handisport:
         club: '@club_ladb'
         name: Handisport
@@ -103,6 +109,7 @@ App\Entity\TrainingEvent:
         assignedGroups: [ '@group_ladb_handisport' ]
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+        recurringPatterns: ['@event_recurring_training_ladb_handisport']
     event_training_ladb_baby:
         club: '@club_ladb'
         name: Baby 5 - 7 ans
@@ -117,52 +124,45 @@ App\Entity\TrainingEvent:
         assignedGroups: [ '@group_ladb_baby' ]
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+        recurringPatterns: ['@event_recurring_training_ladb_baby']
 
 App\Entity\EventRecurringPattern:
     event_recurring_training_ladb_perfectionnement_adultes:
-        event: '@event_training_ladb_perfectionnement_adultes'
         recurringType: 'weekly'
         separationCount: 0
         maxNumOfOccurrences: null
         dayOfWeek: 1
     event_recurring_training_ladb_competiteurs_adultes:
-        event: '@event_training_ladb_competiteurs_adultes'
         recurringType: 'weekly'
         separationCount: 0
         maxNumOfOccurrences: null
         dayOfWeek: 2
     event_recurring_training_ladb_debutants_jeunes:
-        event: '@event_training_ladb_debutants_jeunes'
         recurringType: 'weekly'
         separationCount: 0
         maxNumOfOccurrences: null
         dayOfWeek: 3
     event_recurring_training_ladb_jeunes_perfectionnement:
-        event: '@event_training_ladb_jeunes_perfectionnement'
         recurringType: 'weekly'
         separationCount: 0
         maxNumOfOccurrences: null
         dayOfWeek: 3
     event_recurring_training_ladb_debutant_adultes_1800:
-        event: '@event_training_ladb_debutant_adultes_1800'
         recurringType: 'weekly'
         separationCount: 0
         maxNumOfOccurrences: null
         dayOfWeek: 5
     event_recurring_training_ladb_debutant_adultes_2000:
-        event: '@event_training_ladb_debutant_adultes_2000'
         recurringType: 'weekly'
         separationCount: 0
         maxNumOfOccurrences: null
         dayOfWeek: 5
     event_recurring_training_ladb_handisport:
-        event: '@event_training_ladb_handisport'
         recurringType: 'weekly'
         separationCount: 0
         maxNumOfOccurrences: null
         dayOfWeek: 6
     event_recurring_training_ladb_baby:
-        event: '@event_training_ladb_baby'
         recurringType: 'weekly'
         separationCount: 0
         maxNumOfOccurrences: null

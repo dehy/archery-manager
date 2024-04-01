@@ -13,6 +13,7 @@ App\Entity\TrainingEvent:
         assignedGroups: [ '@group_ladg_loisirs' ]
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+        recurringPatterns: ['@event_recurring_training_ladg_loisirs_1']
     event_training_ladg_familles_1:
         club: '@club_ladg'
         name: Familles
@@ -27,6 +28,7 @@ App\Entity\TrainingEvent:
         assignedGroups: [ '@group_ladg_familles' ]
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+        recurringPatterns: ['@event_recurring_training_ladg_familles_1']
     event_training_ladg_competiteurs_1:
         club: '@club_ladg'
         name: Compétiteurs
@@ -41,6 +43,7 @@ App\Entity\TrainingEvent:
         assignedGroups: ['@group_ladg_competiteurs']
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+        recurringPatterns: ['@event_recurring_training_ladg_competiteurs_1']
 App\Entity\FreeTrainingEvent:
     event_training_ladg_competiteurs_libre_1:
         club: '@club_ladg'
@@ -56,28 +59,25 @@ App\Entity\FreeTrainingEvent:
         assignedGroups: ['@group_ladg_competiteurs']
         createdAt: '<(new DateTime())>'
         createdBy: '@user_admin'
+        recurringPatterns: ['@event_recurring_training_ladg_competiteurs_libre_1']
 
 App\Entity\EventRecurringPattern:
     event_recurring_training_ladg_loisirs_1:
-        event: '@event_training_ladg_loisirs_1'
         recurringType: 'weekly'
         separationCount: 0
         maxNumOfOccurrences: null
         dayOfWeek: 6
-    event_reccuring_training_ladg_familles_1:
-        event: '@event_training_ladg_familles_1'
+    event_recurring_training_ladg_familles_1:
         recurringType: 'weekly'
         separationCount: 0
         maxNumOfOccurrences: null
         dayOfWeek: 6
-    event_reccuringtraining_ladg_competiteurs_1:
-        event: '@event_training_ladg_competiteurs_1'
+    event_recurring_training_ladg_competiteurs_1:
         recurringType: 'weekly'
         separationCount: 0
         maxNumOfOccurrences: null
         dayOfWeek: 6
-    event_reccuring_training_ladg_competiteurs_libre_1:
-        event: '@event_training_ladg_competiteurs_libre_1'
+    event_recurring_training_ladg_competiteurs_libre_1:
         recurringType: 'weekly'
         separationCount: 0
         maxNumOfOccurrences: null
