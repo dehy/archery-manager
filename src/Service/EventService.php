@@ -46,8 +46,7 @@ class EventService
                 if ($eventInstance->getInstanceDate()->format('Y-m-d') == $instanceDateToDelete->format('Y-m-d')) {
                     $instanceException = (new EventInstanceException())
                         ->setEvent($event)
-                        ->setStartDate($eventInstance->getInstanceDate())
-                        ->setEndDate($eventInstance->getInstanceDate())
+                        ->setInstanceDate($eventInstance->getInstanceDate())
                         ->setIsRescheduled(false)
                         ->setIsCancelled(true)
                         ->setCreatedAt(new \DateTimeImmutable())
@@ -59,6 +58,42 @@ class EventService
         }
 
         $this->entityManager->flush();
+    }
+
+    public function rescheduleOne(
+        Event $event,
+        \DateTimeImmutable $instanceDateToReschedule,
+        \DateTimeImmutable $newStartDate = null,
+        \DateTimeImmutable $newStartTime = null,
+        \DateTimeImmutable $newEndDate = null,
+        \DateTimeImmutable $newEndTime = null,
+        bool $newIsFullDayEvent = null,
+    ): EventInstanceException {
+        $eventInstances = $this->getEventInstances($event);
+        foreach ($eventInstances as $eventInstance) {
+            if ($eventInstance->getInstanceDate()->format('Y-m-d') === $instanceDateToReschedule->format('Y-m-d')) {
+                $eventInstanceException = (new EventInstanceException())
+                    ->setEvent($event)
+                    ->setIsRescheduled(true)
+                    ->setIsCancelled(false)
+                    ->setInstanceDate($instanceDateToReschedule)
+                    ->setStartDate($newStartDate)
+                    ->setStartTime($newStartTime)
+                    ->setEndDate($newEndDate)
+                    ->setEndTime($newEndTime)
+                    ->setIsFullDayEvent($newIsFullDayEvent)
+                    ->setCreatedBy($this->security->getUser())
+                    ->setCreatedAt(new \DateTimeImmutable())
+                ;
+
+                $this->entityManager->persist($eventInstanceException);
+                $this->entityManager->flush();
+
+                return $eventInstanceException;
+            }
+        }
+
+        throw new \LogicException(sprintf('Cannot find the instance date to reschedule (%s) for the Event #%s', $instanceDateToReschedule, $event->getId()));
     }
 
     public function getEventInstances(
@@ -74,6 +109,19 @@ class EventService
             $windowStart,
             $windowEnd,
         );
+
+        // Handle rescheduled instances
+        $rescheduledInstances = $event->getEventInstanceExceptions()->filter(
+            function (EventInstanceException $exception) {
+                return $exception->isRescheduled();
+            }
+        );
+        $rescheduledInstancesByDate = [];
+        foreach ($rescheduledInstances as $rescheduledInstance) {
+            $rescheduledInstancesByDate[$rescheduledInstance->getInstanceDate()->format('Y-m-d')] = $rescheduledInstance;
+        }
+
+        // Handle cancelled instances
         $cancelledInstances = $event->getEventInstanceExceptions()->filter(
             function (EventInstanceException $exception) {
                 return $exception->isCancelled();
@@ -81,12 +129,15 @@ class EventService
         );
         $cancelledInstancesByDate = [];
         foreach ($cancelledInstances as $cancelledInstance) {
-            $cancelledInstancesByDate[$cancelledInstance->getStartDate()->format('Y-m-d')] = $cancelledInstance;
+            $cancelledInstancesByDate[$cancelledInstance->getInstanceDate()->format('Y-m-d')] = $cancelledInstance;
         }
 
         foreach ($instanceDates as $instanceDate) {
             if (isset($cancelledInstancesByDate[$instanceDate->format('Y-m-d')])) {
                 continue;
+            }
+            if (isset($rescheduledInstancesByDate[$instanceDate->format('Y-m-d')])) {
+                $instanceDate = $rescheduledInstancesByDate[$instanceDate->format('Y-m-d')]->getStartDate();
             }
             $eventInstance = (new EventInstance())
                 ->setEvent($event)

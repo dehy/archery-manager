@@ -25,9 +25,12 @@ class EventInstanceException
     private ?bool $isCancelled = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    private ?\DateTimeImmutable $instanceDate;
+
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $startDate = null;
 
-    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $endDate = null;
 
     #[ORM\Column(type: Types::TIME_IMMUTABLE, nullable: true)]
@@ -83,6 +86,18 @@ class EventInstanceException
     public function setIsCancelled(bool $isCancelled): static
     {
         $this->isCancelled = $isCancelled;
+
+        return $this;
+    }
+
+    public function getInstanceDate(): ?\DateTimeImmutable
+    {
+        return $this->instanceDate;
+    }
+
+    public function setInstanceDate(?\DateTimeImmutable $instanceDate): static
+    {
+        $this->instanceDate = $instanceDate;
 
         return $this;
     }
@@ -169,5 +184,18 @@ class EventInstanceException
         $this->createdAt = $createdAt;
 
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    public function consistencyChecks(): void
+    {
+        if ($this->isRescheduled()
+            && !$this->getStartDate()
+            && !$this->getStartTime()
+            && !$this->getEndDate()
+            && !$this->getEndTime()) {
+            throw new \LogicException('A rescheduled instance MUST have at least one new Date or Time');
+        }
     }
 }

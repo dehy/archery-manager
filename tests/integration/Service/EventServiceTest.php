@@ -254,4 +254,43 @@ class EventServiceTest extends KernelTestCase
         // 3. Assert
         self::assertNull($event);
     }
+
+    public function testRescheduleOneEventInstance(): void
+    {
+        // 1. Arrange
+        $event = EventFactory::new([
+            'startDate' => new \DateTimeImmutable('2024-03-16'),
+            'endDate' => new \DateTimeImmutable('2024-04-27'),
+        ])->weeklyRecurrent()->create();
+
+        // 2. Act
+        self::bootKernel();
+        $container = static::getContainer();
+        /** @var EventService $eventService */
+        $eventService = $container->get(EventService::class);
+
+        $this->login(UserFactory::createOne()->object());
+        $eventService->rescheduleOne(
+            $event->object(),
+            new \DateTimeImmutable('2024-04-13'),
+            new \DateTimeImmutable('2024-04-14'),
+            null,
+
+            new \DateTimeImmutable('2024-04-14'),
+        );
+        $this->logout();
+
+        // 3. Assert
+        $instances = $eventService->getEventInstances($event->object());
+
+        self::assertCount(7, $instances);
+        self::assertEquals('2024-03-16', $instances[0]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-03-23', $instances[1]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-03-30', $instances[2]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-06', $instances[3]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-14', $instances[4]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-20', $instances[5]->getInstanceDate()->format('Y-m-d'));
+        self::assertEquals('2024-04-27', $instances[6]->getInstanceDate()->format('Y-m-d'));
+
+    }
 }
