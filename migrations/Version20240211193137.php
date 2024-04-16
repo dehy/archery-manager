@@ -32,6 +32,8 @@ final class Version20240211193137 extends AbstractMigration
         $this->addSql('ALTER TABLE event DROP starts_at, DROP ends_at');
         $this->addSql('ALTER TABLE event ADD CONSTRAINT FK_3BAE0AA7B03A8386 FOREIGN KEY (created_by_id) REFERENCES `user` (id)');
         $this->addSql('ALTER TABLE event ADD CONSTRAINT FK_3BAE0AA7EE3A445A FOREIGN KEY (parent_event_id) REFERENCES event (id)');
+        $this->addSql('ALTER TABLE event_participation ADD instance_date DATE NOT NULL COMMENT \'(DC2Type:date_immutable)\' AFTER event_id');
+        $this->addSql('UPDATE event_participation ep SET instance_date = (SELECT start_date FROM event e WHERE e.id = ep.event_id)');
     }
 
     public function down(Schema $schema): void

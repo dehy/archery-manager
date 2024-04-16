@@ -2,6 +2,7 @@
 
 namespace App\Factory;
 
+use App\DataFixtures\Faker\Provider\FftaCodeProvider;
 use App\DBAL\Types\GenderType;
 use App\Entity\Licensee;
 use App\Repository\LicenseeRepository;
@@ -63,11 +64,25 @@ final class LicenseeFactory extends ModelFactory
      */
     protected function getDefaults(): array
     {
+        $firstname = self::faker()->firstName();
+        $lastname = self::faker()->lastName();
+        $gender = self::faker()->randomElement(GenderType::getChoices());
+        $fftaId = FftaCodeProvider::fftaId();
+
+        $user = UserFactory::new([
+            'firstname' => $firstname,
+            'lastname' => $lastname,
+            'gender' => $gender,
+        ]);
+
         return [
+            'user' => $user,
             'birthdate' => self::faker()->dateTimeBetween('-50 years', '-10 years'),
-            'firstname' => self::faker()->firstName(),
-            'gender' => self::faker()->randomElement(GenderType::getChoices()),
-            'lastname' => self::faker()->lastName(),
+            'firstname' => $firstname,
+            'gender' => $gender,
+            'lastname' => $lastname,
+            'fftaId' => $fftaId,
+            'fftaMemberCode' => FftaCodeProvider::fftaCode($fftaId),
             'updatedAt' => \DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
         ];
     }

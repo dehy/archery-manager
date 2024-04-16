@@ -55,7 +55,8 @@ class ResultRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')
             ->join('r.event', 'e')
             ->where('r.licensee = :licensee')
-            ->orderBy('e.startsAt', Criteria::ASC)
+            ->orderBy('e.startDate', Criteria::ASC)
+            ->addOrderBy('e.startTime', Criteria::ASC)
             ->setParameter('licensee', $licensee)
             ->getQuery()
             ->getResult();

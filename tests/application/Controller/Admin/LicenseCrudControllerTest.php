@@ -8,52 +8,45 @@ use App\DBAL\Types\LicenseType;
 use App\Entity\Licensee;
 use App\Entity\Season;
 use App\Entity\User;
+use App\Factory\ClubFactory;
+use App\Factory\LicenseeFactory;
+use App\Factory\UserFactory;
 use App\Tests\application\LoggedInTestCase;
+use App\Tests\SecurityTrait;
 use Doctrine\ORM\EntityManagerInterface;
+use Zenstruck\Foundry\Test\Factories;
+use Zenstruck\Foundry\Test\ResetDatabase;
 
 class LicenseCrudControllerTest extends LoggedInTestCase
 {
+    use Factories;
+    use ResetDatabase;
+
     public function testWelcomeEmailIsSentAfterPersisting(): void
     {
-        $client = static::createLoggedInAsAdminClient();
+        // 1. Arrange
+        $client = $this->createClient();
+        $licensee = LicenseeFactory::createOne();
+        $club = ClubFactory::createOne();
+        $userFirstname = $licensee->getUser()->getFirstname();
+        $client->loginUser(UserFactory::new()->admin()->create()->object());
 
-        /** @var EntityManagerInterface $entityManager */
-        $entityManager = $this->getContainer()->get(EntityManagerInterface::class);
-
-        $user = new User();
-        $user->setGender(GenderType::MALE)
-            ->setFirstname('John')
-            ->setLastname('Doe')
-            ->setEmail('john.doe@acme.org')
-            ->setPassword('password');
-
-        $licensee = (new Licensee())
-            ->setUser($user)
-            ->setGender(GenderType::MALE)
-            ->setFirstname($user->getFirstname())
-            ->setLastname($user->getLastname())
-            ->setBirthdate(new \DateTime('1994-01-01T00:00:00Z'));
-
-        $entityManager->persist($user);
-        $entityManager->persist($licensee);
-        $entityManager->flush();
-
+        // 2. Act
         $crawler = $client->request('GET', '/admin?crudAction=new&crudControllerFqcn=App%5CController%5CAdmin%5CLicenseCrudController');
-        $this->assertResponseIsSuccessful();
-
+        self::assertResponseIsSuccessful();
         $form = $crawler->selectButton('Créer')->form();
         $form['License[licensee]'] = (string) $licensee->getId();
+        $form['License[club]'] = (string) $club->getId();
         $form['License[season]'] = (string) Season::seasonForDate(new \DateTimeImmutable());
         $form['License[type]'] = LicenseType::ADULTES_CLUB;
         $form['License[activities]'] = LicenseActivityType::CL;
 
         $client->submit($form);
-
-        self::assertResponseRedirects();
-        self::assertQueuedEmailCount(1);
-
         $email = $this->getMailerMessage();
 
-        self::assertEmailHtmlBodyContains($email, 'John');
+        // 3. Assert
+        self::assertResponseRedirects('http://localhost/admin?crudAction=new&crudControllerFqcn=App%5CController%5CAdmin%5CLicenseCrudController');
+        self::assertQueuedEmailCount(1);
+        self::assertEmailHtmlBodyContains($email, $userFirstname);
     }
 }

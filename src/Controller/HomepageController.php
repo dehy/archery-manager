@@ -9,6 +9,7 @@ use App\Helper\LicenseeHelper;
 use App\Repository\EventRepository;
 use App\Repository\PracticeAdviceRepository;
 use App\Repository\ResultRepository;
+use App\Service\EventService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +21,7 @@ class HomepageController extends AbstractController
     public function index(
         EntityManagerInterface $entityManager,
         LicenseeHelper $licenseeHelper,
+        EventService $eventService,
     ): Response {
         if (null === $licenseeHelper->getLicenseeFromSession()) {
             return $this->render('homepage/blank_account.html.twig', [
@@ -28,10 +30,14 @@ class HomepageController extends AbstractController
         }
 
         /** @var EventRepository $eventRepository */
-        $eventRepository = $entityManager->getRepository(Event::class);
+        /*$eventRepository = $entityManager->getRepository(Event::class);
         $events = $eventRepository->findNextForLicensee(
             $licenseeHelper->getLicenseeFromSession(),
             5,
+        );*/
+        $eventInstances = $eventService->getEventInstancesForLicenseeFromNowWithCountLimit(
+            $licenseeHelper->getLicenseeFromSession(),
+            5
         );
 
         /** @var PracticeAdviceRepository $adviceRepository */
@@ -43,7 +49,7 @@ class HomepageController extends AbstractController
         $results = $resultRepository->findLastForLicensee($licenseeHelper->getLicenseeFromSession());
 
         return $this->render('homepage/index.html.twig', [
-            'events' => $events,
+            'event_instances' => $eventInstances,
             'advices' => $advices,
             'results' => $results,
         ]);

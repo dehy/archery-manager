@@ -6,8 +6,9 @@ namespace DoctrineMigrations;
 
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\TargetTypeType;
-use App\Entity\EventParticipation;
+use App\Entity\Licensee;
 use App\Helper\LicenseHelper;
+use App\Repository\LicenseeRepository;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
@@ -50,20 +51,31 @@ final class Version20230109101825 extends AbstractMigration implements Container
     public function postUp(Schema $schema): void
     {
         $entityManager = $this->container->get('doctrine.orm.default_entity_manager');
-        $eventParticipationRepository = $entityManager->getRepository(EventParticipation::class);
+        /** @var LicenseeRepository $licenseeRepository */
+        $licenseeRepository = $entityManager->getRepository(Licensee::class);
 
-        /** @var EventParticipation[] $participations */
-        $participations = $eventParticipationRepository->findAll();
+        $connection = $entityManager->getConnection();
+        $participations = $connection
+            ->executeQuery('SELECT * FROM event_participation')
+            ->fetchAllAssociative();
+
+        $updateQuery = 'UPDATE event_participation SET activity = :activity, target_type = :target_type';
+        $updateParams = [];
         foreach ($participations as $participation) {
-            $season = LicenseHelper::getSeasonForDate($participation->getEvent()->getStartTime());
-            $license = $participation->getParticipant()->getLicenseForSeason($season);
+            $event = $connection->executeQuery('SELECT * FROM event WHERE id = :id', ['id' => $participation['event_id']]);
+            $season = LicenseHelper::getSeasonForDate(new \DateTime($event['starts_at']));
+            $participant = $licenseeRepository->find($participation['participant_id']);
+            $license = $participant->getLicenseForSeason($season);
             $activity = $license->getActivities()[0];
             $targetType = LicenseActivityType::CO === $activity ? TargetTypeType::TRISPOT : TargetTypeType::MONOSPOT;
 
-            $participation->setActivity($activity);
-            $participation->setTargetType($targetType);
+            $updateParams[] = ['activity' => $activity, 'target_type' => $targetType];
         }
 
-        $entityManager->flush();
+        $connection->beginTransaction();
+        foreach ($updateParams as $updateParam) {
+            $connection->executeQuery($updateQuery, $updateParams);
+        }
+        $connection->commit();
     }
 }

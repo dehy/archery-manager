@@ -60,7 +60,7 @@ class EventService
         $this->entityManager->flush();
     }
 
-    public function rescheduleOne(
+    public function rescheduleOneInstance(
         Event $event,
         \DateTimeImmutable $instanceDateToReschedule,
         \DateTimeImmutable $newStartDate = null,
@@ -96,10 +96,77 @@ class EventService
         throw new \LogicException(sprintf('Cannot find the instance date to reschedule (%s) for the Event #%s', $instanceDateToReschedule, $event->getId()));
     }
 
+    public function rescheduleAllFutureInstances(
+        Event $event,
+        \DateTimeImmutable $instanceDateToReschedule,
+        \DateTimeImmutable $newStartDate,
+        \DateTimeImmutable $newStartTime = null,
+        \DateTimeImmutable $newEndDate = null,
+        \DateTimeImmutable $newEndTime = null,
+        bool $newIsFullDayEvent = null,
+    ): Event {
+        if (!$event->isRecurring()) {
+            throw new \LogicException('Only recurring events can be rescheduled');
+        }
+
+        // Create a new Event with different scheduling
+        $rescheduledEvent = (clone $event)
+            ->setParentEvent($event)
+            ->setStartDate($newStartDate)
+            ->setStartTime($newStartTime ?? $event->getStartTime())
+            ->setEndDate($newEndDate ?? $event->getEndDate())
+            ->setEndTime($newEndTime ?? $event->getEndTime())
+        ;
+        // Copy the recurring pattern with the new date
+        // TODO create those recurring patterns during cloning
+        foreach ($event->getRecurringPatterns() as $recurringPattern) {
+            $rescheduledRecurringPattern = (clone $recurringPattern)
+                ->setEvent($rescheduledEvent);
+            switch ($rescheduledRecurringPattern->getRecurringType()) {
+                case RecurringType::WEEKLY:
+                    $rescheduledRecurringPattern->setDayOfWeek($rescheduledEvent->getStartDate()->format('N'));
+                    break;
+                case RecurringType::MONTHLY:
+                    $rescheduledRecurringPattern->setDayOfMonth($rescheduledEvent->getStartDate()->format('j'));
+                    break;
+                case RecurringType::YEARLY:
+                    $rescheduledRecurringPattern->setDayOfMonth($rescheduledEvent->getStartDate()->format('j'));
+                    $rescheduledRecurringPattern->setMonthOfYear($rescheduledEvent->getStartDate()->format('m'));
+                    break;
+                case RecurringType::DAILY:
+                default:
+                    break;
+            }
+            $rescheduledEvent->addRecurringPattern($rescheduledRecurringPattern);
+        }
+        // TODO add assignedGroups
+        // TODO add attachments
+        $this->entityManager->persist($rescheduledEvent);
+
+        // Update the current Event
+        $eventInstances = $this->getEventInstances($event);
+
+        // Find the last event instance before the split
+        $lastEventInstance = $event->getStartDate();
+        foreach ($eventInstances as $eventInstance) {
+            if ($instanceDateToReschedule->format('Y-m-d') === $eventInstance->getInstanceDate()->format('Y-m-d')) {
+                break;
+            }
+            $lastEventInstance = $eventInstance;
+        }
+        // Set this last event instance date as endDate
+        $event->setEndDate(clone $lastEventInstance->getInstanceDate());
+        // TODO remove event instance exceptions after the endDate from the current event
+
+        $this->entityManager->flush();
+
+        return $rescheduledEvent;
+    }
+
     public function getEventInstances(
         Event $event,
-        \DateTimeInterface $windowStart = null,
-        \DateTimeInterface $windowEnd = null
+        \DateTimeImmutable $windowStart = null,
+        \DateTimeImmutable $windowEnd = null
     ): array {
         /** @var EventInstance[] $eventInstances */
         $eventInstances = [];
@@ -155,8 +222,8 @@ class EventService
      */
     public function getEventInstancesForLicenseeFromDateToDate(
         Licensee $licensee,
-        \DateTimeInterface $windowStart = null,
-        \DateTimeInterface $windowEnd = null,
+        \DateTimeImmutable $windowStart = null,
+        \DateTimeImmutable $windowEnd = null,
     ): array {
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->entityManager->getRepository('App\Entity\Event');
@@ -171,6 +238,47 @@ class EventService
         }
 
         return $eventInstances;
+    }
+
+    /**
+     * @return EventInstance[]
+     *
+     * @throws \Exception
+     */
+    public function getEventInstancesForLicenseeFromNowWithCountLimit(
+        Licensee $licensee,
+        int $count,
+    ): array {
+        /** @var EventRepository $eventRepository */
+        $eventRepository = $this->entityManager->getRepository('App\Entity\Event');
+
+        /** @var EventInstance[] $eventInstances */
+        $eventInstances = [];
+
+        /** @var Event[] $events */
+        $events = $eventRepository->findForLicenseeSinceDate($licensee, new \DateTime());
+        foreach ($events as $event) {
+            $eventInstances = [...$eventInstances, ...$this->getEventInstances($event)];
+        }
+
+        usort($eventInstances, function (EventInstance $a, EventInstance $b) {
+            return $a->getInstanceDate() <=> $b->getInstanceDate();
+        });
+
+        $selectedEventInstances = [];
+        $now = new \DateTimeImmutable();
+        foreach ($eventInstances as $eventInstance) {
+            if (\count($selectedEventInstances) >= $count) {
+                break;
+            }
+            if ($eventInstance->getInstanceDate() < $now
+            && $eventInstance->getEvent()->getStartTime() < $now) {
+                continue;
+            }
+            $selectedEventInstances[] = $eventInstance;
+        }
+
+        return $selectedEventInstances;
     }
 
     /**

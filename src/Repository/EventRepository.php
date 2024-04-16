@@ -105,6 +105,42 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
+     * @throws \Exception
+     */
+    public function findForLicenseeSinceDate(
+        Licensee $licensee,
+        \DateTimeInterface $date,
+    ): array {
+        $clubs = $licensee->getLicenses()->map(fn (License $license) => $license->getClub());
+        $clubs = array_unique($clubs->toArray());
+
+        $qb = $this->createQueryBuilder('e');
+
+        return $qb
+            ->leftJoin('e.attachments', 'a')
+            ->where(
+                $qb->expr()->orX(
+                    $qb->expr()->andX(
+                        'e.recurring = TRUE',
+                        'e.startDate <= :date',
+                        'e.endDate >= :date OR e.endDate IS NULL',
+                    ),
+                    $qb->expr()->andX(
+                        'e.recurring = FALSE',
+                        'e.startDate >= :date',
+                    )
+                )
+            )
+            ->andWhere('e.club IN (:clubs) OR e.club IS NULL')
+            ->setParameters([
+                'date' => $date,
+                'clubs' => $clubs,
+            ])
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @throws NonUniqueResultException
      */
     public function findBySlug(string $slug): ?Event

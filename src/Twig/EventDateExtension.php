@@ -3,6 +3,7 @@
 namespace App\Twig;
 
 use App\Entity\Event;
+use App\Entity\EventInstance;
 use Knp\Bundle\TimeBundle\DateTimeFormatter;
 use Twig\Environment;
 use Twig\Extension\AbstractExtension;
@@ -26,34 +27,35 @@ class EventDateExtension extends AbstractExtension
 
     public function eventDate(
         Environment $environment,
-        Event $event,
+        EventInstance $eventInstance,
         bool $includeTime = true,
         bool $diff = false
     ): string {
-        if (1 === $event->getEndTime()->diff($event->getStartTime())->days) {
+        $event = $eventInstance->getEvent();
+        if (1 === $event->getEndDate()->diff($event->getStartDate())->days) {
             $date = sprintf(
                 'les %s et %s',
-                $event->getStartTime()->format('j'),
-                $this->formatDate($environment, $event->getEndTime())
+                $eventInstance->getInstanceDate()->format('j'),
+                $this->formatDate($environment, $eventInstance->getInstanceDate()->modify('+1 day'))
             );
-        } elseif ($event->getStartTime()->format('d-m-Y') !== $event->getEndTime()->format('d-m-Y')) {
+        } elseif ($event->getStartDate()->format('d-m-Y') !== $event->getEndDate()->format('d-m-Y')) {
             $date = sprintf(
                 'du %s au %s',
-                $event->getStartTime()->format('j'),
-                $this->formatDate($environment, $event->getEndTime())
+                $eventInstance->getInstanceDate()->format('j'),
+                $this->formatDate($environment, $event->getEndDate())
             );
         } else {
             if ($includeTime && !$event->isFullDayEvent()) {
                 $date = sprintf(
                     'le %s de %s à %s',
-                    $this->formatDate($environment, $event->getStartTime()),
+                    $this->formatDate($environment, $eventInstance->getInstanceDate()),
                     $event->getStartTime()->format('H:i'),
                     $event->getEndTime()->format('H:i'),
                 );
             } else {
                 $date = sprintf(
                     'le %s',
-                    $this->formatDate($environment, $event->getStartTime()),
+                    $this->formatDate($environment, $eventInstance->getInstanceDate()),
                 );
             }
         }
@@ -72,10 +74,10 @@ class EventDateExtension extends AbstractExtension
     private function diff(Event $event): string
     {
         $now = new \DateTime();
-        if ($event->getStartTime() > $now) {
-            $date = $event->getStartTime();
-        } elseif ($event->getEndTime() < $now) {
-            $date = $event->getEndTime();
+        if ($event->getStartsAt() > $now) {
+            $date = $event->getStartsAt();
+        } elseif ($event->getEndsAt() < $now) {
+            $date = $event->getEndsAt();
         } else {
             return 'en ce moment';
         }

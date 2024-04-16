@@ -41,6 +41,7 @@ apt-get install -y --no-install-recommends \
     php8.2-mbstring \
     php8.2-mysqlnd \
     php8.2-pcov \
+    php8.2-uopz \
     php8.2-uuid \
     php8.2-xml \
     php8.2-zip \

@@ -50,35 +50,34 @@ class EventController extends BaseController
         $month = $request->query->get('m', (int) $now->format('n'));
         $year = $request->query->get('y', (int) $now->format('Y'));
 
-        $startDate = new \DateTime("$year-$month-01");
-        $endDate = new \DateTime("$year-$month-".cal_days_in_month(\CAL_GREGORIAN, $month, $year));
+        $startDate = new \DateTimeImmutable("$year-$month-01");
+        $endDate = new \DateTimeImmutable("$year-$month-".cal_days_in_month(\CAL_GREGORIAN, $month, $year));
 
-        $firstDate = (new \DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
-        $lastDate = (clone $firstDate)->modify('last day of this month')->setTime(23, 59, 59);
+
         if (1 !== (int) $startDate->format('N')) {
-            $startDate->modify('previous monday');
+            $startDate = $startDate->modify('previous monday');
         }
         if (7 !== (int) $endDate->format('N')) {
-            $endDate->modify('next sunday 23:59:59');
+            $endDate = $endDate->modify('next sunday 23:59:59');
         }
 
-        $EventInstances = $eventService->getEventInstancesForLicenseeFromDateToDate(
+        $eventInstances = $eventService->getEventInstancesForLicenseeFromDateToDate(
             $this->licenseeHelper->getLicenseeFromSession(),
             $startDate,
             $endDate,
         );
 
         $calendar = [];
-        for ($currentDate = $startDate; $currentDate <= $endDate; $currentDate->modify('+1 day')) {
-            $startOfDay = \DateTimeImmutable::createFromMutable($currentDate)->setTime(0, 0);
-            $endOfDay = \DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
-            $EventInstancesForThisDay = array_filter(
-                $EventInstances,
-                fn (EventInstance $EventInstance) => $EventInstance->getInstanceDate() >= $startOfDay
-                    && $EventInstance->getInstanceDate() <= $endOfDay
+        for ($currentDate = $startDate; $currentDate <= $endDate; $currentDate = $currentDate->modify('+1 day')) {
+            $startOfDay = $currentDate->setTime(0, 0);
+            $endOfDay = $currentDate->setTime(23, 59, 59);
+            $eventInstancesForThisDay = array_filter(
+                $eventInstances,
+                fn (EventInstance $eventInstance) => $eventInstance->getInstanceDate() >= $startOfDay
+                    && $eventInstance->getInstanceDate() <= $endOfDay
             );
             // Sort events: multi-day all-day events, single-day all-day events, then other events
-            usort($EventInstancesForThisDay, function (EventInstance $a, EventInstance $b) {
+            usort($eventInstancesForThisDay, function (EventInstance $a, EventInstance $b) {
                 $origEventA = $a->getEvent();
                 $origEventB = $b->getEvent();
                 if ($origEventA->spanMultipleDays() !== $origEventB->spanMultipleDays()) {
@@ -90,7 +89,7 @@ class EventController extends BaseController
 
                 return $origEventA->getStartTime() <=> $origEventB->getStartTime();
             });
-            $calendar[$currentDate->format('Y-m-j')] = $EventInstancesForThisDay;
+            $calendar[$currentDate->format('Y-m-j')] = $eventInstancesForThisDay;
         }
 
         return $this->render('event/index.html.twig', [

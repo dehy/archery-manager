@@ -12,12 +12,12 @@
         <div class="col-md-4 col-xs-12 mb-3" data-controller="modal">
             {{ include('_modal.html.twig') }}
             <h2 class="mb-3"><em class="fa-solid fa-calendar-days"></em> Prochains évènements</h2>
-            {% if events is empty %}
+            {% if event_instances is empty %}
                 <p><em>Aucun évènement prévu</em></p>
             {% else %}
                 <ul class="list-group">
-                    {% for event in events %}
-                        {% set participation = eventHelper.licenseeParticipationToEvent(licenseeHelper.licenseeFromSession, event) %}
+                    {% for event_instance in event_instances %}
+                        {% set participation = eventHelper.licenseeParticipationToEventInstance(licenseeHelper.licenseeFromSession, event_instance) %}
                         {% if participation.participationState is same as null %}
                             {% set link_class = '' %}
                             {% set icon = '' %}
@@ -31,15 +31,15 @@
                             {% set link_class = 'bg-success' %}
                             {% set icon = 'calendar-check' %}
                         {% endif %}
-                        <a href="{{ path('app_event_show', {slug: event.slug}) }}"
+                        <a href="{{ path('app_event_show', {slug: event_instance.event.slug}) }}"
                            class="list-group-item list-group-item-action link-unstyled bg-opacity-10 {{ link_class }}"
                         >
                             <div class="d-flex flex-column">
                                 <div class="fw-bold">
-                                    {{ event.title }}
+                                    {{ event_instance.event.title }}
                                     <span class="badge rounded-pill text-bg-info">
                                         <em class="fa-solid fa-people-group"></em>
-                                        {{ event.participations|filter(p => p.participationState != 'not_going')|length }}
+                                        {{ event_instance.event.participations|filter(p => p.participationState != 'not_going')|length }}
                                     </span>
                                     {% if icon %}
                                         <span class="badge rounded-pill {{ link_class }}">
@@ -49,7 +49,7 @@
                                 </div>
                                 <div>
                                     <small>
-                                        {{ event|event_date(diff=true) }}
+                                        {{ event_instance|event_date(diff=true) }}
                                     </small>
                                 </div>
                             </div>

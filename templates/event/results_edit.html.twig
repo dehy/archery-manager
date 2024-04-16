@@ -3,7 +3,7 @@
 <div class="table-responsive">
     <table class="table table-striped mb-0">
         {% set age_category = null %}
-        {% set season = licenseHelper.seasonForDate(event.startsAt) %}
+        {% set season = licenseHelper.seasonForDate(event.startDate) %}
         {% for result_form in results_form.licensees_results %}
             {% set license = result_form.vars.value.licensee.licenseForSeason(season) %}
             {% if age_category != license.ageCategory %}

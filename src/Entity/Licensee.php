@@ -137,9 +137,9 @@ class Licensee implements \Stringable
     private Collection $attachments;
 
     /**
-     * @var ArrayCollection<int, Club>
+     * @var ?ArrayCollection<int, Club>
      */
-    protected ArrayCollection $clubs;
+    protected ?ArrayCollection $clubs = null;
 
     public function __construct()
     {
@@ -601,7 +601,7 @@ class Licensee implements \Stringable
      */
     public function getClubs(): ArrayCollection
     {
-        if (null === !$this->clubs) {
+        if (null === $this->clubs) {
             $this->clubs = new ArrayCollection();
             foreach ($this->getLicenses() as $license) {
                 $club = $license->getClub();

@@ -21,6 +21,9 @@ class EventParticipation
     #[ORM\JoinColumn(nullable: false)]
     private Event $event;
 
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATE_IMMUTABLE)]
+    private \DateTimeImmutable $instanceDate;
+
     #[
         ORM\ManyToOne(
             targetEntity: Licensee::class,
@@ -58,6 +61,18 @@ class EventParticipation
     public function setEvent(?Event $event): self
     {
         $this->event = $event;
+
+        return $this;
+    }
+
+    public function getInstanceDate(): \DateTimeImmutable
+    {
+        return $this->instanceDate;
+    }
+
+    public function setInstanceDate(\DateTimeImmutable $instanceDate): self
+    {
+        $this->instanceDate = $instanceDate;
 
         return $this;
     }

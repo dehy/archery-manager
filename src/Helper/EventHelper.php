@@ -3,6 +3,7 @@
 namespace App\Helper;
 
 use App\Entity\Event;
+use App\Entity\EventInstance;
 use App\Entity\EventParticipation;
 use App\Entity\Licensee;
 use App\Repository\EventParticipationRepository;
@@ -13,17 +14,21 @@ class EventHelper
     {
     }
 
-    public function licenseeParticipationToEvent(Licensee $licensee, Event $event): ?EventParticipation
-    {
+    public function licenseeParticipationToEventInstance(
+        Licensee $licensee,
+        EventInstance $eventInstance
+    ): ?EventParticipation {
         $eventParticipation = $this->eventParticipationRepository->findOneBy([
             'participant' => $licensee,
-            'event' => $event,
+            'event' => $eventInstance->getEvent(),
+            'instanceDate' => $eventInstance->getInstanceDate(),
         ]);
 
         if (null === $eventParticipation) {
-            $eventParticipation = new EventParticipation();
-            $eventParticipation->setEvent($event);
-            $eventParticipation->setParticipant($licensee);
+            $eventParticipation = (new EventParticipation())
+                ->setEvent($eventInstance->getEvent())
+                ->setInstanceDate($eventInstance->getInstanceDate())
+                ->setParticipant($licensee);
         }
 
         return $eventParticipation;

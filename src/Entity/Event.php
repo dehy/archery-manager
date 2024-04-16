@@ -119,6 +119,26 @@ class Event implements \Stringable
         $this->recurringPatterns = new ArrayCollection();
     }
 
+    public function __clone(): void
+    {
+        $this->participations = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
+        $this->assignedGroups = new ArrayCollection();
+        $this->eventInstanceExceptions = new ArrayCollection();
+        $this->recurringPatterns = new ArrayCollection();
+
+        $originalAssignedGroups = $this->assignedGroups;
+        $this->assignedGroups = new ArrayCollection();
+        foreach ($originalAssignedGroups as $existingAssignedGroup) {
+            $this->addAssignedGroup($existingAssignedGroup);
+        }
+        $originalAttachments = $this->attachments;
+        $this->attachments = new ArrayCollection();
+        foreach ($originalAttachments as $originalAttachment) {
+            $this->addAttachment(clone $originalAttachment);
+        }
+    }
+
     public function __toString(): string
     {
         return sprintf(
@@ -527,12 +547,37 @@ class Event implements \Stringable
         return $this;
     }
 
+    public function getStartsAt(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable(
+            sprintf(
+                '%sT%sZ',
+                $this->getStartDate()->format('Y-m-d'),
+                $this->getStartTime()?->format('H:i:s') ?? '00:00:00',
+            )
+        );
+    }
+
+    public function getEndsAt(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable(
+            sprintf(
+                '%sT%sZ',
+                $this->getEndDate()->format('Y-m-d'),
+                $this->getEndTime()?->format('H:i:s') ?? '00:00:00',
+            )
+        );
+    }
+
     #[ORM\PrePersist]
     #[ORM\PreUpdate]
     public function consistencyChecks(): void
     {
+        if ($this->isFullDayEvent() && ($this->getStartTime() || $this->getEndTime())) {
+            throw new \LogicException('Full day Event cannot have a start and/or end time.');
+        }
         // Recurring event should have at least one EventRecurringPattern
-        if ($this->recurring) {
+        if ($this->isRecurring()) {
             if (0 === \count($this->getRecurringPatterns())) {
                 throw new \LogicException('Recurring Event should have at least one EventRecurringPattern relation');
             }
@@ -545,7 +590,7 @@ class Event implements \Stringable
                 }
             });
         }
-        if (!$this->recurring) {
+        if (!$this->isRecurring()) {
             if (\count($this->getRecurringPatterns()) >= 1) {
                 throw new \LogicException('Non-Recurring Event should NOT have any EventRecurringPattern relation');
             }

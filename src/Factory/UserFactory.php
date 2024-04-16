@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\DBAL\Types\GenderType;
+use App\DBAL\Types\UserRoleType;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Zenstruck\Foundry\ModelFactory;
@@ -72,6 +73,13 @@ final class UserFactory extends ModelFactory
             'password' => self::faker()->password(),
             'roles' => [],
         ];
+    }
+
+    public function admin(): self
+    {
+        return $this->addState([
+            'roles' => [UserRoleType::ADMIN]
+        ]);
     }
 
     /**

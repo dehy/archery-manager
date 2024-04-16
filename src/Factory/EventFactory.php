@@ -62,17 +62,16 @@ final class EventFactory extends ModelFactory
     {
         return [
             'address' => self::faker()->address(),
-            'club' => ClubFactory::new(),
             'createdAt' => new \DateTimeImmutable(),
-            'createdBy' => UserFactory::new(),
+            'createdBy' => UserFactory::randomOrCreate(),
             'description' => self::faker()->text(255),
             'discipline' => self::faker()->randomElement(DisciplineType::getChoices()),
-            'fullDayEvent' => self::faker()->boolean(),
+            'fullDayEvent' => false,
             'name' => self::faker()->text(23),
             'recurring' => false,
             'slug' => self::faker()->text(255),
-            'startDate' => new \DateTimeImmutable('2023-09-09T'.date('H:i:s').'Z'),
-            'endDate' => new \DateTimeImmutable('2024-06-29T'.date('H:i:s').'Z'),
+            'startDate' => new \DateTimeImmutable('2023-09-09T00:00:00Z'),
+            'endDate' => new \DateTimeImmutable('2023-09-09T00:00:00Z'),
             'startTime' => new \DateTimeImmutable(date('Y-m-d').'T09:45:00Z'),
             'endTime' => new \DateTimeImmutable(date('Y-m-d').'T11:00:00Z'),
         ];
