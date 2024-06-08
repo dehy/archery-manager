@@ -259,7 +259,7 @@
                             <em class="fa-solid fa-download"></em>
                             Télécharger
                         </a>
-                        <a href="{{ path('events_mandate_edit', {slug: event.slug}) }}"
+                        <a href="{{ path('events_attachment_edit', {slug: event.slug, attachmentType: 'mandate'}) }}"
                            class="btn btn-warning"
                            data-action="modal#open"
                            data-title="Mandat"
@@ -279,7 +279,7 @@
                             <div class="fst-italic">Mandat non disponible.</div>
                             {% if is_granted('ROLE_ADMIN') %}
                                 <div class="text-center mt-3">
-                                    <a href="{{ path('events_mandate_edit', {slug: event.slug}) }}"
+                                    <a href="{{ path('events_attachment_edit', {slug: event.slug, attachmentType: 'mandate'}) }}"
                                        class="btn btn-warning"
                                        data-action="modal#open"
                                        data-title="Ajout d'un mandat"
@@ -315,6 +315,23 @@
                                 <em class="fa-solid fa-pencil"></em>
                                 Modifier
                             </a>
+                            <a href="{{ path('events_attachment_edit', {slug: event.slug, attachmentType: 'results'}) }}"
+                               class="btn btn-warning"
+                               data-action="modal#open"
+                               data-title="Téléversement des résultats"
+                            >
+                                <em class="fa-solid fa-upload"></em>
+                                Téléverser PDF
+                            </a>
+                            {% if event.attachments('results') is not empty %}
+                            <a href="{{ path('events_attachments_download', {'attachment': (event.attachments('results')|first).id }) }}"
+                               class="btn btn-warning"
+                               target="_blank"
+                            >
+                                <em class="fa-solid fa-download"></em>
+                                Télécharger PDF
+                            </a>
+                            {% endif %}
                         </div>
                         <div class="accordion-body">
                             {% if event.results is not empty %}
@@ -335,7 +352,28 @@
                                     <caption>Résultats pour {{ event.title }}</caption>
                                 </table>
                             {% else %}
-                                <em>Résultats pas encore disponibles.</em>
+                                <em>Résultats indisponibles.</em>
+                            {% endif %}
+                            {% if event.attachments('results') is not empty %}
+                                <hr>
+                                <h4>PDF</h4>
+                                <canvas data-pdf-url="{{ path('events_attachments_download', {'attachment': (event.attachments('results')|first).id }) }}"
+                            >
+                                Désolé, votre navigateur ne prend pas en charge le rendu de PDF.
+                            </canvas>
+                            {% else %}
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <div class="text-center mt-3">
+                                        <a href="{{ path('events_attachment_edit', {slug: event.slug, attachmentType: 'results'}) }}"
+                                           class="btn btn-warning"
+                                           data-action="modal#open"
+                                           data-title="Ajout des résultats en PDF"
+                                        >
+                                            <em class="fa-solid fa-plus"></em>
+                                            Ajouter un PDF
+                                        </a>
+                                    </div>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>

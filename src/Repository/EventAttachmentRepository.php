@@ -41,14 +41,16 @@ class EventAttachmentRepository extends ServiceEntityRepository
         }
     }
 
-    public function findMandateForEvent(Event $event): ?EventAttachment
+    public function findAttachmentForEvent(Event $event, string $attachmentType): ?EventAttachment
     {
+        EventAttachmentType::assertValidChoice($attachmentType);
+
         return $this->createQueryBuilder('ea')
             ->where('ea.event = :event')
             ->andWhere('ea.type = :type')
             ->setParameters([
                 'event' => $event,
-                'type' => EventAttachmentType::MANDATE,
+                'type' => $attachmentType,
             ])
             ->getQuery()
             ->getOneOrNullResult();
