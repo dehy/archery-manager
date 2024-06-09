@@ -78,7 +78,7 @@ Encore
     //.autoProvidejQuery()
 
     .copyFiles({from: './assets/images'})
-    .copyFiles({from: './node_modules/pdfjs-dist/legacy/build', to: 'pdfjs/[path][name].[ext]', pattern: /.*\.js$/})
+    .copyFiles({from: './node_modules/pdfjs-dist/build', to: '[path][name].[ext]', pattern: /.*\.worker\.min\.mjs$/})
 ;
 
 module.exports = Encore.getWebpackConfig();
