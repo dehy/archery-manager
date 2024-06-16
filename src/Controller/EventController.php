@@ -152,14 +152,17 @@ class EventController extends BaseController
         return $response;
     }
 
-    #[Route('/events/{slug}/mandate/edit', name: 'events_mandate_edit')]
+    #[Route('/events/{slug}/attachments/{attachmentType}/edit', name: 'events_attachment_edit')]
     public function attachmentEdit(
         string $slug,
+        string $attachmentType,
         Request $request,
         EntityManagerInterface $entityManager,
         RouterInterface $router
     ): Response {
         $this->assertHasValidLicense();
+
+        EventAttachmentType::assertValidChoice($attachmentType);
 
         /** @var EventRepository $eventRepository */
         $eventRepository = $entityManager->getRepository(Event::class);
@@ -171,27 +174,30 @@ class EventController extends BaseController
 
         /** @var EventAttachmentRepository $eventAttachmentRepository */
         $eventAttachmentRepository = $entityManager->getRepository(EventAttachment::class);
-        $mandate = $eventAttachmentRepository->findMandateForEvent($event);
-        if (!$mandate) {
-            $mandate = new EventAttachment();
-            $mandate
+        $attachment = $eventAttachmentRepository->findAttachmentForEvent($event, $attachmentType);
+        if (!$attachment) {
+            $attachment = new EventAttachment();
+            $attachment
                 ->setEvent($event)
-                ->setType(EventAttachmentType::MANDATE);
-            $entityManager->persist($mandate);
+                ->setType($attachmentType);
+            $entityManager->persist($attachment);
         }
 
-        $form = $this->createForm(EventMandateType::class, $mandate, [
-            'action' => $router->generate('events_mandate_edit', ['slug' => $event->getSlug()]),
+        $form = $this->createForm(EventMandateType::class, $attachment, [
+            'action' => $router->generate('events_attachment_edit', [
+                'slug' => $event->getSlug(),
+                'attachmentType' => $attachmentType,
+            ]),
         ]);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            if (null === $mandate->getUploadedFile()) {
-                $entityManager->remove($mandate);
+            if (null === $attachment->getUploadedFile()) {
+                $entityManager->remove($attachment);
             }
-            if (null === $mandate->getId()) {
+            if (null === $attachment->getId()) {
                 $entityManager->flush();
-                $mandate->setUpdatedAt(new \DateTimeImmutable());
+                $attachment->setUpdatedAt(new \DateTimeImmutable());
             }
             $entityManager->flush();
 

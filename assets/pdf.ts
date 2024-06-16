@@ -1,12 +1,12 @@
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+import * as pdfjsLib from "pdfjs-dist";
 
 // Setting worker path to worker bundle.
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/build/pdfjs/pdf.worker.js";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/build/pdf.worker.min.mjs";
 const outputScale = window.devicePixelRatio || 1;
 
 const pdfPages: { canvas: HTMLCanvasElement, pdfPage: pdfjsLib.PDFPageProxy }[] = [];
 
-const loadPdf = (canvas: HTMLCanvasElement) => {
+const loadPdf = async (canvas: HTMLCanvasElement) => {
     const pdfUrl = canvas.dataset.pdfUrl;
 
     const ctx = canvas.getContext("2d");
@@ -22,17 +22,10 @@ const loadPdf = (canvas: HTMLCanvasElement) => {
 
     // Loading a document.
     const loadingTask = pdfjsLib.getDocument(`${pdfUrl}`);
-    loadingTask.promise
-        .then(function (pdfDocument) {
-            // Request a first page
-            return pdfDocument.getPage(1).then(function (pdfPage) {
-                pdfPages.push({ canvas, pdfPage });
-                return renderPage(pdfPage, canvas).promise;
-            });
-        })
-        .catch(function (reason) {
-            console.error("Error: " + reason);
-        });
+    const pdfDocument = await loadingTask.promise;
+    const pdfPage = await pdfDocument.getPage(1);
+    pdfPages.push({ canvas, pdfPage });
+    return renderPage(pdfPage, canvas).promise;
 }
 
 enum ScalingMode {
@@ -57,7 +50,6 @@ const renderPage = (pdfPage: pdfjsLib.PDFPageProxy, canvas: HTMLCanvasElement, s
     if (scalingMode === ScalingMode.Height) { // set document height, update canvas width
         wantedScale = desiredHeight / originalViewport.height;
     }
-    console.log(wantedScale);
     const scaledViewport = pdfPage.getViewport({ scale: wantedScale });
 
     canvas.width = originalViewport.width * wantedScale * outputScale;
@@ -85,7 +77,7 @@ const resizePages = () => {
 
 const init = () => {
     document.querySelectorAll<HTMLCanvasElement>('canvas[data-pdf-url]').forEach((canvas) => {
-        loadPdf(canvas);
+        loadPdf(canvas).then();
     });
 }
 
