@@ -19,7 +19,7 @@
         "api-platform/core": "^3.0",
         "async-aws/simple-s3": "^2.0",
         "cocur/slugify": "^4.2",
-        "damienharper/auditor-bundle": "^5.0",
+        "damienharper/auditor-bundle": "^6.0",
         "dmishh/settings-bundle": "dev-master",
         "doctrine/doctrine-bundle": "^2.5",
         "doctrine/doctrine-migrations-bundle": "^3.2",
