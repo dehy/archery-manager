@@ -107,14 +107,14 @@ if [[ "${1:-}" == "sut" ]]; then
       apt-get install -y --no-install-recommends curl unzip
 
       # Install sonar-scanner
-      SONAR_CLI_VERSION="5.0.1.3006-linux"
-      SONAR_CLI_SHA256_SUM="350dbdb517c10fcb3ce70425db95c415b313cad7296c407d416d88f3d50121f8"
+      SONAR_CLI_VERSION="6.2.0.4584-linux-x64"
+      SONAR_CLI_SHA256_SUM="bc77135e0755bacb1049635928027f3e6c9fec6d728134935df0f43c77108e35"
       SONAR_CLI_DIRNAME="sonar-scanner-cli-${SONAR_CLI_VERSION}"
       SONAR_CLI_FILENAME="${SONAR_CLI_DIRNAME}.zip"
       SONAR_CLI_FILEPATH="/tmp/${SONAR_CLI_FILENAME}"
       curl -sSL -o "/tmp/${SONAR_CLI_FILENAME}" "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/${SONAR_CLI_FILENAME}"
       echo "${SONAR_CLI_SHA256_SUM} ${SONAR_CLI_FILEPATH}" | sha256sum -c || exit 1
-      unzip "${SONAR_CLI_FILEPATH}"
+      unzip -q "${SONAR_CLI_FILEPATH}"
       rm "${SONAR_CLI_FILEPATH}"
 
       HEAD_BRANCH=${GITHUB_HEAD_REF##refs/heads/}
