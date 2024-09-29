@@ -34,6 +34,16 @@ class LicenseHelper
             '>2012-01-01_<2013-12-31' => LicenseAgeCategoryType::U13,
             '>2014-01-01' => LicenseAgeCategoryType::U11,
         ],
+        2025 => [
+            '<1966-01-01' => LicenseAgeCategoryType::SENIOR_3,
+            '>1966-01-01_<1985-12-31' => LicenseAgeCategoryType::SENIOR_2,
+            '>1986-01-01_<2004-12-31' => LicenseAgeCategoryType::SENIOR_1,
+            '>2005-01-01_<2007-12-31' => LicenseAgeCategoryType::U21,
+            '>2008-01-01_<2010-12-31' => LicenseAgeCategoryType::U18,
+            '>2011-01-01_<2012-12-31' => LicenseAgeCategoryType::U15,
+            '>2013-01-01_<2014-12-31' => LicenseAgeCategoryType::U13,
+            '>2015-01-01' => LicenseAgeCategoryType::U11,
+        ],
     ];
 
     public function __construct(
