@@ -4,14 +4,19 @@ namespace App\Helper;
 
 use App\Entity\Club;
 use App\Entity\Licensee;
+use App\Entity\User;
+use App\Repository\LicenseeRepository;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Address;
 
-class EmailHelper
+readonly class EmailHelper
 {
-    public function __construct(protected readonly MailerInterface $mailer)
-    {
+    public function __construct(
+        private MailerInterface $mailer,
+        private LicenseeRepository $licenseeRepository
+    ) {
     }
 
     /**
@@ -29,6 +34,29 @@ class EmailHelper
             ->context([
                 'licensee' => $licensee,
                 'club' => $club,
+            ]);
+
+        $this->mailer->send($email);
+    }
+
+    public function sendLicenseesSyncResults(array $toEmails, array $syncResults)
+    {
+        $count = \count($syncResults[SyncReturnValues::CREATED->value] + $syncResults[SyncReturnValues::UPDATED->value] + $syncResults[SyncReturnValues::REMOVED->value]);
+        $added = $this->licenseeRepository->findBy(['fftaId' => $syncResults[SyncReturnValues::CREATED->value]]);
+        $updated = $this->licenseeRepository->findBy(['fftaId' => $syncResults[SyncReturnValues::UPDATED->value]]);
+
+        $to = array_map(fn (User $user) => new Address($user->getEmail(), $user->getFullname()), $toEmails);
+        $email = (new TemplatedEmail())
+            ->to(...$to)
+            ->subject('Synchronisation FFTA')
+            ->text('test')
+            ->htmlTemplate('email_notification/updated_licensees.txt.twig')
+            ->textTemplate('email_notification/updated_licensees.txt.twig')
+            ->locale('fr')
+            ->context([
+                'count' => $count,
+                'added' => $added,
+                'updated' => $updated,
             ]);
 
         $this->mailer->send($email);

@@ -6,6 +6,8 @@ use ApiPlatform\Metadata\ApiResource;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
+use App\Helper\ObjectComparator;
+use App\Helper\SyncReturnValues;
 use App\Repository\LicenseRepository;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\ORM\Mapping as ORM;
@@ -133,13 +135,17 @@ class License
         return $this;
     }
 
-    public function mergeWith(self $license): void
+    public function mergeWith(self $license): SyncReturnValues
     {
+        $syncResult = ObjectComparator::equal($this, $license) ? SyncReturnValues::UNTOUCHED : SyncReturnValues::UPDATED;
+
         $this->setActivities($license->getActivities());
         $this->setAgeCategory($license->getAgeCategory());
         $this->setCategory($license->getCategory());
         $this->setSeason($license->getSeason());
         $this->setType($license->getType());
+
+        return $syncResult;
     }
 
     public function getClub(): ?Club

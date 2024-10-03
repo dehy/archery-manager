@@ -22,7 +22,7 @@ App\Entity\Licensee:
 
 App\Entity\License:
     license_licensee_ladg_adult_{1..10}:
-        season: 2024
+        season: 2025
         type: 'A'
         category: 'A'
         ageCategory: 'S1'

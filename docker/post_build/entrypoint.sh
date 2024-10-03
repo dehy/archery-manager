@@ -44,7 +44,7 @@ then
 fi
 export APP_ENV=${ORIGINAL_APP_ENV}
 
-if [[ "${APP_ENV}" == "dev" || "${APP_ENV}" == "test"  ]]; then
+if [[ -z "${1:-}" && ("${APP_ENV}" == "dev" || "${APP_ENV}" == "test") ]]; then
     mkdir -p ${APP_ROOT_PATH}/{vendor,node_modules,var/log}
     chown symfony: ${APP_ROOT_PATH}/node_modules
     chown symfony: ${APP_ROOT_PATH}/vendor
@@ -76,12 +76,17 @@ while ! nc -w 1 -vz "${DATABASE_HOST}" "${DATABASE_PORT}"; do
     sleep 1;
 done
 
-# Executing migrations
-${GOSU} php bin/console doctrine:migrations:migrate --no-interaction
+if [[ -z "${1:-}" ]]; then
+    # Executing migrations
+    ${GOSU} php bin/console doctrine:migrations:migrate --no-interaction
+fi
 
 # System Under Test
 if [[ "${1:-}" == "sut" ]]; then
     ${GOSU} composer install --prefer-dist
+
+    # Executing migrations
+    ${GOSU} php bin/console doctrine:migrations:migrate --no-interaction
 
     CLOVER_FILEPATH="${APP_ROOT_PATH}/tests/logs/clover.xml"
     JUNIT_FILEPATH="${APP_ROOT_PATH}/tests/logs/report.xml"
@@ -141,5 +146,13 @@ if [[ "${1:-}" == "sut" ]]; then
     exit $TEST_RESULT
 fi
 
-echo "+ Launching services..."
-exec supervisord -c /etc/supervisor/supervisord.conf
+if [[ "${1:-}" == "messenger-async" ]]; then
+  echo "+ Launch bin/console messenger:consume async"
+  exec /usr/bin/php /app/bin/console messenger:consume async
+elif [[ "${1:-}" == "scheduler-ffta_licensees" ]]; then
+  echo "+ Launch bin/console messenger:consume scheduler_ffta_licensees"
+  exec /usr/bin/php /app/bin/console messenger:consume scheduler_ffta_licensees
+else
+  echo "+ Launching services..."
+  exec supervisord -c /etc/supervisor/supervisord.conf
+fi
