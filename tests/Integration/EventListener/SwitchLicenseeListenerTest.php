@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\integration\EventListener;
+namespace App\Tests\Integration\EventListener;
 
 use App\Entity\Licensee;
 use App\Entity\User;

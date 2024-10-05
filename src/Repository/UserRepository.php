@@ -79,12 +79,13 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->where('u.roles LIKE :role')
             ->andWhere('ls.club = :club')
             ->andWhere('ls.season = :season')
+            ->groupBy('u.id')
             ->setParameters([
                 'club' => $club,
-                'role' => $role,
+                'role' => sprintf('%%%s%%', $role),
                 'season' => $season,
             ])
             ->getQuery()
-            ->getArrayResult();
+            ->getResult();
     }
 }

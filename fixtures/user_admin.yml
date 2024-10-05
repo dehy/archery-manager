@@ -6,7 +6,7 @@ App\Entity\User:
         gender: 'M'
         lastname: Admin
         firstname: Admin
-        phoneNumber: +336123456789
+        phoneNumber: <e164PhoneNumber()>
 
 App\Entity\Licensee:
     licensee_admin:

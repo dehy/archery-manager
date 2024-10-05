@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\integration\Helper;
+namespace App\Tests\Integration\Helper;
 
 use App\Entity\Club;
 use App\Entity\User;
