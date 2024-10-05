@@ -138,7 +138,7 @@ if [[ "${1:-}" == "sut" ]]; then
       # Scan project
       # shellcheck disable=SC2086
       ./sonar-scanner-${SONAR_CLI_VERSION}/bin/sonar-scanner \
-          -Dsonar.login="${SONAR_TOKEN}" \
+          -Dsonar.token="${SONAR_TOKEN}" \
           -Dsonar.qualitygate.wait=true \
           ${SONAR_PARAMETERS} || true # Do not fail on Quality Gate is not PASSED
     fi
