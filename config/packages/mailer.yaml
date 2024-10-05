@@ -5,3 +5,8 @@ framework:
             sender: 'contact@monclubdetiralarc.fr'
         headers:
             From: "Mon Club de Tir à l'Arc <contact@monclubdetiralarc.fr>"
+
+when@test:
+    framework:
+        mailer:
+            dsn: 'null://null'

@@ -22,7 +22,6 @@ apt-get upgrade -y
 apt-get install -y --no-install-recommends \
     tzdata \
     ca-certificates \
-    cron \
     curl \
     git \
     gosu \
@@ -73,7 +72,7 @@ chown symfony: /app
 
 apt-get -y autoremove
 apt-get clean
-apt-get install -y --no-install-recommends -d php-xdebug # Download only
+apt-get install -y --no-install-recommends -d php8.2-xdebug # Download only
 rm -rf /var/lib/apt/lists/*
 rm -rf /usr/share/man/*
 rm -rf /tmp/* /root/.npm

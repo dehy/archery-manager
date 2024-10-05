@@ -24,6 +24,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\MimeTypeGuesserInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class FftaHelper
 {
@@ -38,14 +39,26 @@ class FftaHelper
         protected FilesystemOperator $licenseesStorage,
         protected MimeTypeGuesserInterface $mimeTypeGuesser,
         protected EmailHelper $emailHelper,
+        protected UserRepository $userRepository,
+        protected HttpClientInterface $httpClient,
     ) {
         $this->mimeTypes = new MimeTypes();
+    }
+
+    public function setHttpClient(HttpClientInterface $httpClient): void
+    {
+        $this->httpClient = $httpClient;
+    }
+
+    public function setUserRepository(UserRepository $userRepository): void
+    {
+        $this->userRepository = $userRepository;
     }
 
     public function getScrapper(Club $club): FftaScrapper
     {
         if (!isset($this->scrappers[$club->getId()])) {
-            $this->scrappers[$club->getId()] = new FftaScrapper($club);
+            $this->scrappers[$club->getId()] = new FftaScrapper($club, $this->httpClient);
         }
 
         return $this->scrappers[$club->getId()];
@@ -61,8 +74,9 @@ class FftaHelper
      * @throws TransportExceptionInterface
      * @throws \Exception
      */
-    public function syncLicensees(Club $club, int $season): void
+    public function syncLicensees(Club $club, int $season): array
     {
+        $syncResults = array_fill_keys(array_map(fn ($enum) => $enum->value, SyncReturnValues::cases()), []);
         $scrapper = $this->getScrapper($club);
         $fftaIds = $scrapper->fetchLicenseeIdList($season);
         $this->logger->notice(
@@ -72,8 +86,16 @@ class FftaHelper
         foreach ($fftaIds as $fftaId) {
             $this->logger->notice(sprintf('==== %s ====', $fftaId));
 
-            $this->syncLicenseeWithId($club, $fftaId, $season);
+            $syncReturn = $this->syncLicenseeWithId($club, $fftaId, $season);
+            $syncResults[$syncReturn->value][] = $fftaId;
         }
+
+        if (!empty($syncResults[SyncReturnValues::CREATED->value]) || !empty($syncResults[SyncReturnValues::UPDATED->value])) {
+            $managers = $this->userRepository->findByClubAndRole($club, 'ROLE_CLUB_MANAGER', $season);
+            $this->emailHelper->sendLicenseesSyncResults($managers, $syncResults);
+        }
+
+        return $syncResults;
     }
 
     /**
@@ -81,8 +103,9 @@ class FftaHelper
      * @throws TransportExceptionInterface
      * @throws \Exception
      */
-    public function syncLicenseeWithId(Club $club, string $fftaId, int $season): Licensee
+    public function syncLicenseeWithId(Club $club, string $fftaId, int $season): SyncReturnValues
     {
+        $syncResult = SyncReturnValues::UNTOUCHED;
         $scrapper = $this->getScrapper($club);
 
         /** @var LicenseeRepository $licenseeRepository */
@@ -94,6 +117,7 @@ class FftaHelper
         $fftaProfile = $scrapper->fetchLicenseeProfile($fftaId, $season);
         $fftaLicensee = LicenseeFactory::createFromFftaProfile($fftaProfile);
         if (!$licensee) {
+            $syncResult = SyncReturnValues::CREATED;
             $this->logger->notice(
                 sprintf(
                     '+ New Licensee: %s (%s)',
@@ -141,7 +165,7 @@ class FftaHelper
                     $licensee->getFftaMemberCode(),
                 ),
             );
-            $licensee->mergeWith($fftaLicensee);
+            $syncResult = $licensee->mergeWith($fftaLicensee);
             // TODO check image date (with its filename) instead of downloading files and calculating checksums
             $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
             $fftaProfilePictureContent = $fftaProfilePicture?->getUploadedFile()?->getContent();
@@ -169,6 +193,7 @@ class FftaHelper
                     $licensee->addAttachment($fftaProfilePicture);
                     $licensee->setUpdatedAt(new \DateTimeImmutable());
                     $this->entityManager->persist($fftaProfilePicture);
+                    $syncResult = SyncReturnValues::UPDATED;
                 } else {
                     $this->logger->notice('  = Same profile picture. Not updating.');
                 }
@@ -177,12 +202,14 @@ class FftaHelper
                 $this->logger->notice('  - Removing profile picture');
                 $licensee->removeAttachment($dbProfilePicture);
                 $this->entityManager->remove($dbProfilePicture);
+                $syncResult = SyncReturnValues::UPDATED;
             }
             if (!$dbProfilePicture && $fftaProfilePicture) {
                 $this->logger->notice('  + Adding profile picture');
                 $licensee->addAttachment($fftaProfilePicture);
                 $licensee->setUpdatedAt(new \DateTimeImmutable());
                 $this->entityManager->persist($fftaProfilePicture);
+                $syncResult = SyncReturnValues::UPDATED;
             }
             if (!$dbProfilePicture && !$fftaProfilePicture) {
                 $this->logger->notice('  ! No profile picture');
@@ -190,9 +217,7 @@ class FftaHelper
         }
         $this->entityManager->flush();
 
-        $this->syncLicenseForLicensee($club, $licensee, $season);
-
-        return $licensee;
+        return SyncReturnValues::UNTOUCHED === $syncResult ? $this->syncLicenseForLicensee($club, $licensee, $season) : $syncResult;
     }
 
     public function fetchProfilePictureForLicensee(Club $club, Licensee $licensee): ?string
@@ -248,7 +273,7 @@ class FftaHelper
      *
      * @throws \Exception
      */
-    public function syncLicenseForLicensee(Club $club, Licensee $licensee, int $season): License
+    public function syncLicenseForLicensee(Club $club, Licensee $licensee, int $season): SyncReturnValues
     {
         $fftaLicense = $this->createLicenseForLicenseeAndSeason(
             $club,
@@ -261,14 +286,15 @@ class FftaHelper
             $license = $fftaLicense;
             $license->setLicensee($licensee);
             $this->entityManager->persist($license);
+            $syncResult = SyncReturnValues::CREATED;
         } else {
             $this->logger->notice(sprintf('  ~ Merging existing License for %s', $fftaLicense->getSeason()));
-            $license->mergeWith($fftaLicense);
+            $syncResult = $license->mergeWith($fftaLicense);
         }
 
         $this->entityManager->flush();
 
-        return $license;
+        return $syncResult;
     }
 
     /**
