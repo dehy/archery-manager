@@ -386,6 +386,7 @@ class FftaScrapper
             'Jeune' => $license->setType(LicenseType::JEUNES),
             'U11' => $license->setType(LicenseType::POUSSINS),
             'Découverte' => $license->setType(LicenseType::DECOUVERTE),
+            'Convention FFSU' => $license->setType(LicenseType::CONVENTION_FFSU),
             default => throw new \Exception(sprintf("Unknown licence type '%s'", $selectedLicenseeData['type_libelle'])),
         };
 
