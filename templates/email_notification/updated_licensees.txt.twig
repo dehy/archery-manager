@@ -1,0 +1,19 @@
+Bonjour,
+
+Une synchronisation vient d'être effectuée avec la FFTA et {{ count }} licenciés ont été ajoutés ou mis à jour.
+
+# Ajoutés ({{ added|length }})
+
+{% for licensee in added %}
+- {{ licensee.fullname }}
+{% else %}
+Aucun
+{% endfor %}
+
+# Mis à jour ({{ updated|length }})
+
+{% for licensee in updated %}
+- {{ licensee.fullname }}
+{% else %}
+Aucun
+{% endfor %}

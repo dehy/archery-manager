@@ -6,7 +6,7 @@ App\Entity\User:
         gender: 'M'
         lastname: Admin
         firstname: Admin
-        phoneNumber: +336123456789
+        phoneNumber: <e164PhoneNumber()>
 
 App\Entity\Licensee:
     licensee_admin:
@@ -22,7 +22,7 @@ App\Entity\Licensee:
 
 App\Entity\License:
     license_licensee_admin:
-        season: 2023
+        season: 2025
         type: 'A'
         category: 'A'
         ageCategory: 'S1'

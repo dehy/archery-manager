@@ -19,12 +19,15 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class FftaScrapper
 {
+    protected HttpClientInterface $managerSpaceHttpClient;
     protected HttpBrowser $managerSpaceBrowser;
     protected bool $managerSpaceIsConnected = false;
 
+    protected HttpClientInterface $myFftaSpaceHttpClient;
     protected HttpBrowser $myFftaSpaceBrowser;
     protected bool $myFftaSpaceIsConnected = false;
     private string $managerSpaceBaseUrl = 'https://dirigeant.ffta.fr';
@@ -35,11 +38,15 @@ class FftaScrapper
 
     private array $cachedResponse;
 
-    public function __construct(private readonly Club $club)
-    {
+    public function __construct(
+        private readonly Club $club,
+        HttpClientInterface $httpClient = null
+    ) {
         if (!$this->club->getFftaUsername() || !$this->club->getFftaPassword()) {
             throw new \Exception('FFTA Credentials not set');
         }
+        $this->managerSpaceHttpClient = $httpClient ? clone $httpClient : HttpClient::create();
+        $this->myFftaSpaceHttpClient = $httpClient ? clone $httpClient : HttpClient::create();
 
         $this->defaultParameters = [
             'draw' => '1',
@@ -660,7 +667,7 @@ class FftaScrapper
         if ($this->managerSpaceIsConnected) {
             return;
         }
-        $this->managerSpaceBrowser = new HttpBrowser(HttpClient::create());
+        $this->managerSpaceBrowser = new HttpBrowser($this->managerSpaceHttpClient);
         $crawler = $this->managerSpaceBrowser->request(
             'GET',
             sprintf('%s/auth/login', $this->managerSpaceBaseUrl),
@@ -683,7 +690,7 @@ class FftaScrapper
         if ($this->myFftaSpaceIsConnected) {
             return;
         }
-        $this->myFftaSpaceBrowser = new HttpBrowser(HttpClient::create());
+        $this->myFftaSpaceBrowser = new HttpBrowser($this->myFftaSpaceHttpClient);
         $crawler = $this->myFftaSpaceBrowser->request(
             'GET',
             sprintf('%s', $this->myFftaSpaceBaseUrl),

@@ -20,3 +20,16 @@ flysystem:
                 client: 'scaleway_object_storage_client'
                 bucket: '%env(STORAGE_BUCKET_MYARCHERYCLUB)%'
                 prefix: 'events'
+
+when@test:
+    flysystem:
+        storages:
+            clubs.logos.storage:
+                adapter: 'memory'
+                public_url_generator: 'App\Tests\FakePublicUrlGenerator'
+            licensees.storage:
+                adapter: 'memory'
+                public_url_generator: 'App\Tests\FakePublicUrlGenerator'
+            events.storage:
+                adapter: 'memory'
+                public_url_generator: 'App\Tests\FakePublicUrlGenerator'

@@ -54,6 +54,8 @@ services:
     App\DataFixtures\Faker\Provider\RecurringDateTimeProvider: ~
     App\DataFixtures\Faker\Provider\FftaCodeProvider: ~
 
+    App\Tests\FakePublicUrlGenerator: ~
+
 when@test:
     services:
         App\Security\TokenStorageDecorator:

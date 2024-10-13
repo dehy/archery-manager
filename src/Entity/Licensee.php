@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\DBAL\Types\LicenseeAttachmentType;
+use App\Helper\ObjectComparator;
+use App\Helper\SyncReturnValues;
 use App\Repository\LicenseeRepository;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -534,14 +536,18 @@ class Licensee implements \Stringable
         return $this;
     }
 
-    public function mergeWith(self $licensee): void
+    public function mergeWith(self $licensee): SyncReturnValues
     {
+        $syncResult = ObjectComparator::equal($this, $licensee) ? SyncReturnValues::UNTOUCHED : SyncReturnValues::UPDATED;
+
         $this->setGender($licensee->getGender());
         $this->setLastname($licensee->getLastname());
         $this->setFirstname($licensee->getFirstname());
         $this->setBirthdate($licensee->getBirthdate());
         $this->setFftaMemberCode($licensee->getFftaMemberCode());
         $this->setFftaId($licensee->getFftaId());
+
+        return $syncResult;
     }
 
     /**

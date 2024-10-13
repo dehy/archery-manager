@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\Entity\Club;
+use App\Entity\Season;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -65,5 +67,25 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->setParameter('email', $email)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function findByClubAndRole(Club $club, string $role, int $season = null): array
+    {
+        $season ??= Season::seasonForDate(new \DateTimeImmutable());
+
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.licensees', 'l')
+            ->leftJoin('l.licenses', 'ls')
+            ->where('u.roles LIKE :role')
+            ->andWhere('ls.club = :club')
+            ->andWhere('ls.season = :season')
+            ->groupBy('u.id')
+            ->setParameters([
+                'club' => $club,
+                'role' => sprintf('%%%s%%', $role),
+                'season' => $season,
+            ])
+            ->getQuery()
+            ->getResult();
     }
 }
