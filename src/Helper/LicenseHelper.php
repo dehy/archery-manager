@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Helper;
 
 use App\DBAL\Types\EventType;
@@ -138,11 +140,12 @@ class LicenseHelper
             $rightPart = $parts[1] ?? null;
             $after = null;
             $before = null;
-            if (!$rightPart) {
+            if (null === $rightPart || '' === $rightPart || '0' === $rightPart) {
                 $sign = substr($leftPart, 0, 1);
                 if ('>' === $sign) {
                     $after = $this->dateTimeFromKeyPart($leftPart);
                 }
+
                 if ('<' === $sign) {
                     $before = $this->dateTimeFromKeyPart($leftPart);
                 }
@@ -153,13 +156,13 @@ class LicenseHelper
 
             if (
                 $birthdate > $after
-                && ($birthdate < $before || null === $before)
+                && ($birthdate < $before || !$before instanceof \DateTimeImmutable)
             ) {
                 return $ageCategory;
             }
         }
 
-        throw new \LogicException(sprintf('Should have found a value. %s given', $birthdate->format('Y-m-d')));
+        throw new \LogicException(\sprintf('Should have found a value. %s given', $birthdate->format('Y-m-d')));
     }
 
     private function dateTimeFromKeyPart(string $keyPart): \DateTimeImmutable

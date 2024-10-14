@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\DBAL\Types\LicenseActivityType;
@@ -23,11 +25,13 @@ class LicenseCrudController extends AbstractCrudController
     {
     }
 
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return License::class;
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -47,6 +51,7 @@ class LicenseCrudController extends AbstractCrudController
         ];
     }
 
+    #[\Override]
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
@@ -55,6 +60,7 @@ class LicenseCrudController extends AbstractCrudController
             ->add('season');
     }
 
+    #[\Override]
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         /** @var License $license */
@@ -66,9 +72,9 @@ class LicenseCrudController extends AbstractCrudController
 
             $entityManager->flush();
             $entityManager->commit();
-        } catch (TransportExceptionInterface $exception) {
+        } catch (TransportExceptionInterface $transportException) {
             $entityManager->rollback();
-            throw $exception;
+            throw $transportException;
         }
     }
 }

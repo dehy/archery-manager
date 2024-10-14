@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\DBAL\Types\DisciplineType;
@@ -80,14 +82,10 @@ class LicenseeController extends BaseController
         /** @var User $user */
         $user = $this->getUser();
 
-        if ($fftaCode) {
-            $licensee = $licenseeRepository->findOneByCode($fftaCode);
-        } else {
-            $licensee = $this->licenseeHelper->getLicenseeFromSession();
-        }
+        $licensee = null !== $fftaCode && '' !== $fftaCode && '0' !== $fftaCode ? $licenseeRepository->findOneByCode($fftaCode) : $this->licenseeHelper->getLicenseeFromSession();
 
         if (
-            !$licensee
+            !$licensee instanceof Licensee
             || (!$user->getLicensees()->contains($licensee)
                 && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_COACH'))
         ) {
@@ -102,8 +100,8 @@ class LicenseeController extends BaseController
         );
         foreach ($licenseeResults as $result) {
             $season = Season::seasonForDate($result->getEvent()->getStartsAt());
-            $seasons[sprintf('Saison %s', $season)] = $season;
-            $groupName = sprintf(
+            $seasons[\sprintf('Saison %s', $season)] = $season;
+            $groupName = \sprintf(
                 '%s %s %sm',
                 DisciplineType::getReadableValue($result->getDiscipline()),
                 LicenseActivityType::getReadableValue($result->getActivity()),
@@ -112,6 +110,7 @@ class LicenseeController extends BaseController
             $resultsBySeason[$season][$groupName]['max'] = $result->getMaxTotal();
             $resultsBySeason[$season][$groupName]['results'][] = $result;
         }
+
         krsort($seasons);
 
         $resultsCharts = [];
@@ -119,7 +118,7 @@ class LicenseeController extends BaseController
         foreach ($resultsBySeason as $season => $resultsByCategory) {
             foreach ($resultsByCategory as $category => $categoryResults) {
                 $results = $categoryResults['results'];
-                $resultsTotals = array_map(fn (Result $result) => $result->getTotal(), $results);
+                $resultsTotals = array_map(fn (Result $result): ?int => $result->getTotal(), $results);
 
                 $lowestScore = min($resultsTotals);
                 $bestScore = max($resultsTotals);
@@ -132,13 +131,13 @@ class LicenseeController extends BaseController
 
                 $resultsChart = $chartBuilder->createChart(Chart::TYPE_BAR);
                 $resultsChart->setData([
-                    'labels' => array_map(fn (Result $result) => $result->getEvent()->getName(), $results),
+                    'labels' => array_map(fn (Result $result): ?string => $result->getEvent()->getName(), $results),
                     'datasets' => [
                         [
                             'label' => 'Score Total',
-                            'data' => array_map(fn (Result $result) => $result->getTotal(), $results),
+                            'data' => array_map(fn (Result $result): ?int => $result->getTotal(), $results),
                             'backgroundColor' => array_map(
-                                function (Result $result) use ($lowestScore, $scoreDiff) {
+                                function (Result $result) use ($lowestScore, $scoreDiff): string {
                                     if (0 === $scoreDiff) {
                                         return ResultHelper::colorRatio(1);
                                     }
@@ -188,7 +187,7 @@ class LicenseeController extends BaseController
                                         'font' => [
                                             'weight' => 'bold',
                                         ],
-                                        'content' => sprintf('Meilleur : %s', $bestScore),
+                                        'content' => \sprintf('Meilleur : %s', $bestScore),
                                         'xAdjust' => -100,
                                     ],
                                 ],
@@ -207,7 +206,7 @@ class LicenseeController extends BaseController
                                         'font' => [
                                             'weight' => 'bold',
                                         ],
-                                        'content' => sprintf('Moyenne : %s', $averageScore),
+                                        'content' => \sprintf('Moyenne : %s', $averageScore),
                                         'xAdjust' => 0,
                                     ],
                                 ],
@@ -219,6 +218,7 @@ class LicenseeController extends BaseController
                 $resultsCharts[$season][$category] = $resultsChart;
             }
         }
+
         ksort($resultsCharts);
 
         $licenseeSyncForm = null;
@@ -250,7 +250,7 @@ class LicenseeController extends BaseController
         $this->isGranted(UserRoleType::ADMIN);
 
         $licensee = $licenseeRepository->findOneByCode($fftaCode);
-        if (!$licensee) {
+        if (!$licensee instanceof Licensee) {
             throw $this->createNotFoundException();
         }
 
@@ -266,15 +266,16 @@ class LicenseeController extends BaseController
                 );
                 $this->addFlash(
                     'success',
-                    sprintf('Le profil de %s a été synchronisé avec succès !', $licensee->getFirstname())
+                    \sprintf('Le profil de %s a été synchronisé avec succès !', $licensee->getFirstname())
                 );
             } catch (\Exception $e) {
                 if ($this->getParameter('kernel.debug')) {
                     throw $e;
                 }
+
                 $this->addFlash(
                     'danger',
-                    sprintf('Une erreur est survenue durant la synchronisation: %s', $e->getMessage())
+                    \sprintf('Une erreur est survenue durant la synchronisation: %s', $e->getMessage())
                 );
             }
         }
@@ -307,7 +308,7 @@ class LicenseeController extends BaseController
         Request $request,
     ): Response {
         $licensee = $licenseeRepository->findOneByCode($fftaCode);
-        if (!$licensee) {
+        if (!$licensee instanceof Licensee) {
             throw $this->createNotFoundException();
         }
 
@@ -318,7 +319,7 @@ class LicenseeController extends BaseController
             return $response;
         }
 
-        $imagePath = sprintf('%s.jpg', $fftaCode);
+        $imagePath = \sprintf('%s.jpg', $fftaCode);
 
         if (!$licenseesStorage->fileExists($imagePath)) {
             return new Response(
@@ -340,19 +341,19 @@ class LicenseeController extends BaseController
         </g>
     </g>
 </svg>',
-                200,
+                Response::HTTP_OK,
                 [
                     'Content-Type' => 'image/svg+xml',
                 ]
             );
         }
 
-        $response = new StreamedResponse(function () use ($licenseesStorage, $imagePath) {
+        $response = new StreamedResponse(function () use ($licenseesStorage, $imagePath): void {
             $outputStream = fopen('php://output', 'w');
             $fileStream = $licenseesStorage->readStream($imagePath);
 
             stream_copy_to_stream($fileStream, $outputStream);
-        }, 200, [
+        }, Response::HTTP_OK, [
             'Content-Disposition' => ResponseHeaderBag::DISPOSITION_INLINE,
         ]);
         $response->setLastModified($licensee->getUpdatedAt());
@@ -367,18 +368,18 @@ class LicenseeController extends BaseController
         FilesystemOperator $licenseesStorage
     ): Response {
         $forceDownload = $request->query->get('forceDownload');
-        $contentDisposition = sprintf(
+        $contentDisposition = \sprintf(
             '%s; filename="%s"',
             $forceDownload ? ResponseHeaderBag::DISPOSITION_ATTACHMENT : ResponseHeaderBag::DISPOSITION_INLINE,
             $attachment->getFile()->getName()
         );
 
-        $response = new StreamedResponse(function () use ($licenseesStorage, $attachment) {
+        $response = new StreamedResponse(function () use ($licenseesStorage, $attachment): void {
             $outputStream = fopen('php://output', 'w');
             $fileStream = $licenseesStorage->readStream($attachment->getFile()->getName());
 
             stream_copy_to_stream($fileStream, $outputStream);
-        }, 200, [
+        }, Response::HTTP_OK, [
             'Content-Type' => $attachment->getFile()->getMimeType(),
             'Content-Disposition' => $contentDisposition,
             'Content-Length' => $attachment->getFile()->getSize(),

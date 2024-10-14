@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
@@ -9,10 +11,13 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
  */
 final class UserRoleType extends AbstractEnumType
 {
-    public const USER = 'ROLE_USER';
-    public const COACH = 'ROLE_COACH';
-    public const CLUB_ADMIN = 'ROLE_CLUB_ADMIN';
-    public const ADMIN = 'ROLE_ADMIN';
+    public const string USER = 'ROLE_USER';
+
+    public const string COACH = 'ROLE_COACH';
+
+    public const string CLUB_ADMIN = 'ROLE_CLUB_ADMIN';
+
+    public const string ADMIN = 'ROLE_ADMIN';
 
     protected static array $choices = [
         self::USER => 'Utilisateur',

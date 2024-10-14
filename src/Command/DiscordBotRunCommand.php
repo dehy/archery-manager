@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use Discord\Discord;
@@ -22,6 +24,7 @@ class DiscordBotRunCommand extends Command
         parent::__construct();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
@@ -30,12 +33,12 @@ class DiscordBotRunCommand extends Command
             'token' => $this->botToken,
         ]);
 
-        $discord->on('ready', function (Discord $discord) use ($io) {
+        $discord->on('ready', function (Discord $discord) use ($io): void {
             $io->info('Bot is ready!');
 
             // Listen for messages.
-            $discord->on(Event::MESSAGE_CREATE, function (Message $message, Discord $discord) use ($io) {
-                $io->writeln("{$message->author->username}: {$message->content}");
+            $discord->on(Event::MESSAGE_CREATE, function (Message $message, Discord $discord) use ($io): void {
+                $io->writeln(\sprintf('%s: %s', $message->author->username, $message->content));
             });
         });
 

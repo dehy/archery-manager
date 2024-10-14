@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\Controller\Admin\Field\MoneyField;
@@ -24,11 +26,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
 class RegistrationCrudController extends AbstractCrudController
 {
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return Applicant::class;
     }
 
+    #[\Override]
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
@@ -37,6 +41,7 @@ class RegistrationCrudController extends AbstractCrudController
             ->setPaginatorPageSize(200);
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -57,6 +62,7 @@ class RegistrationCrudController extends AbstractCrudController
         ];
     }
 
+    #[\Override]
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
@@ -67,6 +73,7 @@ class RegistrationCrudController extends AbstractCrudController
             ->add('licenseCreated');
     }
 
+    #[\Override]
     public function configureActions(Actions $actions): Actions
     {
         return $actions
@@ -74,6 +81,7 @@ class RegistrationCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_INDEX, Action::DELETE);
     }
 
+    #[\Override]
     public function createIndexQueryBuilder(
         SearchDto $searchDto,
         EntityDto $entityDto,
@@ -88,10 +96,10 @@ class RegistrationCrudController extends AbstractCrudController
         );
 
         // if user defined sort is not set
-        if (0 === \count($searchDto->getSort())) {
+        if ([] === $searchDto->getSort()) {
             $queryBuilder
                 ->addSelect(
-                    'CONCAT(entity.lastname, \' \', entity.firstname) AS HIDDEN completeName',
+                    "CONCAT(entity.lastname, ' ', entity.firstname) AS HIDDEN completeName",
                 )
                 ->addOrderBy('completeName', Criteria::ASC);
         }

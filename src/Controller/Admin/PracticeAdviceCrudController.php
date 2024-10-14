@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\Entity\PracticeAdvice;
@@ -25,11 +27,13 @@ class PracticeAdviceCrudController extends AbstractCrudController
     ) {
     }
 
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return PracticeAdvice::class;
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -44,6 +48,7 @@ class PracticeAdviceCrudController extends AbstractCrudController
         ];
     }
 
+    #[\Override]
     public function createEntity(string $entityFqcn): PracticeAdvice
     {
         /** @var PracticeAdvice $advice */
@@ -53,6 +58,7 @@ class PracticeAdviceCrudController extends AbstractCrudController
         return $advice;
     }
 
+    #[\Override]
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         /** @var PracticeAdvice $advice */
@@ -69,6 +75,7 @@ class PracticeAdviceCrudController extends AbstractCrudController
         }
     }
 
+    #[\Override]
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         /** @var PracticeAdvice $advice */
@@ -88,7 +95,7 @@ class PracticeAdviceCrudController extends AbstractCrudController
     {
         $mail = new TemplatedEmail();
         $mail->to($advice->getLicensee()->getUser()->getEmail());
-        $mail->subject(sprintf('[Conseil] %s', $advice->getTitle()));
+        $mail->subject(\sprintf('[Conseil] %s', $advice->getTitle()));
         $mail->htmlTemplate($template);
         $mail->context(['advice' => $advice]);
 

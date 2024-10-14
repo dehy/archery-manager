@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin\Field;
 
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\Field\FieldInterface;
@@ -29,14 +31,15 @@ class MoneyField implements FieldInterface
         );
     }
 
+    #[\Override]
     public static function new(
         string $propertyName,
-        string $label = null,
+        ?string $label = null,
     ): self {
         return (new self())
             ->setProperty($propertyName)
             ->setLabel($label)
             ->setTemplatePath('admin/crud/fields/money.html.twig')
-            ->formatValue(fn ($property) => self::$moneyFormatter->format($property));
+            ->formatValue(fn ($property): string => self::$moneyFormatter->format($property));
     }
 }

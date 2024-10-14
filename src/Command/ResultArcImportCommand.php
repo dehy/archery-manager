@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\Entity\ContestEvent;
@@ -30,12 +32,14 @@ class ResultArcImportCommand extends Command
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this->addArgument('file', InputArgument::REQUIRED, 'File to import');
         $this->addArgument('eventId', InputArgument::REQUIRED, 'Event ID');
     }
 
+    #[\Override]
     protected function execute(
         InputInterface $input,
         OutputInterface $output,
@@ -49,7 +53,7 @@ class ResultArcImportCommand extends Command
         $contestEvent = $contestEventRepository->find($eventId);
 
         if (!$contestEvent) {
-            $io->error(sprintf('Event #%s not found', $eventId));
+            $io->error(\sprintf('Event #%s not found', $eventId));
 
             return Command::INVALID;
         }
@@ -61,6 +65,7 @@ class ResultArcImportCommand extends Command
 
             return Command::INVALID;
         }
+
         if (!$contestEvent->getDiscipline()) {
             $io->error(
                 'You must set the event discipline before importing results',
@@ -82,6 +87,7 @@ class ResultArcImportCommand extends Command
             if (!$licensee) {
                 continue;
             }
+
             $existingResult = $resultRepository->findOneBy([
                 'licensee' => $licensee->getId(),
                 'event' => $contestEvent->getId(),
@@ -93,6 +99,7 @@ class ResultArcImportCommand extends Command
                     ->setEvent($contestEvent)
                     ->setLicensee($licensee);
             }
+
             [
                 $distance,
                 $targetSize,
@@ -110,6 +117,7 @@ class ResultArcImportCommand extends Command
 
             $this->entityManager->persist($result);
         }
+
         $this->entityManager->flush();
 
         return Command::SUCCESS;

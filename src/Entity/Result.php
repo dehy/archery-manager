@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
@@ -293,6 +295,7 @@ class Result
                 $ageCategory,
             );
         }
+
         if (ContestEvent::class === $contestEvent::class) {
             return self::distanceAndSizeForFederal(
                 $contestEvent->getDiscipline(),
@@ -313,13 +316,15 @@ class Result
                 DisciplineType::TARGET => 720,
             };
         }
+
         if (HobbyContestEvent::class === $this->getEvent()::class) {
             return match ($this->getDiscipline()) {
                 DisciplineType::INDOOR => 300,
                 DisciplineType::TARGET => 360,
             };
         }
-        throw new \LogicException(sprintf('Unknown total for %s - %s', $this->getEvent()::class, $this->getDiscipline()));
+
+        throw new \LogicException(\sprintf('Unknown total for %s - %s', $this->getEvent()::class, $this->getDiscipline()));
     }
 
     private static function distanceAndSizeForChallenge33(
@@ -339,6 +344,7 @@ class Result
                 default => [18, 60],
             };
         }
+
         if (DisciplineType::TARGET === $discipline) {
             if (LicenseActivityType::CO === $activity) {
                 return [30, 80];
@@ -352,7 +358,7 @@ class Result
             };
         }
 
-        throw new \LogicException("Missing handling of discipline {$discipline}");
+        throw new \LogicException('Missing handling of discipline '.$discipline);
     }
 
     private static function distanceAndSizeForFederal(
@@ -374,6 +380,7 @@ class Result
                 default => [18, 40],
             };
         }
+
         if (DisciplineType::TARGET === $discipline) {
             if (LicenseActivityType::CO === $activity) {
                 return [50, 80];
@@ -393,6 +400,6 @@ class Result
             };
         }
 
-        throw new \LogicException("Missing handling of discipline {$discipline}");
+        throw new \LogicException('Missing handling of discipline '.$discipline);
     }
 }

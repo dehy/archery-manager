@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Helper\LicenseeHelper;
@@ -18,7 +20,7 @@ abstract class BaseController extends AbstractController
     {
         $season = $this->seasonHelper->getSelectedSeason();
 
-        if (!$this->licenseeHelper->getLicenseeFromSession()?->getLicenseForSeason($season)) {
+        if (!$this->licenseeHelper->getLicenseeFromSession()?->getLicenseForSeason($season) instanceof \App\Entity\License) {
             throw $this->createAccessDeniedException('No valid license for the selected season');
         }
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\User;
@@ -53,7 +55,7 @@ class RegistrationController extends AbstractController
                     ->from(
                         new Address(
                             'archerie@admds.net',
-                            'L\'Archerie des Archers de Guyenne',
+                            "L'Archerie des Archers de Guyenne",
                         ),
                     )
                     ->to($user->getEmail())
@@ -91,11 +93,11 @@ class RegistrationController extends AbstractController
         // validate email confirmation link, sets User::isVerified=true and persists
         try {
             $this->emailVerifier->handleEmailConfirmation($request, $user);
-        } catch (VerifyEmailExceptionInterface $exception) {
+        } catch (VerifyEmailExceptionInterface $verifyEmailException) {
             $this->addFlash(
                 'verify_email_error',
                 $translator->trans(
-                    $exception->getReason(),
+                    $verifyEmailException->getReason(),
                     [],
                     'VerifyEmailBundle',
                 ),

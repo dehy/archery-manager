@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\Entity\Club;
@@ -27,6 +29,7 @@ class FftaFindId extends Command
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this->addArgument('clubId', InputArgument::REQUIRED, 'Club Code');
@@ -40,6 +43,7 @@ class FftaFindId extends Command
     /**
      * @throws \Exception
      */
+    #[\Override]
     protected function execute(
         InputInterface $input,
         OutputInterface $output,
@@ -56,7 +60,7 @@ class FftaFindId extends Command
 
         $id = $scrapper->findLicenseeIdFromCode($code);
 
-        $io->success(sprintf('Licensee %s has id #%s', $code, $id));
+        $io->success(\sprintf('Licensee %s has id #%s', $code, $id));
 
         return Command::SUCCESS;
     }

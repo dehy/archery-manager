@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
@@ -9,13 +11,19 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
  */
 final class DisciplineType extends AbstractEnumType
 {
-    public const TARGET = 'target';
-    public const INDOOR = 'indoor';
-    public const FIELD = 'field';
-    public const NATURE = 'nature';
-    public const THREE_D = '3d';
-    public const PARA = 'para';
-    public const RUN = 'run';
+    public const string TARGET = 'target';
+
+    public const string INDOOR = 'indoor';
+
+    public const string FIELD = 'field';
+
+    public const string NATURE = 'nature';
+
+    public const string THREE_D = '3d';
+
+    public const string PARA = 'para';
+
+    public const string RUN = 'run';
 
     protected static array $choices = [
         self::TARGET => 'Extérieur',
@@ -35,7 +43,7 @@ final class DisciplineType extends AbstractEnumType
             'Tir 3D' => self::THREE_D,
             'Tir Nature' => self::NATURE,
             'Tir en Salle' => self::INDOOR,
-            default => throw new \LogicException("Unknown value \"{$extranetName}\""),
+            default => throw new \LogicException(\sprintf('Unknown value "%s"', $extranetName)),
         };
     }
 }

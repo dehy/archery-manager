@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\Entity\Club;
@@ -31,6 +33,7 @@ class FftaSyncLicenseesCommand extends Command
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this->addArgument('club_code', InputArgument::REQUIRED, 'Code Club');
@@ -41,6 +44,7 @@ class FftaSyncLicenseesCommand extends Command
      * @throws \Exception
      * @throws TransportExceptionInterface
      */
+    #[\Override]
     protected function execute(
         InputInterface $input,
         OutputInterface $output,
@@ -54,7 +58,7 @@ class FftaSyncLicenseesCommand extends Command
         $club = $clubRepository->findOneBy(['fftaCode' => $fftaClubCode]);
 
         if (!$club) {
-            $io->error(sprintf('Unknown club %s', $fftaClubCode));
+            $io->error(\sprintf('Unknown club %s', $fftaClubCode));
 
             return Command::INVALID;
         }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Form;
 
 use App\DBAL\Types\LicenseActivityType;
@@ -12,6 +14,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class EventParticipationType extends AbstractType
 {
+    #[\Override]
     public function buildForm(
         FormBuilderInterface $builder,
         array $options,
@@ -47,6 +50,7 @@ class EventParticipationType extends AbstractType
             ]);
     }
 
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([

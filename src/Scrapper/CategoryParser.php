@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Scrapper;
 
 use App\DBAL\Types\LicenseActivityType;
@@ -15,7 +17,7 @@ class CategoryParser
         $ageCategories = implode('|', LicenseAgeCategoryType::getValues());
         $activityTypes = implode('|', LicenseActivityType::getValues());
 
-        $matchPattern = sprintf('(%s)[HF](%s)', $ageCategories, $activityTypes);
+        $matchPattern = \sprintf('(%s)[HF](%s)', $ageCategories, $activityTypes);
 
         $re = '/'.$matchPattern.'/m';
         if (1 === preg_match($re, $categoryString, $matches)) {

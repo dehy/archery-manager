@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\ResetPasswordRequestRepository;
@@ -33,6 +35,7 @@ class ResetPasswordRequest implements ResetPasswordRequestInterface
         return $this->id;
     }
 
+    #[\Override]
     public function getUser(): object
     {
         return $this->user;

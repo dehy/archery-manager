@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\EventListener;
 
 use App\Entity\User;
@@ -40,7 +42,7 @@ class SwitchLicenseeListener
             'QUERY_STRING',
             http_build_query($request->query->all(), '', '&'),
         );
-        $response = new RedirectResponse($request->getUri(), 302);
+        $response = new RedirectResponse($request->getUri(), \Symfony\Component\HttpFoundation\Response::HTTP_FOUND);
 
         $event->setResponse($response);
     }

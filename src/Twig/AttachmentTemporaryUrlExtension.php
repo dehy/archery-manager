@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Twig;
 
 use App\Entity\Attachment;
 use App\Entity\User;
 use League\Flysystem\FilesystemOperator;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -16,13 +17,12 @@ use Vich\UploaderBundle\Mapping\Annotation\UploadableField;
 class AttachmentTemporaryUrlExtension extends AbstractExtension
 {
     public function __construct(
-        private readonly LoggerInterface $logger,
-        private readonly FilesystemOperator $licenseesStorage,
         private readonly CacheInterface $cache,
         private readonly Security $security,
     ) {
     }
 
+    #[\Override]
     public function getFilters(): array
     {
         return [
@@ -35,7 +35,7 @@ class AttachmentTemporaryUrlExtension extends AbstractExtension
         /** @var User $user */
         $user = $this->security->getUser();
         $reflectionClass = new \ReflectionClass($attachment);
-        $cacheKey = sprintf(
+        $cacheKey = \sprintf(
             'user#%s.class#%s.name#%s.url',
             $user->getId(),
             $reflectionClass->getShortName(),

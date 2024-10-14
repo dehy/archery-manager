@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\User;
@@ -47,7 +49,6 @@ class ResetPasswordController extends AbstractController
             return $this->processSendingPasswordResetEmail(
                 $form->get('email')->getData(),
                 $mailer,
-                $translator,
             );
         }
 
@@ -64,7 +65,7 @@ class ResetPasswordController extends AbstractController
     {
         // Generate a fake token if the user does not exist or someone hit this page directly.
         // This prevents exposing whether or not a user was found with the given email address or not
-        if (null === ($resetToken = $this->getTokenObjectFromSession())) {
+        if (!($resetToken = $this->getTokenObjectFromSession()) instanceof \SymfonyCasts\Bundle\ResetPassword\Model\ResetPasswordToken) {
             $resetToken = $this->resetPasswordHelper->generateFakeResetToken();
         }
 
@@ -81,9 +82,9 @@ class ResetPasswordController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $userPasswordHasher,
         TranslatorInterface $translator,
-        string $token = null,
+        ?string $token = null,
     ): Response {
-        if ($token) {
+        if (null !== $token && '' !== $token && '0' !== $token) {
             // We store the token in session and remove it from the URL, to avoid the URL being
             // loaded in a browser and potentially leaking the token to 3rd party JavaScript.
             $this->storeTokenInSession($token);
@@ -100,10 +101,10 @@ class ResetPasswordController extends AbstractController
             $user = $this->resetPasswordHelper->validateTokenAndFetchUser(
                 $token,
             );
-        } catch (ResetPasswordExceptionInterface $e) {
+        } catch (ResetPasswordExceptionInterface $resetPasswordException) {
             $this->addFlash(
                 'reset_password_error',
-                sprintf(
+                \sprintf(
                     '%s - %s',
                     $translator->trans(
                         ResetPasswordExceptionInterface::MESSAGE_PROBLEM_VALIDATE,
@@ -111,7 +112,7 @@ class ResetPasswordController extends AbstractController
                         'ResetPasswordBundle',
                     ),
                     $translator->trans(
-                        $e->getReason(),
+                        $resetPasswordException->getReason(),
                         [],
                         'ResetPasswordBundle',
                     ),
@@ -152,7 +153,6 @@ class ResetPasswordController extends AbstractController
     private function processSendingPasswordResetEmail(
         string $emailFormData,
         MailerInterface $mailer,
-        TranslatorInterface $translator,
     ): RedirectResponse {
         $user = $this->entityManager->getRepository(User::class)->findOneBy([
             'email' => $emailFormData,

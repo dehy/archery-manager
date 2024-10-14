@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\Controller\Admin\Filter\ClubFilter;
@@ -32,18 +34,20 @@ class LicenseeCrudController extends AbstractCrudController
     ) {
     }
 
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return Licensee::class;
     }
 
+    #[\Override]
     public function configureActions(Actions $actions): Actions
     {
         $attachmentsAction = Action::new(
             'licenseeAttachments',
             'Pièces jointes',
             'fa-solid fa-paperclip'
-        )->linkToUrl(fn (Licensee $licensee) => $this->urlGenerator
+        )->linkToUrl(fn (Licensee $licensee): \EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGeneratorInterface => $this->urlGenerator
             ->unsetAll()
             ->setController(LicenseeAttachmentCrudController::class)
             ->set('filters[event][comparison]', '=')
@@ -53,7 +57,7 @@ class LicenseeCrudController extends AbstractCrudController
             'impersonate',
             'Usurper l\'identité',
             'fa-solid fa-user-secret'
-        )->linkToUrl(fn (Licensee $licensee) => sprintf(
+        )->linkToUrl(fn (Licensee $licensee): string => \sprintf(
             '/?_switch_user=%s&_switch_licensee=%s',
             $licensee->getUser()->getEmail(),
             $licensee->getFftaMemberCode()
@@ -73,6 +77,7 @@ class LicenseeCrudController extends AbstractCrudController
             ->add(Crud::PAGE_DETAIL, $resendWelcomeEmail);
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -91,6 +96,7 @@ class LicenseeCrudController extends AbstractCrudController
         ];
     }
 
+    #[\Override]
     public function configureFilters(Filters $filters): Filters
     {
         return $filters

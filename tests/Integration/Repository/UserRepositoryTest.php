@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Integration\Repository;
 
 use App\Entity\Club;
@@ -8,10 +10,11 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-class UserRepositoryTest extends KernelTestCase
+final class UserRepositoryTest extends KernelTestCase
 {
     private ?EntityManager $entityManager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $kernel = self::bootKernel();
@@ -21,7 +24,7 @@ class UserRepositoryTest extends KernelTestCase
             ->getManager();
     }
 
-    public function testFindByClubAndRoleUser()
+    public function testFindByClubAndRoleUser(): void
     {
         $club = $this->entityManager
             ->getRepository(Club::class)
@@ -31,25 +34,26 @@ class UserRepositoryTest extends KernelTestCase
         $userRepository = $this->entityManager->getRepository(User::class);
         $users = $userRepository->findByClubAndRole($club, 'ROLE_USER');
 
-        self::assertCount(11, $users);
+        $this->assertCount(11, $users);
     }
 
-    public function testFindByClubAndRoleClubAdmin()
+    public function testFindByClubAndRoleClubAdmin(): void
     {
         $club = $this->entityManager
             ->getRepository(Club::class)
             ->findOneBy(['name' => 'Les Archers de Guyenne']);
-        self::assertNotNull($club);
-        self::assertSame('Les Archers de Guyenne', $club->getName());
+        $this->assertNotNull($club);
+        $this->assertSame('Les Archers de Guyenne', $club->getName());
 
         /** @var UserRepository $userRepository */
         $userRepository = $this->entityManager->getRepository(User::class);
         $users = $userRepository->findByClubAndRole($club, 'ROLE_CLUB_ADMIN');
 
-        self::assertCount(1, $users);
-        self::assertSame('clubadmin@ladg.com', $users[0]->getEmail());
+        $this->assertCount(1, $users);
+        $this->assertSame('clubadmin@ladg.com', $users[0]->getEmail());
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         parent::tearDown();
