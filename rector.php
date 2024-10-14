@@ -3,34 +3,15 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
-use Rector\Doctrine\Set\DoctrineSetList;
-use Rector\PHPUnit\Set\PHPUnitLevelSetList;
-use Rector\PHPUnit\Set\PHPUnitSetList;
-use Rector\Set\ValueObject\LevelSetList;
-use Rector\Symfony\Set\SensiolabsSetList;
-use Rector\Symfony\Set\SymfonyLevelSetList;
-use Rector\Symfony\Set\SymfonySetList;
-use Rector\Symfony\Set\TwigLevelSetList;
+use Rector\ValueObject\PhpVersion;
 
-return static function (RectorConfig $rectorConfig): void {
-    $rectorConfig->paths([
+return RectorConfig::configure()
+    ->withPaths([
         __DIR__.'/src',
         __DIR__.'/tests',
-    ]);
-
-    // define sets of rules
-    $rectorConfig->sets([
-        LevelSetList::UP_TO_PHP_82,
-        SymfonyLevelSetList::UP_TO_SYMFONY_63,
-        TwigLevelSetList::UP_TO_TWIG_240,
-        PHPUnitLevelSetList::UP_TO_PHPUNIT_90,
-
-        SymfonySetList::ANNOTATIONS_TO_ATTRIBUTES,
-        DoctrineSetList::ANNOTATIONS_TO_ATTRIBUTES,
-        // DoctrineSetList::DOCTRINE_REPOSITORY_AS_SERVICE,
-        DoctrineSetList::DOCTRINE_ORM_214,
-        DoctrineSetList::DOCTRINE_CODE_QUALITY,
-        SensiolabsSetList::ANNOTATIONS_TO_ATTRIBUTES,
-        // PHPUnitSetList::ANNOTATIONS_TO_ATTRIBUTES,
-    ]);
-};
+    ])
+    ->withPhpVersion(PhpVersion::PHP_83)
+    ->withPhpSets(php83: true)
+    ->withPreparedSets(deadCode: true, codeQuality: true, codingStyle: true, typeDeclarations: true, privatization: true, naming: true, instanceOf: true, earlyReturn: true, strictBooleans: true, carbon: true, rectorPreset: true, phpunitCodeQuality: true, doctrineCodeQuality: true, symfonyCodeQuality: true, symfonyConfigs: true, twig: true, phpunit: true)
+    ->withAttributesSets(symfony: true, doctrine: true, phpunit: true, sensiolabs: true)
+;
