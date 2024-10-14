@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "363c258a5424a650aa29725c3fa510c7",
+    "content-hash": "0cacf8b0c6509a5d6cef33e07d4e70c6",
     "packages": [
         {
             "name": "api-platform/core",
@@ -2468,16 +2468,16 @@
         },
         {
             "name": "easycorp/easyadmin-bundle",
-            "version": "v4.13.0",
+            "version": "v4.13.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/EasyCorp/EasyAdminBundle.git",
-                "reference": "1ddaaf5bc0d1f5925ce0d9391784866939f4228f"
+                "reference": "c7495ccfae29688e6d9dfab6225f9c38ebf5be88"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/EasyCorp/EasyAdminBundle/zipball/1ddaaf5bc0d1f5925ce0d9391784866939f4228f",
-                "reference": "1ddaaf5bc0d1f5925ce0d9391784866939f4228f",
+                "url": "https://api.github.com/repos/EasyCorp/EasyAdminBundle/zipball/c7495ccfae29688e6d9dfab6225f9c38ebf5be88",
+                "reference": "c7495ccfae29688e6d9dfab6225f9c38ebf5be88",
                 "shasum": ""
             },
             "require": {
@@ -2551,7 +2551,7 @@
             ],
             "support": {
                 "issues": "https://github.com/EasyCorp/EasyAdminBundle/issues",
-                "source": "https://github.com/EasyCorp/EasyAdminBundle/tree/v4.13.0"
+                "source": "https://github.com/EasyCorp/EasyAdminBundle/tree/v4.13.1"
             },
             "funding": [
                 {
@@ -2559,7 +2559,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-10-13T10:10:48+00:00"
+            "time": "2024-10-14T17:32:23+00:00"
         },
         {
             "name": "egulias/email-validator",
@@ -17833,11 +17833,12 @@
     "platform": {
         "php": ">=8.3.0",
         "ext-ctype": "*",
+        "ext-curl": "*",
         "ext-gd": "*",
         "ext-gettext": "*",
         "ext-iconv": "*",
         "ext-mbstring": "*"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }

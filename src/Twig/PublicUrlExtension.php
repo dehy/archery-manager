@@ -12,7 +12,7 @@ use Vich\UploaderBundle\Mapping\Annotation\UploadableField;
 
 class PublicUrlExtension extends AbstractExtension
 {
-    public function __construct()
+    public function __construct(private readonly FilesystemOperator $clubsLogosStorage)
     {
     }
 
