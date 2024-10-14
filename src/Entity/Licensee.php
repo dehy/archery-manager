@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
@@ -52,7 +54,7 @@ class Licensee implements \Stringable
     private ?\DateTimeImmutable $updatedAt;
 
     /**
-     * @var Collection<int, License>|License[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\License>
      */
     #[
         ORM\OneToMany(
@@ -64,7 +66,7 @@ class Licensee implements \Stringable
     private Collection $licenses;
 
     /**
-     * @var Collection<int, Bow>|Bow[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Bow>
      */
     #[
         ORM\OneToMany(
@@ -76,7 +78,7 @@ class Licensee implements \Stringable
     private Collection $bows;
 
     /**
-     * @var Collection<int, Arrow>|Arrow[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Arrow>
      */
     #[
         ORM\OneToMany(
@@ -88,7 +90,7 @@ class Licensee implements \Stringable
     private Collection $arrows;
 
     /**
-     * @var Collection<int, EventParticipation>|EventParticipation[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\EventParticipation>
      */
     #[
         ORM\OneToMany(
@@ -100,7 +102,7 @@ class Licensee implements \Stringable
     private Collection $eventParticipations;
 
     /**
-     * @var Collection<int, Result>|Result[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Result>
      */
     #[
         ORM\OneToMany(
@@ -111,11 +113,14 @@ class Licensee implements \Stringable
     ]
     private Collection $results;
 
+    /**
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Group>
+     */
     #[ORM\ManyToMany(targetEntity: Group::class, mappedBy: 'licensees')]
     private Collection $groups;
 
     /**
-     * @var Collection<int, PracticeAdvice>|PracticeAdvice[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\PracticeAdvice>
      */
     #[
         ORM\OneToMany(
@@ -127,7 +132,7 @@ class Licensee implements \Stringable
     private Collection $practiceAdvices;
 
     /**
-     * @var Collection<int, PracticeAdvice>|PracticeAdvice[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\PracticeAdvice>
      */
     #[ORM\OneToMany(mappedBy: 'author', targetEntity: PracticeAdvice::class)]
     private Collection $givenPracticeAdvices;
@@ -157,6 +162,7 @@ class Licensee implements \Stringable
         $this->attachments = new ArrayCollection();
     }
 
+    #[\Override]
     public function __toString(): string
     {
         return $this->getFullname();
@@ -181,12 +187,12 @@ class Licensee implements \Stringable
         return $this;
     }
 
-    public function getGender()
+    public function getGender(): string
     {
         return $this->gender;
     }
 
-    public function setGender($gender): self
+    public function setGender(string $gender): self
     {
         $this->gender = $gender;
 
@@ -219,12 +225,12 @@ class Licensee implements \Stringable
 
     public function getFullname(): string
     {
-        return sprintf('%s %s', $this->getFirstname(), $this->getLastname());
+        return \sprintf('%s %s', $this->getFirstname(), $this->getLastname());
     }
 
     public function getFirstnameWithInitial(): string
     {
-        return sprintf('%s %s.', $this->getFirstname(), strtoupper(substr($this->getLastname(), 0, 1)));
+        return \sprintf('%s %s.', $this->getFirstname(), strtoupper(substr((string) $this->getLastname(), 0, 1)));
     }
 
     public function getBirthdate(): ?\DateTimeInterface
@@ -291,7 +297,7 @@ class Licensee implements \Stringable
     public function getLicenseForSeason(int $year): ?License
     {
         $filteredLicenses = $this->licenses->filter(
-            fn (License $l) => $l->getSeason() === $year,
+            fn (License $l): bool => $l->getSeason() === $year,
         );
 
         if ($filteredLicenses->count() > 1) {
@@ -315,11 +321,9 @@ class Licensee implements \Stringable
 
     public function removeLicense(License $license): self
     {
-        if ($this->licenses->removeElement($license)) {
-            // set the owning side to null (unless already changed)
-            if ($license->getLicensee() === $this) {
-                $license->setLicensee(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->licenses->removeElement($license) && $license->getLicensee() === $this) {
+            $license->setLicensee(null);
         }
 
         return $this;
@@ -345,11 +349,9 @@ class Licensee implements \Stringable
 
     public function removeBow(Bow $bow): self
     {
-        if ($this->bows->removeElement($bow)) {
-            // set the owning side to null (unless already changed)
-            if ($bow->getOwner() === $this) {
-                $bow->setOwner(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->bows->removeElement($bow) && $bow->getOwner() === $this) {
+            $bow->setOwner(null);
         }
 
         return $this;
@@ -375,11 +377,9 @@ class Licensee implements \Stringable
 
     public function removeArrow(Arrow $arrow): self
     {
-        if ($this->arrows->removeElement($arrow)) {
-            // set the owning side to null (unless already changed)
-            if ($arrow->getOwner() === $this) {
-                $arrow->setOwner(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->arrows->removeElement($arrow) && $arrow->getOwner() === $this) {
+            $arrow->setOwner(null);
         }
 
         return $this;
@@ -407,11 +407,9 @@ class Licensee implements \Stringable
     public function removeEventParticipation(
         EventParticipation $eventParticipation,
     ): self {
-        if ($this->eventParticipations->removeElement($eventParticipation)) {
-            // set the owning side to null (unless already changed)
-            if ($eventParticipation->getParticipant() === $this) {
-                $eventParticipation->setParticipant(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->eventParticipations->removeElement($eventParticipation) && $eventParticipation->getParticipant() === $this) {
+            $eventParticipation->setParticipant(null);
         }
 
         return $this;
@@ -437,11 +435,9 @@ class Licensee implements \Stringable
 
     public function removeResult(Result $result): self
     {
-        if ($this->results->removeElement($result)) {
-            // set the owning side to null (unless already changed)
-            if ($result->getLicensee() === $this) {
-                $result->setLicensee(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->results->removeElement($result) && $result->getLicensee() === $this) {
+            $result->setLicensee(null);
         }
 
         return $this;
@@ -494,11 +490,9 @@ class Licensee implements \Stringable
 
     public function removePracticeAdvice(PracticeAdvice $practiceAdvice): self
     {
-        if ($this->practiceAdvices->removeElement($practiceAdvice)) {
-            // set the owning side to null (unless already changed)
-            if ($practiceAdvice->getLicensee() === $this) {
-                $practiceAdvice->setLicensee(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->practiceAdvices->removeElement($practiceAdvice) && $practiceAdvice->getLicensee() === $this) {
+            $practiceAdvice->setLicensee(null);
         }
 
         return $this;
@@ -526,11 +520,9 @@ class Licensee implements \Stringable
     public function removeGivenPracticeAdvice(
         PracticeAdvice $givenPracticeAdvice,
     ): self {
-        if ($this->givenPracticeAdvices->removeElement($givenPracticeAdvice)) {
-            // set the owning side to null (unless already changed)
-            if ($givenPracticeAdvice->getAuthor() === $this) {
-                $givenPracticeAdvice->setAuthor(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->givenPracticeAdvices->removeElement($givenPracticeAdvice) && $givenPracticeAdvice->getAuthor() === $this) {
+            $givenPracticeAdvice->setAuthor(null);
         }
 
         return $this;
@@ -570,11 +562,9 @@ class Licensee implements \Stringable
 
     public function removeAttachment(LicenseeAttachment $attachment): self
     {
-        if ($this->attachments->removeElement($attachment)) {
-            // set the owning side to null (unless already changed)
-            if ($attachment->getLicensee() === $this) {
-                $attachment->setLicensee(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->attachments->removeElement($attachment) && $attachment->getLicensee() === $this) {
+            $attachment->setLicensee(null);
         }
 
         return $this;

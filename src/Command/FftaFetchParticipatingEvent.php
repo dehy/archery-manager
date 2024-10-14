@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\DBAL\Types\DisciplineType;
@@ -36,6 +38,7 @@ class FftaFetchParticipatingEvent extends Command
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this->addArgument(
@@ -51,6 +54,7 @@ class FftaFetchParticipatingEvent extends Command
         );
     }
 
+    #[\Override]
     protected function execute(
         InputInterface $input,
         OutputInterface $output,
@@ -79,7 +83,7 @@ class FftaFetchParticipatingEvent extends Command
         $resultRepository = $this->entityManager->getRepository(Result::class);
         foreach ($fftaEvents as $fftaEvent) {
             $io->text(
-                sprintf(
+                \sprintf(
                     '[%s%s] %s à %s du %s au %s',
                     DisciplineType::getReadableValue(
                         $fftaEvent->getDiscipline(),
@@ -104,13 +108,14 @@ class FftaFetchParticipatingEvent extends Command
 
                 continue;
             }
+
             $supportedSpecifics = ['2X18M'];
             if (
                 $fftaEvent->getSpecifics()
                 && !\in_array($fftaEvent->getSpecifics(), $supportedSpecifics)
             ) {
                 $io->text(
-                    sprintf(
+                    \sprintf(
                         '  /!\ Event has some not supported specifics (%s). Skipping',
                         $fftaEvent->getSpecifics(),
                     ),
@@ -137,6 +142,7 @@ class FftaFetchParticipatingEvent extends Command
                 $event = ContestEvent::fromFftaEvent($fftaEvent);
                 $this->entityManager->persist($event);
             }
+
             // Fetch results
             $fftaResults = $scrapper->fetchFftaResultsForFftaEvent(
                 $fftaEvent,
@@ -146,7 +152,7 @@ class FftaFetchParticipatingEvent extends Command
                 $licensee = $licenseeRepository->findOneByCode(
                     $fftaResult->getLicense(),
                 );
-                $io->text(sprintf('  + %s', $licensee->getFullname()));
+                $io->text(\sprintf('  + %s', $licensee->getFullname()));
                 $result = $resultRepository->findOneBy([
                     'licensee' => $licensee,
                     'event' => $event,

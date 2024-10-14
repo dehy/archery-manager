@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Helper;
 
 use App\Entity\Season;
@@ -7,7 +9,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class SeasonHelper
 {
-    private const SESSION_KEY = 'selectedSeason';
+    private const string SESSION_KEY = 'selectedSeason';
 
     public function __construct(private readonly RequestStack $requestStack)
     {

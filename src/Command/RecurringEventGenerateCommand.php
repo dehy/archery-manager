@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\DBAL\Types\DisciplineType;
@@ -35,9 +37,10 @@ class RecurringEventGenerateCommand extends Command
     /**
      * @throws \Exception
      */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        new SymfonyStyle($input, $output);
 
         /** @var QuestionHelper $helper */
         $helper = $this->getHelper('question');
@@ -74,6 +77,7 @@ class RecurringEventGenerateCommand extends Command
 
         $assignedGroupsQuestion = new ChoiceQuestion('Groupes :', $databaseGroups);
         $assignedGroupsQuestion->setMultiselect(true);
+
         $assignedGroups = $helper->ask($input, $output, $assignedGroupsQuestion);
 
         $recurringQuestion = new ChoiceQuestion(

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin\Field;
 
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\Field\FieldInterface;
@@ -10,6 +12,7 @@ final class VichImageField implements FieldInterface
 {
     use FieldTrait;
 
+    #[\Override]
     public static function new(string $propertyName, ?string $label = 'Image'): self
     {
         return (new self())

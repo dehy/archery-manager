@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\EventListener;
 
 use App\Entity\User;
@@ -22,6 +24,7 @@ class SwitchUserSubscriber implements EventSubscriberInterface
         $this->licenseeHelper->setSelectedLicensee($licensee);
     }
 
+    #[\Override]
     public static function getSubscribedEvents(): array
     {
         return [

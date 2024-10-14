@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\DBAL\Types\EventType;
@@ -50,7 +52,7 @@ class Event implements \Stringable
     protected ?string $address = null;
 
     /**
-     * @var Collection<int, EventParticipation>|EventParticipation[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\EventParticipation>
      */
     #[
         ORM\OneToMany(
@@ -62,11 +64,14 @@ class Event implements \Stringable
     protected Collection $participations;
 
     /**
-     * @var Collection<int, EventAttachment>|EventAttachment[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\EventAttachment>
      */
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventAttachment::class)]
     protected Collection $attachments;
 
+    /**
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Group>
+     */
     #[ORM\ManyToMany(targetEntity: Group::class, inversedBy: 'events')]
     protected Collection $assignedGroups;
 
@@ -89,9 +94,10 @@ class Event implements \Stringable
         $this->assignedGroups = new ArrayCollection();
     }
 
+    #[\Override]
     public function __toString(): string
     {
-        return sprintf(
+        return \sprintf(
             '%s - %s - %s',
             $this->getStartsAt()->format('d/m/Y'),
             EventType::getReadableValue(static::class),
@@ -177,11 +183,9 @@ class Event implements \Stringable
     public function removeParticipation(
         EventParticipation $participation,
     ): self {
-        if ($this->participations->removeElement($participation)) {
-            // set the owning side to null (unless already changed)
-            if ($participation->getEvent() === $this) {
-                $participation->setEvent(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->participations->removeElement($participation) && $participation->getEvent() === $this) {
+            $participation->setEvent(null);
         }
 
         return $this;
@@ -199,11 +203,9 @@ class Event implements \Stringable
 
     public function removeAttachment(EventAttachment $attachment): self
     {
-        if ($this->attachments->removeElement($attachment)) {
-            // set the owning side to null (unless already changed)
-            if ($attachment->getEvent() === $this) {
-                $attachment->setEvent(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->attachments->removeElement($attachment) && $attachment->getEvent() === $this) {
+            $attachment->setEvent(null);
         }
 
         return $this;
@@ -212,11 +214,11 @@ class Event implements \Stringable
     /**
      * @return Collection<int, EventAttachment>
      */
-    public function getAttachments(string $type = null): Collection
+    public function getAttachments(?string $type = null): Collection
     {
-        if ($type) {
+        if (null !== $type && '' !== $type && '0' !== $type) {
             return $this->attachments
-                ->filter(fn (EventAttachment $attachment) => $attachment->getType() === $type);
+                ->filter(fn (EventAttachment $attachment): bool => $attachment->getType() === $type);
         }
 
         return $this->attachments;
@@ -285,7 +287,7 @@ class Event implements \Stringable
         $slugify = new Slugify();
         $this->setSlug(
             $slugify->slugify(
-                sprintf('%s-%s', $this->getStartsAt()->format('d-m-Y'), $this->getTitle())
+                \sprintf('%s-%s', $this->getStartsAt()->format('d-m-Y'), $this->getTitle())
             )
         );
         $this->setUpdatedAt(new \DateTimeImmutable());
@@ -293,7 +295,7 @@ class Event implements \Stringable
 
     public function getTitle(): string
     {
-        return sprintf(
+        return \sprintf(
             '%s %s',
             ucfirst(EventType::getReadableValue(static::class)),
             $this->getName()

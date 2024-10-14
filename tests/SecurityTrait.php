@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests;
 
 use App\Entity\User;
@@ -71,7 +73,7 @@ trait SecurityTrait
     {
         $user = (new User())
             ->setRoles([$role])
-            ->setEmail(sprintf('test_%s@test.com', strtolower($role)))
+            ->setEmail(\sprintf('test_%s@test.com', strtolower($role)))
             ->setPassword('test')
             ->setFirstName('Test')
             ->setLastName('Test');

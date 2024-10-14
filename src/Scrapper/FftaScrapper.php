@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Scrapper;
 
 use App\DBAL\Types\DisciplineType;
@@ -24,29 +26,36 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class FftaScrapper
 {
     protected HttpClientInterface $managerSpaceHttpClient;
+
     protected HttpBrowser $managerSpaceBrowser;
+
     protected bool $managerSpaceIsConnected = false;
 
     protected HttpClientInterface $myFftaSpaceHttpClient;
+
     protected HttpBrowser $myFftaSpaceBrowser;
+
     protected bool $myFftaSpaceIsConnected = false;
+
     private string $managerSpaceBaseUrl = 'https://dirigeant.ffta.fr';
+
     private string $myFftaSpaceBaseUrl = 'https://monespace.ffta.fr';
+
     private int $structureId = 556;
-    private int $season = 2024;
     private array $defaultParameters;
 
     private array $cachedResponse;
 
     public function __construct(
         private readonly Club $club,
-        HttpClientInterface $httpClient = null
+        ?HttpClientInterface $httpClient = null
     ) {
-        if (!$this->club->getFftaUsername() || !$this->club->getFftaPassword()) {
+        if (null === $this->club->getFftaUsername() || '' === $this->club->getFftaUsername() || '0' === $this->club->getFftaUsername() || (null === $this->club->getFftaPassword() || '' === $this->club->getFftaPassword() || '0' === $this->club->getFftaPassword())) {
             throw new \Exception('FFTA Credentials not set');
         }
-        $this->managerSpaceHttpClient = $httpClient ? clone $httpClient : HttpClient::create();
-        $this->myFftaSpaceHttpClient = $httpClient ? clone $httpClient : HttpClient::create();
+
+        $this->managerSpaceHttpClient = $httpClient instanceof HttpClientInterface ? clone $httpClient : HttpClient::create();
+        $this->myFftaSpaceHttpClient = $httpClient instanceof HttpClientInterface ? clone $httpClient : HttpClient::create();
 
         $this->defaultParameters = [
             'draw' => '1',
@@ -179,12 +188,6 @@ class FftaScrapper
         ];
     }
 
-    private function setStructureId(int $structureId): void
-    {
-        $this->structureId = $structureId;
-        $this->defaultParameters['filtres[structure]'] = (string) $structureId;
-    }
-
     private function setSeason(int $season): void
     {
         $this->defaultParameters['filtres[saison]'] = (string) $season;
@@ -192,14 +195,14 @@ class FftaScrapper
 
     private function fetchLicenseeList(int $season): array
     {
-        if (!isset($this->cachedResponse) || !$this->cachedResponse) {
+        if (!isset($this->cachedResponse) || [] === $this->cachedResponse) {
             $this->loginManagerSpace();
             $this->setSeason($season);
 
             $parameters = $this->defaultParameters;
             $queryParameters = http_build_query($parameters, encoding_type: \PHP_QUERY_RFC3986);
 
-            $url = sprintf(
+            $url = \sprintf(
                 '%s/structures/fiche/%s/licencies/ajax?%s',
                 $this->managerSpaceBaseUrl,
                 $this->structureId,
@@ -248,13 +251,13 @@ class FftaScrapper
     {
         $this->loginManagerSpace();
 
-        $url = sprintf(
+        $url = \sprintf(
             '%s/personnes/recherche?personnes_q=%s',
             $this->managerSpaceBaseUrl,
             $memberCode,
         );
         $this->managerSpaceBrowser->followRedirects(false);
-        $crawler = $this->managerSpaceBrowser->request('GET', $url);
+        $this->managerSpaceBrowser->request('GET', $url);
 
         $searchStatusCode = $this->managerSpaceBrowser->getResponse()->getStatusCode();
         // if redirected to /personnes/fiche/$memberid, we got a match
@@ -263,7 +266,10 @@ class FftaScrapper
             preg_match("%/fiche/(\d+)%", (string) $licenseeRecordUrl, $matches);
 
             return (int) $matches[1];
-        } elseif (200 === $searchStatusCode) { // still on /personnes/recherche, no luck
+        }
+        // if redirected to /personnes/fiche/$memberid, we got a match
+        if (200 === $searchStatusCode) {
+            // still on /personnes/recherche, no luck
             throw new NotFoundHttpException();
         }
 
@@ -325,7 +331,7 @@ class FftaScrapper
     {
         $this->loginManagerSpace();
 
-        $url = sprintf(
+        $url = \sprintf(
             '%s/personnes/fiche/%s/infos',
             $this->managerSpaceBaseUrl,
             $fftaId,
@@ -345,8 +351,9 @@ class FftaScrapper
         $content = $response->getContent();
 
         if (200 !== $response->getStatusCode()) {
-            throw new NotFoundHttpException(sprintf('Cannot fetch image at url %s', $profilePictureUrl));
+            throw new NotFoundHttpException(\sprintf('Cannot fetch image at url %s', $profilePictureUrl));
         }
+
         $contentType = strtolower($response->getHeader('content-type'));
         if ('image/png' === $contentType) {
             $image = imagecreatefromstring($response->getContent());
@@ -356,8 +363,9 @@ class FftaScrapper
             $content = stream_get_contents($stream);
             $contentType = 'image/jpg';
         }
+
         if ('image/jpeg' !== $contentType && 'image/jpg' !== $contentType) {
-            throw new BadRequestException(sprintf('Wrong mimetype for profile picture: %s', $contentType));
+            throw new BadRequestException(\sprintf('Wrong mimetype for profile picture: %s', $contentType));
         }
 
         return $content;
@@ -394,7 +402,7 @@ class FftaScrapper
             'U11' => $license->setType(LicenseType::POUSSINS),
             'Découverte' => $license->setType(LicenseType::DECOUVERTE),
             'Convention FFSU' => $license->setType(LicenseType::CONVENTION_FFSU),
-            default => throw new \Exception(sprintf("Unknown licence type '%s'", $selectedLicenseeData['type_libelle'])),
+            default => throw new \Exception(\sprintf("Unknown licence type '%s'", $selectedLicenseeData['type_libelle'])),
         };
 
         switch ($selectedLicenseeData['categorie_age']) {
@@ -502,7 +510,7 @@ class FftaScrapper
 
                 break;
             default:
-                throw new \Exception(sprintf("Unknown Age Category '%s'", $selectedLicenseeData['categorie_age']));
+                throw new \Exception(\sprintf("Unknown Age Category '%s'", $selectedLicenseeData['categorie_age']));
         }
 
         return $license;
@@ -519,7 +527,7 @@ class FftaScrapper
 
         $crawler = $this->myFftaSpaceBrowser->request(
             'POST',
-            sprintf(
+            \sprintf(
                 '%s/gsportive/resultats-mesarchers.html',
                 $this->myFftaSpaceBaseUrl,
             ),
@@ -528,11 +536,11 @@ class FftaScrapper
             [
                 'HTTP_CONTENT_TYPE' => 'application/x-www-form-urlencoded',
             ],
-            sprintf('filtres[SaisonAnnee]=%s', $season),
+            \sprintf('filtres[SaisonAnnee]=%s', $season),
         );
         $tableCrawler = $crawler->filter('table.orbe3');
         $eventLinesCrawler = $tableCrawler->filter('tbody tr');
-        $eventLinesCrawler->each(function (Crawler $row) use (&$events) {
+        $eventLinesCrawler->each(function (Crawler $row) use (&$events): void {
             $dateCell = $row->filter('td:nth-child(2)')->text();
             preg_match(
                 '#(du|le) (\d+/\d+/\d+)(au (\d+/\d+/\d+))?#',
@@ -605,7 +613,7 @@ class FftaScrapper
             $fftaEvent,
             &$distance,
             &$size,
-        ) {
+        ): void {
             $col = $row->filter('td:first-child');
 
             if ('ar al' === $col->attr('class')) {
@@ -647,7 +655,7 @@ class FftaScrapper
     {
         $text = trim($text, " \t\n\r\0\x0B\xC2\xA0");
         if ($ucwords) {
-            $text = ucwords(mb_strtolower($text));
+            return ucwords(mb_strtolower($text));
         }
 
         return $text;
@@ -667,10 +675,11 @@ class FftaScrapper
         if ($this->managerSpaceIsConnected) {
             return;
         }
+
         $this->managerSpaceBrowser = new HttpBrowser($this->managerSpaceHttpClient);
         $crawler = $this->managerSpaceBrowser->request(
             'GET',
-            sprintf('%s/auth/login', $this->managerSpaceBaseUrl),
+            \sprintf('%s/auth/login', $this->managerSpaceBaseUrl),
         );
         $form = $crawler->filter('#form-login')->form();
         $this->managerSpaceBrowser->submit($form, [
@@ -690,10 +699,11 @@ class FftaScrapper
         if ($this->myFftaSpaceIsConnected) {
             return;
         }
+
         $this->myFftaSpaceBrowser = new HttpBrowser($this->myFftaSpaceHttpClient);
         $crawler = $this->myFftaSpaceBrowser->request(
             'GET',
-            sprintf('%s', $this->myFftaSpaceBaseUrl),
+            $this->myFftaSpaceBaseUrl,
         );
 
         $form = $crawler->filter('#form-login')->form();

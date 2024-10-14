@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\Controller\Admin\Field\VichImageField;
@@ -12,11 +14,13 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 
 class ClubCrudController extends AbstractCrudController
 {
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return Club::class;
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         return [

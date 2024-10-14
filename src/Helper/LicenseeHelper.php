@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Helper;
 
 use App\Entity\Licensee;
@@ -11,7 +13,7 @@ use Symfony\Component\Mailer\MailerInterface;
 
 class LicenseeHelper
 {
-    final public const SESSION_KEY = 'selectedLicensee';
+    final public const string SESSION_KEY = 'selectedLicensee';
 
     protected SessionInterface $session;
 
@@ -32,10 +34,12 @@ class LicenseeHelper
         if (null !== $licenseeCode && !$user->hasLicenseeWithCode($licenseeCode)) {
             $licenseeCode = null;
         }
+
         if (null === $licenseeCode) {
             if (0 === $user->getLicensees()->count()) {
                 return null;
             }
+
             $licensee = $user->getLicensees()->first();
             $this->setSelectedLicensee($licensee);
 

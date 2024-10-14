@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\Event;
@@ -20,7 +22,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class EventRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry, string $entityClass = null)
+    public function __construct(ManagerRegistry $registry, ?string $entityClass = null)
     {
         parent::__construct($registry, $entityClass ?? Event::class);
     }
@@ -43,7 +45,7 @@ class EventRepository extends ServiceEntityRepository
 
     public function findNextForLicensee(
         Licensee $licensee,
-        int $limit = null,
+        ?int $limit = null,
     ): ArrayCollection {
         $season = Season::seasonForDate(new \DateTimeImmutable());
 
@@ -82,14 +84,15 @@ class EventRepository extends ServiceEntityRepository
      */
     public function findForLicenseeByMonthAndYear(Licensee $licensee, int $month, int $year): array
     {
-        $clubs = $licensee->getLicenses()->map(fn (License $license) => $license->getClub());
+        $clubs = $licensee->getLicenses()->map(fn (License $license): ?\App\Entity\Club => $license->getClub());
         $clubs = array_unique($clubs->toArray());
 
-        $firstDate = new \DateTime(sprintf('%s-%s-01 midnight', $year, $month));
+        $firstDate = new \DateTime(\sprintf('%s-%s-01 midnight', $year, $month));
         $lastDate = (clone $firstDate)->modify('last day of this month');
         if (1 !== (int) $firstDate->format('N')) {
             $firstDate->modify('previous monday');
         }
+
         if (false !== $lastDate && 7 !== (int) $lastDate->format('N')) {
             $lastDate->modify('next sunday 23:59:59');
         }

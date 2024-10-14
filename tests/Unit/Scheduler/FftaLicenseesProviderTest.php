@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Unit\Scheduler;
 
 use App\Entity\Club;
@@ -11,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Scheduler\Generator\MessageContext;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
 
-class FftaLicenseesProviderTest extends TestCase
+final class FftaLicenseesProviderTest extends TestCase
 {
     use MakePropertyAccessibleTrait;
 
@@ -33,10 +35,10 @@ class FftaLicenseesProviderTest extends TestCase
         $provider = new FftaLicenseesProvider($clubRepository);
         $schedule = $provider->getSchedule();
 
-        self::assertCount(1, $schedule->getRecurringMessages());
+        $this->assertCount(1, $schedule->getRecurringMessages());
         $recurringMessage = $schedule->getRecurringMessages()[0];
 
-        self::assertInstanceOf(CronExpressionTrigger::class, $recurringMessage->getTrigger());
+        $this->assertInstanceOf(CronExpressionTrigger::class, $recurringMessage->getTrigger());
 
         $context = new MessageContext(
             'test',
@@ -45,7 +47,7 @@ class FftaLicenseesProviderTest extends TestCase
             new \DateTimeImmutable(),
         );
         $messages = iterator_to_array($recurringMessage->getMessages($context));
-        self::assertCount(2, $messages);
+        $this->assertCount(2, $messages);
         $message1 = $messages[0];
         self::assertInstanceOf(SyncFftaLicensees::class, $message1);
         self::assertSame(1, $message1->getId());

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
@@ -9,11 +11,15 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
  */
 final class BowType extends AbstractEnumType
 {
-    public const INITIATION = 'initiation';
-    public const CLASSIQUE_COMPETITION = 'classique_competition';
-    public const POULIES = 'poulies';
-    public const BAREBOW = 'barebow';
-    public const LONGBOW = 'longbow';
+    public const string INITIATION = 'initiation';
+
+    public const string CLASSIQUE_COMPETITION = 'classique_competition';
+
+    public const string POULIES = 'poulies';
+
+    public const string BAREBOW = 'barebow';
+
+    public const string LONGBOW = 'longbow';
 
     protected static array $choices = [
         self::INITIATION => 'Initiation',

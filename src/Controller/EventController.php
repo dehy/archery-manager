@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\DBAL\Types\EventAttachmentType;
@@ -52,11 +54,12 @@ class EventController extends BaseController
         $events = $eventRepository
             ->findForLicenseeByMonthAndYear($this->licenseeHelper->getLicenseeFromSession(), $month, $year);
 
-        $firstDate = (new \DateTime(sprintf('%s-%s-01 midnight', $year, $month)));
+        $firstDate = (new \DateTime(\sprintf('%s-%s-01 midnight', $year, $month)));
         $lastDate = (clone $firstDate)->modify('last day of this month')->setTime(23, 59, 59);
         if (1 !== (int) $firstDate->format('N')) {
             $firstDate->modify('previous monday');
         }
+
         if (7 !== (int) $lastDate->format('N')) {
             $lastDate->modify('next sunday 23:59:59');
         }
@@ -67,14 +70,15 @@ class EventController extends BaseController
             $endOfDay = \DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
             $eventsForThisDay = array_filter(
                 $events,
-                fn (Event $event) => ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
+                fn (Event $event): bool => ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
                     || ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay)
             );
             // Sort events: multi-day all-day events, single-day all-day events, then other events
-            usort($eventsForThisDay, function (Event $a, Event $b) {
+            usort($eventsForThisDay, function (Event $a, Event $b): int {
                 if ($a->spanMultipleDays() !== $b->spanMultipleDays()) {
                     return $b->spanMultipleDays() <=> $a->spanMultipleDays();
                 }
+
                 if ($a->isAllDay() !== $b->isAllDay()) {
                     return $b->isAllDay() <=> $a->isAllDay();
                 }
@@ -101,7 +105,7 @@ class EventController extends BaseController
 
         $event = $eventRepository->findBySlug($slug);
 
-        if (!$event) {
+        if (!$event instanceof Event) {
             throw $this->createNotFoundException();
         }
 
@@ -112,9 +116,9 @@ class EventController extends BaseController
             ->setAllDay($event->isAllDay())
             ->getICS();
 
-        return new Response($ics, 200, [
+        return new Response($ics, Response::HTTP_OK, [
             'Content-Type' => 'text/calendar',
-            'Content-Disposition' => sprintf('attachment; filename="%s.ics"', $event->getSlug()),
+            'Content-Disposition' => \sprintf('attachment; filename="%s.ics"', $event->getSlug()),
         ]);
     }
 
@@ -127,7 +131,7 @@ class EventController extends BaseController
         $this->assertHasValidLicense();
 
         $forceDownload = $request->query->get('forceDownload');
-        $contentDisposition = sprintf(
+        $contentDisposition = \sprintf(
             '%s; filename="%s"',
             $forceDownload ? ResponseHeaderBag::DISPOSITION_ATTACHMENT : ResponseHeaderBag::DISPOSITION_INLINE,
             $attachment->getFile()->getName()
@@ -137,12 +141,12 @@ class EventController extends BaseController
             throw $this->createNotFoundException();
         }
 
-        $response = new StreamedResponse(function () use ($eventsStorage, $attachment) {
+        $response = new StreamedResponse(function () use ($eventsStorage, $attachment): void {
             $outputStream = fopen('php://output', 'w');
             $fileStream = $eventsStorage->readStream($attachment->getFile()->getName());
 
             stream_copy_to_stream($fileStream, $outputStream);
-        }, 200, [
+        }, Response::HTTP_OK, [
             'Content-Type' => $attachment->getFile()->getMimeType(),
             'Content-Disposition' => $contentDisposition,
             'Content-Length' => $attachment->getFile()->getSize(),
@@ -195,10 +199,12 @@ class EventController extends BaseController
             if (null === $attachment->getUploadedFile()) {
                 $entityManager->remove($attachment);
             }
+
             if (null === $attachment->getId()) {
                 $entityManager->flush();
                 $attachment->setUpdatedAt(new \DateTimeImmutable());
             }
+
             $entityManager->flush();
 
             return $this->redirectToRoute('app_event_show', ['slug' => $event->getSlug()]);
@@ -239,9 +245,10 @@ class EventController extends BaseController
 
         $eventParticipationForm->handleRequest($request);
         if ($eventParticipationForm->isSubmitted() && $eventParticipationForm->isValid()) {
-            if (!$eventParticipation->getId()) {
+            if (null === $eventParticipation->getId() || 0 === $eventParticipation->getId()) {
                 $entityManager->persist($eventParticipation);
             }
+
             $entityManager->flush();
 
             return $this->redirectToRoute('app_event_show', ['slug' => $event->getSlug()]);
@@ -253,7 +260,7 @@ class EventController extends BaseController
             TrainingEvent::class, FreeTrainingEvent::class => '_training',
             default => '_default',
         };
-        $template = $modalTemplate ? 'event/show.modal.html.twig' : sprintf('event/show%s.html.twig', $templateSuffix);
+        $template = $modalTemplate ? 'event/show.modal.html.twig' : \sprintf('event/show%s.html.twig', $templateSuffix);
 
         return $this->render($template, [
             'event' => $event,
@@ -285,12 +292,14 @@ class EventController extends BaseController
             if (EventParticipationStateType::NOT_GOING === $participation->getParticipationState()) {
                 continue;
             }
+
             $foundResult = false;
             foreach ($results as $result) {
                 if ($result->getLicensee()->getId() === $participation->getParticipant()->getId()) {
                     $foundResult = true;
                 }
             }
+
             if (!$foundResult) {
                 $season = Season::seasonForDate($event->getStartsAt());
                 $license = $participation->getParticipant()->getLicenseForSeason($season);
@@ -318,13 +327,14 @@ class EventController extends BaseController
             }
         }
 
-        usort($results, function (Result $a, Result $b) {
+        usort($results, function (Result $a, Result $b): int {
             if ($a->getAgeCategory() === $b->getAgeCategory()) {
                 return $a->getLicensee()->getFullname() <=> $b->getLicensee()->getFullname();
             }
+
             $choices = array_values(LicenseAgeCategoryType::getOrderedChoices());
 
-            return array_search($a->getAgeCategory(), $choices) <=> array_search($b->getAgeCategory(), $choices);
+            return array_search($a->getAgeCategory(), $choices, true) <=> array_search($b->getAgeCategory(), $choices, true);
         });
 
         $resultsForm = $this->createForm(

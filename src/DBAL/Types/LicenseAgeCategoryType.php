@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
@@ -9,24 +11,38 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
  */
 final class LicenseAgeCategoryType extends AbstractEnumType
 {
-    public const SENIOR_1 = 'S1';
-    public const SENIOR_2 = 'S2';
-    public const SENIOR_3 = 'S3';
-    public const U11 = 'U11';
-    public const U13 = 'U13';
-    public const U15 = 'U15';
-    public const U18 = 'U18';
-    public const U21 = 'U21';
+    public const string SENIOR_1 = 'S1';
+
+    public const string SENIOR_2 = 'S2';
+
+    public const string SENIOR_3 = 'S3';
+
+    public const string U11 = 'U11';
+
+    public const string U13 = 'U13';
+
+    public const string U15 = 'U15';
+
+    public const string U18 = 'U18';
+
+    public const string U21 = 'U21';
 
     // Old categories from previous seasons
-    public const POUSSIN = 'P';
-    public const BENJAMIN = 'B';
-    public const MINIME = 'M';
-    public const CADET = 'C';
-    public const JUNIOR = 'J';
-    public const SENIOR = 'S';
-    public const VETERAN = 'V';
-    public const SUPER_VETERAN = 'SV';
+    public const string POUSSIN = 'P';
+
+    public const string BENJAMIN = 'B';
+
+    public const string MINIME = 'M';
+
+    public const string CADET = 'C';
+
+    public const string JUNIOR = 'J';
+
+    public const string SENIOR = 'S';
+
+    public const string VETERAN = 'V';
+
+    public const string SUPER_VETERAN = 'SV';
 
     protected static array $choices = [
         self::U11 => 'U11',
@@ -47,7 +63,7 @@ final class LicenseAgeCategoryType extends AbstractEnumType
         self::SUPER_VETERAN => 'Super Vétéran',
     ];
 
-    public static function getOrderedChoices()
+    public static function getOrderedChoices(): array
     {
         $choices = [
             self::U11, self::U13, self::U15, self::U18, self::U21, self::SENIOR_1, self::SENIOR_2, self::SENIOR_3,

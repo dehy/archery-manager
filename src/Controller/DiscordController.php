@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\User;
@@ -66,8 +68,8 @@ class DiscordController extends AbstractController
             $this->addFlash('success', 'Association à Discord réussie !');
 
             return $this->redirectToRoute('app_user_account');
-        } catch (IdentityProviderException $e) {
-            $this->addFlash('danger', 'Une erreur est survenue durant la connexion à Discord : '.$e->getMessage());
+        } catch (IdentityProviderException $identityProviderException) {
+            $this->addFlash('danger', 'Une erreur est survenue durant la connexion à Discord : '.$identityProviderException->getMessage());
             // Todo add sentry exception
 
             return $this->redirectToRoute('app_user_account');
@@ -81,6 +83,7 @@ class DiscordController extends AbstractController
         $user = $this->getUser();
         $user->setDiscordId(null);
         $user->setDiscordAccessToken(null);
+
         $entityManager->flush();
 
         return $this->redirectToRoute('app_user_account');

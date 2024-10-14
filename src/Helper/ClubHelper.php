@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Helper;
 
 use App\Entity\Club;
@@ -22,7 +24,7 @@ class ClubHelper
     public function activeClubFor(Licensee $licensee): Club
     {
         $club = $licensee->getLicenseForSeason(Season::seasonForDate(new \DateTimeImmutable()))?->getClub();
-        if (!$club) {
+        if (!$club instanceof Club) {
             throw new NoActiveClubException();
         }
 

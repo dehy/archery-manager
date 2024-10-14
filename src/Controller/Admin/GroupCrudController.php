@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\Entity\Group;
@@ -14,11 +16,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 
 class GroupCrudController extends AbstractCrudController
 {
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return Group::class;
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -29,12 +33,14 @@ class GroupCrudController extends AbstractCrudController
         ];
     }
 
+    #[\Override]
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
             ->add(EntityFilter::new('club'));
     }
 
+    #[\Override]
     public function configureCrud(Crud $crud): Crud
     {
         return $crud->setDefaultSort([

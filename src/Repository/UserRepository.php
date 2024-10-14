@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\Club;
@@ -44,12 +46,13 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     /**
      * Used to upgrade (rehash) the user's password automatically over time.
      */
+    #[\Override]
     public function upgradePassword(
         PasswordAuthenticatedUserInterface $user,
         string $newHashedPassword,
     ): void {
         if (!$user instanceof User) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
+            throw new UnsupportedUserException(\sprintf('Instances of "%s" are not supported.', $user::class));
         }
 
         $user->setPassword($newHashedPassword);
@@ -69,7 +72,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getOneOrNullResult();
     }
 
-    public function findByClubAndRole(Club $club, string $role, int $season = null): array
+    public function findByClubAndRole(Club $club, string $role, ?int $season = null): array
     {
         $season ??= Season::seasonForDate(new \DateTimeImmutable());
 
@@ -82,7 +85,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->groupBy('u.id')
             ->setParameters([
                 'club' => $club,
-                'role' => sprintf('%%%s%%', $role),
+                'role' => \sprintf('%%%s%%', $role),
                 'season' => $season,
             ])
             ->getQuery()

@@ -1,20 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Scrapper;
 
 class FftaResult
 {
     private int $position;
+
     private string $name;
+
     private string $club;
+
     private string $license;
+
     private string $category;
+
     private int $distance;
+
     private int $size;
+
     private int $score1;
+
     private int $score2;
+
     private int $total;
+
     private int $nb10;
+
     private int $nb10p;
 
     public function getPosition(): int

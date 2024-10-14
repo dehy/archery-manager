@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\DBAL\Types\ContestType;
@@ -45,11 +47,13 @@ class ContestEventCrudController extends AbstractCrudController
     {
     }
 
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return ContestEvent::class;
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -73,11 +77,13 @@ class ContestEventCrudController extends AbstractCrudController
         ];
     }
 
+    #[\Override]
     public function configureCrud(Crud $crud): Crud
     {
         return $crud->setDefaultSort(['startsAt' => 'DESC', 'endsAt' => 'DESC']);
     }
 
+    #[\Override]
     public function configureFilters(Filters $filters): Filters
     {
         return parent::configureFilters($filters)
@@ -86,13 +92,14 @@ class ContestEventCrudController extends AbstractCrudController
             ->add(ChoiceFilter::new('discipline')->setChoices(DisciplineType::getChoices()));
     }
 
+    #[\Override]
     public function configureActions(Actions $actions): Actions
     {
         $attachmentsAction = Action::new(
             'eventAttachments',
             'Pièces jointes',
             'fa-solid fa-paperclip'
-        )->linkToUrl(fn (Event $event) => $this->urlGenerator
+        )->linkToUrl(fn (Event $event): \EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGeneratorInterface => $this->urlGenerator
             ->unsetAll()
             ->setController(EventAttachmentCrudController::class)
             ->set('filters[event][comparison]', '=')
@@ -107,7 +114,7 @@ class ContestEventCrudController extends AbstractCrudController
         $seeResultsAction = Action::new(
             'showEventResults',
             'Results',
-        )->linkToUrl(fn (Event $event) => $this->urlGenerator
+        )->linkToUrl(fn (Event $event): \EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGeneratorInterface => $this->urlGenerator
             ->unsetAll()
             ->setController(ResultCrudController::class)
             ->set('filters[event][comparison]', '=')
@@ -198,6 +205,7 @@ class ContestEventCrudController extends AbstractCrudController
 
                     $entityManager->persist($result);
                 }
+
                 $result
                     ->setActivity($line->activity)
                     ->setDiscipline($event->getDiscipline())
@@ -205,6 +213,7 @@ class ContestEventCrudController extends AbstractCrudController
                     ->setDistance($distance)
                     ->setTargetSize($targetSize);
             }
+
             $entityManager->flush();
 
             return $this->redirect(
