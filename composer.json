@@ -26,7 +26,7 @@
         "doctrine/orm": "^2.11",
         "dragonmantank/cron-expression": "^3.3",
         "easycorp/easyadmin-bundle": "^4.1",
-        "fresh/doctrine-enum-bundle": "^9.0",
+        "fresh/doctrine-enum-bundle": "^9.2",
         "gedmo/doctrine-extensions": "^3.9",
         "geocoder-php/mapbox-provider": "^1.4",
         "knplabs/knp-time-bundle": "^2.1",
@@ -39,7 +39,7 @@
         "phpdocumentor/reflection-docblock": "^5.3",
         "phpstan/phpdoc-parser": "^1.2",
         "ralouphie/mimey": "^1.0",
-        "sentry/sentry-symfony": "^4.12",
+        "sentry/sentry-symfony": "^4.14",
         "smalot/pdfparser": "^2.2",
         "specshaper/encrypt-bundle": "^3.1",
         "symfony/asset": "6.4.*",
@@ -143,7 +143,7 @@
         }
     },
     "require-dev": {
-        "dama/doctrine-test-bundle": "^7.1",
+        "dama/doctrine-test-bundle": "^8.2",
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "fakerphp/faker": "^1.23",
         "friendsofphp/php-cs-fixer": "^3.14",
