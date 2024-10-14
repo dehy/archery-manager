@@ -12,7 +12,7 @@ echo ${BUILD_DATE:-""} > build_date
 echo ${VERSION:-""} > version
 
 # Make the PHP-FPM php.ini same as fpm
-ln -sf /etc/php/8.2/fpm/php.ini /etc/php/8.2/cli/php.ini
+ln -sf /etc/php/8.3/fpm/php.ini /etc/php/8.3/cli/php.ini
 
 mkdir -p /app/{.yarn,node_modules,public/build}
 chown -R symfony: /app/{node_modules,public/build}
