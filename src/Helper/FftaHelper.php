@@ -3,6 +3,7 @@
 namespace App\Helper;
 
 use App\DBAL\Types\LicenseeAttachmentType;
+use App\DBAL\Types\UserRoleType;
 use App\Entity\Club;
 use App\Entity\License;
 use App\Entity\Licensee;
@@ -91,7 +92,7 @@ class FftaHelper
         }
 
         if (!empty($syncResults[SyncReturnValues::CREATED->value]) || !empty($syncResults[SyncReturnValues::UPDATED->value])) {
-            $managers = $this->userRepository->findByClubAndRole($club, 'ROLE_CLUB_MANAGER', $season);
+            $managers = $this->userRepository->findByClubAndRole($club, UserRoleType::CLUB_ADMIN, $season);
             $this->emailHelper->sendLicenseesSyncResults($managers, $syncResults);
         }
 

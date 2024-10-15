@@ -6,7 +6,7 @@ class SyncFftaLicensees
 {
     public function __construct(
         private readonly int $id,
-        private readonly int $clubCode,
+        private readonly string $clubCode,
         private readonly int $season
     ) {
     }
@@ -16,7 +16,7 @@ class SyncFftaLicensees
         return $this->id;
     }
 
-    public function getClubCode(): int
+    public function getClubCode(): string
     {
         return $this->clubCode;
     }
