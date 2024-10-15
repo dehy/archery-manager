@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Scheduler;
 
 use App\Entity\Season;
@@ -20,6 +22,7 @@ class FftaLicenseesProvider implements ScheduleProviderInterface
     {
     }
 
+    #[\Override]
     public function getSchedule(): Schedule
     {
         return $this->schedule ??= (new Schedule())

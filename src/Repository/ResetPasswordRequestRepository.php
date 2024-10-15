@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\ResetPasswordRequest;
@@ -44,6 +46,7 @@ class ResetPasswordRequestRepository extends ServiceEntityRepository implements 
         }
     }
 
+    #[\Override]
     public function createResetPasswordRequest(
         object $user,
         \DateTimeInterface $expiresAt,

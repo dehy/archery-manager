@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Integration\Helper;
 
 use App\Entity\Club;
@@ -11,7 +13,7 @@ use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\JsonMockResponse;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
-class FftaHelperTest extends KernelTestCase
+final class FftaHelperTest extends KernelTestCase
 {
     use FftaHelperTestDataLoader;
 
@@ -25,7 +27,7 @@ class FftaHelperTest extends KernelTestCase
         ];
 
         $mockUserRepository = $this->createMock(UserRepository::class);
-        $mockUserRepository->expects($this->any())
+        $mockUserRepository
             ->method('findByClubAndRole')
             ->willReturn($clubManagers);
 
@@ -42,10 +44,12 @@ class FftaHelperTest extends KernelTestCase
                                 </form>'
                     );
                 }
+
                 if ('POST' === $method) {
                     return new JsonMockResponse();
                 }
             }
+
             if (1 === preg_match('!/structures/fiche/\d+/licencies/ajax!', $url)) {
                 $count = 5;
 
@@ -55,11 +59,13 @@ class FftaHelperTest extends KernelTestCase
                     'total' => $count,
                 ]);
             }
+
             if (1 === preg_match('!/personnes/fiche/\d+/infos!', $url)) {
                 return new MockResponse(
                     '<img src="/elicence-core/images/default/default_profil_homme.png" alt="Photo de M John Doe" class="border-white rounded-circle" width="65" height="65">'
                 );
             }
+
             if (1 === preg_match('!/elicence-core/images/default/default_profil_homme.png!', $url)) {
                 return new MockResponse(
                     base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAC4jAAAuIwF4pT92AAAADElEQVQImWP4z8AAAAMBAQCc479ZAAAAAElFTkSuQmCC'),
@@ -70,7 +76,8 @@ class FftaHelperTest extends KernelTestCase
                     ]
                 );
             }
-            throw new \Exception(sprintf('Missing url handling: %s %s', $method, $url));
+
+            throw new \Exception(\sprintf('Missing url handling: %s %s', $method, $url));
         };
 
         self::bootKernel();
@@ -89,6 +96,6 @@ class FftaHelperTest extends KernelTestCase
         $fftaHelper->syncLicensees($club, 2025);
 
         // 5 mails queues for users (1 welcome for each), 1 summary for club admins
-        self::assertQueuedEmailCount(6);
+        $this->assertQueuedEmailCount(6);
     }
 }

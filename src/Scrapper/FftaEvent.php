@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Scrapper;
 
 use App\DBAL\Types\DisciplineType;
@@ -7,11 +9,17 @@ use App\DBAL\Types\DisciplineType;
 class FftaEvent
 {
     private string $name;
+
     private \DateTimeImmutable $from;
+
     private \DateTimeImmutable $to;
+
     private string $location;
+
     private string $discipline;
+
     private string $specifics;
+
     private string $url;
 
     public function setName(string $name): self

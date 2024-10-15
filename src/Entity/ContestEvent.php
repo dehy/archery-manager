@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\DBAL\Types\ContestType;
@@ -20,7 +22,7 @@ class ContestEvent extends Event
     private ?string $contestType = null;
 
     /**
-     * @var Collection<int, Result>|Result[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Result>
      */
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: Result::class)]
     private Collection $results;
@@ -31,9 +33,10 @@ class ContestEvent extends Event
         $this->results = new ArrayCollection();
     }
 
+    #[\Override]
     public function __toString(): string
     {
-        return sprintf(
+        return \sprintf(
             '%s - %s %s - %s',
             $this->getStartsAt()->format('d/m/Y'),
             EventType::getReadableValue(self::class),
@@ -88,11 +91,9 @@ class ContestEvent extends Event
 
     public function removeResult(Result $result): self
     {
-        if ($this->results->removeElement($result)) {
-            // set the owning side to null (unless already changed)
-            if ($result->getEvent() === $this) {
-                $result->setEvent(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->results->removeElement($result) && $result->getEvent() === $this) {
+            $result->setEvent(null);
         }
 
         return $this;
@@ -117,14 +118,14 @@ class ContestEvent extends Event
     public function hasMandate(): bool
     {
         return $this->getAttachments()->exists(
-            fn (int $key, EventAttachment $attachment) => EventAttachmentType::MANDATE === $attachment->getType()
+            fn (int $key, EventAttachment $attachment): bool => EventAttachmentType::MANDATE === $attachment->getType()
         );
     }
 
     public function hasResults(): bool
     {
         return $this->getAttachments()->exists(
-            fn (int $key, EventAttachment $attachment) => EventAttachmentType::RESULTS === $attachment->getType()
+            fn (int $key, EventAttachment $attachment): bool => EventAttachmentType::RESULTS === $attachment->getType()
         );
     }
 
@@ -135,6 +136,7 @@ class ContestEvent extends Event
             if (EventParticipationStateType::NOT_GOING === $participation->getParticipationState()) {
                 continue;
             }
+
             $departures[$participation->getDeparture() ?? 'non précisé'][] = $participation;
         }
 
@@ -143,9 +145,10 @@ class ContestEvent extends Event
         return $departures;
     }
 
+    #[\Override]
     public function getTitle(): string
     {
-        return sprintf(
+        return \sprintf(
             '%s %s %s',
             ucfirst(EventType::getReadableValue(static::class)),
             lcfirst(DisciplineType::getReadableValue($this->getDiscipline())),

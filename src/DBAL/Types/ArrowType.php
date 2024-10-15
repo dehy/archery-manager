@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
@@ -9,10 +11,13 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
  */
 final class ArrowType extends AbstractEnumType
 {
-    public const WOOD = 'wood';
-    public const ALUMINUM = 'aluminum';
-    public const CARBON = 'carbon';
-    public const ALUMINUM_CARBON = 'aluminum_carbon';
+    public const string WOOD = 'wood';
+
+    public const string ALUMINUM = 'aluminum';
+
+    public const string CARBON = 'carbon';
+
+    public const string ALUMINUM_CARBON = 'aluminum_carbon';
 
     protected static array $choices = [
         self::WOOD => 'Bois',

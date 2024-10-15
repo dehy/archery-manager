@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\ContestEvent;
@@ -19,6 +21,7 @@ class ContestEventRepository extends EventRepository
         parent::__construct($registry, ContestEvent::class);
     }
 
+    #[\Override]
     public function add(Event $entity, bool $flush = true): void
     {
         $this->_em->persist($entity);
@@ -27,6 +30,7 @@ class ContestEventRepository extends EventRepository
         }
     }
 
+    #[\Override]
     public function remove(Event $entity, bool $flush = true): void
     {
         $this->_em->remove($entity);

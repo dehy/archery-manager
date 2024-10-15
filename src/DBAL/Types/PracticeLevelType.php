@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
@@ -9,9 +11,11 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
  */
 final class PracticeLevelType extends AbstractEnumType
 {
-    public const BEGINNER = 'beginner';
-    public const INTERMEDIATE = 'intermediate';
-    public const ADVANCED = 'advanced';
+    public const string BEGINNER = 'beginner';
+
+    public const string INTERMEDIATE = 'intermediate';
+
+    public const string ADVANCED = 'advanced';
 
     protected static array $choices = [
         self::BEGINNER => 'Débutant',

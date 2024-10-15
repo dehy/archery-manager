@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Integration\EventListener;
 
 use App\Entity\Licensee;
@@ -18,12 +20,13 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Mailer\MailerInterface;
 
-class SwitchLicenseeListenerTest extends KernelTestCase
+final class SwitchLicenseeListenerTest extends KernelTestCase
 {
     use SecurityTrait;
 
     private EventDispatcher $dispatcher;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->dispatcher = new EventDispatcher();
@@ -42,6 +45,7 @@ class SwitchLicenseeListenerTest extends KernelTestCase
 
         $request = new Request();
         $request->setSession($session);
+
         $requestStack = new RequestStack();
         $requestStack->push($request);
 
@@ -58,8 +62,8 @@ class SwitchLicenseeListenerTest extends KernelTestCase
 
         $this->login($user);
 
-        self::assertEquals($user, $security->getUser());
-        self::assertEquals($licensee, $licenseeHelper->getLicenseeFromSession());
+        $this->assertEquals($user, $security->getUser());
+        $this->assertEquals($licensee, $licenseeHelper->getLicenseeFromSession());
 
         // instance our own listener
         $listener = new SwitchLicenseeListener($security, $licenseeHelper);
@@ -74,7 +78,7 @@ class SwitchLicenseeListenerTest extends KernelTestCase
         $event = new RequestEvent(self::$kernel, $request, HttpKernelInterface::MAIN_REQUEST);
         $this->dispatcher->dispatch($event, 'onKernelRequest');
 
-        self::assertEquals($licensee2, $licenseeHelper->getLicenseeFromSession());
+        $this->assertEquals($licensee2, $licenseeHelper->getLicenseeFromSession());
 
         $this->logout();
     }

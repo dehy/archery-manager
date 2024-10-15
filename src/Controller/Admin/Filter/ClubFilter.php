@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin\Filter;
 
 use App\Entity\Club;
@@ -25,6 +27,7 @@ class ClubFilter implements FilterInterface
             ->setFormTypeOption('class', Club::class);
     }
 
+    #[\Override]
     public function apply(
         QueryBuilder $queryBuilder,
         FilterDataDto $filterDataDto,
@@ -33,7 +36,7 @@ class ClubFilter implements FilterInterface
     ): void {
         $queryBuilder
             ->join(
-                sprintf('%s.licenses', $filterDataDto->getEntityAlias()),
+                \sprintf('%s.licenses', $filterDataDto->getEntityAlias()),
                 'license',
             )
             ->andWhere('license.club = :club')

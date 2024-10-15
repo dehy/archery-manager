@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Form;
 
 use App\Entity\EventAttachment;
@@ -10,6 +12,7 @@ use Vich\UploaderBundle\Form\Type\VichFileType;
 
 class EventMandateType extends AbstractType
 {
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->add('uploadedFile', VichFileType::class, [
@@ -17,6 +20,7 @@ class EventMandateType extends AbstractType
         ]);
     }
 
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([

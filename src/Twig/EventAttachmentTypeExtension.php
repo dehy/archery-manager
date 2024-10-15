@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Twig;
 
 use App\DBAL\Types\EventAttachmentType;
@@ -8,6 +10,7 @@ use Twig\TwigFilter;
 
 class EventAttachmentTypeExtension extends AbstractExtension
 {
+    #[\Override]
     public function getFilters(): array
     {
         return [

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\DBAL\Types\GenderType;
@@ -19,11 +21,13 @@ use Symfony\Component\Uid\Uuid;
 
 class UserCrudController extends AbstractCrudController
 {
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return User::class;
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -40,6 +44,7 @@ class UserCrudController extends AbstractCrudController
         ];
     }
 
+    #[\Override]
     public function createEntity(string $entityFqcn)
     {
         /** @var User $user */
@@ -50,6 +55,7 @@ class UserCrudController extends AbstractCrudController
         return $user;
     }
 
+    #[\Override]
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
@@ -57,6 +63,7 @@ class UserCrudController extends AbstractCrudController
             ->add('firstname');
     }
 
+    #[\Override]
     public function configureCrud(Crud $crud): Crud
     {
         return $crud->setDefaultSort([
@@ -65,6 +72,7 @@ class UserCrudController extends AbstractCrudController
         ]);
     }
 
+    #[\Override]
     public function configureActions(Actions $actions): Actions
     {
         return $actions

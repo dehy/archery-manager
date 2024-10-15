@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin\Filter;
 
 use Doctrine\ORM\QueryBuilder;
@@ -23,6 +25,7 @@ class LicenseSeasonFilter implements FilterInterface
             ->setFormType(IntegerType::class);
     }
 
+    #[\Override]
     public function apply(
         QueryBuilder $queryBuilder,
         FilterDataDto $filterDataDto,
@@ -31,7 +34,7 @@ class LicenseSeasonFilter implements FilterInterface
     ): void {
         $queryBuilder
             ->join(
-                sprintf('%s.licenses', $filterDataDto->getEntityAlias()),
+                \sprintf('%s.licenses', $filterDataDto->getEntityAlias()),
                 'license',
             )
             ->andWhere('license.season = :season')

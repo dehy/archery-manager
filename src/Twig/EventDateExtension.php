@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Twig;
 
 use App\Entity\Event;
@@ -17,6 +19,7 @@ class EventDateExtension extends AbstractExtension
     ) {
     }
 
+    #[\Override]
     public function getFilters(): array
     {
         return [
@@ -31,35 +34,33 @@ class EventDateExtension extends AbstractExtension
         bool $diff = false
     ): string {
         if (1 === $event->getEndsAt()->diff($event->getStartsAt())->days) {
-            $date = sprintf(
+            $date = \sprintf(
                 'les %s et %s',
                 $event->getStartsAt()->format('j'),
                 $this->formatDate($environment, $event->getEndsAt())
             );
         } elseif ($event->getStartsAt()->format('d-m-Y') !== $event->getEndsAt()->format('d-m-Y')) {
-            $date = sprintf(
+            $date = \sprintf(
                 'du %s au %s',
                 $event->getStartsAt()->format('j'),
                 $this->formatDate($environment, $event->getEndsAt())
             );
+        } elseif ($includeTime && !$event->isAllDay()) {
+            $date = \sprintf(
+                'le %s de %s à %s',
+                $this->formatDate($environment, $event->getStartsAt()),
+                $event->getStartsAt()->format('H:i'),
+                $event->getEndsAt()->format('H:i'),
+            );
         } else {
-            if ($includeTime && !$event->isAllDay()) {
-                $date = sprintf(
-                    'le %s de %s à %s',
-                    $this->formatDate($environment, $event->getStartsAt()),
-                    $event->getStartsAt()->format('H:i'),
-                    $event->getEndsAt()->format('H:i'),
-                );
-            } else {
-                $date = sprintf(
-                    'le %s',
-                    $this->formatDate($environment, $event->getStartsAt()),
-                );
-            }
+            $date = \sprintf(
+                'le %s',
+                $this->formatDate($environment, $event->getStartsAt()),
+            );
         }
 
-        if (true === $diff) {
-            $date = sprintf(
+        if ($diff) {
+            return \sprintf(
                 '%s (%s)',
                 $date,
                 $this->diff($event)
@@ -83,7 +84,7 @@ class EventDateExtension extends AbstractExtension
         return $this->dateTimeFormatter->formatDiff($date, $now, 'fr');
     }
 
-    private function formatDate(Environment $environment, \DateTimeInterface $datetime): string
+    private function formatDate(Environment $environment, ?\DateTimeImmutable $datetime): string
     {
         return $this->intlExtension->formatDate(
             $environment,

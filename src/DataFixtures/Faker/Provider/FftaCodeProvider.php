@@ -15,6 +15,6 @@ final class FftaCodeProvider extends Base
 
     public static function fftaCode(int $id): string
     {
-        return sprintf('%s%s', $id, strtoupper(Base::randomLetter()));
+        return \sprintf('%s%s', $id, strtoupper(Base::randomLetter()));
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This is free and unencumbered software released into the public domain.
  *
@@ -70,10 +72,12 @@ namespace App\Factory;
 
 class IcsFactory
 {
-    final public const ALL_DAY_DT_FORMAT = 'Ymd';
-    final public const DT_FORMAT = 'Ymd\THis\Z';
+    final public const string ALL_DAY_DT_FORMAT = 'Ymd';
+
+    final public const string DT_FORMAT = 'Ymd\THis\Z';
 
     protected array $properties = [];
+
     private array $availableProperties = [
         'description',
         'dtend',
@@ -82,6 +86,7 @@ class IcsFactory
         'summary',
         'url',
     ];
+
     private bool $isAllDay = false;
 
     public static function new(string $summary): self
@@ -189,10 +194,12 @@ class IcsFactory
                     $v = \DateTime::createFromInterface($v);
                     $v = $v->add(new \DateInterval('P1D'));
                 }
+
                 $escapedValue = $this->formatDatetime($v, $this->isAllDay);
             } else {
                 $escapedValue = $this->escapeString($v);
             }
+
             $props[strtoupper($realKey)] = $escapedValue;
         }
 
@@ -202,7 +209,7 @@ class IcsFactory
 
         // Append properties
         foreach ($props as $k => $v) {
-            $icsProps[] = "{$k}:{$v}";
+            $icsProps[] = \sprintf('%s:%s', $k, $v);
         }
 
         // Build ICS properties - add footer

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\DBAL\Types\DisciplineType;
@@ -23,11 +25,13 @@ class TrainingEventCrudController extends AbstractCrudController
     {
     }
 
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return TrainingEvent::class;
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -47,11 +51,13 @@ class TrainingEventCrudController extends AbstractCrudController
         ];
     }
 
+    #[\Override]
     public function configureCrud(Crud $crud): Crud
     {
         return $crud->setDefaultSort(['startsAt' => 'DESC', 'endsAt' => 'DESC']);
     }
 
+    #[\Override]
     public function configureFilters(Filters $filters): Filters
     {
         return parent::configureFilters($filters)

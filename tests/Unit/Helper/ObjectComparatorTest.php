@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Unit\Helper;
 
 use App\Helper\ObjectComparator;
 use PHPUnit\Framework\TestCase;
 
-class ObjectComparatorTest extends TestCase
+final class ObjectComparatorTest extends TestCase
 {
     public function testEqual(): void
     {
@@ -14,8 +16,8 @@ class ObjectComparatorTest extends TestCase
         $obj2 = new \stdClass();
         $obj2->id = 12;
 
-        self::assertTrue(ObjectComparator::equal($obj1, $obj2));
-        self::assertFalse(ObjectComparator::equal($obj1, $obj2, true));
+        $this->assertTrue(ObjectComparator::equal($obj1, $obj2));
+        $this->assertFalse(ObjectComparator::equal($obj1, $obj2, true));
     }
 
     public function testEqualStrict(): void
@@ -24,8 +26,8 @@ class ObjectComparatorTest extends TestCase
         $obj1->id = 12;
         $obj2 = $obj1;
 
-        self::assertTrue(ObjectComparator::equal($obj1, $obj2));
-        self::assertTrue(ObjectComparator::equal($obj1, $obj2, true));
+        $this->assertTrue(ObjectComparator::equal($obj1, $obj2));
+        $this->assertTrue(ObjectComparator::equal($obj1, $obj2, true));
     }
 
     public function testNotEqual(): void
@@ -35,8 +37,8 @@ class ObjectComparatorTest extends TestCase
         $obj2 = new \stdClass();
         $obj2->id = 12;
 
-        self::assertFalse(ObjectComparator::equal($obj1, $obj2));
-        self::assertFalse(ObjectComparator::equal($obj1, $obj2, true));
+        $this->assertFalse(ObjectComparator::equal($obj1, $obj2));
+        $this->assertFalse(ObjectComparator::equal($obj1, $obj2, true));
     }
 
     public function testDiff(): void
@@ -48,7 +50,7 @@ class ObjectComparatorTest extends TestCase
 
         $diff = ObjectComparator::diff($obj1, $obj2);
 
-        self::assertEquals([
+        $this->assertSame([
             'id' => [
                 'old_value' => 11,
                 'new_value' => 12,
@@ -65,6 +67,6 @@ class ObjectComparatorTest extends TestCase
 
         $diff = ObjectComparator::diff($obj1, $obj2);
 
-        self::assertEquals([], $diff);
+        $this->assertSame([], $diff);
     }
 }

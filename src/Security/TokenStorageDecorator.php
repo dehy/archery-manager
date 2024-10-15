@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Security;
 
 use Psr\Container\ContainerInterface;
@@ -16,12 +18,14 @@ use Symfony\Contracts\Service\ServiceSubscriberInterface;
 class TokenStorageDecorator implements TokenStorageInterface, ServiceSubscriberInterface
 {
     protected static ?TokenInterface $decoratedToken = null;
+
     private bool $enableUsageTracking = false;
 
     public function __construct(private readonly TokenStorageInterface $storage, private readonly ContainerInterface $container)
     {
     }
 
+    #[\Override]
     public function getToken(): ?TokenInterface
     {
         if ($this->shouldTrackUsage()) {
@@ -32,13 +36,14 @@ class TokenStorageDecorator implements TokenStorageInterface, ServiceSubscriberI
         return static::$decoratedToken ?? $this->storage->getToken();
     }
 
-    public function setToken(TokenInterface $token = null): void
+    #[\Override]
+    public function setToken(?TokenInterface $token = null): void
     {
         static::$decoratedToken = $token;
 
         $this->storage->setToken($token);
 
-        if ($token && $this->shouldTrackUsage()) {
+        if ($token instanceof TokenInterface && $this->shouldTrackUsage()) {
             // increments the internal session usage index
             $this->getSession()->getMetadataBag();
         }
@@ -46,7 +51,7 @@ class TokenStorageDecorator implements TokenStorageInterface, ServiceSubscriberI
 
     public function setUser(UserInterface $user, string $tokenClass = UsernamePasswordToken::class): void
     {
-        if (static::$decoratedToken) {
+        if (static::$decoratedToken instanceof TokenInterface) {
             static::$decoratedToken->setUser($user);
         } else {
             static::getNewToken($user, $tokenClass);
@@ -66,7 +71,7 @@ class TokenStorageDecorator implements TokenStorageInterface, ServiceSubscriberI
                 static::$decoratedToken = new $tokenClass($user, $firewall, $user->getRoles());
                 break;
             default:
-                throw new LogicException(sprintf('The token %s is not supported', $tokenClass));
+                throw new LogicException(\sprintf('The token %s is not supported', $tokenClass));
         }
 
         return static::$decoratedToken;
@@ -82,6 +87,7 @@ class TokenStorageDecorator implements TokenStorageInterface, ServiceSubscriberI
         $this->enableUsageTracking = false;
     }
 
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return [

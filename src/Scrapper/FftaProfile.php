@@ -1,16 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Scrapper;
 
 class FftaProfile
 {
     public ?int $id = null;
+
     public ?string $codeAdherent = null;
+
     public ?string $email = null;
+
     public ?string $nom = null;
+
     public ?string $prenom = null;
+
     public ?string $mobile = null;
+
     public ?\DateTime $dateNaissance = null;
+
     public ?string $sexe = null;
 
     public function getId(): ?int

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Form;
 
 use Dmishh\SettingsBundle\Manager\SettingsManager;
@@ -14,6 +16,7 @@ class PreRegistrationSettingsType extends AbstractType
     {
     }
 
+    #[\Override]
     public function buildForm(
         FormBuilderInterface $builder,
         array $options,
@@ -27,6 +30,7 @@ class PreRegistrationSettingsType extends AbstractType
         ]);
     }
 
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
     }

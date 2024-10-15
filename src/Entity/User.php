@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\UserRepository;
@@ -79,6 +81,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         $this->licensees = new ArrayCollection();
     }
 
+    #[\Override]
     public function __toString(): string
     {
         return $this->getFullname();
@@ -124,6 +127,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
      *
      * @see UserInterface
      */
+    #[\Override]
     public function getUserIdentifier(): string
     {
         return $this->email;
@@ -132,6 +136,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     /**
      * @see UserInterface
      */
+    #[\Override]
     public function getRoles(): array
     {
         $roles = $this->roles;
@@ -151,6 +156,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     /**
      * @see PasswordAuthenticatedUserInterface
      */
+    #[\Override]
     public function getPassword(): string
     {
         return $this->password;
@@ -166,18 +172,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     /**
      * @see UserInterface
      */
+    #[\Override]
     public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
     }
 
-    public function getGender()
+    public function getGender(): string
     {
         return $this->gender;
     }
 
-    public function setGender($gender): self
+    public function setGender(string $gender): self
     {
         $this->gender = $gender;
 
@@ -198,7 +205,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
 
     public function getFullname(): string
     {
-        return sprintf('%s %s', $this->getFirstname(), $this->getLastname());
+        return \sprintf('%s %s', $this->getFirstname(), $this->getLastname());
     }
 
     public function getFirstname(): ?string
@@ -245,11 +252,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
 
     public function removeLicensee(Licensee $licensee): self
     {
-        if ($this->licensees->removeElement($licensee)) {
-            // set the owning side to null (unless already changed)
-            if ($licensee->getUser() === $this) {
-                $licensee->setUser(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->licensees->removeElement($licensee) && $licensee->getUser() === $this) {
+            $licensee->setUser(null);
         }
 
         return $this;
@@ -257,7 +262,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
 
     public function hasLicenseeWithCode(string $fftaCode): bool
     {
-        return null !== $this->getLicenseeWithCode($fftaCode);
+        return $this->getLicenseeWithCode($fftaCode) instanceof Licensee;
     }
 
     public function getLicenseeWithCode(string $fftaCode): ?Licensee

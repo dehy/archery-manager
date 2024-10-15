@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\Event;
@@ -21,7 +23,7 @@ class HomepageController extends AbstractController
         EntityManagerInterface $entityManager,
         LicenseeHelper $licenseeHelper,
     ): Response {
-        if (null === $licenseeHelper->getLicenseeFromSession()) {
+        if (!$licenseeHelper->getLicenseeFromSession() instanceof \App\Entity\Licensee) {
             return $this->render('homepage/blank_account.html.twig', [
                 'user' => $this->getUser(),
             ]);

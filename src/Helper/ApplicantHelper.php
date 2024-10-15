@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Helper;
 
 use App\DBAL\Types\LicenseCategoryType;
@@ -9,6 +11,7 @@ use Money\Money;
 class ApplicantHelper
 {
     protected static int $season = 2024;
+
     protected static ?self $instance = null;
 
     public function __construct(protected LicenseHelper $licenseHelper)

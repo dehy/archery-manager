@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\DBAL\Types\PracticeLevelType;
@@ -74,6 +76,7 @@ class Applicant implements \Stringable
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $paymentObservations = null;
 
+    #[\Override]
     public function __toString(): string
     {
         return $this->getCompleteName();
@@ -283,10 +286,10 @@ class Applicant implements \Stringable
 
     public function getCompleteName(): string
     {
-        return sprintf(
+        return \sprintf(
             '%s %s',
-            mb_strtoupper($this->getLastname()),
-            ucfirst($this->getFirstname()),
+            mb_strtoupper((string) $this->getLastname()),
+            ucfirst((string) $this->getFirstname()),
         );
     }
 

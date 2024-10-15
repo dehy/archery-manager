@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Form;
 
 use App\DBAL\Types\UserRoleType;
@@ -13,6 +15,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class UserType extends AbstractType
 {
+    #[\Override]
     public function buildForm(
         FormBuilderInterface $builder,
         array $options,
@@ -40,6 +43,7 @@ class UserType extends AbstractType
             ]);
     }
 
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([

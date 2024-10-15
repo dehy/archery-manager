@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
@@ -9,11 +11,15 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
  */
 final class TargetTypeType extends AbstractEnumType
 {
-    public const MONOSPOT = 'monospot';
-    public const TRISPOT = 'trispot';
-    public const FIELD = 'field';
-    public const ANIMAL = 'animal';
-    public const BEURSAULT = 'beursault';
+    public const string MONOSPOT = 'monospot';
+
+    public const string TRISPOT = 'trispot';
+
+    public const string FIELD = 'field';
+
+    public const string ANIMAL = 'animal';
+
+    public const string BEURSAULT = 'beursault';
 
     protected static array $choices = [
         self::MONOSPOT => 'Monospot',
