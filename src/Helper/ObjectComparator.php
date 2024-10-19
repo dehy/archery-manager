@@ -15,7 +15,7 @@ class ObjectComparator
      */
     public static function equal(object $o1, object $o2, bool $strict = false): bool
     {
-        return $strict ? $o1 === $o2 : $o1 === $o2;
+        return $strict ? $o1 === $o2 : $o1 == $o2;
     }
 
     /**

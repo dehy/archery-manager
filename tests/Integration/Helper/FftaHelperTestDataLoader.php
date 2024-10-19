@@ -45,7 +45,7 @@ trait FftaHelperTestDataLoader
                 'id' => $id,
                 'personne_id' => $id,
                 'personne_url' => \sprintf('https://dirigeant.ffta.fr/personnes/fiche/%s/licences', $id),
-                'code_adherent' => \sprintf('%s%s', substr($id, 0, 7), strtoupper((string) $letter)),
+                'code_adherent' => \sprintf('%s%s', substr((string) $id, 0, 7), strtoupper((string) $letter)),
                 'nom' => $faker->lastName(),
                 'prenom' => $faker->firstName($gender),
                 'sexe' => 'male' == $gender ? 'Masculin' : 'Féminin',

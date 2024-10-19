@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Rector\CodeQuality\Rector\Equal\UseIdenticalOverEqualWithSameTypeRector;
 use Rector\Config\RectorConfig;
 use Rector\ValueObject\PhpVersion;
 
@@ -9,6 +10,11 @@ return RectorConfig::configure()
     ->withPaths([
         __DIR__.'/src',
         __DIR__.'/tests',
+    ])
+    ->withSkip([
+        UseIdenticalOverEqualWithSameTypeRector::class => [
+            __DIR__.'/src/Helper/ObjectComparator.php',
+        ],
     ])
     ->withPhpVersion(PhpVersion::PHP_83)
     ->withPhpSets(php83: true)
