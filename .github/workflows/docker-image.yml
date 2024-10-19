@@ -46,7 +46,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Generate Docker Image Tag
         id: docker_tag
-        run: echo "::set-output name=tag::$(bash ./docker/tag_from_branch.sh)"
+        run: echo "{tag}={$(bash ./docker/tag_from_branch.sh)}" >> $GITHUB_OUTPUT
       - name: Login to Scaleway Container Registry
         uses: docker/login-action@v3
         with:
