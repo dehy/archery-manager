@@ -42,7 +42,7 @@ final class FftaLicenseesProviderTest extends TestCase
 
         $context = new MessageContext(
             'test',
-            1,
+            '1',
             $recurringMessage->getTrigger(),
             new \DateTimeImmutable(),
         );

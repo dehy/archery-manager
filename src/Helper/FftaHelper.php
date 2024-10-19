@@ -106,7 +106,7 @@ class FftaHelper
      * @throws TransportExceptionInterface
      * @throws \Exception
      */
-    public function syncLicenseeWithId(Club $club, string $fftaId, int $season): SyncReturnValues
+    public function syncLicenseeWithId(Club $club, int $fftaId, int $season): SyncReturnValues
     {
         $syncResult = SyncReturnValues::UNTOUCHED;
         $scrapper = $this->getScrapper($club);
