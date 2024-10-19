@@ -11,7 +11,9 @@ class Config {
         if (dataset) {
             for (const dataKey in dataset) {
                 if (dataKey.startsWith('env')) {
-                    config[dataKey] = dataset[dataKey] as string;
+                    let index = dataKey.substring(3);
+                    index = index.substring(0, 1).toLowerCase() + index.substring(1);
+                    config[index] = dataset[dataKey] as string;
                 }
             }
         }

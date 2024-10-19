@@ -27,7 +27,12 @@
 
     <title>{{ block('title') }}{{ block('title') is defined ? ' • ' }}Mon Club</title>
 </head>
-<body data-env-api-url="{{ apiUrl }}" {{ stimulus_controller('modal') }}>
+<body
+        data-env-app-environment="{{ appEnvironment }}"
+        data-env-api-url="{{ apiUrl }}"
+        data-env-observability-collector-url="{{ observabilityCollectorUrl }}"
+        {{ stimulus_controller('modal') }}
+>
 <div class="mobile-tab-bar navbar navbar-expand navbar-dark bg-primary">
     <ul class="navbar-nav w-100">
         <li class="nav-item">

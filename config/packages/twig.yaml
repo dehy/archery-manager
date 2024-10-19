@@ -5,7 +5,9 @@ twig:
         '%kernel.project_dir%/assets/styles': styles
     globals:
         app_revision: '%env(APP_REVISION)%'
+        appEnvironment: '%env(APP_ENV)%'
         apiUrl: '%env(APP_URL)%/api'
+        observabilityCollectorUrl: '%env(OBSERVABILITY_COLLECTOR_URL)%'
         licenseeHelper: '@App\Helper\LicenseeHelper'
         licenseHelper: '@App\Helper\LicenseHelper'
         eventHelper: '@App\Helper\EventHelper'
