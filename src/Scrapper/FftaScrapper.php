@@ -42,6 +42,7 @@ class FftaScrapper
     private string $myFftaSpaceBaseUrl = 'https://monespace.ffta.fr';
 
     private int $structureId = 556;
+
     private array $defaultParameters;
 
     private array $cachedResponse;
@@ -267,6 +268,7 @@ class FftaScrapper
 
             return (int) $matches[1];
         }
+
         // if redirected to /personnes/fiche/$memberid, we got a match
         if (200 === $searchStatusCode) {
             // still on /personnes/recherche, no luck

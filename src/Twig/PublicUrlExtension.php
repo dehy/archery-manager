@@ -54,10 +54,13 @@ class PublicUrlExtension extends AbstractExtension
         $parts = array_map(fn (string $part): string => ucfirst($part), explode('.', $mapping));
         $storageName = lcfirst(implode('', $parts).'Storage');
 
-        $filenameProperty = $uploadableField->getFileNameProperty();
+        if ('clubsLogosStorage' === $storageName) {
+            $operator = $this->clubsLogosStorage;
+        } else {
+            throw new \LogicException(\sprintf('Storage "%s" is not supported', $storageName));
+        }
 
-        /** @var FilesystemOperator $operator */
-        $operator = $this->{$storageName};
+        $filenameProperty = $uploadableField->getFileNameProperty();
 
         $getter = \sprintf('get%s', ucfirst((string) $filenameProperty));
 

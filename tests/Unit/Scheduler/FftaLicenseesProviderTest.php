@@ -49,15 +49,15 @@ final class FftaLicenseesProviderTest extends TestCase
         $messages = iterator_to_array($recurringMessage->getMessages($context));
         $this->assertCount(2, $messages);
         $message1 = $messages[0];
-        self::assertInstanceOf(SyncFftaLicensees::class, $message1);
-        self::assertSame(1, $message1->getId());
-        self::assertSame('41', $message1->getClubCode());
-        self::assertSame(2025, $message1->getSeason());
+        $this->assertInstanceOf(SyncFftaLicensees::class, $message1);
+        $this->assertSame(1, $message1->getId());
+        $this->assertSame('41', $message1->getClubCode());
+        $this->assertSame(2025, $message1->getSeason());
 
         $message2 = $messages[1];
-        self::assertInstanceOf(SyncFftaLicensees::class, $message2);
-        self::assertSame(2, $message2->getId());
-        self::assertSame('42', $message2->getClubCode());
-        self::assertSame(2025, $message2->getSeason());
+        $this->assertInstanceOf(SyncFftaLicensees::class, $message2);
+        $this->assertSame(2, $message2->getId());
+        $this->assertSame('42', $message2->getClubCode());
+        $this->assertSame(2025, $message2->getSeason());
     }
 }
