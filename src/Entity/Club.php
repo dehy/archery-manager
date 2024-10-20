@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\ClubRepository;
@@ -49,19 +51,19 @@ class Club implements \Stringable
     private ?\DateTimeImmutable $updatedAt;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Event>|\App\Entity\Event[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Event>
      */
     #[ORM\OneToMany(mappedBy: 'club', targetEntity: Event::class)]
     private Collection $events;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Group>|\App\Entity\Group[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Group>
      */
     #[ORM\OneToMany(mappedBy: 'club', targetEntity: Group::class)]
     private Collection $groups;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\License>|\App\Entity\License[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\License>
      */
     #[ORM\OneToMany(mappedBy: 'club', targetEntity: License::class)]
     private Collection $licenses;
@@ -83,9 +85,10 @@ class Club implements \Stringable
         $this->updatedAt = $this->createdAt;
     }
 
+    #[\Override]
     public function __toString(): string
     {
-        return sprintf('%s - %s', $this->getCity(), $this->getName());
+        return \sprintf('%s - %s', $this->getCity(), $this->getName());
     }
 
     public function getId(): ?int
@@ -124,11 +127,11 @@ class Club implements \Stringable
      * must be able to accept an instance of 'File' as the bundle will inject one here
      * during Doctrine hydration.
      */
-    public function setLogo(File $logo = null): void
+    public function setLogo(?File $logo = null): void
     {
         $this->logo = $logo;
 
-        if (null !== $logo) {
+        if ($logo instanceof File) {
             // It is required that at least one field changes if you are using doctrine
             // otherwise the event listeners won't be called and the file is lost
             $this->updatedAt = new \DateTimeImmutable();
@@ -232,11 +235,9 @@ class Club implements \Stringable
 
     public function removeLicense(License $license): self
     {
-        if ($this->licenses->removeElement($license)) {
-            // set the owning side to null (unless already changed)
-            if ($license->getClub() === $this) {
-                $license->setClub(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->licenses->removeElement($license) && $license->getClub() === $this) {
+            $license->setClub(null);
         }
 
         return $this;

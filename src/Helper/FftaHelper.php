@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Helper;
 
 use App\DBAL\Types\LicenseeAttachmentType;
@@ -81,11 +83,11 @@ class FftaHelper
         $scrapper = $this->getScrapper($club);
         $fftaIds = $scrapper->fetchLicenseeIdList($season);
         $this->logger->notice(
-            sprintf('[FFTA] Found %s licensees in %s', \count($fftaIds), $season),
+            \sprintf('[FFTA] Found %s licensees in %s', \count($fftaIds), $season),
         );
 
         foreach ($fftaIds as $fftaId) {
-            $this->logger->notice(sprintf('==== %s ====', $fftaId));
+            $this->logger->notice(\sprintf('==== %s ====', $fftaId));
 
             $syncReturn = $this->syncLicenseeWithId($club, $fftaId, $season);
             $syncResults[$syncReturn->value][] = $fftaId;
@@ -104,7 +106,7 @@ class FftaHelper
      * @throws TransportExceptionInterface
      * @throws \Exception
      */
-    public function syncLicenseeWithId(Club $club, string $fftaId, int $season): SyncReturnValues
+    public function syncLicenseeWithId(Club $club, int $fftaId, int $season): SyncReturnValues
     {
         $syncResult = SyncReturnValues::UNTOUCHED;
         $scrapper = $this->getScrapper($club);
@@ -120,7 +122,7 @@ class FftaHelper
         if (!$licensee) {
             $syncResult = SyncReturnValues::CREATED;
             $this->logger->notice(
-                sprintf(
+                \sprintf(
                     '+ New Licensee: %s (%s)',
                     $fftaLicensee->__toString(),
                     $fftaLicensee->getFftaMemberCode(),
@@ -136,10 +138,11 @@ class FftaHelper
                 $user = UserFactory::createFromFftaProfile($fftaProfile);
                 $this->entityManager->persist($user);
             }
+
             $licensee->setUser($user);
 
             $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
-            if ($fftaProfilePicture) {
+            if ($fftaProfilePicture instanceof LicenseeAttachment) {
                 $this->logger->notice('  + Adding profile picture');
                 $licensee->addAttachment($fftaProfilePicture);
                 $this->entityManager->persist($fftaProfilePicture);
@@ -157,10 +160,11 @@ class FftaHelper
 
                 throw $exception;
             }
+
             $this->entityManager->commit();
         } else {
             $this->logger->notice(
-                sprintf(
+                \sprintf(
                     '~ Merging existing Licensee: %s (%s)',
                     $licensee->__toString(),
                     $licensee->getFftaMemberCode(),
@@ -170,7 +174,7 @@ class FftaHelper
             // TODO check image date (with its filename) instead of downloading files and calculating checksums
             $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
             $fftaProfilePictureContent = $fftaProfilePicture?->getUploadedFile()?->getContent();
-            $fftaProfilePictureChecksum = $fftaProfilePicture ? sha1($fftaProfilePictureContent) : null;
+            $fftaProfilePictureChecksum = $fftaProfilePicture instanceof LicenseeAttachment ? sha1((string) $fftaProfilePictureContent) : null;
             $dbProfilePicture = $licensee->getProfilePicture();
 
             try {
@@ -184,7 +188,7 @@ class FftaHelper
                 $dbProfilePictureChecksum = null;
             }
 
-            if ($dbProfilePicture && $fftaProfilePicture) {
+            if ($dbProfilePicture && $fftaProfilePicture instanceof LicenseeAttachment) {
                 // Licensee has already a profile picture
                 if ($dbProfilePictureChecksum !== $fftaProfilePictureChecksum) {
                     $this->logger->notice('  ~ Updating profile picture.');
@@ -199,23 +203,27 @@ class FftaHelper
                     $this->logger->notice('  = Same profile picture. Not updating.');
                 }
             }
-            if ($dbProfilePicture && !$fftaProfilePicture) {
+
+            if ($dbProfilePicture && !$fftaProfilePicture instanceof LicenseeAttachment) {
                 $this->logger->notice('  - Removing profile picture');
                 $licensee->removeAttachment($dbProfilePicture);
                 $this->entityManager->remove($dbProfilePicture);
                 $syncResult = SyncReturnValues::UPDATED;
             }
-            if (!$dbProfilePicture && $fftaProfilePicture) {
+
+            if (!$dbProfilePicture && $fftaProfilePicture instanceof LicenseeAttachment) {
                 $this->logger->notice('  + Adding profile picture');
                 $licensee->addAttachment($fftaProfilePicture);
                 $licensee->setUpdatedAt(new \DateTimeImmutable());
                 $this->entityManager->persist($fftaProfilePicture);
                 $syncResult = SyncReturnValues::UPDATED;
             }
-            if (!$dbProfilePicture && !$fftaProfilePicture) {
+
+            if (!$dbProfilePicture && !$fftaProfilePicture instanceof LicenseeAttachment) {
                 $this->logger->notice('  ! No profile picture');
             }
         }
+
         $this->entityManager->flush();
 
         return SyncReturnValues::UNTOUCHED === $syncResult ? $this->syncLicenseForLicensee($club, $licensee, $season) : $syncResult;
@@ -234,26 +242,30 @@ class FftaHelper
     public function profilePictureAttachmentForLicensee(Club $club, Licensee $licensee): ?LicenseeAttachment
     {
         $fftaPicture = $this->fetchProfilePictureForLicensee($club, $licensee);
-        if ($fftaPicture) {
-            $temporaryPPPath = tempnam(sys_get_temp_dir(), sprintf('pp_%s_', $licensee->getFftaMemberCode()));
+        if (null !== $fftaPicture && '' !== $fftaPicture && '0' !== $fftaPicture) {
+            $temporaryPPPath = tempnam(sys_get_temp_dir(), \sprintf('pp_%s_', $licensee->getFftaMemberCode()));
             if (false === $temporaryPPPath) {
                 throw new \Exception('Cannot generate temporary filename');
             }
+
             $writtenBytes = file_put_contents($temporaryPPPath, $fftaPicture);
             if (false === $writtenBytes) {
                 throw new \Exception('file not written');
             }
+
             $mimetype = $this->mimeTypeGuesser->guessMimeType($temporaryPPPath);
-            if (!$mimetype) {
+            if (null === $mimetype || '' === $mimetype || '0' === $mimetype) {
                 throw new \Exception('Cannot guess mimetype for profile picture');
             }
+
             $extension = $this->mimeTypes->getExtension($mimetype);
             if (!$extension) {
                 throw new \Exception('Cannot find a corresponding extension for mimetype '.$mimetype);
             }
+
             $uploadedFile = new UploadedFile(
                 $temporaryPPPath,
-                sprintf('photo_identite_ffta_%s.%s', $licensee->getFftaMemberCode(), $extension),
+                \sprintf('photo_identite_ffta_%s.%s', $licensee->getFftaMemberCode(), $extension),
                 $mimetype,
             );
             $profilePicture = new LicenseeAttachment();
@@ -282,14 +294,14 @@ class FftaHelper
             $season,
         );
         $license = $licensee->getLicenseForSeason($fftaLicense->getSeason());
-        if (!$license) {
-            $this->logger->notice(sprintf('  + New License for: %s', $season));
+        if (!$license instanceof License) {
+            $this->logger->notice(\sprintf('  + New License for: %s', $season));
             $license = $fftaLicense;
             $license->setLicensee($licensee);
             $this->entityManager->persist($license);
             $syncResult = SyncReturnValues::CREATED;
         } else {
-            $this->logger->notice(sprintf('  ~ Merging existing License for %s', $fftaLicense->getSeason()));
+            $this->logger->notice(\sprintf('  ~ Merging existing License for %s', $fftaLicense->getSeason()));
             $syncResult = $license->mergeWith($fftaLicense);
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
@@ -9,8 +11,9 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
  */
 final class FletchingType extends AbstractEnumType
 {
-    public const PLASTIC = 'plastic';
-    public const SPINWINGS = 'spinwings';
+    public const string PLASTIC = 'plastic';
+
+    public const string SPINWINGS = 'spinwings';
 
     protected static array $choices = [
         self::PLASTIC => 'Plastique',

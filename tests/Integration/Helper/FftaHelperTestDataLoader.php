@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Integration\Helper;
 
 use Faker\Factory;
@@ -8,6 +10,7 @@ use Faker\Generator;
 trait FftaHelperTestDataLoader
 {
     protected ?Generator $faker = null;
+
     protected array $licensees = [];
 
     public function getFaker(): Generator
@@ -41,8 +44,8 @@ trait FftaHelperTestDataLoader
             $this->licensees[$id] = [
                 'id' => $id,
                 'personne_id' => $id,
-                'personne_url' => sprintf('https://dirigeant.ffta.fr/personnes/fiche/%s/licences', $id),
-                'code_adherent' => sprintf('%s%s', substr($id, 0, 7), strtoupper((string) $letter)),
+                'personne_url' => \sprintf('https://dirigeant.ffta.fr/personnes/fiche/%s/licences', $id),
+                'code_adherent' => \sprintf('%s%s', substr((string) $id, 0, 7), strtoupper((string) $letter)),
                 'nom' => $faker->lastName(),
                 'prenom' => $faker->firstName($gender),
                 'sexe' => 'male' == $gender ? 'Masculin' : 'Féminin',

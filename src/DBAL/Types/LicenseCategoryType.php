@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
@@ -9,9 +11,11 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
  */
 final class LicenseCategoryType extends AbstractEnumType
 {
-    public const POUSSINS = 'P';
-    public const JEUNES = 'J';
-    public const ADULTES = 'A';
+    public const string POUSSINS = 'P';
+
+    public const string JEUNES = 'J';
+
+    public const string ADULTES = 'A';
 
     protected static array $choices = [
         self::POUSSINS => 'Poussins',

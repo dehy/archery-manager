@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\Entity\Licensee;
@@ -32,6 +34,7 @@ class FftaSyncLicenseeCommand extends Command
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this->addArgument('licenseeCode', InputArgument::REQUIRED, 'Licensee Code');
@@ -42,6 +45,7 @@ class FftaSyncLicenseeCommand extends Command
      * @throws \Exception
      * @throws TransportExceptionInterface
      */
+    #[\Override]
     protected function execute(
         InputInterface $input,
         OutputInterface $output,
@@ -58,8 +62,8 @@ class FftaSyncLicenseeCommand extends Command
 
         $licenseeId = $this->fftaHelper->getScrapper($license->getClub())->findLicenseeIdFromCode($licenseeCode);
 
-        if (!$licenseeId) {
-            $output->writeln(sprintf('Licensee with code %s not found.', $licenseeCode));
+        if (null === $licenseeId || 0 === $licenseeId) {
+            $output->writeln(\sprintf('Licensee with code %s not found.', $licenseeCode));
 
             return Command::INVALID;
         }

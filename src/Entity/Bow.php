@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\BowRepository;
@@ -41,7 +43,7 @@ class Bow
     private ?int $drawLength = null;
 
     /**
-     * @var Collection<int, SightAdjustment>|SightAdjustment[]
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\SightAdjustment>
      */
     #[
         ORM\OneToMany(
@@ -74,12 +76,12 @@ class Bow
         return $this;
     }
 
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
 
-    public function setType($type): self
+    public function setType(string $type): self
     {
         $this->type = $type;
 
@@ -179,11 +181,9 @@ class Bow
     public function removeSightAdjustment(
         SightAdjustment $sightAdjustment,
     ): self {
-        if ($this->sightAdjustments->removeElement($sightAdjustment)) {
-            // set the owning side to null (unless already changed)
-            if ($sightAdjustment->getBow() === $this) {
-                $sightAdjustment->setBow(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->sightAdjustments->removeElement($sightAdjustment) && $sightAdjustment->getBow() === $this) {
+            $sightAdjustment->setBow(null);
         }
 
         return $this;

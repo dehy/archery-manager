@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Helper;
 
 use Geocoder\Provider\Provider;
@@ -7,7 +9,8 @@ use Geocoder\Query\GeocodeQuery;
 
 class MapHelper
 {
-    private const MAPBOX_URL = 'https://api.mapbox.com/styles/v1/{username}/{style_id}/static/{layout}{lon},{lat},{zoom}/{width}x{height}';
+    private const string MAPBOX_URL = 'https://api.mapbox.com/styles/v1/{username}/{style_id}/static/{layout}{lon},{lat},{zoom}/{width}x{height}';
+
     private readonly array $defaultParameters;
 
     public function __construct(
@@ -47,9 +50,10 @@ class MapHelper
         $parameters['lat'] = $lat;
         foreach ($parameters as $key => $value) {
             if ('layout' === $key) {
-                $value = sprintf('pin-s-embassy+000(%s,%s)/', $long, $lat);
+                $value = \sprintf('pin-s-embassy+000(%s,%s)/', $long, $lat);
             }
-            $url = str_replace(sprintf('{%s}', $key), $value, $url);
+
+            $url = str_replace(\sprintf('{%s}', $key), $value, $url);
         }
 
         return $url.'?access_token='.$this->accessToken;

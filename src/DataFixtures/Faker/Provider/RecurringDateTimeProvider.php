@@ -21,9 +21,10 @@ final class RecurringDateTimeProvider extends Base
         if (\is_int($initialDateTime) || \is_string($initialDateTime)) {
             $initialDateTime = new \DateTime($initialDateTime);
         }
+
         $offset = $offset > 0 ? '+'.$offset : $offset;
 
-        return $initialDateTime->modify(sprintf('%s %s', $offset, $recurrence));
+        return $initialDateTime->modify(\sprintf('%s %s', $offset, $recurrence));
     }
 
     public static function recurringDateTimeImmutable(

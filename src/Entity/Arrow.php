@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\ArrowRepository;
@@ -48,7 +50,7 @@ class Arrow
         return $this->type;
     }
 
-    public function setType($type): self
+    public function setType(string $type): self
     {
         $this->type = $type;
 
@@ -72,7 +74,7 @@ class Arrow
         return $this->fletching;
     }
 
-    public function setFletching($fletching): self
+    public function setFletching(string $fletching): self
     {
         $this->fletching = $fletching;
 

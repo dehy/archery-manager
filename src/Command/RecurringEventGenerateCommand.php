@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\DBAL\Types\DisciplineType;
@@ -19,7 +21,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:recurring-event:generate',
@@ -35,10 +36,9 @@ class RecurringEventGenerateCommand extends Command
     /**
      * @throws \Exception
      */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
-
         /** @var QuestionHelper $helper */
         $helper = $this->getHelper('question');
 
@@ -74,6 +74,7 @@ class RecurringEventGenerateCommand extends Command
 
         $assignedGroupsQuestion = new ChoiceQuestion('Groupes :', $databaseGroups);
         $assignedGroupsQuestion->setMultiselect(true);
+
         $assignedGroups = $helper->ask($input, $output, $assignedGroupsQuestion);
 
         $recurringQuestion = new ChoiceQuestion(

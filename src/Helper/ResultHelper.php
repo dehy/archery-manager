@@ -1,12 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Helper;
 
 class ResultHelper
 {
-    final public const HEX_FORMAT = '#%02x%02x%02x';
-    final public const COLOR_LOWEST = '#FFDFD4';
-    final public const COLOR_BEST = '#E31D02';
+    final public const string HEX_FORMAT = '#%02x%02x%02x';
+
+    final public const string COLOR_LOWEST = '#FFDFD4';
+
+    final public const string COLOR_BEST = '#E31D02';
 
     public static function colorRatio(float $ratio): string
     {
@@ -22,6 +26,6 @@ class ResultHelper
         $cfg = min(255, max(0, $cfg));
         $cfb = min(255, max(0, $cfb));
 
-        return sprintf(self::HEX_FORMAT, $cfr, $cfg, $cfb);
+        return \sprintf(self::HEX_FORMAT, $cfr, $cfg, $cfb);
     }
 }

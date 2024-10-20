@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Helper;
 
 class ObjectComparator
@@ -26,7 +28,7 @@ class ObjectComparator
     public static function diff(object $o1, object $o2): array
     {
         $diff = [];
-        if ($o1::class == $o2::class) {
+        if ($o1::class === $o2::class) {
             $o1Properties = (new \ReflectionObject($o1))->getProperties();
             $o2Reflected = new \ReflectionObject($o2);
 

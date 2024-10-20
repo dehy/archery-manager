@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\Entity\Applicant;
@@ -33,16 +35,19 @@ class AdminDashboardController extends AbstractDashboardController
     }
 
     #[Route('/admin', name: 'admin')]
+    #[\Override]
     public function index(): Response
     {
         return $this->render('admin/dashboard.html.twig');
     }
 
+    #[\Override]
     public function configureDashboard(): Dashboard
     {
         return Dashboard::new()->setTitle('Mon Club de Tir à l\'Arc');
     }
 
+    #[\Override]
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard(

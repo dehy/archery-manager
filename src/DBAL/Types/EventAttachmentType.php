@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
@@ -9,9 +11,11 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
  */
 final class EventAttachmentType extends AbstractEnumType
 {
-    public const MANDATE = 'mandate';
-    public const RESULTS = 'results';
-    public const MISC = 'misc';
+    public const string MANDATE = 'mandate';
+
+    public const string RESULTS = 'results';
+
+    public const string MISC = 'misc';
 
     protected static array $choices = [
         self::MANDATE => 'Mandat',

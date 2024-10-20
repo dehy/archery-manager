@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\DBAL\Types\LicenseeAttachmentType;
@@ -18,17 +20,19 @@ use Vich\UploaderBundle\Form\Type\VichImageType;
 
 class LicenseeAttachmentCrudController extends AbstractCrudController
 {
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return LicenseeAttachment::class;
     }
 
+    #[\Override]
     public function configureActions(Actions $actions): Actions
     {
         $downloadAction = Action::new('downloadFile', 'Voir', 'fa-solid fa-eye')
             ->linkToRoute(
                 'licensees_attachements_download',
-                fn (LicenseeAttachment $attachment) => [
+                fn (LicenseeAttachment $attachment): array => [
                     'attachment' => $attachment->getId(),
                 ]
             );
@@ -36,17 +40,19 @@ class LicenseeAttachmentCrudController extends AbstractCrudController
         return $actions->add(Crud::PAGE_INDEX, $downloadAction);
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         return [
             AssociationField::new('licensee', 'Licencié'),
             IntegerField::new('season', 'Saison'),
-            ChoiceField::new('type', 'Type')->setChoices(fn () => LicenseeAttachmentType::getChoices()),
+            ChoiceField::new('type', 'Type')->setChoices(fn (): array => LicenseeAttachmentType::getChoices()),
             DateField::new('documentDate', 'Date du document'),
             TextField::new('uploadedFile', 'Fichier')->setFormType(VichImageType::class),
         ];
     }
 
+    #[\Override]
     public function configureFilters(Filters $filters): Filters
     {
         return $filters->add('licensee')->add('season');

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Scrapper;
 
 use App\DBAL\Types\LicenseActivityType;
@@ -46,6 +48,7 @@ class ResultArcParser
                 $results[$fftaCode] = $resultArcLine;
             }
         }
+
         dd($results);
 
         return $results;
@@ -58,7 +61,7 @@ class ResultArcParser
      */
     public function parseContent(string $fileContent): array
     {
-        $pdf = $this->parser->parseContent($fileContent);
+        $this->parser->parseContent($fileContent);
 
         return [];
     }
@@ -71,7 +74,7 @@ class ResultArcParser
             $matches,
         );
 
-        if (!$found) {
+        if (0 === $found || false === $found) {
             throw new \Exception('Cannot parse category');
         }
 
@@ -80,7 +83,7 @@ class ResultArcParser
 
     private function searchPattern(): string
     {
-        return sprintf(
+        return \sprintf(
             "^[-'A-ZÀ-ž ]+ (\\d{2,3})(  \\d{1,2})?%s .* (\\d{6}\\w)( \\d+)?$",
             $this->categoryPattern(),
         );
@@ -91,6 +94,6 @@ class ResultArcParser
         $ageCategories = implode('|', LicenseAgeCategoryType::getValues());
         $activityTypes = implode('|', LicenseActivityType::getValues());
 
-        return sprintf('(%s)[HF](%s)', $ageCategories, $activityTypes);
+        return \sprintf('(%s)[HF](%s)', $ageCategories, $activityTypes);
     }
 }

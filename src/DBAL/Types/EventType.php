@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DBAL\Types;
 
 use App\Entity\ContestEvent;
@@ -14,11 +16,15 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
  */
 final class EventType extends AbstractEnumType
 {
-    public const TRAINING = TrainingEvent::class;
-    public const FREE_TRAINING = FreeTrainingEvent::class;
-    public const CONTEST_OFFICIAL = ContestEvent::class;
-    public const CONTEST_HOBBY = HobbyContestEvent::class;
-    public const OTHER = Event::class;
+    public const string TRAINING = TrainingEvent::class;
+
+    public const string FREE_TRAINING = FreeTrainingEvent::class;
+
+    public const string CONTEST_OFFICIAL = ContestEvent::class;
+
+    public const string CONTEST_HOBBY = HobbyContestEvent::class;
+
+    public const string OTHER = Event::class;
 
     protected static array $choices = [
         self::TRAINING => 'Entraînement',

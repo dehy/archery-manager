@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\GroupRepository;
@@ -26,9 +28,15 @@ class Group implements \Stringable
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::TEXT, nullable: true)]
     private ?string $description = null;
 
+    /**
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Licensee>
+     */
     #[ORM\ManyToMany(targetEntity: Licensee::class, inversedBy: 'groups')]
     private Collection $licensees;
 
+    /**
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Event>
+     */
     #[ORM\ManyToMany(targetEntity: Event::class, mappedBy: 'assignedGroups')]
     private Collection $events;
 
@@ -38,9 +46,10 @@ class Group implements \Stringable
         $this->events = new ArrayCollection();
     }
 
+    #[\Override]
     public function __toString(): string
     {
-        return sprintf('%s - %s', $this->getClub(), $this->getName());
+        return \sprintf('%s - %s', $this->getClub(), $this->getName());
     }
 
     public function getId(): ?int

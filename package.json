@@ -12,7 +12,7 @@
     "@popperjs/core": "^2.11.8",
     "@symfony/stimulus-bridge": "^3.2.2",
     "@symfony/stimulus-bridge-types": "^1.0.0",
-    "@symfony/ux-chartjs": "file:vendor/symfony/ux-chartjs/assets#vendor/symfony/ux-chartjs/assets::hash=2ba702&locator=root-workspace-0b6124%40workspace%3A.",
+    "@symfony/ux-chartjs": "file:vendor/symfony/ux-chartjs/assets",
     "@symfony/webpack-encore": "^4.5.0",
     "@testing-library/dom": "^9.3.3",
     "@types/bootstrap": "^5.2.10",

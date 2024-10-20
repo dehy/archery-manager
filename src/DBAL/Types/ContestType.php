@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DBAL\Types;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
@@ -9,8 +11,9 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
  */
 final class ContestType extends AbstractEnumType
 {
-    public const INDIVIDUAL = 'individual';
-    public const TEAM = 'team';
+    public const string INDIVIDUAL = 'individual';
+
+    public const string TEAM = 'team';
 
     protected static array $choices = [
         self::INDIVIDUAL => 'Individuel',

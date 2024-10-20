@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\DBAL\Types\PracticeLevelType;
@@ -29,11 +31,13 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ApplicantCrudController extends AbstractCrudController
 {
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return Applicant::class;
     }
 
+    #[\Override]
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
@@ -42,6 +46,7 @@ class ApplicantCrudController extends AbstractCrudController
             ->setPaginatorPageSize(150);
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -71,6 +76,7 @@ class ApplicantCrudController extends AbstractCrudController
         ];
     }
 
+    #[\Override]
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
@@ -79,6 +85,7 @@ class ApplicantCrudController extends AbstractCrudController
             ->add('onWaitingList');
     }
 
+    #[\Override]
     public function configureActions(Actions $actions): Actions
     {
         return $actions->add(Crud::PAGE_INDEX, Action::DETAIL);
@@ -107,7 +114,8 @@ class ApplicantCrudController extends AbstractCrudController
         }
 
         $applicants = $applicantRepository->findBy(['season' => 2024]);
-        $new = $renewal = 0;
+        $new = 0;
+        $renewal = 0;
         $newAges = [
             '10 ans et moins' => 0,
             'Entre 11 et 12 ans' => 0,

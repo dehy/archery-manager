@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\LicenseeAttachmentRepository;
@@ -92,11 +94,11 @@ class LicenseeAttachment extends Attachment
         return $this;
     }
 
-    public function setUploadedFile(File $file = null): void
+    public function setUploadedFile(?File $file = null): void
     {
         $this->uploadedFile = $file;
 
-        if (null !== $file) {
+        if ($file instanceof File) {
             // It is required that at least one field changes if you are using doctrine
             // otherwise the event listeners won't be called and the file is lost
             $this->updatedAt = new \DateTimeImmutable();
@@ -117,19 +119,16 @@ class LicenseeAttachment extends Attachment
         $type = $this->getType();
         $randomStr = bin2hex(random_bytes(4));
 
-        if ($this->getSeason()) {
-            return sprintf('%s-%s-%s-%s', $licensee->getFftaMemberCode(), $this->getSeason(), $type, $randomStr);
+        if (null !== $this->getSeason() && 0 !== $this->getSeason()) {
+            return \sprintf('%s-%s-%s-%s', $licensee->getFftaMemberCode(), $this->getSeason(), $type, $randomStr);
         }
 
-        return sprintf('%s-%s-%s', $licensee->getFftaMemberCode(), $type, $randomStr);
+        return \sprintf('%s-%s-%s', $licensee->getFftaMemberCode(), $type, $randomStr);
     }
 
     public function __serialize()
     {
-        $array = [];
-        $array['id'] = $this->getId();
-
-        return $array;
+        return ['id' => $this->getId()];
     }
 
     public function __unserialize(array $data)

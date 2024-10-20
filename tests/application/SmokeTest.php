@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\application;
 
 use App\Repository\EventRepository;
@@ -7,7 +9,7 @@ use App\Repository\EventRepository;
 /**
  * @internal
  */
-class SmokeTest extends LoggedInTestCase
+final class SmokeTest extends LoggedInTestCase
 {
     /**
      * @dataProvider publicUrlsProvider
@@ -15,19 +17,17 @@ class SmokeTest extends LoggedInTestCase
     public function testPublicUrls(string $url): void
     {
         $client = self::createClient();
-        $client->request('GET', $url);
-        self::assertResponseIsSuccessful();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $url);
+        $this->assertResponseIsSuccessful();
     }
 
-    public function publicUrlsProvider(): array
+    public function publicUrlsProvider(): \Iterator
     {
-        return [
-            ['/login'],
-            ['/pre-inscription'],
-            ['/pre-inscription/merci'],
-            ['/pre-inscription-renouvellement'],
-            ['/pre-inscription-renouvellement/merci'],
-        ];
+        yield ['/login'];
+        yield ['/pre-inscription'];
+        yield ['/pre-inscription/merci'];
+        yield ['/pre-inscription-renouvellement'];
+        yield ['/pre-inscription-renouvellement/merci'];
     }
 
     /**
@@ -36,17 +36,15 @@ class SmokeTest extends LoggedInTestCase
     public function testPrivateUrlsAsAdmin(string $url): void
     {
         $client = static::createLoggedInAsAdminClient();
-        $client->request('GET', $url);
-        self::assertResponseIsSuccessful();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $url);
+        $this->assertResponseIsSuccessful();
     }
 
-    public function adminPrivateUrlsProvider(): array
+    public function adminPrivateUrlsProvider(): \Iterator
     {
-        return [
-            ['/', true],
-            ['/my-account', true],
-            ['/admin', true],
-        ];
+        yield ['/', true];
+        yield ['/my-account', true];
+        yield ['/admin', true];
     }
 
     /**
@@ -55,35 +53,33 @@ class SmokeTest extends LoggedInTestCase
     public function testPrivateUrlsAsUser(string $url, bool $authorized): void
     {
         $client = static::createLoggedInAsUserClient();
-        $client->request('GET', $url);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $url);
         if ($authorized) {
-            self::assertResponseIsSuccessful();
+            $this->assertResponseIsSuccessful();
         } else {
-            self::assertResponseStatusCodeSame(403);
+            $this->assertResponseStatusCodeSame(403);
         }
     }
 
-    public function userPrivateUrlsProvider(): array
+    public function userPrivateUrlsProvider(): \Iterator
     {
-        return [
-            ['/', true],
-            ['/licensees', true],
-            ['/events', true],
-            ['/my-account', true],
-            ['/my-profile', true],
-            ['/admin', false],
-        ];
+        yield ['/', true];
+        yield ['/licensees', true];
+        yield ['/events', true];
+        yield ['/my-account', true];
+        yield ['/my-profile', true];
+        yield ['/admin', false];
     }
 
     public function testEvent(): void
     {
         $client = static::createLoggedInAsUserClient();
-        $crawler = $client->request('GET', '/events');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/events');
 
         $eventLink = $crawler->filter('li.event-list-event > a')->link();
         $client->click($eventLink);
 
-        self::assertResponseIsSuccessful();
+        $this->assertResponseIsSuccessful();
     }
 
     public function testDownloadToCalendar(): void
@@ -93,11 +89,11 @@ class SmokeTest extends LoggedInTestCase
         $eventRepository = self::getContainer()->get(EventRepository::class);
         $events = $eventRepository->findAll();
         $event = reset($events);
-        $crawler = $client->request('GET', '/events/'.$event->getSlug());
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/events/'.$event->getSlug());
 
         $calendarLink = $crawler->selectLink('Ajouter à mon calendrier')->link();
         $client->click($calendarLink);
 
-        self::assertResponseIsSuccessful();
+        $this->assertResponseIsSuccessful();
     }
 }

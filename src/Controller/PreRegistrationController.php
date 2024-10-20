@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\Applicant;
@@ -57,13 +59,13 @@ class PreRegistrationController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $licensee = $applicant->getLicenseNumber()
+            $licensee = null !== $applicant->getLicenseNumber() && '' !== $applicant->getLicenseNumber() && '0' !== $applicant->getLicenseNumber()
                 ? $licenseeRepository->findOneByCode(
                     $applicant->getLicenseNumber(),
                 )
                 : null;
 
-            if (!$licensee) {
+            if (!$licensee instanceof \App\Entity\Licensee) {
                 $applicant->setRegisteredAt(new \DateTimeImmutable());
                 $applicant->setOnWaitingList($waitingListActivated);
                 $applicantRepository->add($applicant);
@@ -93,6 +95,7 @@ class PreRegistrationController extends AbstractController
 
                 return $this->redirectToRoute('app_pre_registration_thank_you');
             }
+
             $error = 'existing_licensee';
         }
 
@@ -140,13 +143,13 @@ class PreRegistrationController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $licensee = $applicant->getLicenseNumber()
+            $licensee = null !== $applicant->getLicenseNumber() && '' !== $applicant->getLicenseNumber() && '0' !== $applicant->getLicenseNumber()
                 ? $licenseeRepository->findOneByCode(
                     $applicant->getLicenseNumber(),
                 )
                 : null;
 
-            if ($licensee) {
+            if ($licensee instanceof \App\Entity\Licensee) {
                 $applicant->setBirthdate(
                     \DateTimeImmutable::createFromMutable(
                         $licensee->getBirthdate(),
@@ -185,6 +188,7 @@ class PreRegistrationController extends AbstractController
                     'app_registration_renewal_thank_you',
                 );
             }
+
             $error = 'unknown_licensee';
         }
 

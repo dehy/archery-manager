@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\application\Controller\Admin;
 
 use App\DBAL\Types\GenderType;
@@ -11,7 +13,7 @@ use App\Entity\User;
 use App\Tests\application\LoggedInTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 
-class LicenseCrudControllerTest extends LoggedInTestCase
+final class LicenseCrudControllerTest extends LoggedInTestCase
 {
     public function testWelcomeEmailIsSentAfterPersisting(): void
     {
@@ -38,7 +40,7 @@ class LicenseCrudControllerTest extends LoggedInTestCase
         $entityManager->persist($licensee);
         $entityManager->flush();
 
-        $crawler = $client->request('GET', '/admin?crudAction=new&crudControllerFqcn=App%5CController%5CAdmin%5CLicenseCrudController');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/admin?crudAction=new&crudControllerFqcn=App%5CController%5CAdmin%5CLicenseCrudController');
         $this->assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Créer')->form();
@@ -49,11 +51,11 @@ class LicenseCrudControllerTest extends LoggedInTestCase
 
         $client->submit($form);
 
-        self::assertResponseRedirects();
-        self::assertQueuedEmailCount(1);
+        $this->assertResponseRedirects();
+        $this->assertQueuedEmailCount(1);
 
         $email = $this->getMailerMessage();
 
-        self::assertEmailHtmlBodyContains($email, 'John');
+        $this->assertEmailHtmlBodyContains($email, 'John');
     }
 }

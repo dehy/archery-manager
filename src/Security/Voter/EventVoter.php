@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Security\Voter;
 
 use App\DBAL\Types\UserRoleType;
@@ -13,22 +15,25 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class EventVoter extends Voter
 {
-    final public const EDIT = 'EVENT_EDIT';
-    final public const VIEW = 'EVENT_VIEW';
+    final public const string EDIT = 'EVENT_EDIT';
+
+    final public const string VIEW = 'EVENT_VIEW';
 
     public function __construct(
         private readonly Security $security,
     ) {
     }
 
+    #[\Override]
     protected function supports(string $attribute, mixed $subject): bool
     {
         // replace with your own logic
         // https://symfony.com/doc/current/security/voters.html
         return \in_array($attribute, [self::EDIT, self::VIEW])
-            && $subject instanceof \App\Entity\Event;
+            && $subject instanceof Event;
     }
 
+    #[\Override]
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
     {
         /** @var Event $event */
@@ -46,6 +51,7 @@ class EventVoter extends Voter
         foreach ($user->getLicensees() as $licensee) {
             $clubs[] = $licensee->getLicenseForSeason($eventSeason)?->getClub();
         }
+
         array_filter($clubs);
 
         // ... (check conditions and return true to grant permission) ...
