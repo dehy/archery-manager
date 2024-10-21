@@ -47,8 +47,8 @@ class EventController extends BaseController
         $this->assertHasValidLicense();
 
         $now = new \DateTime();
-        $month = $request->query->get('m', (int) $now->format('n'));
-        $year = $request->query->get('y', (int) $now->format('Y'));
+        $month = $request->query->getInt('m', (int) $now->format('n'));
+        $year = $request->query->getInt('y', (int) $now->format('Y'));
 
         /** @var Event[] $events */
         $events = $eventRepository

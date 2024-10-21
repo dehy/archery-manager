@@ -19,6 +19,8 @@ class AttachmentTemporaryUrlExtension extends AbstractExtension
     public function __construct(
         private readonly CacheInterface $cache,
         private readonly Security $security,
+        private readonly FilesystemOperator $licenseesStorage,
+        private readonly FilesystemOperator $eventsStorage,
     ) {
     }
 
@@ -53,8 +55,15 @@ class AttachmentTemporaryUrlExtension extends AbstractExtension
                     $uploadableField = $reflectionAttribute->newInstance();
                     $storageName = $uploadableField->getMapping().'Storage';
 
-                    /** @var FilesystemOperator $operator */
-                    $operator = $this->{$storageName};
+                    /** @var FilesystemOperator|null $operator */
+                    $operator = match ($storageName) {
+                        'licenseesStorage' => $this->licenseesStorage,
+                        'eventsStorage' => $this->eventsStorage,
+                        default => null,
+                    };
+                    if (null === $operator) {
+                        throw new \LogicException(\sprintf('Storage "%s" is not supported', $storageName));
+                    }
 
                     return $operator->temporaryUrl(
                         $attachment->getFile()->getName(),
