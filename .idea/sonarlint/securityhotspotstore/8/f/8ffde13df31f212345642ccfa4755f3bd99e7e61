@@ -1,0 +1,4 @@
+
+gdocker:S6471"OThe ubuntu image runs with root as the default user. Make sure it is safe here.(×Š¿¼
+„docker:S6470"gCopying recursively might inadvertently add sensitive data to the container. Make sure it is safe here.(¨ÂùÙûÿÿÿÿ
+[docker:S6504">Make sure no write permissions are assigned to the executable.(¨ÂùÙûÿÿÿÿ
