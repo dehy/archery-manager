@@ -66,12 +66,10 @@ class License
         $syncResult = ObjectComparator::equal($this, $license) ? SyncReturnValues::UNTOUCHED : SyncReturnValues::UPDATED;
 
         $this->activities = $license->activities;
-
-        $this->setActivities($license->getActivities());
-        $this->setAgeCategory($license->getAgeCategory());
-        $this->setCategory($license->getCategory());
-        $this->setSeason($license->getSeason());
-        $this->setType($license->getType());
+        $this->ageCategory = $license->ageCategory;
+        $this->category = $license->category;
+        $this->season = $license->season;
+        $this->type = $license->type;
 
         return $syncResult;
     }

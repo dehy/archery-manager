@@ -74,7 +74,7 @@ enum LicenseAgeCategoryType: string implements ReadableEnumInterface
 
         $orderedChoices = [];
         foreach ($choices as $choice) {
-            $orderedChoices[$this->getReadableValue($choice)] = $choice;
+            $orderedChoices[$choice->getReadableValue()] = $choice;
         }
 
         return $orderedChoices;

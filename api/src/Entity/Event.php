@@ -159,7 +159,7 @@ class Event implements \Stringable
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[ApiProperty(types: 'https://schema.org/startDate')]
-    public ?DateTimeImmutable $startDate = null;
+    public ?\DateTimeImmutable $startDate = null;
 
     #[ApiProperty(types: 'https://schema.org/array')]
     public Collection $attendees;

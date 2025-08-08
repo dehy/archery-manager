@@ -244,7 +244,7 @@ class MigrateLegacyDataCommand extends Command
             // $result->licensee = $this->findLicenseeById($legacy['licensee_id']);
             // $result->event = $this->findEventById($legacy['event_id']);
             $result->discipline = DisciplineType::tryFrom($legacy['discipline']) ?? DisciplineType::Target;
-            $result->ageCategory = LicenseAgeCategoryType::tryFrom($legacy['age_category']) ?? LicenseAgeCategoryType::S;
+            $result->ageCategory = LicenseAgeCategoryType::tryFrom($legacy['age_category']) ?? LicenseAgeCategoryType::SENIOR;
             $result->activity = LicenseActivityType::tryFrom($legacy['activity']) ?? LicenseActivityType::CL;
             $result->distance = $legacy['distance'] ? (int) $legacy['distance'] : null;
             $result->targetType = TargetTypeType::tryFrom($legacy['target_type']) ?? TargetTypeType::Monospot;
