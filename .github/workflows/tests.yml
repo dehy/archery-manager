@@ -64,7 +64,7 @@ jobs:
       env:
         DATABASE_URL: postgresql://test:test@127.0.0.1:5432/test?serverVersion=16&charset=utf8
       run: |
-        vendor/bin/phpunit --coverage-clover coverage.xml
+        vendor/bin/simple-phpunit --coverage-clover coverage.xml
 
     - name: 📊 Upload coverage reports
       uses: codecov/codecov-action@v3
