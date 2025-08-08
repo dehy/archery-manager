@@ -1,0 +1,106 @@
+name: 🏹 Archery Manager Tests
+
+on:
+  push:
+    branches: [ main, next ]
+  pull_request:
+    branches: [ main, next ]
+
+jobs:
+  tests:
+    name: PHP Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_USER: test
+          POSTGRES_DB: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐘 Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_pgsql, dom, filter, gd, json, pgsql
+        tools: composer:v2
+        coverage: xdebug
+
+    - name: 📦 Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: 🔽 Install dependencies
+      working-directory: ./api
+      run: composer install --prefer-dist --no-progress
+
+    - name: 🔧 Setup test environment
+      working-directory: ./api
+      env:
+        DATABASE_URL: postgresql://test:test@127.0.0.1:5432/test?serverVersion=16&charset=utf8
+      run: |
+        php bin/console doctrine:database:create --env=test
+        php bin/console doctrine:migrations:migrate --no-interaction --env=test
+
+    - name: 🧪 Run PHPUnit tests
+      working-directory: ./api
+      env:
+        DATABASE_URL: postgresql://test:test@127.0.0.1:5432/test?serverVersion=16&charset=utf8
+      run: |
+        vendor/bin/phpunit --coverage-clover coverage.xml
+
+    - name: 📊 Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./api/coverage.xml
+        flags: api
+        name: api-coverage
+
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐘 Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_pgsql
+        tools: composer:v2
+
+    - name: 🔽 Install dependencies
+      working-directory: ./api
+      run: composer install --prefer-dist --no-progress
+
+    - name: 🔍 Run PHPStan
+      working-directory: ./api
+      run: vendor/bin/phpstan analyse src tests --level=1
+
+    - name: 🎨 Check coding standards
+      working-directory: ./api
+      run: |
+        if [ -f vendor/bin/php-cs-fixer ]; then
+          vendor/bin/php-cs-fixer fix --dry-run --diff
+        else
+          echo "PHP CS Fixer not installed, skipping..."
+        fi
