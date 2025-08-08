@@ -17,13 +17,11 @@ class EventTest extends TestCase
         $event = new Event();
         $event->name = 'Test Event';
         $event->discipline = DisciplineType::Target;
-        $event->sport = SportType::Archery;
         $event->startsAt = new \DateTimeImmutable('2025-09-15 10:00:00');
         $event->endsAt = new \DateTimeImmutable('2025-09-15 18:00:00');
 
         $this->assertEquals('Test Event', $event->name);
         $this->assertEquals(DisciplineType::Target, $event->discipline);
-        $this->assertEquals(SportType::Archery, $event->sport);
         $this->assertInstanceOf(\DateTimeImmutable::class, $event->startsAt);
         $this->assertInstanceOf(\DateTimeImmutable::class, $event->endsAt);
     }
