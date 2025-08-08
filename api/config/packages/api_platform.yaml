@@ -1,5 +1,5 @@
 api_platform:
-    title: Hello API Platform
+    title: Archery Manager
     version: 1.0.0
     # Mercure integration, remove if unwanted
     mercure:
@@ -9,3 +9,13 @@ api_platform:
         stateless: true
         cache_headers:
             vary: ['Content-Type', 'Authorization', 'Origin']
+#    resource_class_directories:
+#        - '%kernel.project_dir%/src/Entity'
+#        - '%kernel.project_dir%/src/Type'
+    swagger:
+        api_keys:
+            JWT:
+                name: Authorization
+                type: header
+        # New in 4.1: Persist authorization across page refreshes
+        persist_authorization: true

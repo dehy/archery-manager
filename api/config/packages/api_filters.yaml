@@ -1,0 +1,72 @@
+services:
+    # Event filters
+    event.search_filter:
+        parent: 'api_platform.doctrine.orm.search_filter'
+        arguments: [ { name: 'partial', discipline: 'exact', club.name: 'partial' } ]
+        tags: [ 'api_platform.filter' ]
+
+    event.date_filter:
+        parent: 'api_platform.doctrine.orm.date_filter'
+        arguments: [ { startsAt: ~, endsAt: ~ } ]
+        tags: [ 'api_platform.filter' ]
+
+    event.order_filter:
+        parent: 'api_platform.doctrine.orm.order_filter'
+        arguments: [ { startsAt: ~, name: ~, discipline: ~ } ]
+        tags: [ 'api_platform.filter' ]
+
+    # Licensee filters
+    licensee.search_filter:
+        parent: 'api_platform.doctrine.orm.search_filter'
+        arguments: [ { user: 'exact', familyName: 'partial', givenName: 'partial', email: 'partial' } ]
+        tags: [ 'api_platform.filter' ]
+
+    licensee.order_filter:
+        parent: 'api_platform.doctrine.orm.order_filter'
+        arguments: [ { familyName: ~, givenName: ~, birthDate: ~ } ]
+        tags: [ 'api_platform.filter' ]
+
+    # User filters
+    user.search_filter:
+        parent: 'api_platform.doctrine.orm.search_filter'
+        arguments: [ { email: 'partial', familyName: 'partial', givenName: 'partial' } ]
+        tags: [ 'api_platform.filter' ]
+
+    user.order_filter:
+        parent: 'api_platform.doctrine.orm.order_filter'
+        arguments: [ { familyName: ~, givenName: ~, email: ~ } ]
+        tags: [ 'api_platform.filter' ]
+
+    # Club filters
+    club.search_filter:
+        parent: 'api_platform.doctrine.orm.search_filter'
+        arguments: [ { name: 'partial', sport: 'exact' } ]
+        tags: [ 'api_platform.filter' ]
+
+    club.order_filter:
+        parent: 'api_platform.doctrine.orm.order_filter'
+        arguments: [ { name: ~ } ]
+        tags: [ 'api_platform.filter' ]
+
+    # Arrow filters
+    arrow.search_filter:
+        parent: 'api_platform.doctrine.orm.search_filter'
+        arguments: [ { type: 'exact', owner: 'exact' } ]
+        tags: [ 'api_platform.filter' ]
+
+    # Bow filters
+    bow.search_filter:
+        parent: 'api_platform.doctrine.orm.search_filter'
+        arguments: [ { type: 'exact', owner: 'exact', brand: 'partial' } ]
+        tags: [ 'api_platform.filter' ]
+
+    # Applicant filters
+    applicant.search_filter:
+        parent: 'api_platform.doctrine.orm.search_filter'
+        arguments: [ { email: 'partial', familyName: 'partial', givenName: 'partial' } ]
+        tags: [ 'api_platform.filter' ]
+
+    applicant.date_filter:
+        parent: 'api_platform.doctrine.orm.date_filter'
+        arguments: [ { applicationDate: ~ } ]
+        tags: [ 'api_platform.filter' ]

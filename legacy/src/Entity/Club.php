@@ -5,12 +5,9 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\ClubRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use SpecShaper\EncryptBundle\Annotations\Encrypted;
 use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
@@ -29,44 +26,26 @@ class Club implements \Stringable
     #[ORM\Column(length: 255)]
     private ?string $city = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $contactEmail = null;
+
+    #[ORM\Column(length: 7, unique: true)]
+    private ?string $fftaCode = null;
+
+    #[ORM\Column(length: 7)]
+    private ?string $primaryColor = null;
+
     #[Vich\UploadableField(mapping: 'clubs.logos', fileNameProperty: 'logoName')]
     private ?File $logo = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $logoName = null;
 
-    #[ORM\Column(length: 7)]
-    private ?string $primaryColor = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $contactEmail = null;
-
-    #[ORM\Column(length: 8, unique: true)]
-    private ?string $fftaCode = null;
-
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt;
-
-    /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Event>
-     */
-    #[ORM\OneToMany(mappedBy: 'club', targetEntity: Event::class)]
-    private Collection $events;
-
-    /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Group>
-     */
-    #[ORM\OneToMany(mappedBy: 'club', targetEntity: Group::class)]
-    private Collection $groups;
-
-    /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\License>
-     */
-    #[ORM\OneToMany(mappedBy: 'club', targetEntity: License::class)]
-    private Collection $licenses;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Encrypted]
@@ -78,9 +57,6 @@ class Club implements \Stringable
 
     public function __construct()
     {
-        $this->events = new ArrayCollection();
-        $this->groups = new ArrayCollection();
-        $this->licenses = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = $this->createdAt;
     }
@@ -215,63 +191,6 @@ class Club implements \Stringable
         return $this;
     }
 
-    /**
-     * @return Collection<int, License>
-     */
-    public function getLicenses(): Collection
-    {
-        return $this->licenses;
-    }
-
-    public function addLicense(License $license): self
-    {
-        if (!$this->licenses->contains($license)) {
-            $this->licenses->add($license);
-            $license->setClub($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLicense(License $license): self
-    {
-        // set the owning side to null (unless already changed)
-        if ($this->licenses->removeElement($license) && $license->getClub() === $this) {
-            $license->setClub(null);
-        }
-
-        return $this;
-    }
-
-    public function getEvents(): ?Collection
-    {
-        return $this->events;
-    }
-
-    public function setEvents(?Collection $events): self
-    {
-        $this->events = $events;
-
-        return $this;
-    }
-
-    public function getGroups(): ?Collection
-    {
-        return $this->groups;
-    }
-
-    public function setGroups(?Collection $groups): self
-    {
-        $this->groups = $groups;
-
-        return $this;
-    }
-
-    public function generateLogoName(): string
-    {
-        return strtolower((new AsciiSlugger())->slug($this->getName()));
-    }
-
     public function getFftaUsername(): ?string
     {
         return $this->fftaUsername;
@@ -294,5 +213,10 @@ class Club implements \Stringable
         $this->fftaPassword = $fftaPassword;
 
         return $this;
+    }
+
+    public function generateLogoName(): string
+    {
+        return strtolower((new AsciiSlugger())->slug($this->name)->toString());
     }
 }
