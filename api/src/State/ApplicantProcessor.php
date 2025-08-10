@@ -10,7 +10,7 @@ use App\Entity\Applicant;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * @implements ProcessorInterface<Applicant>
+ * @implements ProcessorInterface<Applicant, Applicant>
  */
 final readonly class ApplicantProcessor implements ProcessorInterface
 {

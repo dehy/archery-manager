@@ -10,7 +10,7 @@ use App\Entity\Club;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * @implements ProcessorInterface<Club>
+ * @implements ProcessorInterface<Club, Club>
  */
 final readonly class ClubProcessor implements ProcessorInterface
 {

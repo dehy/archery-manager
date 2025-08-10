@@ -61,6 +61,13 @@ class License
         return $this->id;
     }
 
+    public function setLicensee(?Licensee $licensee): self
+    {
+        $this->licensee = $licensee;
+
+        return $this;
+    }
+
     public function mergeWith(self $license): SyncReturnValues
     {
         $syncResult = ObjectComparator::equal($this, $license) ? SyncReturnValues::UNTOUCHED : SyncReturnValues::UPDATED;

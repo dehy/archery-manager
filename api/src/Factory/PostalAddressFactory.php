@@ -4,10 +4,9 @@ namespace App\Factory;
 
 use App\Entity\PostalAddress;
 use Zenstruck\Foundry\ObjectFactory;
-use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<PostalAddress>
+ * @extends ObjectFactory<PostalAddress>
  */
 final class PostalAddressFactory extends ObjectFactory
 {

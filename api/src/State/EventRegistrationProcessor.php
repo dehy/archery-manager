@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * @implements ProcessorInterface<EventRegistrationRequest>
+ * @implements ProcessorInterface<EventRegistrationRequest, EventParticipation>
  */
 final readonly class EventRegistrationProcessor implements ProcessorInterface
 {

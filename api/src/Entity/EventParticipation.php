@@ -81,6 +81,16 @@ class EventParticipation
     #[ORM\Column(type: Types::STRING, enumType: EventParticipationStateType::class)]
     public EventParticipationStateType $participationState = EventParticipationStateType::Interested;
 
+    #[ORM\ManyToOne(targetEntity: Licensee::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    public ?Licensee $licensee = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    public ?string $comment = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    public ?\DateTimeImmutable $registrationDate = null;
+
     public function __construct()
     {
         $this->event = new Event();

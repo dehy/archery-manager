@@ -31,8 +31,8 @@ final class LicenseeFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         $gender = self::faker()->randomElement(GenderType::cases());
-        $fftaId = self::faker()->fftaId();
-        $fftaCode = self::faker()->fftaCode($fftaId);
+        $fftaId = self::faker()->randomNumber(6, true);
+        $fftaCode = sprintf('%06d%s', $fftaId, self::faker()->randomLetter());
 
         return [
             'birthDate' => self::faker()->dateTimeBetween('-65 years', '-12 years'),

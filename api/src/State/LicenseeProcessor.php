@@ -10,7 +10,7 @@ use App\Entity\Licensee;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * @implements ProcessorInterface<Licensee>
+ * @implements ProcessorInterface<Licensee, Licensee>
  */
 final readonly class LicenseeProcessor implements ProcessorInterface
 {

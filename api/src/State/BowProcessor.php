@@ -10,7 +10,7 @@ use App\Entity\Bow;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * @implements ProcessorInterface<Bow>
+ * @implements ProcessorInterface<Bow, Bow>
  */
 final readonly class BowProcessor implements ProcessorInterface
 {

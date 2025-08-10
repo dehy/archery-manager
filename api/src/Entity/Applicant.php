@@ -117,6 +117,9 @@ class Applicant implements \Stringable
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     public \DateTimeImmutable $updatedAt;
 
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    public ?\DateTimeImmutable $applicationDate = null;
+
     public function __construct()
     {
         $this->birthDate = new \DateTimeImmutable();
@@ -138,5 +141,17 @@ class Applicant implements \Stringable
     public function getFullName(): string
     {
         return sprintf('%s %s', $this->givenName, $this->familyName);
+    }
+
+    public function getApplicationDate(): ?\DateTimeImmutable
+    {
+        return $this->applicationDate;
+    }
+
+    public function setApplicationDate(?\DateTimeImmutable $applicationDate): self
+    {
+        $this->applicationDate = $applicationDate;
+
+        return $this;
     }
 }

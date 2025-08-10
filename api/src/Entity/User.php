@@ -78,6 +78,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:write'])]
     private string $password = '';
 
+    #[Assert\NotBlank(groups: ['registration'])]
+    #[Groups(['user:write'])]
+    private ?string $plainPassword = null;
+
     #[ORM\Column(type: Types::STRING, enumType: GenderType::class)]
     #[Assert\NotBlank]
     #[ApiProperty(types: ['https://schema.org/gender'])]
@@ -201,6 +205,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): self
     {
         $this->password = $password;
+
+        return $this;
+    }
+
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
 
         return $this;
     }

@@ -105,6 +105,10 @@ class Event implements \Stringable
     #[ORM\JoinTable(name: 'event_groups')]
     public Collection $assignedGroups;
 
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    #[Groups(['event:read', 'event:write'])]
+    public ?int $maxParticipants = null;
+
     #[ORM\Column(type: Types::STRING, length: 255)]
     #[Gedmo\Slug(fields: ['name', 'startsAt'])]
     public string $slug = '';
@@ -162,4 +166,9 @@ class Event implements \Stringable
 
     #[ApiProperty(types: 'https://schema.org/array')]
     public Collection $attendees;
+
+    public function getMaxParticipants(): ?int
+    {
+        return $this->maxParticipants;
+    }
 }

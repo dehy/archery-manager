@@ -10,7 +10,7 @@ use App\Entity\Arrow;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * @implements ProcessorInterface<Arrow>
+ * @implements ProcessorInterface<Arrow, Arrow>
  */
 final readonly class ArrowProcessor implements ProcessorInterface
 {

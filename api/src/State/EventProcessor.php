@@ -10,7 +10,7 @@ use App\Entity\Event;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * @implements ProcessorInterface<Event>
+ * @implements ProcessorInterface<Event, Event>
  */
 final readonly class EventProcessor implements ProcessorInterface
 {
