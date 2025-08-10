@@ -137,6 +137,11 @@ jobs:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
 
+    - name: 🟢 Setup PNPM
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10
+
     - name: 🟢 Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -242,12 +247,12 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'pnpm'
-        cache-dependency-path: e2e/package.json
+        cache: 'npm'
+        cache-dependency-path: e2e/package-lock.json
 
     - name: 📦 Install E2E dependencies
       working-directory: ./e2e
-      run: npm install
+      run: npm ci
 
     - name: 🐳 Start application stack
       run: docker-compose up -d --wait
