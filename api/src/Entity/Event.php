@@ -166,9 +166,4 @@ class Event implements \Stringable
 
     #[ApiProperty(types: 'https://schema.org/array')]
     public Collection $attendees;
-
-    public function getMaxParticipants(): ?int
-    {
-        return $this->maxParticipants;
-    }
 }

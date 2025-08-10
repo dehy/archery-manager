@@ -155,16 +155,11 @@ class Licensee implements \Stringable
         return $this->id;
     }
 
-    public function getLicenses(): Collection
-    {
-        return $this->licenses;
-    }
-
     public function setLicenses(Collection $licenses): self
     {
         $this->licenses = $licenses;
         foreach ($licenses as $license) {
-            $license->setLicensee($this);
+            $license->licensee = $this;
         }
 
         return $this;
@@ -175,7 +170,7 @@ class Licensee implements \Stringable
         if (!$this->licenses->contains($license)) {
             $this->licenses[] = $license;
         }
-        $license->setLicensee($this);
+        $license->licensee = $this;
 
         return $this;
     }
@@ -185,7 +180,7 @@ class Licensee implements \Stringable
         if ($this->licenses->contains($license)) {
             $this->licenses->removeElement($license);
         }
-        $license->setLicensee(null);
+        $license->licensee = null;
 
         return $this;
     }

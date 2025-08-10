@@ -23,8 +23,8 @@ final readonly class ApplicantProcessor implements ProcessorInterface
     {
         if ($operation instanceof \ApiPlatform\Metadata\Post) {
             // Auto-generate application date if not set
-            if ($data instanceof Applicant && !$data->getApplicationDate()) {
-                $data->setApplicationDate(new \DateTimeImmutable());
+            if ($data instanceof Applicant && !$data->applicationDate) {
+                $data->applicationDate = new \DateTimeImmutable();
             }
 
             $this->entityManager->persist($data);

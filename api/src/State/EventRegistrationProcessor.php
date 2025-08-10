@@ -58,7 +58,7 @@ final readonly class EventRegistrationProcessor implements ProcessorInterface
         $participation->registrationDate = new \DateTimeImmutable();
 
         // Business logic: validate event capacity, prerequisites, etc.
-        if ($event->getMaxParticipants() && count($event->participations) >= $event->getMaxParticipants()) {
+        if ($event->maxParticipants && count($event->participations) >= $event->maxParticipants) {
             throw new BadRequestHttpException('Event is full');
         }
 

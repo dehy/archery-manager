@@ -142,16 +142,4 @@ class Applicant implements \Stringable
     {
         return sprintf('%s %s', $this->givenName, $this->familyName);
     }
-
-    public function getApplicationDate(): ?\DateTimeImmutable
-    {
-        return $this->applicationDate;
-    }
-
-    public function setApplicationDate(?\DateTimeImmutable $applicationDate): self
-    {
-        $this->applicationDate = $applicationDate;
-
-        return $this;
-    }
 }
