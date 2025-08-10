@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Licensee;
+use App\Factory\UserFactory;
 use App\Type\GenderType;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -32,9 +33,10 @@ final class LicenseeFactory extends PersistentProxyObjectFactory
     {
         $gender = self::faker()->randomElement(GenderType::cases());
         $fftaId = self::faker()->randomNumber(6, true);
-        $fftaCode = sprintf('%06d%s', $fftaId, self::faker()->randomLetter());
+        $fftaCode = self::faker()->unique()->numerify('######?');
 
         return [
+            'user' => UserFactory::new(),
             'birthDate' => self::faker()->dateTimeBetween('-65 years', '-12 years'),
             'fftaId' => $fftaId,
             'fftaMemberCode' => $fftaCode,

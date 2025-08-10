@@ -3,8 +3,6 @@
 namespace App\Factory;
 
 use App\Entity\Event;
-use App\Type\EventStatusType;
-use App\Type\SportType;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -35,13 +33,10 @@ final class EventFactory extends PersistentProxyObjectFactory
         $endDate = (clone $startDate)->modify('+2 hour');
 
         return [
-            'sport' => SportType::Archery,
-            'organizer' => ClubFactory::random(),
+            'club' => ClubFactory::random(),
             'name' => self::faker()->name(),
-            'description' => self::faker()->text(),
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-            'status' => EventStatusType::Scheduled,
+            'startsAt' => \DateTimeImmutable::createFromMutable($startDate),
+            'endsAt' => \DateTimeImmutable::createFromMutable($endDate),
         ];
     }
 

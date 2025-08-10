@@ -32,7 +32,7 @@ final class UserFactory extends PersistentProxyObjectFactory
         $gender = self::faker()->randomElement(GenderType::cases());
 
         return [
-            'email' => self::faker()->email(),
+            'email' => self::faker()->safeEmail(),
             'givenName' => self::faker()->firstName($gender),
             'gender' => $gender,
             'isVerified' => self::faker()->boolean(),

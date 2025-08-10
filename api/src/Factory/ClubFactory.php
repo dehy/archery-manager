@@ -34,9 +34,9 @@ final class ClubFactory extends PersistentProxyObjectFactory
 
         return [
             'address' => PostalAddressFactory::new(),
-            'email' => self::faker()->email(),
+            'email' => self::faker()->safeEmail(),
             'createdAt' => $date,
-            'fftaCode' => sprintf('1033%s', self::faker()->randomNumber(3, strict: true)),
+            'fftaCode' => self::faker()->unique()->numerify('1033###'),
             'name' => self::faker()->company(),
             'primaryColor' => self::faker()->hexColor(),
             'sport' => SportType::Archery,
