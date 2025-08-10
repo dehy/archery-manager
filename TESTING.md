@@ -284,11 +284,44 @@ The project uses **SonarCloud** for continuous code quality analysis. SonarQube 
 
 ### CI Integration
 
-SonarQube analysis is integrated into the GitHub Actions workflow and runs:
+SonarQube analysis is integrated into the GitHub Actions workflow as part of a comprehensive CI pipeline:
 
-- ✅ On every **push** to `main` and `next` branches
-- ✅ On every **pull request** from the same repository
-- ✅ After successful **test** and **code-quality** jobs
+#### 🔄 **CI Pipeline Structure**
+
+1. **🧪 Unit Tests Job** (`unit-tests`):
+   - Runs PHPUnit tests with coverage reporting
+   - Generates coverage.xml, phpunit-report.xml 
+   - Uploads test artifacts for reuse
+
+2. **🔍 Code Quality Job** (`code-quality`):  
+   - Runs PHPStan static analysis
+   - Checks PHP-CS-Fixer coding standards
+   - Generates quality reports (phpstan-report.xml, php-cs-fixer-report.xml)
+
+3. **🌐 Frontend Tests Job** (`frontend-tests`):
+   - TypeScript type checking for PWA
+   - ESLint linting
+   - Frontend test execution (if available)
+
+4. **📊 SonarQube Analysis Job** (`sonarqube`):
+   - Downloads all test and quality artifacts
+   - Runs comprehensive code analysis
+   - No duplicate test execution
+
+5. **🎭 E2E Tests Job** (`e2e-tests`):
+   - Playwright end-to-end testing
+   - Only runs on main/next branch pushes
+
+6. **🚀 Deployment Check Job** (`deployment-check`):
+   - Docker build verification
+   - Deployment readiness validation
+
+#### ✅ **Execution Triggers**
+
+- **All Jobs**: Run on pushes to `main`/`next` and pull requests
+- **SonarQube**: Only runs after successful test/quality jobs
+- **E2E/Deployment**: Only on main/next branch pushes
+- **Artifact Reuse**: Eliminates duplicate test runs and database setup
 
 ### Configuration
 

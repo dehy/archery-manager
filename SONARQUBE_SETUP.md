@@ -31,13 +31,53 @@ Add the following secret to your GitHub repository settings:
 
 ## Verification
 
-Once set up, the SonarQube analysis will:
+Once set up, the comprehensive CI pipeline will:
 
-- ✅ Run automatically on pushes to `main` and `next` branches
-- ✅ Run on pull requests from the same repository  
-- ✅ Generate coverage reports from PHPUnit tests
-- ✅ Include PHPStan static analysis results
-- ✅ Analyze both PHP (API) and TypeScript/JavaScript (PWA) code
+- ✅ **Unit Tests**: PHPUnit with coverage + artifact upload
+- ✅ **Code Quality**: PHPStan + PHP-CS-Fixer analysis  
+- ✅ **Frontend Tests**: TypeScript + ESLint for PWA
+- ✅ **SonarQube Analysis**: Reuses all artifacts (no duplicate execution)
+- ✅ **E2E Tests**: Playwright integration tests (main/next only)
+- ✅ **Deployment Check**: Docker build verification
+
+## Optimized CI Pipeline
+
+The workflow maximizes efficiency through smart artifact reuse:
+
+### 🧪 **Unit Tests Job**
+- Runs PHPUnit tests with Xdebug coverage
+- Generates multiple report formats (Clover XML, JUnit XML)
+- Uploads artifacts for downstream jobs
+- Includes database setup and migrations
+
+### 🔍 **Code Quality Job**  
+- PHPStan static analysis (Level 2)
+- PHP-CS-Fixer coding standards
+- Runs in parallel with unit tests
+- No database dependency
+
+### 🌐 **Frontend Tests Job**
+- TypeScript compilation checks
+- ESLint linting for React/Next.js
+- Future: Jest/Vitest unit tests
+- Runs in parallel with backend jobs
+
+### 📊 **SonarQube Analysis Job**
+- Downloads all previous artifacts
+- No test re-execution
+- Comprehensive multi-language analysis
+- Quality gate enforcement
+
+### 🎭 **E2E Tests Job** (Branch pushes only)
+- Full application stack via Docker Compose
+- Playwright browser automation
+- Real database interactions
+- Artifact retention for debugging
+
+### 🚀 **Deployment Check Job** (Branch pushes only)
+- Docker image build verification
+- Production configuration validation
+- Deployment readiness confirmation
 
 ## Troubleshooting
 
