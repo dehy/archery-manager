@@ -269,3 +269,77 @@ This testing strategy ensures:
 - **Documentation** through test specifications
 
 The tests serve as both **verification** of current functionality and **specification** for future development. Keep them simple, focused, and maintainable! 🎯
+
+## Code Quality Analysis with SonarQube
+
+### Overview
+
+The project uses **SonarCloud** for continuous code quality analysis. SonarQube analysis runs automatically in the CI pipeline and provides insights into:
+
+- 🐛 **Bugs** - Potential runtime errors
+- 🔒 **Security vulnerabilities** - Security hotspots and issues  
+- 💨 **Code smells** - Maintainability issues
+- 📊 **Test coverage** - Coverage metrics from PHPUnit
+- 🔄 **Duplicated code** - Code duplication detection
+
+### CI Integration
+
+SonarQube analysis is integrated into the GitHub Actions workflow and runs:
+
+- ✅ On every **push** to `main` and `next` branches
+- ✅ On every **pull request** from the same repository
+- ✅ After successful **test** and **code-quality** jobs
+
+### Configuration
+
+The analysis is configured via `sonar-project.properties`:
+
+```properties
+# Analysis scope
+sonar.sources=api/src/,pwa/components/,pwa/pages/,pwa/config/
+sonar.tests=api/tests/,e2e/tests/
+
+# Coverage reports
+sonar.php.coverage.reportPaths=api/coverage.xml
+sonar.php.phpstan.reportPaths=api/phpstan-report.xml
+```
+
+### Local Analysis (Optional)
+
+To run SonarQube analysis locally:
+
+1. **Install SonarScanner CLI**:
+   ```bash
+   brew install sonar-scanner # macOS
+   # or download from https://docs.sonarqube.org/latest/analysis/scan/sonarscanner/
+   ```
+
+2. **Run analysis**:
+   ```bash
+   # Generate test coverage first
+   cd api && vendor/bin/simple-phpunit --coverage-clover coverage.xml
+   
+   # Run PHPStan report
+   vendor/bin/phpstan analyse src tests --level=2 --error-format=checkstyle > phpstan-report.xml
+   
+   # Run SonarScanner (requires SONAR_TOKEN)
+   cd .. && sonar-scanner
+   ```
+
+### Viewing Results
+
+- 🌐 **SonarCloud Dashboard**: https://sonarcloud.io/project/overview?id=dehy_archery-manager
+- 📈 **Quality Gates**: Automated pass/fail criteria  
+- 📊 **Metrics**: Coverage, duplications, complexity trends
+- 🚨 **Issues**: New issues introduced in PRs
+
+### Quality Standards
+
+The project maintains:
+- ✅ **Coverage** ≥ 80% for new code
+- ✅ **Duplicated lines** < 3%
+- ✅ **Maintainability rating** ≤ A
+- ✅ **Reliability rating** ≤ A  
+- ✅ **Security rating** ≤ A
+
+*Quality gates help maintain consistent code quality across all contributions.* 🎯
