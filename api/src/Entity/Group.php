@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
@@ -19,7 +19,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ApiResource]
 #[ApiResource(
     uriTemplate: '/clubs/{clubId}/groups/{id}',
-    operations: [ new Get() ],
+    operations: [new Get()],
     uriVariables: [
         'clubId' => new Link(toProperty: 'club', fromClass: Club::class),
         'id' => new Link(fromClass: Group::class),
@@ -27,7 +27,7 @@ use Doctrine\ORM\Mapping as ORM;
 )]
 #[ApiResource(
     uriTemplate: '/clubs/{clubId}/groups',
-    operations: [ new GetCollection() ],
+    operations: [new GetCollection()],
     uriVariables: [
         'clubId' => new Link(toProperty: 'club', fromClass: Club::class),
     ]

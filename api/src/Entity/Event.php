@@ -10,16 +10,15 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Delete;
-use App\State\EventProvider;
+use ApiPlatform\Metadata\Post;
 use App\State\EventProcessor;
+use App\State\EventProvider;
 use App\Type\DisciplineType;
 use App\Type\EventStatusType;
-use App\Type\SportType;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -52,7 +51,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
             security: "is_granted('ROLE_ADMIN')",
             denormalizationContext: ['groups' => ['event:write']]
         ),
-        new Delete(security: "is_granted('ROLE_ADMIN')")
+        new Delete(security: "is_granted('ROLE_ADMIN')"),
     ],
     provider: EventProvider::class,
     processor: EventProcessor::class
@@ -146,7 +145,7 @@ class Event implements \Stringable
     }
 
     #[ApiProperty(types: 'https://schema.org/schedule')]
-    public $schedule = null;
+    public $schedule;
 
     #[ORM\Column(enumType: EventStatusType::class)]
     #[ApiProperty(types: 'https://schema.org/eventStatus')]

@@ -3,7 +3,6 @@
 namespace App\Factory;
 
 use App\Entity\License;
-use App\Type\GenderType;
 use App\Type\LicenseActivityType;
 use App\Type\LicenseAgeCategoryType;
 use App\Type\LicenseCategoryType;

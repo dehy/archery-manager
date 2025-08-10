@@ -12,14 +12,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * DTO for applicant registration
- * Following API Platform 4.0 best practice of separating public API from internal models
+ * Following API Platform 4.0 best practice of separating public API from internal models.
  */
 #[ApiResource(
     operations: [
         new Post(
             uriTemplate: '/applicant-registrations',
             processor: ApplicantRegistrationProcessor::class
-        )
+        ),
     ]
 )]
 class ApplicantRegistration

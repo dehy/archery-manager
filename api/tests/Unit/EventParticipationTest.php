@@ -2,12 +2,11 @@
 
 namespace App\Tests\Unit;
 
-use App\Entity\EventParticipation;
 use App\Entity\Event;
+use App\Entity\EventParticipation;
 use App\Entity\Licensee;
-use App\Entity\Club;
-use App\Type\GenderType;
 use App\Type\EventParticipationStateType;
+use App\Type\GenderType;
 use PHPUnit\Framework\TestCase;
 
 class EventParticipationTest extends TestCase
@@ -43,7 +42,7 @@ class EventParticipationTest extends TestCase
         $this->assertEquals($event, $participation->event);
         $this->assertEquals($licensee, $participation->participant);
         $this->assertEquals('Summer Championship', $participation->event->name);
-        $this->assertEquals('Robin Archer', $participation->participant->givenName . ' ' . $participation->participant->familyName);
+        $this->assertEquals('Robin Archer', $participation->participant->givenName.' '.$participation->participant->familyName);
     }
 
     public function testEventParticipationStatusTransitions(): void
@@ -66,7 +65,7 @@ class EventParticipationTest extends TestCase
     public function testEventParticipationTimestamps(): void
     {
         $participation = new EventParticipation();
-        
+
         $participation->participationState = EventParticipationStateType::Registered;
 
         $this->assertEquals(EventParticipationStateType::Registered, $participation->participationState);

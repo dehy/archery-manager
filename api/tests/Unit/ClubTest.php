@@ -4,7 +4,6 @@ namespace App\Tests\Unit;
 
 use App\Entity\Club;
 use App\Entity\Event;
-use App\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 class ClubTest extends TestCase
@@ -39,7 +38,7 @@ class ClubTest extends TestCase
         $event->name = 'Test Event';
         $event->startsAt = new \DateTimeImmutable('2025-09-15 10:00:00');
         $event->club = $club;
-        
+
         $club->events->add($event);
 
         $this->assertCount(1, $club->events);
@@ -62,10 +61,10 @@ class ClubTest extends TestCase
     public function testClubValidation(): void
     {
         $club = new Club();
-        
+
         // Test that required fields can be set
         $club->name = 'Valid Club';
-        
+
         $this->assertNotEmpty($club->name);
     }
 }

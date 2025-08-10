@@ -7,8 +7,6 @@ namespace App\Dto;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
-use App\Entity\Event;
-use App\Entity\Licensee;
 use App\Type\DisciplineType;
 
 #[ApiResource(
@@ -18,7 +16,7 @@ use App\Type\DisciplineType;
             denormalizationContext: ['groups' => ['event_registration:write']],
             normalizationContext: ['groups' => ['event_registration:read']],
             security: "is_granted('ROLE_USER')"
-        )
+        ),
     ],
     messenger: true
 )]
@@ -44,7 +42,7 @@ final class EventRegistrationRequest
         int $participantId,
         ?string $comment = null,
         bool $needsEquipment = false,
-        ?DisciplineType $preferredDiscipline = null
+        ?DisciplineType $preferredDiscipline = null,
     ) {
         $this->eventId = $eventId;
         $this->participantId = $participantId;

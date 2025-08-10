@@ -36,7 +36,7 @@ enum LicenseType: string implements ReadableEnumInterface
 
     public function getReadableValue(): string
     {
-        return match($this) {
+        return match ($this) {
             self::POUSSINS => 'Poussin',
             self::JEUNES => 'Jeune',
             self::ADULTES_COMPETITION => 'Adulte (compétition)',
@@ -45,7 +45,7 @@ enum LicenseType: string implements ReadableEnumInterface
             self::CONVENTION_UNSS => 'Convention UNSS',
             self::CONVENTION_FFSU => 'Convention FFSU',
             self::CONVENTION_FFH_FSA => 'Convention FFH & FFSA',
-            self::DECOUVERTE => 'Découverte'
+            self::DECOUVERTE => 'Découverte',
         };
     }
 }

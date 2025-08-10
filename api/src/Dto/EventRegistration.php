@@ -25,7 +25,7 @@ final class EventRegistration
         Event $event,
         Licensee $participant,
         ?\DateTimeInterface $registrationDate = null,
-        ?string $comment = null
+        ?string $comment = null,
     ) {
         $this->event = $event;
         $this->participant = $participant;

@@ -3,7 +3,6 @@
 namespace App\Tests\Unit;
 
 use App\Entity\User;
-use App\Entity\Club;
 use App\Type\GenderType;
 use PHPUnit\Framework\TestCase;
 
@@ -69,7 +68,7 @@ class UserTest extends TestCase
         // Test setting roles
         $user->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
         $roles = $user->getRoles();
-        
+
         $this->assertContains('ROLE_ADMIN', $roles);
         $this->assertContains('ROLE_USER', $roles);
     }
@@ -82,14 +81,14 @@ class UserTest extends TestCase
         // Test password setting
         $hashedPassword = 'hashedPasswordValue';
         $user->setPassword($hashedPassword);
-        
+
         $this->assertEquals($hashedPassword, $user->getPassword());
     }
 
     public function testUserAge(): void
     {
         $user = new User();
-        
+
         // Test that user can be created (age calculation would need actual birthDate field)
         $this->assertInstanceOf(User::class, $user);
     }
@@ -97,7 +96,7 @@ class UserTest extends TestCase
     public function testUserEmailValidation(): void
     {
         $user = new User();
-        
+
         // Test valid email
         $user->email = 'valid.email@domain.com';
         $this->assertStringContainsString('@', $user->email);

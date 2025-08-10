@@ -10,7 +10,8 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 
 class ClubsTest extends ApiTestCase
 {
-    use ResetDatabase, Factories;
+    use ResetDatabase;
+    use Factories;
 
     public function testGetCollection(): void
     {
@@ -47,11 +48,11 @@ class ClubsTest extends ApiTestCase
                 'name' => 'Brotherhood',
                 'city' => 'Sherwood',
                 'email' => 'robin.hood@sher.wood',
-                'fftaCode' => '12345678'
+                'fftaCode' => '12345678',
             ],
             'headers' => [
-                'content-type' => 'application/ld+json; charset=utf-8'
-            ]
+                'content-type' => 'application/ld+json; charset=utf-8',
+            ],
         ]);
 
         $this->assertResponseStatusCodeSame(201);
@@ -75,8 +76,8 @@ class ClubsTest extends ApiTestCase
                 'email' => 'brotherhood@sher',
             ],
             'headers' => [
-                'content-type' => 'application/ld+json; charset=utf-8'
-            ]
+                'content-type' => 'application/ld+json; charset=utf-8',
+            ],
         ]);
 
         $this->assertResponseStatusCodeSame(422);
@@ -90,7 +91,7 @@ class ClubsTest extends ApiTestCase
 city: This value should not be blank.
 email: This value is not a valid email address.
 fftaCode: This value should not be blank.
-fftaCode: This value should have exactly 8 characters.'
+fftaCode: This value should have exactly 8 characters.',
         ]);
     }
 
@@ -108,7 +109,7 @@ fftaCode: This value should have exactly 8 characters.'
             ],
             'headers' => [
                 'Content-Type' => 'application/merge-patch+json',
-            ]
+            ],
         ]);
 
         $this->assertResponseIsSuccessful();

@@ -18,6 +18,7 @@ final class FftaCodeProvider
     public static function fftaCode(?int $id): string
     {
         $id ??= self::fftaId();
+
         return \sprintf('%s%s', $id, strtoupper(Base::randomLetter()));
     }
 }

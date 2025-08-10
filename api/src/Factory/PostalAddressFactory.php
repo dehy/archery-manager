@@ -31,7 +31,7 @@ final class PostalAddressFactory extends ObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'country' => "France",
+            'country' => 'France',
             'locality' => self::faker()->city(),
             'postalCode' => self::faker()->postcode(),
             'address' => self::faker()->streetAddress(),

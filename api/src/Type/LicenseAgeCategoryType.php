@@ -7,7 +7,6 @@ namespace App\Type;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use Elao\Enum\Attribute\EnumCase;
 use Elao\Enum\Attribute\ReadableEnum as ReadableEnumAlias;
 use Elao\Enum\ReadableEnumInterface;
 use Elao\Enum\ReadableEnumTrait;
@@ -62,7 +61,7 @@ enum LicenseAgeCategoryType: string implements ReadableEnumInterface
             self::JUNIOR => 'Junior',
             self::SENIOR => 'Senior',
             self::VETERAN => 'Vétéran',
-            self::SUPER_VETERAN => 'Super Vétéran'
+            self::SUPER_VETERAN => 'Super Vétéran',
         };
     }
 

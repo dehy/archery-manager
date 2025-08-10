@@ -9,7 +9,7 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Dto\ApplicantRegistration;
 
 /**
- * Processor for handling applicant registration requests
+ * Processor for handling applicant registration requests.
  */
 class ApplicantRegistrationProcessor implements ProcessorInterface
 {

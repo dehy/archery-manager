@@ -13,7 +13,6 @@ use App\Entity\PracticeAdvice as NewPracticeAdvice;
 use App\Entity\Result as NewResult;
 use App\Type\ArrowType;
 use App\Type\BowType;
-use App\Type\ContestType;
 use App\Type\DisciplineType;
 use App\Type\EventParticipationStateType;
 use App\Type\FletchingType;
@@ -35,7 +34,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class MigrateLegacyDataCommand extends Command
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager
+        private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
     }
@@ -43,9 +42,9 @@ class MigrateLegacyDataCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        
+
         $io->title('🏹 Archery Manager Legacy Data Migration');
-        
+
         try {
             $this->migrateApplicants($io);
             $this->migrateArrows($io);
@@ -54,27 +53,27 @@ class MigrateLegacyDataCommand extends Command
             $this->migratePracticeAdvices($io);
             $this->migrateEventParticipations($io);
             $this->migrateResults($io);
-            
+
             $io->success('✅ All legacy data has been successfully migrated!');
-            
         } catch (\Exception $e) {
-            $io->error('❌ Migration failed: ' . $e->getMessage());
+            $io->error('❌ Migration failed: '.$e->getMessage());
+
             return Command::FAILURE;
         }
-        
+
         return Command::SUCCESS;
     }
 
     private function migrateApplicants(SymfonyStyle $io): void
     {
         $io->section('📝 Migrating Applicants');
-        
+
         // This would typically fetch from your legacy database
         // You'll need to adapt this to your specific legacy data source
         $legacyApplicants = $this->fetchLegacyData('applicant');
-        
+
         $io->progressStart(count($legacyApplicants));
-        
+
         foreach ($legacyApplicants as $legacy) {
             $applicant = new NewApplicant();
             $applicant->email = $legacy['email'];
@@ -93,11 +92,11 @@ class MigrateLegacyDataCommand extends Command
             $applicant->paid = (bool) $legacy['paid'] ?? false;
             $applicant->licenseCreated = (bool) $legacy['license_created'] ?? false;
             $applicant->paymentObservations = $legacy['payment_observations'];
-            
+
             $this->entityManager->persist($applicant);
             $io->progressAdvance();
         }
-        
+
         $this->entityManager->flush();
         $io->progressFinish();
         $io->text('✅ Applicants migrated successfully');
@@ -106,11 +105,11 @@ class MigrateLegacyDataCommand extends Command
     private function migrateArrows(SymfonyStyle $io): void
     {
         $io->section('🏹 Migrating Arrows');
-        
+
         $legacyArrows = $this->fetchLegacyData('arrow');
-        
+
         $io->progressStart(count($legacyArrows));
-        
+
         foreach ($legacyArrows as $legacy) {
             $arrow = new NewArrow();
             // You'll need to map the owner_id to the new Licensee entity
@@ -118,11 +117,11 @@ class MigrateLegacyDataCommand extends Command
             $arrow->type = ArrowType::tryFrom($legacy['type']) ?? ArrowType::Carbon;
             $arrow->spine = (int) $legacy['spine'];
             $arrow->fletching = FletchingType::tryFrom($legacy['fletching']) ?? FletchingType::Plastic;
-            
+
             $this->entityManager->persist($arrow);
             $io->progressAdvance();
         }
-        
+
         $this->entityManager->flush();
         $io->progressFinish();
         $io->text('✅ Arrows migrated successfully');
@@ -131,11 +130,11 @@ class MigrateLegacyDataCommand extends Command
     private function migrateBows(SymfonyStyle $io): void
     {
         $io->section('🏹 Migrating Bows');
-        
+
         $legacyBows = $this->fetchLegacyData('bow');
-        
+
         $io->progressStart(count($legacyBows));
-        
+
         foreach ($legacyBows as $legacy) {
             $bow = new NewBow();
             // $bow->owner = $this->findLicenseeById($legacy['owner_id']);
@@ -146,11 +145,11 @@ class MigrateLegacyDataCommand extends Command
             $bow->limbStrength = $legacy['limb_strength'] ? (int) $legacy['limb_strength'] : null;
             $bow->braceHeight = $legacy['brace_height'] ? (float) $legacy['brace_height'] : null;
             $bow->drawLength = $legacy['draw_length'] ? (int) $legacy['draw_length'] : null;
-            
+
             $this->entityManager->persist($bow);
             $io->progressAdvance();
         }
-        
+
         $this->entityManager->flush();
         $io->progressFinish();
         $io->text('✅ Bows migrated successfully');
@@ -159,21 +158,21 @@ class MigrateLegacyDataCommand extends Command
     private function migrateGroups(SymfonyStyle $io): void
     {
         $io->section('👥 Migrating Groups');
-        
+
         $legacyGroups = $this->fetchLegacyData('group');
-        
+
         $io->progressStart(count($legacyGroups));
-        
+
         foreach ($legacyGroups as $legacy) {
             $group = new NewGroup();
             // $group->club = $this->findClubById($legacy['club_id']);
             $group->name = $legacy['name'];
             $group->description = $legacy['description'];
-            
+
             $this->entityManager->persist($group);
             $io->progressAdvance();
         }
-        
+
         $this->entityManager->flush();
         $io->progressFinish();
         $io->text('✅ Groups migrated successfully');
@@ -182,11 +181,11 @@ class MigrateLegacyDataCommand extends Command
     private function migratePracticeAdvices(SymfonyStyle $io): void
     {
         $io->section('💡 Migrating Practice Advices');
-        
+
         $legacyAdvices = $this->fetchLegacyData('practice_advice');
-        
+
         $io->progressStart(count($legacyAdvices));
-        
+
         foreach ($legacyAdvices as $legacy) {
             $advice = new NewPracticeAdvice();
             // $advice->licensee = $this->findLicenseeById($legacy['licensee_id']);
@@ -195,11 +194,11 @@ class MigrateLegacyDataCommand extends Command
             $advice->advice = $legacy['advice'];
             $advice->createdAt = new \DateTimeImmutable($legacy['created_at']);
             $advice->archivedAt = $legacy['archived_at'] ? new \DateTimeImmutable($legacy['archived_at']) : null;
-            
+
             $this->entityManager->persist($advice);
             $io->progressAdvance();
         }
-        
+
         $this->entityManager->flush();
         $io->progressFinish();
         $io->text('✅ Practice Advices migrated successfully');
@@ -208,11 +207,11 @@ class MigrateLegacyDataCommand extends Command
     private function migrateEventParticipations(SymfonyStyle $io): void
     {
         $io->section('🎯 Migrating Event Participations');
-        
+
         $legacyParticipations = $this->fetchLegacyData('event_participation');
-        
+
         $io->progressStart(count($legacyParticipations));
-        
+
         foreach ($legacyParticipations as $legacy) {
             $participation = new NewEventParticipation();
             // $participation->event = $this->findEventById($legacy['event_id']);
@@ -221,11 +220,11 @@ class MigrateLegacyDataCommand extends Command
             $participation->targetType = TargetTypeType::tryFrom($legacy['target_type']);
             $participation->departure = $legacy['departure'] ? (int) $legacy['departure'] : null;
             $participation->participationState = EventParticipationStateType::tryFrom($legacy['participation_state']) ?? EventParticipationStateType::Interested;
-            
+
             $this->entityManager->persist($participation);
             $io->progressAdvance();
         }
-        
+
         $this->entityManager->flush();
         $io->progressFinish();
         $io->text('✅ Event Participations migrated successfully');
@@ -234,11 +233,11 @@ class MigrateLegacyDataCommand extends Command
     private function migrateResults(SymfonyStyle $io): void
     {
         $io->section('🏆 Migrating Results');
-        
+
         $legacyResults = $this->fetchLegacyData('result');
-        
+
         $io->progressStart(count($legacyResults));
-        
+
         foreach ($legacyResults as $legacy) {
             $result = new NewResult();
             // $result->licensee = $this->findLicenseeById($legacy['licensee_id']);
@@ -256,11 +255,11 @@ class MigrateLegacyDataCommand extends Command
             $result->nb10p = $legacy['nb10p'] ? (int) $legacy['nb10p'] : null;
             $result->position = $legacy['position'] ? (int) $legacy['position'] : null;
             $result->fftaRanking = $legacy['ffta_ranking'] ? (int) $legacy['ffta_ranking'] : null;
-            
+
             $this->entityManager->persist($result);
             $io->progressAdvance();
         }
-        
+
         $this->entityManager->flush();
         $io->progressFinish();
         $io->text('✅ Results migrated successfully');
@@ -271,14 +270,14 @@ class MigrateLegacyDataCommand extends Command
      * You can either:
      * 1. Connect to the legacy database directly
      * 2. Read from exported JSON/CSV files
-     * 3. Use any other data source
+     * 3. Use any other data source.
      */
     private function fetchLegacyData(string $entityType): array
     {
         // TODO: Implement this method based on your legacy data source
         // For example:
         // return $this->legacyDatabase->fetchAll("SELECT * FROM {$entityType}");
-        
+
         return []; // Placeholder - replace with actual data fetching
     }
 }

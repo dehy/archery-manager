@@ -28,7 +28,7 @@ enum SportType: string implements ReadableEnumInterface
 
     public function getReadableValue(): string
     {
-        return match($this) {
+        return match ($this) {
             self::Archery => 'Archery',
         };
     }

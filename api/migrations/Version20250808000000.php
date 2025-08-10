@@ -8,7 +8,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Migration to create the new API Platform structure for Archery Manager
+ * Migration to create the new API Platform structure for Archery Manager.
  */
 final class Version20250808000000 extends AbstractMigration
 {

@@ -26,20 +26,23 @@ final readonly class ApplicantProcessor implements ProcessorInterface
             if ($data instanceof Applicant && !$data->getApplicationDate()) {
                 $data->setApplicationDate(new \DateTimeImmutable());
             }
-            
+
             $this->entityManager->persist($data);
             $this->entityManager->flush();
+
             return $data;
         }
 
         if ($operation instanceof \ApiPlatform\Metadata\Patch) {
             $this->entityManager->flush();
+
             return $data;
         }
 
         if ($operation instanceof \ApiPlatform\Metadata\Delete) {
             $this->entityManager->remove($data);
             $this->entityManager->flush();
+
             return null;
         }
 

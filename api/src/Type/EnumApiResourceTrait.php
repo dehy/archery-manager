@@ -31,6 +31,7 @@ trait EnumApiResourceTrait
     public static function getCase(Operation $operation, array $uriVariables)
     {
         $name = $uriVariables['id'] ?? null;
-        return self::tryFrom($name) ?? constant(self::class . "::$name");
+
+        return self::tryFrom($name) ?? constant(self::class."::$name");
     }
 }

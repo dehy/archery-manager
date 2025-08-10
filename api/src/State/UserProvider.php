@@ -12,12 +12,12 @@ use App\Repository\UserRepository;
 
 /**
  * Custom state provider for User entities
- * Following API Platform 4.0 best practices for separating API logic from persistence
+ * Following API Platform 4.0 best practices for separating API logic from persistence.
  */
 class UserProvider implements ProviderInterface
 {
     public function __construct(
-        private readonly UserRepository $userRepository
+        private readonly UserRepository $userRepository,
     ) {
     }
 

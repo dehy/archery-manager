@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
@@ -22,7 +22,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ApiResource]
 #[ApiResource(
     uriTemplate: '/events/{eventId}/participations/{id}',
-    operations: [ new Get() ],
+    operations: [new Get()],
     uriVariables: [
         'eventId' => new Link(toProperty: 'event', fromClass: Event::class),
         'id' => new Link(fromClass: EventParticipation::class),
@@ -30,14 +30,14 @@ use Doctrine\ORM\Mapping as ORM;
 )]
 #[ApiResource(
     uriTemplate: '/events/{eventId}/participations',
-    operations: [ new GetCollection() ],
+    operations: [new GetCollection()],
     uriVariables: [
         'eventId' => new Link(toProperty: 'event', fromClass: Event::class),
     ]
 )]
 #[ApiResource(
     uriTemplate: '/licensees/{licenseeId}/participations/{id}',
-    operations: [ new Get() ],
+    operations: [new Get()],
     uriVariables: [
         'licenseeId' => new Link(toProperty: 'participant', fromClass: Licensee::class),
         'id' => new Link(fromClass: EventParticipation::class),
@@ -45,7 +45,7 @@ use Doctrine\ORM\Mapping as ORM;
 )]
 #[ApiResource(
     uriTemplate: '/licensees/{licenseeId}/participations',
-    operations: [ new GetCollection() ],
+    operations: [new GetCollection()],
     uriVariables: [
         'licenseeId' => new Link(toProperty: 'participant', fromClass: Licensee::class),
     ]

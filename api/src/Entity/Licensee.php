@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Link;
-use App\State\LicenseeProvider;
-use App\State\LicenseeProcessor;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Helper\ObjectComparator;
 use App\Helper\SyncReturnValues;
+use App\State\LicenseeProcessor;
+use App\State\LicenseeProvider;
 use App\Type\GenderType;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -46,7 +46,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             security: "is_granted('ROLE_ADMIN')",
             denormalizationContext: ['groups' => ['licensee:write']]
         ),
-        new Delete(security: "is_granted('ROLE_ADMIN')")
+        new Delete(security: "is_granted('ROLE_ADMIN')"),
     ],
     provider: LicenseeProvider::class,
     processor: LicenseeProcessor::class
@@ -55,7 +55,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiFilter(OrderFilter::class, properties: ['familyName', 'givenName', 'birthDate'])]
 #[ApiResource(
     uriTemplate: '/users/{userId}/licensees/{id}',
-    operations: [ new Get() ],
+    operations: [new Get()],
     uriVariables: [
         'userId' => new Link(toProperty: 'user', fromClass: User::class),
         'id' => new Link(fromClass: Licensee::class),
@@ -63,7 +63,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 #[ApiResource(
     uriTemplate: '/users/{userId}/licensees',
-    operations: [ new GetCollection() ],
+    operations: [new GetCollection()],
     uriVariables: [
         'userId' => new Link(toProperty: 'user', fromClass: User::class),
     ]

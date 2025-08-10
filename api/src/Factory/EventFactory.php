@@ -3,7 +3,6 @@
 namespace App\Factory;
 
 use App\Entity\Event;
-use App\Entity\PostalAddress;
 use App\Type\EventStatusType;
 use App\Type\SportType;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;

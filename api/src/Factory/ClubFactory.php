@@ -3,7 +3,6 @@
 namespace App\Factory;
 
 use App\Entity\Club;
-use App\Entity\PostalAddress;
 use App\Type\SportType;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -37,7 +36,7 @@ final class ClubFactory extends PersistentProxyObjectFactory
             'address' => PostalAddressFactory::new(),
             'email' => self::faker()->email(),
             'createdAt' => $date,
-            'fftaCode' => sprintf("1033%s", self::faker()->randomNumber(3, strict: true)),
+            'fftaCode' => sprintf('1033%s', self::faker()->randomNumber(3, strict: true)),
             'name' => self::faker()->company(),
             'primaryColor' => self::faker()->hexColor(),
             'sport' => SportType::Archery,

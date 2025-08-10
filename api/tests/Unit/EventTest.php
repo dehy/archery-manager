@@ -2,12 +2,11 @@
 
 namespace App\Tests\Unit;
 
-use App\Entity\Event;
 use App\Entity\ContestEvent;
-use App\Entity\TrainingEvent;
+use App\Entity\Event;
 use App\Entity\FreeTrainingEvent;
+use App\Entity\TrainingEvent;
 use App\Type\DisciplineType;
-use App\Type\SportType;
 use PHPUnit\Framework\TestCase;
 
 class EventTest extends TestCase
@@ -30,7 +29,7 @@ class EventTest extends TestCase
     {
         $contestEvent = new ContestEvent();
         $contestEvent->name = 'Championship';
-        
+
         $this->assertInstanceOf(Event::class, $contestEvent);
         $this->assertEquals('Championship', $contestEvent->name);
         $this->assertNotNull($contestEvent->results);
@@ -40,7 +39,7 @@ class EventTest extends TestCase
     {
         $trainingEvent = new TrainingEvent();
         $trainingEvent->name = 'Training Session';
-        
+
         $this->assertInstanceOf(Event::class, $trainingEvent);
         $this->assertEquals('Training Session', $trainingEvent->name);
     }
@@ -49,7 +48,7 @@ class EventTest extends TestCase
     {
         $freeTrainingEvent = new FreeTrainingEvent();
         $freeTrainingEvent->name = 'Open Practice';
-        
+
         $this->assertInstanceOf(Event::class, $freeTrainingEvent);
         $this->assertEquals('Open Practice', $freeTrainingEvent->name);
     }

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Link;
-use App\State\BowProvider;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\State\BowProcessor;
+use App\State\BowProvider;
 use App\Type\BowType;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -40,14 +40,14 @@ use Doctrine\ORM\Mapping as ORM;
             security: "is_granted('ROLE_USER') and object.owner == user.licensee",
             denormalizationContext: ['groups' => ['bow:write']]
         ),
-        new Delete(security: "is_granted('ROLE_USER') and object.owner == user.licensee")
+        new Delete(security: "is_granted('ROLE_USER') and object.owner == user.licensee"),
     ],
     provider: BowProvider::class,
     processor: BowProcessor::class
 )]
 #[ApiResource(
     uriTemplate: '/licensees/{licenseeId}/bows/{id}',
-    operations: [ new Get() ],
+    operations: [new Get()],
     uriVariables: [
         'licenseeId' => new Link(toProperty: 'owner', fromClass: Licensee::class),
         'id' => new Link(fromClass: Bow::class),
@@ -55,7 +55,7 @@ use Doctrine\ORM\Mapping as ORM;
 )]
 #[ApiResource(
     uriTemplate: '/licensees/{licenseeId}/bows',
-    operations: [ new GetCollection() ],
+    operations: [new GetCollection()],
     uriVariables: [
         'licenseeId' => new Link(toProperty: 'owner', fromClass: Licensee::class),
     ]

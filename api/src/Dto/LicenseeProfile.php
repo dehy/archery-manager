@@ -33,7 +33,7 @@ final class LicenseeProfile
         ?\DateTimeInterface $birthDate = null,
         ?GenderType $gender = null,
         ?string $email = null,
-        ?string $phoneNumber = null
+        ?string $phoneNumber = null,
     ) {
         $this->givenName = $givenName;
         $this->familyName = $familyName;

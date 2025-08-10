@@ -5,7 +5,6 @@ namespace App\Tests\Unit;
 use App\Entity\Licensee;
 use App\Entity\User;
 use App\Type\GenderType;
-use App\Type\LicenseAgeCategoryType;
 use PHPUnit\Framework\TestCase;
 
 class LicenseeTest extends TestCase
@@ -59,7 +58,7 @@ class LicenseeTest extends TestCase
         $this->assertNotNull($licensee->givenPracticeAdvices);
         $this->assertNotNull($licensee->results);
         $this->assertNotNull($licensee->groups);
-        
+
         // Test that collections are empty initially
         $this->assertCount(0, $licensee->bows);
         $this->assertCount(0, $licensee->arrows);

@@ -45,7 +45,7 @@ final readonly class EventRegistrationProcessor implements ProcessorInterface
         // Check if already registered
         $existingParticipation = $this->entityManager->getRepository(EventParticipation::class)
             ->findOneBy(['event' => $event, 'licensee' => $participant]);
-        
+
         if ($existingParticipation) {
             throw new BadRequestHttpException('Participant already registered for this event');
         }

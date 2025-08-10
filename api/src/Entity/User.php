@@ -11,9 +11,8 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
-use App\State\UserProvider;
 use App\State\UserProcessor;
+use App\State\UserProvider;
 use App\Type\GenderType;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -39,7 +38,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             security: "is_granted('ROLE_ADMIN') or object == user",
             denormalizationContext: ['groups' => ['user:write']]
         ),
-        new Delete(security: "is_granted('ROLE_ADMIN')")
+        new Delete(security: "is_granted('ROLE_ADMIN')"),
     ],
     provider: UserProvider::class,
     processor: UserProcessor::class
@@ -70,7 +69,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public string $email = '';
 
     #[ORM\Column(type: Types::JSON)]
-    #[ApiProperty(jsonldContext: ["@type" => "http://www.w3.org/2001/XMLSchema#array"])]
+    #[ApiProperty(jsonldContext: ['@type' => 'http://www.w3.org/2001/XMLSchema#array'])]
     #[Groups(['user:read'])]
     private array $roles = [];
 

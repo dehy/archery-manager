@@ -26,6 +26,7 @@ final readonly class ArrowProvider implements ProviderInterface
             if (isset($uriVariables['licenseeId'])) {
                 return $this->arrowRepository->findBy(['owner' => $uriVariables['licenseeId']]);
             }
+
             return $this->arrowRepository->findAll();
         }
 

@@ -4,7 +4,6 @@ namespace App\Factory;
 
 use App\Entity\Licensee;
 use App\Type\GenderType;
-use Doctrine\Common\Collections\ArrayCollection;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**

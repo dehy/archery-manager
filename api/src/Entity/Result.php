@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
@@ -22,7 +22,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource]
 #[ApiResource(
     uriTemplate: '/licensees/{licenseeId}/results/{id}',
-    operations: [ new Get() ],
+    operations: [new Get()],
     uriVariables: [
         'licenseeId' => new Link(toProperty: 'licensee', fromClass: Licensee::class),
         'id' => new Link(fromClass: Result::class),
@@ -30,14 +30,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 #[ApiResource(
     uriTemplate: '/licensees/{licenseeId}/results',
-    operations: [ new GetCollection() ],
+    operations: [new GetCollection()],
     uriVariables: [
         'licenseeId' => new Link(toProperty: 'licensee', fromClass: Licensee::class),
     ]
 )]
 #[ApiResource(
     uriTemplate: '/events/{eventId}/results/{id}',
-    operations: [ new Get() ],
+    operations: [new Get()],
     uriVariables: [
         'eventId' => new Link(toProperty: 'event', fromClass: ContestEvent::class),
         'id' => new Link(fromClass: Result::class),
@@ -45,7 +45,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 #[ApiResource(
     uriTemplate: '/events/{eventId}/results',
-    operations: [ new GetCollection() ],
+    operations: [new GetCollection()],
     uriVariables: [
         'eventId' => new Link(toProperty: 'event', fromClass: ContestEvent::class),
     ]

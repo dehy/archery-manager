@@ -12,7 +12,7 @@ final class DefaultLicenseesStory extends Story
 {
     public function build(): void
     {
-        LicenseeFactory::createMany(150, function(Licensee $licensee) {
+        LicenseeFactory::createMany(150, function (Licensee $licensee) {
             $license = LicenseFactory::new()
                 ->with([
                     'licensee' => $licensee,

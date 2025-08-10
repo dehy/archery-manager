@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Helper;
 
 /**
- * Return values for synchronization operations
+ * Return values for synchronization operations.
  */
 class SyncReturnValues
 {

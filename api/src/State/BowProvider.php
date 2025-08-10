@@ -26,6 +26,7 @@ final readonly class BowProvider implements ProviderInterface
             if (isset($uriVariables['licenseeId'])) {
                 return $this->bowRepository->findBy(['owner' => $uriVariables['licenseeId']]);
             }
+
             return $this->bowRepository->findAll();
         }
 

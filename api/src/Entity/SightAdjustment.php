@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
@@ -17,7 +17,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ApiResource]
 #[ApiResource(
     uriTemplate: '/bows/{bowId}/sight-adjustments/{id}',
-    operations: [ new Get() ],
+    operations: [new Get()],
     uriVariables: [
         'bowId' => new Link(toProperty: 'bow', fromClass: Bow::class),
         'id' => new Link(fromClass: SightAdjustment::class),
@@ -25,7 +25,7 @@ use Doctrine\ORM\Mapping as ORM;
 )]
 #[ApiResource(
     uriTemplate: '/bows/{bowId}/sight-adjustments',
-    operations: [ new GetCollection() ],
+    operations: [new GetCollection()],
     uriVariables: [
         'bowId' => new Link(toProperty: 'bow', fromClass: Bow::class),
     ]

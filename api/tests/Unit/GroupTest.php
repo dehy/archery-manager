@@ -2,9 +2,9 @@
 
 namespace App\Tests\Unit;
 
+use App\Entity\Club;
 use App\Entity\Group;
 use App\Entity\Licensee;
-use App\Entity\Club;
 use App\Type\GenderType;
 use PHPUnit\Framework\TestCase;
 
@@ -106,13 +106,13 @@ class GroupTest extends TestCase
         $group->name = 'Counting Group';
 
         // Add 3 members
-        for ($i = 1; $i <= 3; $i++) {
+        for ($i = 1; $i <= 3; ++$i) {
             $member = new Licensee();
             $member->familyName = "Member{$i}";
-            $member->givenName = "Test";
+            $member->givenName = 'Test';
             $member->gender = GenderType::Other;
             $member->birthDate = new \DateTimeImmutable('1990-01-01');
-            
+
             $group->licensees->add($member);
         }
 
@@ -123,12 +123,12 @@ class GroupTest extends TestCase
     public function testGroupValidation(): void
     {
         $group = new Group();
-        
+
         // Test required fields
         $group->name = 'Valid Group';
-        
+
         $this->assertNotEmpty($group->name);
-        
+
         // Test optional fields
         $this->assertNull($group->description);
     }

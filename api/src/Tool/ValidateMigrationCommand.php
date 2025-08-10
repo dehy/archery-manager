@@ -19,12 +19,12 @@ class ValidateMigrationCommand extends Command
 {
     private array $entities = [
         'User',
-        'Club', 
+        'Club',
         'Licensee',
         'License',
         'Event',
         'ContestEvent',
-        'TrainingEvent', 
+        'TrainingEvent',
         'FreeTrainingEvent',
         'Applicant',
         'Arrow',
@@ -38,7 +38,7 @@ class ValidateMigrationCommand extends Command
 
     private array $enums = [
         'GenderType',
-        'DisciplineType', 
+        'DisciplineType',
         'LicenseActivityType',
         'LicenseAgeCategoryType',
         'ArrowType',
@@ -51,7 +51,7 @@ class ValidateMigrationCommand extends Command
     ];
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager
+        private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
     }
@@ -59,11 +59,11 @@ class ValidateMigrationCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        
+
         $io->title('🔍 Archery Manager Migration Validation');
-        
+
         $errors = [];
-        
+
         // Validate entities
         $io->section('📋 Validating Entities');
         foreach ($this->entities as $entity) {
@@ -75,7 +75,7 @@ class ValidateMigrationCommand extends Command
                 $io->text("❌ {$entity}");
             }
         }
-        
+
         // Validate enums
         $io->section('🏷️  Validating Enums');
         foreach ($this->enums as $enum) {
@@ -87,21 +87,21 @@ class ValidateMigrationCommand extends Command
                 $io->text("❌ {$enum}");
             }
         }
-        
+
         // Validate database schema
         $io->section('🗄️  Validating Database Schema');
         try {
             $connection = $this->entityManager->getConnection();
             $schemaManager = $connection->createSchemaManager();
-            
+
             $expectedTables = [
                 'users', 'clubs', 'licensees', 'licenses', 'events',
                 'applicants', 'arrows', 'bows', 'sight_adjustments',
-                'groups', 'practice_advices', 'event_participations', 'results'
+                'groups', 'practice_advices', 'event_participations', 'results',
             ];
-            
+
             $existingTables = $schemaManager->listTableNames();
-            
+
             foreach ($expectedTables as $table) {
                 if (in_array($table, $existingTables)) {
                     $io->text("✅ Table: {$table}");
@@ -110,12 +110,11 @@ class ValidateMigrationCommand extends Command
                     $io->text("❌ Table: {$table}");
                 }
             }
-            
         } catch (\Exception $e) {
-            $errors[] = "❌ Database connection error: " . $e->getMessage();
-            $io->error("Database connection failed: " . $e->getMessage());
+            $errors[] = '❌ Database connection error: '.$e->getMessage();
+            $io->error('Database connection failed: '.$e->getMessage());
         }
-        
+
         // Validate API Platform annotations
         $io->section('🔗 Validating API Platform Setup');
         foreach ($this->entities as $entity) {
@@ -123,7 +122,7 @@ class ValidateMigrationCommand extends Command
             if (class_exists($className)) {
                 $reflection = new \ReflectionClass($className);
                 $attributes = $reflection->getAttributes();
-                
+
                 $hasApiResource = false;
                 foreach ($attributes as $attribute) {
                     if (str_contains($attribute->getName(), 'ApiResource')) {
@@ -131,7 +130,7 @@ class ValidateMigrationCommand extends Command
                         break;
                     }
                 }
-                
+
                 if ($hasApiResource) {
                     $io->text("✅ {$entity} has API Platform annotations");
                 } else {
@@ -140,28 +139,28 @@ class ValidateMigrationCommand extends Command
                 }
             }
         }
-        
+
         // Summary
         $io->section('📊 Validation Summary');
-        
+
         if (empty($errors)) {
             $io->success('🎉 All validations passed! Your migration setup is ready.');
-            
+
             $io->note([
                 'Next steps:',
                 '1. Run: php bin/console doctrine:migrations:migrate',
                 '2. Customize: src/Tool/MigrateLegacyDataCommand.php',
                 '3. Execute: php bin/console app:migrate-legacy-data',
-                '4. Test your API endpoints!'
+                '4. Test your API endpoints!',
             ]);
-            
+
             return Command::SUCCESS;
         } else {
-            $io->error('❌ Validation failed with ' . count($errors) . ' errors:');
+            $io->error('❌ Validation failed with '.count($errors).' errors:');
             foreach ($errors as $error) {
                 $io->text($error);
             }
-            
+
             return Command::FAILURE;
         }
     }

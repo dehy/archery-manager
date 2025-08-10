@@ -30,7 +30,7 @@ enum LicenseCategoryType: string implements ReadableEnumInterface
 
     public function getReadableValue(): string
     {
-        return match($this) {
+        return match ($this) {
             self::POUSSINS => 'Poussins',
             self::JEUNES => 'Jeunes',
             self::ADULTES => 'Adultes',

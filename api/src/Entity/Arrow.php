@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Link;
-use App\State\ArrowProvider;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\State\ArrowProcessor;
+use App\State\ArrowProvider;
 use App\Type\ArrowType;
 use App\Type\FletchingType;
 use Doctrine\DBAL\Types\Types;
@@ -39,14 +39,14 @@ use Doctrine\ORM\Mapping as ORM;
             security: "is_granted('ROLE_USER') and object.owner == user.licensee",
             denormalizationContext: ['groups' => ['arrow:write']]
         ),
-        new Delete(security: "is_granted('ROLE_USER') and object.owner == user.licensee")
+        new Delete(security: "is_granted('ROLE_USER') and object.owner == user.licensee"),
     ],
     provider: ArrowProvider::class,
     processor: ArrowProcessor::class
 )]
 #[ApiResource(
     uriTemplate: '/licensees/{licenseeId}/arrows/{id}',
-    operations: [ new Get() ],
+    operations: [new Get()],
     uriVariables: [
         'licenseeId' => new Link(toProperty: 'owner', fromClass: Licensee::class),
         'id' => new Link(fromClass: Arrow::class),
@@ -54,7 +54,7 @@ use Doctrine\ORM\Mapping as ORM;
 )]
 #[ApiResource(
     uriTemplate: '/licensees/{licenseeId}/arrows',
-    operations: [ new GetCollection() ],
+    operations: [new GetCollection()],
     uriVariables: [
         'licenseeId' => new Link(toProperty: 'owner', fromClass: Licensee::class),
     ]

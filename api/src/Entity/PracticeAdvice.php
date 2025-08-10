@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
@@ -19,7 +19,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ApiResource]
 #[ApiResource(
     uriTemplate: '/licensees/{licenseeId}/practice-advices/{id}',
-    operations: [ new Get() ],
+    operations: [new Get()],
     uriVariables: [
         'licenseeId' => new Link(toProperty: 'licensee', fromClass: Licensee::class),
         'id' => new Link(fromClass: PracticeAdvice::class),
@@ -27,7 +27,7 @@ use Doctrine\ORM\Mapping as ORM;
 )]
 #[ApiResource(
     uriTemplate: '/licensees/{licenseeId}/practice-advices',
-    operations: [ new GetCollection() ],
+    operations: [new GetCollection()],
     uriVariables: [
         'licenseeId' => new Link(toProperty: 'licensee', fromClass: Licensee::class),
     ]

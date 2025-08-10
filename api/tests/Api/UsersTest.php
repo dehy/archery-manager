@@ -10,7 +10,8 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 
 class UsersTest extends ApiTestCase
 {
-    use ResetDatabase, Factories;
+    use ResetDatabase;
+    use Factories;
 
     public function testGetCollection(): void
     {
@@ -50,8 +51,8 @@ class UsersTest extends ApiTestCase
                 'password' => 'p4ssw0rd',
             ],
             'headers' => [
-                'content-type' => 'application/ld+json; charset=utf-8'
-            ]
+                'content-type' => 'application/ld+json; charset=utf-8',
+            ],
         ]);
 
         $this->assertResponseStatusCodeSame(201);
@@ -74,8 +75,8 @@ class UsersTest extends ApiTestCase
                 'email' => 'user@company',
             ],
             'headers' => [
-                'content-type' => 'application/ld+json; charset=utf-8'
-            ]
+                'content-type' => 'application/ld+json; charset=utf-8',
+            ],
         ]);
 
         $this->assertResponseStatusCodeSame(422);
@@ -106,7 +107,7 @@ familyName: This value should not be blank.',
             ],
             'headers' => [
                 'Content-Type' => 'application/merge-patch+json',
-            ]
+            ],
         ]);
 
         $this->assertResponseIsSuccessful();

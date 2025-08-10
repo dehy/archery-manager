@@ -30,9 +30,10 @@ final readonly class UserProcessor implements ProcessorInterface
                 $data->setPassword($hashedPassword);
                 $data->eraseCredentials(); // Clear plain password
             }
-            
+
             $this->entityManager->persist($data);
             $this->entityManager->flush();
+
             return $data;
         }
 
@@ -43,14 +44,16 @@ final readonly class UserProcessor implements ProcessorInterface
                 $data->setPassword($hashedPassword);
                 $data->eraseCredentials(); // Clear plain password
             }
-            
+
             $this->entityManager->flush();
+
             return $data;
         }
 
         if ($operation instanceof \ApiPlatform\Metadata\Delete) {
             $this->entityManager->remove($data);
             $this->entityManager->flush();
+
             return null;
         }
 
