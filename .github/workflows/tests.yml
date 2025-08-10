@@ -92,6 +92,10 @@ jobs:
       working-directory: ./api
       run: composer install --prefer-dist --no-progress
 
+    - name: 🧪 Install PHPUnit
+      working-directory: ./api
+      run: vendor/bin/simple-phpunit --version
+
     - name: 🔍 Run PHPStan
       working-directory: ./api
       run: vendor/bin/phpstan analyse src tests --level=1
