@@ -6,7 +6,7 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
-use App\Helper\ObjectComparator;
+use App\Tool\ObjectComparator;
 use App\Helper\SyncReturnValues;
 use App\Type\LicenseActivityType;
 use App\Type\LicenseAgeCategoryType;
@@ -63,7 +63,7 @@ class License
 
     public function mergeWith(self $license): SyncReturnValues
     {
-        $syncResult = ObjectComparator::equal($this, $license) ? SyncReturnValues::UNTOUCHED : SyncReturnValues::UPDATED;
+    $syncResult = ObjectComparator::equal($this, $license) ? SyncReturnValues::UNTOUCHED : SyncReturnValues::UPDATED;
 
         $this->activities = $license->activities;
         $this->ageCategory = $license->ageCategory;
