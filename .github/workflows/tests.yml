@@ -111,6 +111,10 @@ jobs:
       working-directory: ./api
       run: composer install --prefer-dist --no-progress --optimize-autoloader
 
+    - name: 🧪 Install PHPUnit files
+      working-directory: ./api
+      run: vendor/bin/simple-phpunit --version
+
     - name: 🔍 Run PHPStan static analysis
       working-directory: ./api
       run: vendor/bin/phpstan analyse src tests --level=2
