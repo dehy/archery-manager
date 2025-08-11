@@ -212,17 +212,6 @@ jobs:
         name: frontend-reports
         path: pwa/
 
-    - name: 🟢 Setup Node.js for SonarQube
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'pnpm'
-        cache-dependency-path: pwa/pnpm-lock.yaml
-
-    - name: 📦 Install PWA dependencies
-      working-directory: ./pwa
-      run: pnpm install --frozen-lockfile
-
     - name: 🔍 SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:
@@ -251,7 +240,7 @@ jobs:
       run: npm ci
 
     - name: 🐳 Start application stack
-      run: docker-compose up -d --wait
+      run: docker compose up -d --wait
 
     - name: 🎭 Run Playwright tests
       working-directory: ./e2e
@@ -269,7 +258,7 @@ jobs:
 
     - name: 🐳 Stop application stack
       if: always()
-      run: docker-compose down
+      run: docker compose down
 
   deployment-check:
     name: 🚀 Deployment Check
@@ -283,7 +272,7 @@ jobs:
 
     - name: 🐳 Build Docker images
       run: |
-        docker-compose -f compose.yaml -f compose.prod.yaml build
+        docker compose -f compose.yaml -f compose.prod.yaml build
 
     - name: ✅ Deployment ready
       run: echo "🎉 All checks passed! Ready for deployment."
