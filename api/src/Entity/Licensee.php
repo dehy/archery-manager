@@ -15,10 +15,10 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use App\Tool\ObjectComparator;
 use App\Helper\SyncReturnValues;
 use App\State\LicenseeProcessor;
 use App\State\LicenseeProvider;
+use App\Tool\ObjectComparator;
 use App\Type\GenderType;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -197,7 +197,7 @@ class Licensee implements \Stringable
 
     public function mergeWith(self $licensee): SyncReturnValues
     {
-    $syncResult = ObjectComparator::equal($this, $licensee) ? SyncReturnValues::UNTOUCHED : SyncReturnValues::UPDATED;
+        $syncResult = ObjectComparator::equal($this, $licensee) ? SyncReturnValues::UNTOUCHED : SyncReturnValues::UPDATED;
 
         $this->gender = $licensee->gender;
         $this->familyName = $licensee->familyName;

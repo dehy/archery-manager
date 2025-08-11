@@ -11,7 +11,7 @@ class EnumTest extends TestCase
      */
     public function testEnumCases(string $enumClass, array $expectedCases): void
     {
-        $cases = array_map(fn($c) => $c->value, $enumClass::cases());
+        $cases = array_map(fn ($c) => $c->value, $enumClass::cases());
         $this->assertEqualsCanonicalizing($expectedCases, $cases);
     }
 

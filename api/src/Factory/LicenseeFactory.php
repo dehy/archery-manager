@@ -3,7 +3,6 @@
 namespace App\Factory;
 
 use App\Entity\Licensee;
-use App\Factory\UserFactory;
 use App\Type\GenderType;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
