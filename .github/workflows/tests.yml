@@ -155,12 +155,8 @@ jobs:
 
     - name: 🔍 Run TypeScript checks
       working-directory: ./pwa
-      run: |
-        if [ -f "tsconfig.json" ]; then
-          pnpm run type-check
-        else
-          echo "No TypeScript configuration found, skipping type check"
-        fi
+      run: pnpm run type-check
+
 
     - name: 🎨 Run linting
       working-directory: ./pwa
