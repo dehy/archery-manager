@@ -19,20 +19,20 @@ class EnumTest extends TestCase
     {
         return [
             [\App\Type\ArrowType::class, ['wood', 'aluminum', 'carbon', 'aluminum_carbon']],
-            [\App\Type\BowType::class, ['recurve', 'compound', 'barebow', 'longbow']],
-            [\App\Type\ContestType::class, ['individual', 'team', 'mixed_team']],
+            [\App\Type\BowType::class, ['recurve', 'compound', 'traditional', 'barebow']],
+            [\App\Type\ContestType::class, ['federal', 'international', 'challenge33', 'individual', 'team']],
             [\App\Type\DisciplineType::class, ['target', 'indoor', 'field', 'nature', '3d', 'para', 'run']],
-            [\App\Type\EventParticipationStateType::class, ['registered', 'checked_in', 'absent', 'disqualified', 'finished']],
-            [\App\Type\EventStatusType::class, ['scheduled', 'ongoing', 'completed', 'cancelled']],
-            [\App\Type\FletchingType::class, ['plastic', 'feather']],
+            [\App\Type\EventParticipationStateType::class, ['not_going', 'interested', 'registered']],
+            [\App\Type\EventStatusType::class, ['cancelled', 'postponed', 'rescheduled', 'scheduled']],
+            [\App\Type\FletchingType::class, ['plastic', 'spinwings']],
             [\App\Type\GenderType::class, ['male', 'female', 'other']],
-            [\App\Type\LicenseActivityType::class, ['competition', 'leisure', 'training']],
-            [\App\Type\LicenseAgeCategoryType::class, ['junior', 'senior', 'veteran']],
-            [\App\Type\LicenseCategoryType::class, ['adult', 'youth', 'para']],
-            [\App\Type\LicenseType::class, ['annual', 'temporary', 'guest']],
+            [\App\Type\LicenseActivityType::class, ['AC', 'AD', 'BB', 'CL', 'CO', 'TL']],
+            [\App\Type\LicenseAgeCategoryType::class, ['S1', 'S2', 'S3', 'U11', 'U13', 'U15', 'U18', 'U21', 'P', 'B', 'M', 'C', 'J', 'S', 'V', 'SV']],
+            [\App\Type\LicenseCategoryType::class, ['P', 'J', 'A']],
+            [\App\Type\LicenseType::class, ['P', 'J', 'A', 'L', 'E', 'S', 'U', 'H', 'D']],
             [\App\Type\PracticeLevelType::class, ['beginner', 'intermediate', 'advanced']],
-            [\App\Type\SportType::class, ['archery', 'crossbow']],
-            [\App\Type\TargetTypeType::class, ['standard', '3d', 'field']],
+            [\App\Type\SportType::class, ['archery']],
+            [\App\Type\TargetTypeType::class, ['monospot', 'trispot', 'field', 'animal', 'beursault']],
         ];
     }
 }
