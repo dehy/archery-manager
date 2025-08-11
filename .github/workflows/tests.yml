@@ -113,21 +113,11 @@ jobs:
 
     - name: 🔍 Run PHPStan static analysis
       working-directory: ./api
-      run: |
-        vendor/bin/phpstan analyse src tests --level=2 --error-format=checkstyle --no-progress > phpstan-report.xml || true
+      run: vendor/bin/phpstan analyse src tests --level=2
 
     - name: 🎨 Check coding standards
       working-directory: ./api
-      run: vendor/bin/php-cs-fixer fix --dry-run --diff --format=checkstyle > php-cs-fixer-report.xml || true
-
-    - name: 📦 Upload code quality artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: code-quality-reports
-        path: |
-          api/phpstan-report.xml
-          api/php-cs-fixer-report.xml
-        retention-days: 1
+      run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
   frontend-tests:
     name: 🌐 Frontend Tests
@@ -178,13 +168,12 @@ jobs:
         name: frontend-reports
         path: |
           pwa/coverage/
-          pwa/lint-results.xml
         retention-days: 1
 
   sonarqube:
     name: 📊 SonarQube Analysis
     runs-on: ubuntu-latest
-    needs: [unit-tests, code-quality, frontend-tests]
+    needs: [unit-tests, frontend-tests]
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
 
     steps:
@@ -197,12 +186,6 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: test-reports
-        path: api/
-
-    - name: 📦 Download code quality artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: code-quality-reports
         path: api/
 
     - name: 📦 Download frontend artifacts
