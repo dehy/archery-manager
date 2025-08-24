@@ -1,0 +1,17 @@
+lexik_jwt_authentication:
+    secret_key: '%env(resolve:JWT_SECRET_KEY)%'
+    public_key: '%env(resolve:JWT_PUBLIC_KEY)%'
+    pass_phrase: '%env(JWT_PASSPHRASE)%'
+    token_ttl: 3600 # 1 hour
+    
+    # Optional settings
+    clock_skew: 60
+    
+    # Token extractors - where to look for the token
+    token_extractors:
+        authorization_header:
+            enabled: true
+            prefix: Bearer
+            name: Authorization
+        query_parameter:
+            enabled: false

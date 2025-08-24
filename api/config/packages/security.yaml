@@ -12,21 +12,33 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        main:
-            lazy: true
+        
+        login:
+            pattern: ^/login
+            stateless: true
+            json_login:
+                check_path: /login
+                username_path: email
+                password_path: password
+                success_handler: App\Security\JWTAuthenticationSuccessHandler
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        
+        api:
+            pattern: ^/
+            stateless: true
             provider: users
-
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+            jwt: ~
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/verify-email, roles: PUBLIC_ACCESS }
+        - { path: ^/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/contexts, roles: PUBLIC_ACCESS }
+        - { path: ^/$, roles: PUBLIC_ACCESS }
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:
