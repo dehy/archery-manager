@@ -46,7 +46,7 @@ class Club implements \Stringable
 {
     #[ORM\Id]
     #[ORM\Column(type: 'integer')]
-    #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
     #[ApiProperty(types: ['https://schema.org/identifier'])]
     private ?int $id = null;
 

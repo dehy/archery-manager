@@ -62,7 +62,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Arrow
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
     #[ORM\Column(type: Types::INTEGER)]
     #[ApiProperty(types: ['https://schema.org/identifier'])]
     private ?int $id = null;

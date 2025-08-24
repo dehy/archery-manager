@@ -29,7 +29,7 @@ class License
 {
     #[ORM\Id]
     #[ORM\Column]
-    #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
     #[ApiProperty(types: ['https://schema.org/identifier'])]
     private ?int $id = null;
 

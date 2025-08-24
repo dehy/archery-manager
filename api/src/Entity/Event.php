@@ -63,7 +63,7 @@ class Event implements \Stringable
 {
     #[ORM\Id]
     #[ORM\Column(type: Types::INTEGER)]
-    #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
     #[ApiProperty(types: ['https://schema.org/identifier'])]
     #[Groups(['event:read', 'event:list'])]
     private ?int $id = null;
