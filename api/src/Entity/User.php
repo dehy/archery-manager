@@ -119,6 +119,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public iterable $licensees;
 
     #[ORM\Column]
+    #[Groups(['user:read', 'user:list'])]
     public bool $isVerified = false;
 
     #[ORM\Column(nullable: true)]

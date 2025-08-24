@@ -9,6 +9,11 @@ api_platform:
         stateless: true
         cache_headers:
             vary: ['Content-Type', 'Authorization', 'Origin']
+
+    mapping:
+        paths:
+            - '%kernel.project_dir%/src/Entity'
+            - '%kernel.project_dir%/src/Dto'
 #    resource_class_directories:
 #        - '%kernel.project_dir%/src/Entity'
 #        - '%kernel.project_dir%/src/Type'
@@ -19,3 +24,8 @@ api_platform:
                 type: header
         # New in 4.1: Persist authorization across page refreshes
         persist_authorization: true
+    
+    # Enhanced OpenAPI settings
+    openapi:
+        # Better error documentation
+        overrideResponses: false
