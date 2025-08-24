@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Dto\UserRegistration;
 use App\Entity\User;
+use App\Service\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -22,6 +23,7 @@ final readonly class UserRegistrationProcessor implements ProcessorInterface
         private EntityManagerInterface $entityManager,
         private UserPasswordHasherInterface $passwordHasher,
         private ValidatorInterface $validator,
+        private EmailService $emailService,
     ) {
     }
 
@@ -65,8 +67,8 @@ final readonly class UserRegistrationProcessor implements ProcessorInterface
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        // TODO: Send verification email
-        // This will be implemented next
+        // Send verification email
+        $this->emailService->sendEmailVerification($user);
         
         return $user;
     }
