@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Email;
 
-use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Entity\User;
+use App\Tests\AbstractApiTestCase;
 
-class EmailIntegrationTest extends ApiTestCase
+class EmailIntegrationTest extends AbstractApiTestCase
 {
     public function testUserRegistrationSendsVerificationEmail(): void
     {
-        // Arrange
+        // Arrange - use unique email to avoid conflicts
         $uniqueEmail = 'emailintegration' . time() . '@example.com';
         $userData = [
             'email' => $uniqueEmail,
@@ -34,6 +34,15 @@ class EmailIntegrationTest extends ApiTestCase
 
         // Assert response
         $this->assertResponseStatusCodeSame(201);
+        $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
+
+        $this->assertJsonContains([
+            'email' => $uniqueEmail,
+            'givenName' => 'John',
+            'familyName' => 'Doe',
+            'gender' => 'male',
+            'isVerified' => false,
+        ]);
 
         // Verify that the user was created with a verification token
         $entityManager = self::getContainer()->get('doctrine.orm.entity_manager');

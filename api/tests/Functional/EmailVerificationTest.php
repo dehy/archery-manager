@@ -4,34 +4,17 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional;
 
-use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Entity\User;
+use App\Factory\UserFactory;
+use App\Tests\AbstractApiTestCase;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Zenstruck\Foundry\Test\Factories;
+use Zenstruck\Foundry\Test\ResetDatabase;
 
-class EmailVerificationTest extends ApiTestCase
+class EmailVerificationTest extends AbstractApiTestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        
-        // Clean up existing users before each test
-        $container = static::getContainer();
-        $entityManager = $container->get('doctrine')->getManager();
-        
-        $userRepository = $entityManager->getRepository(User::class);
-        $users = $userRepository->findAll();
-        
-        foreach ($users as $user) {
-            $entityManager->remove($user);
-        }
-        
-        $entityManager->flush();
-    }
+    use ResetDatabase, Factories;
 
-    /**
-     * @throws TransportExceptionInterface
-     */
     public function testUserRegistrationGeneratesVerificationToken(): void
     {
         $client = self::createClient();
@@ -65,9 +48,6 @@ class EmailVerificationTest extends ApiTestCase
         $this->assertGreaterThan(new \DateTimeImmutable(), $user->getEmailVerificationTokenExpiresAt());
     }
 
-    /**
-     * @throws TransportExceptionInterface
-     */
     public function testEmailVerificationWithValidToken(): void
     {
         $client = self::createClient();
@@ -86,6 +66,8 @@ class EmailVerificationTest extends ApiTestCase
             ]
         ]);
 
+        $this->assertResponseStatusCodeSame(201);
+
         // Get the user and token from database
         $userRepository = self::getContainer()->get('doctrine')->getRepository(User::class);
         $user = $userRepository->findOneBy(['email' => 'verify@example.com']);
@@ -101,11 +83,13 @@ class EmailVerificationTest extends ApiTestCase
             ]
         ]);
 
-        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
         
-        $data = $response->toArray();
-        $this->assertTrue($data['verified']);
-        $this->assertEquals('Email verified successfully', $data['message']);
+        $this->assertJsonContains([
+            'verified' => true,
+            'message' => 'Email verified successfully',
+        ]);
 
         // Verify user is now verified in database
         $userRepository = self::getContainer()->get('doctrine')->getRepository(User::class);
@@ -115,14 +99,11 @@ class EmailVerificationTest extends ApiTestCase
         $this->assertNull($verifiedUser->getEmailVerificationTokenExpiresAt());
     }
 
-    /**
-     * @throws TransportExceptionInterface
-     */
     public function testEmailVerificationWithInvalidToken(): void
     {
         $client = self::createClient();
 
-        $response = $client->request('POST', '/verify-email', [
+        $client->request('POST', '/verify-email', [
             'json' => [
                 'token' => 'invalid-token-12345'
             ],
@@ -131,10 +112,12 @@ class EmailVerificationTest extends ApiTestCase
             ]
         ]);
 
-        $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+        $this->assertResponseStatusCodeSame(422);
         
-        $data = $response->toArray(false);
-        $this->assertStringContainsString('Invalid or expired verification token', $data['detail']);
+        $this->assertJsonContains([
+            '@type' => 'Error',
+            'status' => 422,
+        ]);
     }
 
     /**

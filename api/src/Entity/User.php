@@ -56,7 +56,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\Column(type: Types::INTEGER)]
-    #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
     #[ApiProperty(types: ['https://schema.org/identifier'])]
     #[Groups(['user:read', 'user:list'])]
     private ?int $id = null;

@@ -32,6 +32,12 @@ when@test:
         dbal:
             # "TEST_TOKEN" is typically set by ParaTest
             dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+            # Use SQLite for testing to avoid database setup issues
+            url: 'sqlite:///%kernel.project_dir%/var/test.db'
+        orm:
+            # Configure ID generation for SQLite compatibility
+            identity_generation_preferences:
+                Doctrine\DBAL\Platforms\SqlitePlatform: identity
 
 when@prod:
     doctrine:
