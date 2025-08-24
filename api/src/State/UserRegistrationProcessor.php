@@ -54,6 +54,9 @@ final readonly class UserRegistrationProcessor implements ProcessorInterface
         $user->telephone = $data->telephone;
         $user->isVerified = false; // User starts unverified
 
+        // Generate email verification token
+        $user->generateEmailVerificationToken();
+
         // Hash the password
         $hashedPassword = $this->passwordHasher->hashPassword($user, $data->password);
         $user->setPassword($hashedPassword);

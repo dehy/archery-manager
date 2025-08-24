@@ -122,6 +122,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read', 'user:list'])]
     public bool $isVerified = false;
 
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $emailVerificationToken = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $emailVerificationTokenExpiresAt = null;
+
     #[ORM\Column(nullable: true)]
     public ?string $discordId = null;
 
@@ -251,5 +257,48 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return null;
+    }
+
+    public function getEmailVerificationToken(): ?string
+    {
+        return $this->emailVerificationToken;
+    }
+
+    public function setEmailVerificationToken(?string $emailVerificationToken): self
+    {
+        $this->emailVerificationToken = $emailVerificationToken;
+        return $this;
+    }
+
+    public function getEmailVerificationTokenExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->emailVerificationTokenExpiresAt;
+    }
+
+    public function setEmailVerificationTokenExpiresAt(?\DateTimeImmutable $emailVerificationTokenExpiresAt): self
+    {
+        $this->emailVerificationTokenExpiresAt = $emailVerificationTokenExpiresAt;
+        return $this;
+    }
+
+    public function generateEmailVerificationToken(): self
+    {
+        $this->emailVerificationToken = bin2hex(random_bytes(32));
+        $this->emailVerificationTokenExpiresAt = new \DateTimeImmutable('+24 hours');
+        return $this;
+    }
+
+    public function isEmailVerificationTokenValid(): bool
+    {
+        return $this->emailVerificationToken !== null 
+            && $this->emailVerificationTokenExpiresAt !== null
+            && $this->emailVerificationTokenExpiresAt > new \DateTimeImmutable();
+    }
+
+    public function clearEmailVerificationToken(): self
+    {
+        $this->emailVerificationToken = null;
+        $this->emailVerificationTokenExpiresAt = null;
+        return $this;
     }
 }
