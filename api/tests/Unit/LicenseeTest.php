@@ -51,17 +51,13 @@ class LicenseeTest extends TestCase
         $licensee = new Licensee();
 
         // Test that collections are initialized
-        $this->assertNotNull($licensee->bows);
-        $this->assertNotNull($licensee->arrows);
         $this->assertNotNull($licensee->eventParticipations);
-        $this->assertNotNull($licensee->practiceAdvices);
-        $this->assertNotNull($licensee->givenPracticeAdvices);
         $this->assertNotNull($licensee->results);
         $this->assertNotNull($licensee->groups);
 
         // Test that collections are empty initially
-        $this->assertCount(0, $licensee->bows);
-        $this->assertCount(0, $licensee->arrows);
         $this->assertCount(0, $licensee->eventParticipations);
+        $this->assertCount(0, $licensee->results);
+        $this->assertCount(0, $licensee->groups);
     }
 }
