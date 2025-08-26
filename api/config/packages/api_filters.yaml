@@ -47,26 +47,3 @@ services:
         parent: 'api_platform.doctrine.orm.order_filter'
         arguments: [ { name: ~ } ]
         tags: [ 'api_platform.filter' ]
-
-    # Arrow filters
-    arrow.search_filter:
-        parent: 'api_platform.doctrine.orm.search_filter'
-        arguments: [ { type: 'exact', owner: 'exact' } ]
-        tags: [ 'api_platform.filter' ]
-
-    # Bow filters
-    bow.search_filter:
-        parent: 'api_platform.doctrine.orm.search_filter'
-        arguments: [ { type: 'exact', owner: 'exact', brand: 'partial' } ]
-        tags: [ 'api_platform.filter' ]
-
-    # Applicant filters
-    applicant.search_filter:
-        parent: 'api_platform.doctrine.orm.search_filter'
-        arguments: [ { email: 'partial', familyName: 'partial', givenName: 'partial' } ]
-        tags: [ 'api_platform.filter' ]
-
-    applicant.date_filter:
-        parent: 'api_platform.doctrine.orm.date_filter'
-        arguments: [ { applicationDate: ~ } ]
-        tags: [ 'api_platform.filter' ]

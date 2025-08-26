@@ -104,20 +104,8 @@ class Licensee implements \Stringable
     #[ORM\OneToMany(mappedBy: 'licensee', targetEntity: License::class, cascade: ['persist'], orphanRemoval: true)]
     public Collection $licenses;
 
-    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Bow::class, cascade: ['persist'], orphanRemoval: true)]
-    public Collection $bows;
-
-    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Arrow::class, cascade: ['persist'], orphanRemoval: true)]
-    public Collection $arrows;
-
     #[ORM\OneToMany(mappedBy: 'participant', targetEntity: EventParticipation::class, cascade: ['persist'], orphanRemoval: true)]
     public Collection $eventParticipations;
-
-    #[ORM\OneToMany(mappedBy: 'licensee', targetEntity: PracticeAdvice::class, cascade: ['persist'], orphanRemoval: true)]
-    public Collection $practiceAdvices;
-
-    #[ORM\OneToMany(mappedBy: 'author', targetEntity: PracticeAdvice::class, cascade: ['persist'], orphanRemoval: true)]
-    public Collection $givenPracticeAdvices;
 
     #[ORM\OneToMany(mappedBy: 'licensee', targetEntity: Result::class, cascade: ['persist'], orphanRemoval: true)]
     public Collection $results;
@@ -134,11 +122,7 @@ class Licensee implements \Stringable
         $this->user = new User();
         $this->birthDate = new \DateTime();
         $this->licenses = new ArrayCollection();
-        $this->bows = new ArrayCollection();
-        $this->arrows = new ArrayCollection();
         $this->eventParticipations = new ArrayCollection();
-        $this->practiceAdvices = new ArrayCollection();
-        $this->givenPracticeAdvices = new ArrayCollection();
         $this->results = new ArrayCollection();
         $this->groups = new ArrayCollection();
         $this->updatedAt = new \DateTimeImmutable();
