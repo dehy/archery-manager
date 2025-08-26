@@ -51,10 +51,21 @@ jobs:
       working-directory: ./api
       run: composer install --prefer-dist --no-progress --optimize-autoloader
 
+    - name: 🔐 Generate JWT keys
+      working-directory: ./api
+      env:
+        JWT_PASSPHRASE: changeme
+      run: |
+        mkdir -p config/jwt
+        php bin/console lexik:jwt:generate-keypair --skip-if-exists
+
     - name: 🔧 Setup test environment
       working-directory: ./api
       env:
         DATABASE_URL: postgresql://test:test@127.0.0.1:5432/test?serverVersion=16&charset=utf8
+        JWT_SECRET_KEY: '%kernel.project_dir%/config/jwt/private.pem'
+        JWT_PUBLIC_KEY: '%kernel.project_dir%/config/jwt/public.pem'
+        JWT_PASSPHRASE: changeme
       run: |
         php bin/console doctrine:migrations:migrate --no-interaction --env=test
 
@@ -62,6 +73,9 @@ jobs:
       working-directory: ./api
       env:
         DATABASE_URL: postgresql://test:test@127.0.0.1:5432/test?serverVersion=16&charset=utf8
+        JWT_SECRET_KEY: '%kernel.project_dir%/config/jwt/private.pem'
+        JWT_PUBLIC_KEY: '%kernel.project_dir%/config/jwt/public.pem'
+        JWT_PASSPHRASE: changeme
       run: |
         vendor/bin/simple-phpunit --coverage-clover coverage.xml --coverage-xml coverage-xml --log-junit phpunit-report.xml
 
@@ -109,6 +123,14 @@ jobs:
     - name: 🔽 Install PHP dependencies
       working-directory: ./api
       run: composer install --prefer-dist --no-progress --optimize-autoloader
+
+    - name: 🔐 Generate JWT keys
+      working-directory: ./api
+      env:
+        JWT_PASSPHRASE: changeme
+      run: |
+        mkdir -p config/jwt
+        php bin/console lexik:jwt:generate-keypair --skip-if-exists
 
     - name: 🧪 Install PHPUnit files
       working-directory: ./api
