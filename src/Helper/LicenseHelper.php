@@ -132,6 +132,12 @@ class LicenseHelper
     public function ageCategoryForBirthdate(
         \DateTimeInterface $birthdate,
     ): string {
+        // Validate that birthdate is not in the future
+        $today = new \DateTimeImmutable();
+        if ($birthdate > $today) {
+            throw new \LogicException(\sprintf('Birthdate cannot be in the future. %s given', $birthdate->format('Y-m-d')));
+        }
+
         $mapping = $this->mappingSeason[$this->seasonHelper->getSelectedSeason()];
 
         foreach ($mapping as $dateKey => $ageCategory) {

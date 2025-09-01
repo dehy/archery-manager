@@ -172,8 +172,23 @@ final class LicenseHelperTest extends TestCase
         $this->assertSame(LicenseCategoryType::ADULTES, $categoryType);
     }
 
-    // Note: The mapping is designed to handle all possible birthdates,
-    // so the LogicException in ageCategoryForBirthdate should never be thrown in practice.
+    public function testAgeCategoryForBirthdateThrowsExceptionForFutureDate(): void
+    {
+        $this->seasonHelper
+            ->method('getSelectedSeason')
+            ->willReturn(2025);
+
+        // Test with a future birthdate (should throw exception)
+        $birthdate = new \DateTimeImmutable('2030-01-01');
+        
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Birthdate cannot be in the future. 2030-01-01 given');
+
+        $this->licenseHelper->ageCategoryForBirthdate($birthdate);
+    }
+
+    // Note: The mapping is designed to handle all reasonable past birthdates.
+    // Future dates are rejected with validation, past dates should always find a category.
     // This is by design - every person should have an age category.
     
     /**
