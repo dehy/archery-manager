@@ -43,7 +43,9 @@ readonly class EmailHelper
 
     public function sendLicenseesSyncResults(array $toEmails, array $syncResults): void
     {
-        $count = \count($syncResults[SyncReturnValues::CREATED->value] + $syncResults[SyncReturnValues::UPDATED->value] + $syncResults[SyncReturnValues::REMOVED->value]);
+        $count = \count($syncResults[SyncReturnValues::CREATED->value]) 
+               + \count($syncResults[SyncReturnValues::UPDATED->value]) 
+               + \count($syncResults[SyncReturnValues::REMOVED->value]);
         $added = $this->licenseeRepository->findBy(['fftaId' => $syncResults[SyncReturnValues::CREATED->value]]);
         $updated = $this->licenseeRepository->findBy(['fftaId' => $syncResults[SyncReturnValues::UPDATED->value]]);
 
