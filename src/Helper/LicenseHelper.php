@@ -18,13 +18,13 @@ class LicenseHelper
     protected array $mappingSeason = [
         2023 => [
             '<1964-01-01' => LicenseAgeCategoryType::SENIOR_3,
-            '>1964-01-01_<1983-12-31' => LicenseAgeCategoryType::SENIOR_2,
-            '>1984-01-01_<2002-12-31' => LicenseAgeCategoryType::SENIOR_1,
-            '>2003-01-01_<2005-12-31' => LicenseAgeCategoryType::U21,
-            '>2006-01-01_<2008-12-31' => LicenseAgeCategoryType::U18,
-            '>2009-01-01_<2010-12-31' => LicenseAgeCategoryType::U15,
-            '>2011-01-01_<2012-12-31' => LicenseAgeCategoryType::U13,
-            '>2013-01-01' => LicenseAgeCategoryType::U11,
+            '>=1964-01-01_<=1983-12-31' => LicenseAgeCategoryType::SENIOR_2,
+            '>=1984-01-01_<=2002-12-31' => LicenseAgeCategoryType::SENIOR_1,
+            '>=2003-01-01_<=2005-12-31' => LicenseAgeCategoryType::U21,
+            '>=2006-01-01_<=2008-12-31' => LicenseAgeCategoryType::U18,
+            '>=2009-01-01_<=2010-12-31' => LicenseAgeCategoryType::U15,
+            '>=2011-01-01_<=2012-12-31' => LicenseAgeCategoryType::U13,
+            '>=2013-01-01' => LicenseAgeCategoryType::U11,
         ],
         2024 => [
             '<1965-01-01' => LicenseAgeCategoryType::SENIOR_3,
@@ -34,17 +34,17 @@ class LicenseHelper
             '>=2007-01-01_<=2009-12-31' => LicenseAgeCategoryType::U18,
             '>=2010-01-01_<=2011-12-31' => LicenseAgeCategoryType::U15,
             '>=2012-01-01_<=2013-12-31' => LicenseAgeCategoryType::U13,
-            '>2013-12-31' => LicenseAgeCategoryType::U11,
+            '>=2014-01-01' => LicenseAgeCategoryType::U11,
         ],
         2025 => [
             '<1966-01-01' => LicenseAgeCategoryType::SENIOR_3,
-            '>1966-01-01_<1985-12-31' => LicenseAgeCategoryType::SENIOR_2,
-            '>1986-01-01_<2004-12-31' => LicenseAgeCategoryType::SENIOR_1,
-            '>2005-01-01_<2007-12-31' => LicenseAgeCategoryType::U21,
-            '>2008-01-01_<2010-12-31' => LicenseAgeCategoryType::U18,
-            '>2011-01-01_<2012-12-31' => LicenseAgeCategoryType::U15,
-            '>2013-01-01_<2014-12-31' => LicenseAgeCategoryType::U13,
-            '>2015-01-01' => LicenseAgeCategoryType::U11,
+            '>=1966-01-01_<=1985-12-31' => LicenseAgeCategoryType::SENIOR_2,
+            '>=1986-01-01_<=2004-12-31' => LicenseAgeCategoryType::SENIOR_1,
+            '>=2005-01-01_<=2007-12-31' => LicenseAgeCategoryType::U21,
+            '>=2008-01-01_<=2010-12-31' => LicenseAgeCategoryType::U18,
+            '>=2011-01-01_<=2012-12-31' => LicenseAgeCategoryType::U15,
+            '>=2013-01-01_<=2014-12-31' => LicenseAgeCategoryType::U13,
+            '>=2015-01-01' => LicenseAgeCategoryType::U11,
         ],
     ];
 
@@ -144,19 +144,18 @@ class LicenseHelper
             $beforeInclusive = false;
             
             if (null === $rightPart || '' === $rightPart || '0' === $rightPart) {
-                $sign = substr($leftPart, 0, 1);
-                if ('>' === $sign) {
-                    $after = $this->dateTimeFromKeyPart($leftPart);
-                    $afterInclusive = false;
-                } elseif (str_starts_with($leftPart, '>=')) {
+                if (str_starts_with($leftPart, '>=')) {
                     $after = $this->dateTimeFromKeyPartInclusive($leftPart);
                     $afterInclusive = true;
-                } elseif ('<' === $sign) {
-                    $before = $this->dateTimeFromKeyPart($leftPart);
-                    $beforeInclusive = false;
                 } elseif (str_starts_with($leftPart, '<=')) {
                     $before = $this->dateTimeFromKeyPartInclusive($leftPart);
                     $beforeInclusive = true;
+                } elseif (str_starts_with($leftPart, '>')) {
+                    $after = $this->dateTimeFromKeyPart($leftPart);
+                    $afterInclusive = false;
+                } elseif (str_starts_with($leftPart, '<')) {
+                    $before = $this->dateTimeFromKeyPart($leftPart);
+                    $beforeInclusive = false;
                 }
             } else {
                 // Handle left part
@@ -193,17 +192,21 @@ class LicenseHelper
 
     private function dateTimeFromKeyPart(string $keyPart): \DateTimeImmutable
     {
-        return \DateTimeImmutable::createFromFormat(
+        $date = \DateTimeImmutable::createFromFormat(
             'Y-m-d',
             substr($keyPart, 1, 10),
         );
+        // Set time to start of day to avoid time comparison issues
+        return $date->setTime(0, 0, 0);
     }
 
     private function dateTimeFromKeyPartInclusive(string $keyPart): \DateTimeImmutable
     {
-        return \DateTimeImmutable::createFromFormat(
+        $date = \DateTimeImmutable::createFromFormat(
             'Y-m-d',
             substr($keyPart, 2, 10), // Skip ">=" or "<="
         );
+        // Set time to start of day to avoid time comparison issues
+        return $date->setTime(0, 0, 0);
     }
 }
