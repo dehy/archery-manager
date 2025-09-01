@@ -28,13 +28,13 @@ class LicenseHelper
         ],
         2024 => [
             '<1965-01-01' => LicenseAgeCategoryType::SENIOR_3,
-            '>1965-01-01_<1984-12-31' => LicenseAgeCategoryType::SENIOR_2,
-            '>1985-01-01_<2003-12-31' => LicenseAgeCategoryType::SENIOR_1,
-            '>2004-01-01_<2006-12-31' => LicenseAgeCategoryType::U21,
-            '>2007-01-01_<2009-12-31' => LicenseAgeCategoryType::U18,
-            '>2010-01-01_<2011-12-31' => LicenseAgeCategoryType::U15,
-            '>2012-01-01_<2013-12-31' => LicenseAgeCategoryType::U13,
-            '>2014-01-01' => LicenseAgeCategoryType::U11,
+            '>=1965-01-01_<=1984-12-31' => LicenseAgeCategoryType::SENIOR_2,
+            '>=1985-01-01_<=2003-12-31' => LicenseAgeCategoryType::SENIOR_1,
+            '>=2004-01-01_<=2006-12-31' => LicenseAgeCategoryType::U21,
+            '>=2007-01-01_<=2009-12-31' => LicenseAgeCategoryType::U18,
+            '>=2010-01-01_<=2011-12-31' => LicenseAgeCategoryType::U15,
+            '>=2012-01-01_<=2013-12-31' => LicenseAgeCategoryType::U13,
+            '>2013-12-31' => LicenseAgeCategoryType::U11,
         ],
         2025 => [
             '<1966-01-01' => LicenseAgeCategoryType::SENIOR_3,
@@ -140,24 +140,50 @@ class LicenseHelper
             $rightPart = $parts[1] ?? null;
             $after = null;
             $before = null;
+            $afterInclusive = false;
+            $beforeInclusive = false;
+            
             if (null === $rightPart || '' === $rightPart || '0' === $rightPart) {
                 $sign = substr($leftPart, 0, 1);
                 if ('>' === $sign) {
                     $after = $this->dateTimeFromKeyPart($leftPart);
-                }
-
-                if ('<' === $sign) {
+                    $afterInclusive = false;
+                } elseif (str_starts_with($leftPart, '>=')) {
+                    $after = $this->dateTimeFromKeyPartInclusive($leftPart);
+                    $afterInclusive = true;
+                } elseif ('<' === $sign) {
                     $before = $this->dateTimeFromKeyPart($leftPart);
+                    $beforeInclusive = false;
+                } elseif (str_starts_with($leftPart, '<=')) {
+                    $before = $this->dateTimeFromKeyPartInclusive($leftPart);
+                    $beforeInclusive = true;
                 }
             } else {
-                $after = $this->dateTimeFromKeyPart($leftPart);
-                $before = $this->dateTimeFromKeyPart($rightPart);
+                // Handle left part
+                if (str_starts_with($leftPart, '>=')) {
+                    $after = $this->dateTimeFromKeyPartInclusive($leftPart);
+                    $afterInclusive = true;
+                } else {
+                    $after = $this->dateTimeFromKeyPart($leftPart);
+                    $afterInclusive = false;
+                }
+                
+                // Handle right part  
+                if (str_starts_with($rightPart, '<=')) {
+                    $before = $this->dateTimeFromKeyPartInclusive($rightPart);
+                    $beforeInclusive = true;
+                } else {
+                    $before = $this->dateTimeFromKeyPart($rightPart);
+                    $beforeInclusive = false;
+                }
             }
 
-            if (
-                $birthdate > $after
-                && ($birthdate < $before || !$before instanceof \DateTimeImmutable)
-            ) {
+            $afterCheck = ($after === null) || 
+                         ($afterInclusive ? $birthdate >= $after : $birthdate > $after);
+            $beforeCheck = ($before === null) || 
+                          ($beforeInclusive ? $birthdate <= $before : $birthdate < $before);
+
+            if ($afterCheck && $beforeCheck) {
                 return $ageCategory;
             }
         }
@@ -170,6 +196,14 @@ class LicenseHelper
         return \DateTimeImmutable::createFromFormat(
             'Y-m-d',
             substr($keyPart, 1, 10),
+        );
+    }
+
+    private function dateTimeFromKeyPartInclusive(string $keyPart): \DateTimeImmutable
+    {
+        return \DateTimeImmutable::createFromFormat(
+            'Y-m-d',
+            substr($keyPart, 2, 10), // Skip ">=" or "<="
         );
     }
 }
