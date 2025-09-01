@@ -52,7 +52,7 @@ class Event implements \Stringable
     protected ?string $address = null;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\EventParticipation>
+     * @var Collection<int, EventParticipation>
      */
     #[
         ORM\OneToMany(
@@ -64,13 +64,13 @@ class Event implements \Stringable
     protected Collection $participations;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\EventAttachment>
+     * @var Collection<int, EventAttachment>
      */
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventAttachment::class)]
     protected Collection $attachments;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Group>
+     * @var Collection<int, Group>
      */
     #[ORM\ManyToMany(targetEntity: Group::class, inversedBy: 'events')]
     protected Collection $assignedGroups;

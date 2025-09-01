@@ -18,9 +18,12 @@ use Symfony\Component\Mime\Address;
 final class EmailHelperTest extends TestCase
 {
     private MailerInterface $mailer;
+
     private LicenseeRepository $licenseeRepository;
+
     private EmailHelper $emailHelper;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->mailer = $this->createMock(MailerInterface::class);
@@ -45,17 +48,17 @@ final class EmailHelperTest extends TestCase
         $this->mailer
             ->expects($this->once())
             ->method('send')
-            ->with($this->callback(function (TemplatedEmail $email) use ($licensee, $club) {
+            ->with($this->callback(function (TemplatedEmail $email) use ($licensee, $club): bool {
                 $toAddresses = $email->getTo();
                 $replyToAddresses = $email->getReplyTo();
                 $context = $email->getContext();
 
-                return count($toAddresses) === 1
-                    && $toAddresses[0]->getAddress() === 'licensee@example.com'
-                    && count($replyToAddresses) === 1
-                    && $replyToAddresses[0]->getAddress() === 'contact@archeryclub.com'
-                    && $email->getSubject() === 'Test Archery Club - Bienvenue'
-                    && $email->getHtmlTemplate() === 'licensee/mail_account_created.html.twig'
+                return 1 === \count($toAddresses)
+                    && 'licensee@example.com' === $toAddresses[0]->getAddress()
+                    && 1 === \count($replyToAddresses)
+                    && 'contact@archeryclub.com' === $replyToAddresses[0]->getAddress()
+                    && 'Test Archery Club - Bienvenue' === $email->getSubject()
+                    && 'licensee/mail_account_created.html.twig' === $email->getHtmlTemplate()
                     && $context['licensee'] === $licensee
                     && $context['club'] === $club;
             }));
@@ -87,39 +90,45 @@ final class EmailHelperTest extends TestCase
         $addedLicensee1 = $this->createMock(Licensee::class);
         $addedLicensee2 = $this->createMock(Licensee::class);
         $updatedLicensee = $this->createMock(Licensee::class);
+        // Set up repository expectations
+        $matcher = $this->exactly(2);
 
         // Set up repository expectations
         $this->licenseeRepository
-            ->expects($this->exactly(2))
-            ->method('findBy')
-            ->withConsecutive(
-                [['fftaId' => [123, 456]]],
-                [['fftaId' => [789]]]
-            )
-            ->willReturnOnConsecutiveCalls(
-                [$addedLicensee1, $addedLicensee2],
-                [$updatedLicensee]
-            );
+            ->expects($matcher)
+            ->method('findBy')->willReturnCallback(function (...$parameters) use ($matcher, $addedLicensee1, $addedLicensee2, $updatedLicensee) {
+                if (1 === $matcher->getInvocationCount()) {
+                    $this->assertSame(['fftaId' => [123, 456]], $parameters[0]);
+
+                    return [$addedLicensee1, $addedLicensee2];
+                }
+
+                if (2 === $matcher->getInvocationCount()) {
+                    $this->assertSame(['fftaId' => [789]], $parameters[0]);
+
+                    return [$updatedLicensee];
+                }
+            });
 
         // Set up mailer expectations
         $this->mailer
             ->expects($this->once())
             ->method('send')
-            ->with($this->callback(function (TemplatedEmail $email) use ($addedLicensee1, $addedLicensee2, $updatedLicensee) {
+            ->with($this->callback(function (TemplatedEmail $email) use ($addedLicensee1, $addedLicensee2, $updatedLicensee): bool {
                 $toAddresses = $email->getTo();
                 $context = $email->getContext();
 
-                return count($toAddresses) === 2
+                return 2 === \count($toAddresses)
                     && $toAddresses[0] instanceof Address
-                    && $toAddresses[0]->getAddress() === 'admin1@example.com'
-                    && $toAddresses[0]->getName() === 'Admin One'
+                    && 'admin1@example.com' === $toAddresses[0]->getAddress()
+                    && 'Admin One' === $toAddresses[0]->getName()
                     && $toAddresses[1] instanceof Address
-                    && $toAddresses[1]->getAddress() === 'admin2@example.com'
-                    && $toAddresses[1]->getName() === 'Admin Two'
-                    && $email->getSubject() === 'Synchronisation FFTA'
-                    && $email->getHtmlTemplate() === 'email_notification/updated_licensees.txt.twig'
-                    && $email->getTextTemplate() === 'email_notification/updated_licensees.txt.twig'
-                    && $context['count'] === 4 // 2 created + 1 updated + 1 removed
+                    && 'admin2@example.com' === $toAddresses[1]->getAddress()
+                    && 'Admin Two' === $toAddresses[1]->getName()
+                    && 'Synchronisation FFTA' === $email->getSubject()
+                    && 'email_notification/updated_licensees.txt.twig' === $email->getHtmlTemplate()
+                    && 'email_notification/updated_licensees.txt.twig' === $email->getTextTemplate()
+                    && 4 === $context['count'] // 2 created + 1 updated + 1 removed
                     && $context['added'] === [$addedLicensee1, $addedLicensee2]
                     && $context['updated'] === [$updatedLicensee];
             }));
@@ -139,25 +148,33 @@ final class EmailHelperTest extends TestCase
             SyncReturnValues::UPDATED->value => [],
             SyncReturnValues::REMOVED->value => [],
         ];
+        // Repository should still be called but with empty arrays
+        $matcher = $this->exactly(2);
 
         // Repository should still be called but with empty arrays
         $this->licenseeRepository
-            ->expects($this->exactly(2))
-            ->method('findBy')
-            ->withConsecutive(
-                [['fftaId' => []]],
-                [['fftaId' => []]]
-            )
-            ->willReturn([]);
+            ->expects($matcher)
+            ->method('findBy')->willReturnCallback(function (...$parameters) use ($matcher): array {
+                if (1 === $matcher->getInvocationCount()) {
+                    $this->assertSame(['fftaId' => []], $parameters[0]);
+                }
+
+                if (2 === $matcher->getInvocationCount()) {
+                    $this->assertSame(['fftaId' => []], $parameters[0]);
+                }
+
+                return [];
+            });
 
         $this->mailer
             ->expects($this->once())
             ->method('send')
-            ->with($this->callback(function (TemplatedEmail $email) {
+            ->with($this->callback(function (TemplatedEmail $email): bool {
                 $context = $email->getContext();
-                return $context['count'] === 0
-                    && $context['added'] === []
-                    && $context['updated'] === [];
+
+                return 0 === $context['count']
+                    && [] === $context['added']
+                    && [] === $context['updated'];
             }));
 
         $this->emailHelper->sendLicenseesSyncResults($toEmails, $syncResults);
@@ -185,10 +202,11 @@ final class EmailHelperTest extends TestCase
         $this->mailer
             ->expects($this->once())
             ->method('send')
-            ->with($this->callback(function (TemplatedEmail $email) {
+            ->with($this->callback(function (TemplatedEmail $email): bool {
                 $toAddresses = $email->getTo();
-                return count($toAddresses) === 1
-                    && $toAddresses[0]->getAddress() === 'single@example.com';
+
+                return 1 === \count($toAddresses)
+                    && 'single@example.com' === $toAddresses[0]->getAddress();
             }));
 
         $this->emailHelper->sendLicenseesSyncResults($toEmails, $syncResults);

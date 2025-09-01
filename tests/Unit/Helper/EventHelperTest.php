@@ -14,8 +14,10 @@ use PHPUnit\Framework\TestCase;
 final class EventHelperTest extends TestCase
 {
     private EventParticipationRepository $eventParticipationRepository;
+
     private EventHelper $eventHelper;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->eventParticipationRepository = $this->createMock(EventParticipationRepository::class);
@@ -77,7 +79,7 @@ final class EventHelperTest extends TestCase
 
         // Verify it's a new EventParticipation instance
         $this->assertInstanceOf(EventParticipation::class, $result);
-        
+
         // Since EventParticipation is a real entity, we can test the actual behavior
         $this->assertSame($event, $result->getEvent());
         $this->assertSame($licensee, $result->getParticipant());

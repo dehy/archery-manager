@@ -43,7 +43,7 @@ class Bow
     private ?int $drawLength = null;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\SightAdjustment>
+     * @var Collection<int, SightAdjustment>
      */
     #[
         ORM\OneToMany(

@@ -43,13 +43,13 @@ readonly class EmailHelper
 
     public function sendLicenseesSyncResults(array $toEmails, array $syncResults): void
     {
-        $count = \count($syncResults[SyncReturnValues::CREATED->value]) 
-               + \count($syncResults[SyncReturnValues::UPDATED->value]) 
+        $count = \count($syncResults[SyncReturnValues::CREATED->value])
+               + \count($syncResults[SyncReturnValues::UPDATED->value])
                + \count($syncResults[SyncReturnValues::REMOVED->value]);
         $added = $this->licenseeRepository->findBy(['fftaId' => $syncResults[SyncReturnValues::CREATED->value]]);
         $updated = $this->licenseeRepository->findBy(['fftaId' => $syncResults[SyncReturnValues::UPDATED->value]]);
 
-        $to = array_map(fn (User $user): \Symfony\Component\Mime\Address => new Address($user->getEmail(), $user->getFullname()), $toEmails);
+        $to = array_map(fn (User $user): Address => new Address($user->getEmail(), $user->getFullname()), $toEmails);
         $email = (new TemplatedEmail())
             ->to(...$to)
             ->subject('Synchronisation FFTA')

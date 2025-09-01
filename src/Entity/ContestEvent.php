@@ -22,7 +22,7 @@ class ContestEvent extends Event
     private ?string $contestType = null;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Result>
+     * @var Collection<int, Result>
      */
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: Result::class)]
     private Collection $results;

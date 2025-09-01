@@ -148,7 +148,7 @@ class LicenseHelper
             $before = null;
             $afterInclusive = false;
             $beforeInclusive = false;
-            
+
             if (null === $rightPart || '' === $rightPart || '0' === $rightPart) {
                 if (str_starts_with($leftPart, '>=')) {
                     $after = $this->dateTimeFromKeyPartInclusive($leftPart);
@@ -172,8 +172,8 @@ class LicenseHelper
                     $after = $this->dateTimeFromKeyPart($leftPart);
                     $afterInclusive = false;
                 }
-                
-                // Handle right part  
+
+                // Handle right part
                 if (str_starts_with($rightPart, '<=')) {
                     $before = $this->dateTimeFromKeyPartInclusive($rightPart);
                     $beforeInclusive = true;
@@ -183,10 +183,10 @@ class LicenseHelper
                 }
             }
 
-            $afterCheck = ($after === null) || 
-                         ($afterInclusive ? $birthdate >= $after : $birthdate > $after);
-            $beforeCheck = ($before === null) || 
-                          ($beforeInclusive ? $birthdate <= $before : $birthdate < $before);
+            $afterCheck = (!$after instanceof \DateTimeImmutable)
+                         || ($afterInclusive ? $birthdate >= $after : $birthdate > $after);
+            $beforeCheck = (!$before instanceof \DateTimeImmutable)
+                          || ($beforeInclusive ? $birthdate <= $before : $birthdate < $before);
 
             if ($afterCheck && $beforeCheck) {
                 return $ageCategory;
@@ -202,6 +202,7 @@ class LicenseHelper
             'Y-m-d',
             substr($keyPart, 1, 10),
         );
+
         // Set time to start of day to avoid time comparison issues
         return $date->setTime(0, 0, 0);
     }
@@ -212,6 +213,7 @@ class LicenseHelper
             'Y-m-d',
             substr($keyPart, 2, 10), // Skip ">=" or "<="
         );
+
         // Set time to start of day to avoid time comparison issues
         return $date->setTime(0, 0, 0);
     }

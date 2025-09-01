@@ -56,7 +56,7 @@ final class SeasonTest extends TestCase
         // Test the exact boundary at September 1st
         $augustDate = new \DateTimeImmutable('2023-08-31 23:59:59');
         $septemberDate = new \DateTimeImmutable('2023-09-01 00:00:00');
-        
+
         $this->assertSame(2023, Season::seasonForDate($augustDate));
         $this->assertSame(2024, Season::seasonForDate($septemberDate));
     }
@@ -70,19 +70,17 @@ final class SeasonTest extends TestCase
         $this->assertSame($expectedSeason, Season::seasonForDate($date));
     }
 
-    public static function seasonDataProvider(): array
+    public static function seasonDataProvider(): \Iterator
     {
-        return [
-            ['2020-01-01', 2020],
-            ['2020-08-31', 2020],
-            ['2020-09-01', 2021],
-            ['2020-12-31', 2021],
-            ['2021-06-15', 2021],
-            ['2021-09-15', 2022],
-            ['2022-02-28', 2022],
-            ['2022-09-30', 2023],
-            ['2023-07-04', 2023],
-            ['2023-11-11', 2024],
-        ];
+        yield ['2020-01-01', 2020];
+        yield ['2020-08-31', 2020];
+        yield ['2020-09-01', 2021];
+        yield ['2020-12-31', 2021];
+        yield ['2021-06-15', 2021];
+        yield ['2021-09-15', 2022];
+        yield ['2022-02-28', 2022];
+        yield ['2022-09-30', 2023];
+        yield ['2023-07-04', 2023];
+        yield ['2023-11-11', 2024];
     }
 }

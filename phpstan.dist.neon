@@ -1,5 +1,7 @@
+includes:
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+
 parameters:
-    # level: 6
     level: 3
     paths:
         - bin/
@@ -7,3 +9,5 @@ parameters:
         - public/
         - src/
         - tests/
+    excludePaths:
+        - tests/Unit/Helper/*Test.php

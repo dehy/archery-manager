@@ -32,9 +32,9 @@ final class StringHelperTest extends TestCase
         $validCharacters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!-.[]?*()';
         $password = StringHelper::randomPassword(50);
 
-        for ($i = 0; $i < mb_strlen($password); $i++) {
+        for ($i = 0; $i < mb_strlen($password); ++$i) {
             $char = $password[$i];
-            $this->assertStringContainsString($char, $validCharacters, "Character '$char' is not valid");
+            $this->assertStringContainsString($char, $validCharacters, \sprintf("Character '%s' is not valid", $char));
         }
     }
 

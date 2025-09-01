@@ -29,13 +29,13 @@ class Group implements \Stringable
     private ?string $description = null;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Licensee>
+     * @var Collection<int, Licensee>
      */
     #[ORM\ManyToMany(targetEntity: Licensee::class, inversedBy: 'groups')]
     private Collection $licensees;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Event>
+     * @var Collection<int, Event>
      */
     #[ORM\ManyToMany(targetEntity: Event::class, mappedBy: 'assignedGroups')]
     private Collection $events;

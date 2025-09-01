@@ -51,19 +51,19 @@ class Club implements \Stringable
     private ?\DateTimeImmutable $updatedAt;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Event>
+     * @var Collection<int, Event>
      */
     #[ORM\OneToMany(mappedBy: 'club', targetEntity: Event::class)]
     private Collection $events;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Group>
+     * @var Collection<int, Group>
      */
     #[ORM\OneToMany(mappedBy: 'club', targetEntity: Group::class)]
     private Collection $groups;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\License>
+     * @var Collection<int, License>
      */
     #[ORM\OneToMany(mappedBy: 'club', targetEntity: License::class)]
     private Collection $licenses;

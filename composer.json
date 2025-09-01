@@ -150,6 +150,7 @@
         "friendsofphp/php-cs-fixer": "^3.14",
         "hautelook/alice-bundle": "^2.11",
         "phpstan/phpstan": "^1.8",
+        "phpstan/phpstan-phpunit": "^1.4",
         "phpunit/phpunit": "^9.5",
         "rector/rector": "^1.2",
         "symfony/css-selector": "6.4.*",

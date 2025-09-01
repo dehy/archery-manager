@@ -6,8 +6,6 @@ namespace App\Tests\Unit\Helper;
 
 use App\Helper\MapHelper;
 use Geocoder\Collection;
-use Geocoder\Location;
-use Geocoder\Model\Coordinates;
 use Geocoder\Provider\Provider;
 use Geocoder\Query\GeocodeQuery;
 use PHPUnit\Framework\TestCase;
@@ -15,10 +13,14 @@ use PHPUnit\Framework\TestCase;
 final class MapHelperTest extends TestCase
 {
     private Provider $mapboxGeocoder;
+
     private MapHelper $mapHelper;
+
     private string $username = 'testuser';
+
     private string $accessToken = 'test_access_token';
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->mapboxGeocoder = $this->createMock(Provider::class);
@@ -31,7 +33,7 @@ final class MapHelperTest extends TestCase
         // This test documents the current behavior
         $this->expectException(\TypeError::class);
         $this->expectExceptionMessage('str_replace(): Argument #2 ($replace) must be of type array|string, float given');
-        
+
         $this->mapHelper->urlForLongLat(2.3522, 48.8566);
     }
 
@@ -40,7 +42,7 @@ final class MapHelperTest extends TestCase
         // The MapHelper has a bug with str_replace expecting string but getting float
         $this->expectException(\TypeError::class);
         $this->expectExceptionMessage('str_replace(): Argument #2 ($replace) must be of type array|string, float given');
-        
+
         $this->mapHelper->urlForLongLat(-74.0060, 40.7128);
     }
 
@@ -92,9 +94,7 @@ final class MapHelperTest extends TestCase
         $this->mapboxGeocoder
             ->expects($this->once())
             ->method('geocodeQuery')
-            ->with($this->callback(function (GeocodeQuery $query) use ($address) {
-                return $query->getText() === $address;
-            }))
+            ->with($this->callback(fn (GeocodeQuery $query): bool => $query->getText() === $address))
             ->willReturn($collection);
 
         $this->mapHelper->urlForAddress($address);
@@ -105,7 +105,7 @@ final class MapHelperTest extends TestCase
         // The MapHelper has a bug with str_replace
         $this->expectException(\TypeError::class);
         $this->expectExceptionMessage('str_replace(): Argument #2 ($replace) must be of type array|string, float given');
-        
+
         $this->mapHelper->urlForLongLat(0.0, 0.0);
     }
 
@@ -114,7 +114,7 @@ final class MapHelperTest extends TestCase
         // The MapHelper has a bug with str_replace
         $this->expectException(\TypeError::class);
         $this->expectExceptionMessage('str_replace(): Argument #2 ($replace) must be of type array|string, float given');
-        
+
         $this->mapHelper->urlForLongLat(-122.4194, -37.7749);
     }
 }

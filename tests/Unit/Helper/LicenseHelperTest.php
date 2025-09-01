@@ -4,25 +4,26 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Helper;
 
-use App\Helper\LicenseHelper;
-use App\Helper\LicenseeHelper;
-use App\Helper\SeasonHelper;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
+use App\Helper\LicenseeHelper;
+use App\Helper\LicenseHelper;
+use App\Helper\SeasonHelper;
 use PHPUnit\Framework\TestCase;
 
 final class LicenseHelperTest extends TestCase
 {
-    private LicenseeHelper $licenseeHelper;
     private SeasonHelper $seasonHelper;
+
     private LicenseHelper $licenseHelper;
 
+    #[\Override]
     protected function setUp(): void
     {
-        $this->licenseeHelper = $this->createMock(LicenseeHelper::class);
+        $licenseeHelper = $this->createMock(LicenseeHelper::class);
         $this->seasonHelper = $this->createMock(SeasonHelper::class);
-        $this->licenseHelper = new LicenseHelper($this->licenseeHelper, $this->seasonHelper);
+        $this->licenseHelper = new LicenseHelper($licenseeHelper, $this->seasonHelper);
     }
 
     public function testGetSeasonForDateInSeptember(): void
@@ -67,7 +68,7 @@ final class LicenseHelperTest extends TestCase
         // Adult birthdate (born in 1990, 35 years old in 2025)
         $birthdate = new \DateTimeImmutable('1990-06-15');
         $licenseType = $this->licenseHelper->licenseTypeForBirthdate($birthdate, true);
-        
+
         $this->assertSame(LicenseType::ADULTES_COMPETITION, $licenseType);
     }
 
@@ -80,7 +81,7 @@ final class LicenseHelperTest extends TestCase
         // Adult birthdate (born in 1990, 35 years old in 2025)
         $birthdate = new \DateTimeImmutable('1990-06-15');
         $licenseType = $this->licenseHelper->licenseTypeForBirthdate($birthdate, false);
-        
+
         $this->assertSame(LicenseType::ADULTES_CLUB, $licenseType);
     }
 
@@ -180,7 +181,7 @@ final class LicenseHelperTest extends TestCase
 
         // Test with a future birthdate (should throw exception)
         $birthdate = new \DateTimeImmutable('2030-01-01');
-        
+
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Birthdate cannot be in the future. 2030-01-01 given');
 
@@ -190,7 +191,7 @@ final class LicenseHelperTest extends TestCase
     // Note: The mapping is designed to handle all reasonable past birthdates.
     // Future dates are rejected with validation, past dates should always find a category.
     // This is by design - every person should have an age category.
-    
+
     /**
      * @dataProvider seasonDateProvider
      */
@@ -201,15 +202,13 @@ final class LicenseHelperTest extends TestCase
         $this->assertSame($expectedSeason, $season);
     }
 
-    public static function seasonDateProvider(): array
+    public static function seasonDateProvider(): \Iterator
     {
-        return [
-            ['2023-01-01', 2023],
-            ['2023-08-31', 2023],
-            ['2023-09-01', 2024],
-            ['2023-12-31', 2024],
-            ['2024-06-15', 2024],
-            ['2024-09-15', 2025],
-        ];
+        yield ['2023-01-01', 2023];
+        yield ['2023-08-31', 2023];
+        yield ['2023-09-01', 2024];
+        yield ['2023-12-31', 2024];
+        yield ['2024-06-15', 2024];
+        yield ['2024-09-15', 2025];
     }
 }

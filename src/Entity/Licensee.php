@@ -54,7 +54,7 @@ class Licensee implements \Stringable
     private ?\DateTimeImmutable $updatedAt;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\License>
+     * @var Collection<int, License>
      */
     #[
         ORM\OneToMany(
@@ -66,7 +66,7 @@ class Licensee implements \Stringable
     private Collection $licenses;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Bow>
+     * @var Collection<int, Bow>
      */
     #[
         ORM\OneToMany(
@@ -78,7 +78,7 @@ class Licensee implements \Stringable
     private Collection $bows;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Arrow>
+     * @var Collection<int, Arrow>
      */
     #[
         ORM\OneToMany(
@@ -90,7 +90,7 @@ class Licensee implements \Stringable
     private Collection $arrows;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\EventParticipation>
+     * @var Collection<int, EventParticipation>
      */
     #[
         ORM\OneToMany(
@@ -102,7 +102,7 @@ class Licensee implements \Stringable
     private Collection $eventParticipations;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Result>
+     * @var Collection<int, Result>
      */
     #[
         ORM\OneToMany(
@@ -114,13 +114,13 @@ class Licensee implements \Stringable
     private Collection $results;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Group>
+     * @var Collection<int, Group>
      */
     #[ORM\ManyToMany(targetEntity: Group::class, mappedBy: 'licensees')]
     private Collection $groups;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\PracticeAdvice>
+     * @var Collection<int, PracticeAdvice>
      */
     #[
         ORM\OneToMany(
@@ -132,7 +132,7 @@ class Licensee implements \Stringable
     private Collection $practiceAdvices;
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\PracticeAdvice>
+     * @var Collection<int, PracticeAdvice>
      */
     #[ORM\OneToMany(mappedBy: 'author', targetEntity: PracticeAdvice::class)]
     private Collection $givenPracticeAdvices;

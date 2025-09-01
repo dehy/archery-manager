@@ -44,7 +44,7 @@ final class ResultHelperTest extends TestCase
     public function testColorRatioReturnsValidHexFormat(): void
     {
         $ratios = [0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0];
-        
+
         foreach ($ratios as $ratio) {
             $color = ResultHelper::colorRatio($ratio);
             $this->assertMatchesRegularExpression('/^#[0-9a-f]{6}$/i', $color);
