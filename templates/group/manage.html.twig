@@ -1,0 +1,314 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion du groupe {{ group.name }}{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Gestion du groupe</h1>
+            <h2 class="text-primary">{{ group.name }}</h2>
+            {% if group.description %}
+                <p class="text-muted">{{ group.description|raw }}</p>
+            {% endif %}
+        </div>
+        <div>
+            <a href="{{ path('app_club_show') }}" class="btn btn-outline-secondary">
+                <em class="fa-solid fa-arrow-left me-1"></em>
+                Retour au club
+            </a>
+        </div>
+    </div>
+
+    <!-- Messages d'alerte -->
+    <div id="alert-container"></div>
+
+    <div class="row">
+        <!-- Membres actuels du groupe -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <em class="fa-solid fa-users me-2"></em>
+                        Membres du groupe ({{ groupMembers|length }})
+                    </h4>
+                </div>
+                <div class="card-body p-0">
+                    {% if groupMembers is empty %}
+                        <div class="p-3 text-center text-muted">
+                            <em class="fa-solid fa-user-slash fa-2x mb-2"></em>
+                            <p>Aucun membre dans ce groupe</p>
+                        </div>
+                    {% else %}
+                        <div class="list-group list-group-flush" id="group-members">
+                            {% for licensee in groupMembers %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center" data-licensee-id="{{ licensee.id }}">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}"
+                                             class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;" alt="">
+                                        <div>
+                                            <strong>{{ licensee.fullname }}</strong><br>
+                                            <small class="text-muted">{{ licensee.fftaMemberCode }}</small>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-danger remove-member-btn"
+                                            data-licensee-id="{{ licensee.id }}"
+                                            data-licensee-name="{{ licensee.fullname }}"
+                                            type="button">
+                                        <em class="fa-solid fa-minus"></em>
+                                        Retirer
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Licenciés disponibles -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <em class="fa-solid fa-user-plus me-2"></em>
+                        Licenciés disponibles ({{ availableLicensees|length }})
+                    </h4>
+                </div>
+                <div class="card-body p-0">
+                    {% if availableLicensees is empty %}
+                        <div class="p-3 text-center text-muted">
+                            <em class="fa-solid fa-check-circle fa-2x mb-2"></em>
+                            <p>Tous les licenciés sont déjà dans ce groupe</p>
+                        </div>
+                    {% else %}
+                        <!-- Barre de recherche -->
+                        <div class="p-3 border-bottom">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="search-available" 
+                                   placeholder="Rechercher un licencié...">
+                        </div>
+                        <div class="list-group list-group-flush" id="available-licensees" style="max-height: 400px; overflow-y: auto;">
+                            {% for licensee in availableLicensees %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center licensee-item" 
+                                     data-licensee-id="{{ licensee.id }}"
+                                     data-search-text="{{ licensee.fullname|lower }} {{ licensee.fftaMemberCode|lower }}">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}"
+                                             class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;" alt="">
+                                        <div>
+                                            <strong>{{ licensee_display_name(licensee) }}</strong><br>
+                                            <small class="text-muted">{{ licensee.fftaMemberCode }}</small>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-success add-member-btn"
+                                            data-licensee-id="{{ licensee.id }}"
+                                            data-licensee-name="{{ licensee.fullname }}"
+                                            type="button">
+                                        <em class="fa-solid fa-plus"></em>
+                                        Ajouter
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <em class="fa-solid fa-chart-bar me-2"></em>
+                        Statistiques du groupe
+                    </h5>
+                    <div class="row text-center">
+                        <div class="col-3">
+                            <h3 class="text-success" id="members-count">{{ groupMembers|length }}</h3>
+                            <small class="text-muted">Membres</small>
+                        </div>
+                        <div class="col-3">
+                            <h3 class="text-primary" id="available-count">{{ availableLicensees|length }}</h3>
+                            <small class="text-muted">Disponibles</small>
+                        </div>
+                        <div class="col-3">
+                            <h3 class="text-info">{{ (groupMembers|length + availableLicensees|length) }}</h3>
+                            <small class="text-muted">Total club</small>
+                        </div>
+                        <div class="col-3">
+                            <h3 class="text-warning">{{ ((groupMembers|length / (groupMembers|length + availableLicensees|length)) * 100)|round }}%</h3>
+                            <small class="text-muted">Couverture</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const groupId = {{ group.id }};
+            const alertContainer = document.getElementById('alert-container');
+
+            // Fonction pour afficher des alertes
+            function showAlert(message, type = 'success') {
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type} alert-dismissible fade show`;
+                alert.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                alertContainer.appendChild(alert);
+                
+                // Auto-dismiss après 5 secondes
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.remove();
+                    }
+                }, 5000);
+            }
+
+            // Fonction pour mettre à jour les compteurs
+            function updateCounts() {
+                const membersCount = document.querySelectorAll('#group-members .list-group-item').length;
+                const availableCount = document.querySelectorAll('#available-licensees .list-group-item:not(.d-none)').length;
+                
+                document.getElementById('members-count').textContent = membersCount;
+                document.getElementById('available-count').textContent = availableCount;
+            }
+
+            // Ajouter un membre au groupe
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.add-member-btn')) {
+                    const btn = e.target.closest('.add-member-btn');
+                    const licenseeId = btn.dataset.licenseeId;
+                    const licenseeName = btn.dataset.licenseeName;
+                    const listItem = btn.closest('.list-group-item');
+
+                    btn.disabled = true;
+                    btn.innerHTML = '<em class="fa-solid fa-spinner fa-spin"></em> Ajout...';
+
+                    fetch(`/admin/groups/${groupId}/add-member`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `licenseeId=${licenseeId}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Déplacer l'élément vers la liste des membres
+                            const groupMembers = document.getElementById('group-members');
+                            const newItem = listItem.cloneNode(true);
+                            
+                            // Changer le bouton pour "Retirer"
+                            const newBtn = newItem.querySelector('button');
+                            newBtn.className = 'btn btn-sm btn-outline-danger remove-member-btn';
+                            newBtn.innerHTML = '<em class="fa-solid fa-minus"></em> Retirer';
+                            newBtn.dataset.licenseeId = licenseeId;
+                            newBtn.dataset.licenseeName = licenseeName;
+                            
+                            groupMembers.appendChild(newItem);
+                            listItem.remove();
+                            
+                            showAlert(data.message);
+                            updateCounts();
+                        } else {
+                            showAlert(data.error, 'danger');
+                            btn.disabled = false;
+                            btn.innerHTML = '<em class="fa-solid fa-plus"></em> Ajouter';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        showAlert('Une erreur est survenue', 'danger');
+                        btn.disabled = false;
+                        btn.innerHTML = '<em class="fa-solid fa-plus"></em> Ajouter';
+                    });
+                }
+            });
+
+            // Retirer un membre du groupe
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-member-btn')) {
+                    const btn = e.target.closest('.remove-member-btn');
+                    const licenseeId = btn.dataset.licenseeId;
+                    const licenseeName = btn.dataset.licenseeName;
+                    const listItem = btn.closest('.list-group-item');
+
+                    if (!confirm(`Êtes-vous sûr de vouloir retirer ${licenseeName} du groupe ?`)) {
+                        return;
+                    }
+
+                    btn.disabled = true;
+                    btn.innerHTML = '<em class="fa-solid fa-spinner fa-spin"></em> Suppression...';
+
+                    fetch(`/admin/groups/${groupId}/remove-member`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `licenseeId=${licenseeId}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Déplacer l'élément vers la liste des disponibles
+                            const availableLicensees = document.getElementById('available-licensees');
+                            const newItem = listItem.cloneNode(true);
+                            
+                            // Changer le bouton pour "Ajouter"
+                            const newBtn = newItem.querySelector('button');
+                            newBtn.className = 'btn btn-sm btn-outline-success add-member-btn';
+                            newBtn.innerHTML = '<em class="fa-solid fa-plus"></em> Ajouter';
+                            newBtn.dataset.licenseeId = licenseeId;
+                            newBtn.dataset.licenseeName = licenseeName;
+                            
+                            availableLicensees.appendChild(newItem);
+                            listItem.remove();
+                            
+                            showAlert(data.message);
+                            updateCounts();
+                        } else {
+                            showAlert(data.error, 'danger');
+                            btn.disabled = false;
+                            btn.innerHTML = '<em class="fa-solid fa-minus"></em> Retirer';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        showAlert('Une erreur est survenue', 'danger');
+                        btn.disabled = false;
+                        btn.innerHTML = '<em class="fa-solid fa-minus"></em> Retirer';
+                    });
+                }
+            });
+
+            // Fonction de recherche
+            const searchInput = document.getElementById('search-available');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const licenseeItems = document.querySelectorAll('#available-licensees .licensee-item');
+                    
+                    licenseeItems.forEach(item => {
+                        const searchText = item.dataset.searchText;
+                        if (searchText.includes(searchTerm)) {
+                            item.classList.remove('d-none');
+                        } else {
+                            item.classList.add('d-none');
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+{% endblock %}

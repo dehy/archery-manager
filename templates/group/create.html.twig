@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un nouveau groupe{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1>Créer un nouveau groupe</h1>
+                    <p class="text-muted">Ajoutez un nouveau groupe d'entraînement à votre club</p>
+                </div>
+                <div>
+                    <a href="{{ path('app_club_show') }}" class="btn btn-outline-secondary">
+                        <em class="fa-solid fa-arrow-left me-1"></em>
+                        Retour au club
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <em class="fa-solid fa-plus-circle me-2"></em>
+                        Informations du groupe
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        <div class="mb-3">
+                            {{ form_label(form.name) }}
+                            {{ form_widget(form.name) }}
+                            {{ form_errors(form.name) }}
+                            <div class="form-text">
+                                Choisissez un nom descriptif pour votre groupe (ex: "Compétiteurs adultes", "Jeunes débutants", etc.)
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form_label(form.description) }}
+                            {{ form_widget(form.description) }}
+                            {{ form_errors(form.description) }}
+                            <div class="form-text">
+                                Description optionnelle du groupe (objectifs, niveau, horaires, etc.)
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('app_club_show') }}" class="btn btn-secondary">
+                                <em class="fa-solid fa-times me-1"></em>
+                                Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <em class="fa-solid fa-save me-1"></em>
+                                Créer le groupe
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <em class="fa-solid fa-info-circle me-2"></em>
+                        Prochaines étapes
+                    </h6>
+                    <p class="card-text">
+                        Une fois le groupe créé, vous pourrez :
+                    </p>
+                    <ul class="list-unstyled">
+                        <li><em class="fa-solid fa-user-plus text-success me-2"></em> Ajouter des licenciés au groupe</li>
+                        <li><em class="fa-solid fa-calendar text-primary me-2"></em> Assigner des événements spécifiques au groupe</li>
+                        <li><em class="fa-solid fa-edit text-warning me-2"></em> Modifier les informations du groupe à tout moment</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
