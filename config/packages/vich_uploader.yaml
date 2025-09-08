@@ -6,8 +6,8 @@ vich_uploader:
         type: attribute
 
     mappings:
-        clubs.logos:
-            upload_destination: clubs.logos.storage
+        clubs_logos:
+            upload_destination: clubs_logos_storage
             namer:
                 service: Vich\UploaderBundle\Naming\PropertyNamer
                 options: { property: 'generateLogoName' }
@@ -15,7 +15,7 @@ vich_uploader:
             delete_on_update: true
             delete_on_remove: true
         licensees:
-            upload_destination: licensees.storage
+            upload_destination: licensees_storage
             namer:
                 service: Vich\UploaderBundle\Naming\PropertyNamer
                 options: { property: 'generateFilename' }
@@ -23,7 +23,7 @@ vich_uploader:
             delete_on_update: true
             delete_on_remove: true
         events:
-            upload_destination: events.storage
+            upload_destination: events_storage
             namer:
                 service: Vich\UploaderBundle\Naming\PropertyNamer
                 options: { property: 'generateFilename' }

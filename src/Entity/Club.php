@@ -29,7 +29,7 @@ class Club implements \Stringable
     #[ORM\Column(length: 255)]
     private ?string $city = null;
 
-    #[Vich\UploadableField(mapping: 'clubs.logos', fileNameProperty: 'logoName')]
+    #[Vich\UploadableField(mapping: 'clubs_logos', fileNameProperty: 'logoName')]
     private ?File $logo = null;
 
     #[ORM\Column(length: 255, nullable: true)]

@@ -56,7 +56,7 @@ App\Entity\Licensee:
 
 App\Entity\License:
     license_licensee_ladg_club_admin_1:
-        season: 2025
+        season: 2026
         type: 'A'
         category: 'A'
         ageCategory: 'S2'
@@ -64,7 +64,7 @@ App\Entity\License:
         activities: ['CL']
         club: '@club_ladg'
     license_licensee_ladg_{1..20}:
-        season: 2025
+        season: 2026
         type: 'A'
         category: 'A'
         ageCategory: 'S1'

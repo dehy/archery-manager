@@ -1,20 +1,20 @@
 # Read the documentation at https://github.com/thephpleague/flysystem-bundle/blob/master/docs/1-getting-started.md
 flysystem:
     storages:
-        clubs.logos.storage:
+        clubs_logos_storage:
             adapter: 'asyncaws'
             visibility: public
             options:
                 client: 'scaleway_object_storage_client'
                 bucket: '%env(STORAGE_BUCKET_MYARCHERYCLUB)%'
                 prefix: 'clubs'
-        licensees.storage:
+        licensees_storage:
             adapter: 'asyncaws'
             options:
                 client: 'scaleway_object_storage_client'
                 bucket: '%env(STORAGE_BUCKET_MYARCHERYCLUB)%'
                 prefix: 'licensees'
-        events.storage:
+        events_storage:
             adapter: 'asyncaws'
             options:
                 client: 'scaleway_object_storage_client'
@@ -24,12 +24,12 @@ flysystem:
 when@test:
     flysystem:
         storages:
-            clubs.logos.storage:
+            clubs_logos_storage:
                 adapter: 'memory'
                 public_url_generator: 'App\Tests\FakePublicUrlGenerator'
-            licensees.storage:
+            licensees_storage:
                 adapter: 'memory'
                 public_url_generator: 'App\Tests\FakePublicUrlGenerator'
-            events.storage:
+            events_storage:
                 adapter: 'memory'
                 public_url_generator: 'App\Tests\FakePublicUrlGenerator'

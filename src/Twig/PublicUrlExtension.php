@@ -51,7 +51,7 @@ class PublicUrlExtension extends AbstractExtension
         /** @var UploadableField $uploadableField */
         $uploadableField = $reflectionAttribute->newInstance();
         $mapping = $uploadableField->getMapping();
-        $parts = array_map(fn (string $part): string => ucfirst($part), explode('.', $mapping));
+        $parts = array_map(fn (string $part): string => ucfirst($part), explode('_', $mapping));
         $storageName = lcfirst(implode('', $parts).'Storage');
 
         if ('clubsLogosStorage' === $storageName) {
