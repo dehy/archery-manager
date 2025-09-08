@@ -18,6 +18,7 @@ use App\Helper\LicenseHelper;
 use App\Helper\ResultHelper;
 use App\Repository\LicenseeRepository;
 use App\Repository\ResultRepository;
+use App\Repository\GroupRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\NonUniqueResultException;
@@ -40,14 +41,35 @@ class LicenseeController extends BaseController
     public function index(
         LicenseeRepository $licenseeRepository,
         LicenseHelper $licenseHelper,
+        GroupRepository $groupRepository,
+        Request $request,
     ): Response {
         $this->assertHasValidLicense();
 
         $season = $this->seasonHelper->getSelectedSeason();
         $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
+        
+        // Récupérer le filtre de groupe depuis la query string
+        $groupId = $request->query->get('group');
+        $selectedGroup = null;
+        
+        if ($groupId) {
+            $selectedGroup = $groupRepository->find($groupId);
+        }
+        
         $licensees = new ArrayCollection(
             $licenseeRepository->findByLicenseYear($club, $season),
         );
+
+        // Compter le nombre total de licenciés avant filtrage
+        $totalLicensees = $licensees->count();
+
+        // Filtrer par groupe si un groupe est sélectionné
+        if ($selectedGroup) {
+            $licensees = $licensees->filter(function($licensee) use ($selectedGroup) {
+                return $licensee->getGroups()->contains($selectedGroup);
+            });
+        }
 
         /** @var ArrayCollection<int, Licensee> $orderedLicensees */
         $orderedLicensees = $licensees->matching(
@@ -57,9 +79,15 @@ class LicenseeController extends BaseController
             ]),
         );
 
+        // Récupérer tous les groupes pour l'affichage des filtres
+        $allGroups = $groupRepository->findBy(['club' => $club], ['name' => 'ASC']);
+
         return $this->render('licensee/index.html.twig', [
             'licensees' => $orderedLicensees,
             'year' => $season,
+            'selectedGroup' => $selectedGroup,
+            'allGroups' => $allGroups,
+            'totalLicensees' => $totalLicensees,
         ]);
     }
 

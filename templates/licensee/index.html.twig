@@ -3,14 +3,61 @@
 {% block title %}Trombinoscope{% endblock %}
 
 {% block body %}
-    <h2 class="mb-3">
-        Trombinoscope {{ year }}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">
+            Trombinoscope {{ year }}
+            {% if selectedGroup %}
+                - {{ selectedGroup.name }}
+            {% endif %}
+        </h2>
         {% if is_granted('ROLE_ADMIN') %}
             <button class="btn btn-warning disabled">
                 <em class="fa-solid fa-arrows-rotate"></em> Sync
             </button>
         {% endif %}
-    </h2>
+    </div>
+
+    <!-- Filtres par groupe -->
+    {% if allGroups is not empty %}
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h5>Filtrer par groupe :</h5>
+                    <div class="btn-group flex-wrap" role="group">
+                        <a href="{{ path('app_licensee_index') }}" 
+                           class="btn {{ selectedGroup is null ? 'btn-primary' : 'btn-outline-primary' }}">
+                            <em class="fa-solid fa-users"></em>
+                            Tous ({{ totalLicensees }})
+                        </a>
+                        {% for group in allGroups %}
+                            <a href="{{ path('app_licensee_index', {'group': group.id}) }}" 
+                               class="btn {{ selectedGroup and selectedGroup.id == group.id ? 'btn-primary' : 'btn-outline-primary' }}">
+                                <em class="fa-solid fa-user-group"></em>
+                                {{ group.name }} ({{ group.licensees|length }})
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div>
+                    <a href="{{ path('app_club_show') }}" class="btn btn-outline-secondary">
+                        <em class="fa-solid fa-building me-1"></em>
+                        Retour au club
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if licensees is empty %}
+        <div class="alert alert-info">
+            <em class="fa-solid fa-info-circle"></em>
+            {% if selectedGroup %}
+                Aucun licencié dans le groupe "{{ selectedGroup.name }}".
+            {% else %}
+                Aucun licencié trouvé.
+            {% endif %}
+        </div>
+    {% endif %}
 
     <div class="row">
         {% for licensee in licensees %}

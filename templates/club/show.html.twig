@@ -88,7 +88,7 @@
                                                 {{ group.licensees|length > 1 ? 'membres' : 'membre' }}
                                             </p>
                                             {% if group.licensees|length > 0 %}
-                                                <div class="mt-2">
+                                                <div class="mt-2 mb-3">
                                                     <small class="text-muted">Membres :</small><br>
                                                     {% for licensee in group.licensees|slice(0, 5) %}
                                                         <span class="badge bg-light text-dark me-1">{{ licensee_display_name(licensee) }}</span>
@@ -96,6 +96,13 @@
                                                     {% if group.licensees|length > 5 %}
                                                         <span class="badge bg-secondary">+{{ group.licensees|length - 5 }} autres</span>
                                                     {% endif %}
+                                                </div>
+                                                <div class="d-grid">
+                                                    <a href="{{ path('app_licensee_index', {'group': group.id}) }}" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <em class="fa-solid fa-users me-1"></em>
+                                                        Voir dans le trombinoscope
+                                                    </a>
                                                 </div>
                                             {% endif %}
                                         </div>
