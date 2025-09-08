@@ -16,7 +16,7 @@
     {% endif %}
 {% endblock %}
 
-{% block title %}{{ licensee.fullname }}{% endblock %}
+{% block title %}{{ licenseeHelper.licenseeFromSession.id is same as licensee.id ? licensee.fullname : licensee_display_name(licensee) }}{% endblock %}
 
 {% block body %}
     <div class="row">
@@ -27,7 +27,7 @@
                         <div class="bg-white rounded-3" style="width: 60px; height:15px"></div>
                     </div>
                     <img src="{{ asset('build/logo-ffta.svg') }}" alt="" class="mb-2" style="height: 40px">
-                    <h2>{{ licensee.fullname }}</h2>
+                    <h2>{{ licenseeHelper.licenseeFromSession.id is same as licensee.id ? licensee.fullname : licensee_display_name(licensee) }}</h2>
                     <div class="mb-3">
                         <span class="badge bg-light text-bg-light fs-5">{{ licensee.fftaMemberCode }}</span>
                     </div>

@@ -113,7 +113,7 @@
                         {% set absents = event.participations|filter(p => p.participationState is same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
                         <h6>Participants</h6>
                         {% if participants is not empty %}
-                            {{ participants|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => p.participant.firstnameWithInitial)|join(', ') }}
+                            {{ participants|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => licensee_display_name(p.participant))|join(', ') }}
                         {% else %}
                             <em>Aucun</em>
                         {% endif %}
@@ -121,7 +121,7 @@
                     <div class="mt-3">
                         <h6>Absents</h6>
                         {% if absents is not empty %}
-                            {{ absents|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => p.participant.firstnameWithInitial)|join(', ') }}
+                            {{ absents|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => licensee_display_name(p.participant))|join(', ') }}
                         {% else %}
                             <em>Aucun</em>
                         {% endif %}

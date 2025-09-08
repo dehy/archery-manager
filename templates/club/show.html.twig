@@ -91,7 +91,7 @@
                                                 <div class="mt-2">
                                                     <small class="text-muted">Membres :</small><br>
                                                     {% for licensee in group.licensees|slice(0, 5) %}
-                                                        <span class="badge bg-light text-dark me-1">{{ licensee.firstname }} {{ licensee.lastname }}</span>
+                                                        <span class="badge bg-light text-dark me-1">{{ licensee_display_name(licensee) }}</span>
                                                     {% endfor %}
                                                     {% if group.licensees|length > 5 %}
                                                         <span class="badge bg-secondary">+{{ group.licensees|length - 5 }} autres</span>

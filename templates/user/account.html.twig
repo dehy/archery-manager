@@ -61,7 +61,7 @@
                     <div class="d-flex justify-content-between">
                         <img class="rounded-circle me-3" style="height:60px;width:60px;object-fit: cover" src="{{ licenseeHelper.licenseeFromSession and licenseeHelper.licenseeFromSession.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}">
                         <div class="d-flex flex-column flex-grow-1">
-                            <h5 class="mb-1">{{ licensee.fullname }}</h5>
+                            <h5 class="mb-1">{{ licensee_display_name(licensee) }}</h5>
                             <small>
                                 {{ licensee.licenseForSeason(seasonHelper.selectedSeason).club.name ?? "Aucune license en seasonHelper.selectedSeason" }}
                             </small>

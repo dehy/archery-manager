@@ -129,7 +129,7 @@
                        href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <img class="rounded-circle me-3" style="height:40px;width:40px;object-fit: cover" src="{{ licenseeHelper.licenseeFromSession and licenseeHelper.licenseeFromSession.profilePicture ? licenseeHelper.licenseeFromSession.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}" alt="">
                         <div class="d-inline-flex flex-column me-1" style="line-height: 1.1rem">
-                            {{ licenseeHelper.licenseeFromSession.fullname ?? app.user.fullname }}
+                            {{ licenseeHelper.licenseeFromSession ? licensee_display_name(licenseeHelper.licenseeFromSession) : app.user.firstname }}
                             <small><em>Saison {{ seasonHelper.selectedSeason }}</em></small>
                         </div>
                     </a>
@@ -163,7 +163,7 @@
                                     <a class="dropdown-item"
                                        href="{{ path(app.request.get('_route'), app.request.get('_route_params')|merge({'_switch_licensee': licensee.fftaMemberCode })) }}">
                                         <em class="fa-solid fa-arrows-rotate fa-fw"></em>
-                                        {{ licensee.fullname }}
+                                        {{ licensee_display_name(licensee) }}
                                     </a>
                                 </li>
                             {% endfor %}
