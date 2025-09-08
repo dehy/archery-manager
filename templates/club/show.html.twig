@@ -1,0 +1,188 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Club{% endblock %}
+
+{% block body %}
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="d-flex align-items-center">
+                {% if club.logoName %}
+                    <img src="{{ vich_uploader_asset(club, 'logo') }}" 
+                         alt="Logo {{ club.name }}" 
+                         class="me-3" 
+                         style="height: 60px; width: auto;">
+                {% endif %}
+                {{ club.name }}
+            </h1>
+            <p class="text-muted">{{ club.city }}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Informations du club -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <em class="fa-solid fa-info-circle me-2"></em>
+                        Informations du club
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-4">Nom :</dt>
+                                <dd class="col-8">{{ club.name }}</dd>
+                                
+                                <dt class="col-4">Ville :</dt>
+                                <dd class="col-8">{{ club.city }}</dd>
+                                
+                                <dt class="col-4">Code FFTA :</dt>
+                                <dd class="col-8">{{ club.fftaCode }}</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-4">Contact :</dt>
+                                <dd class="col-8">
+                                    <a href="mailto:{{ club.contactEmail }}">{{ club.contactEmail }}</a>
+                                </dd>
+                                
+                                <dt class="col-4">Licenciés :</dt>
+                                <dd class="col-8">{{ licensees|length }} membre(s)</dd>
+                                
+                                <dt class="col-4">Groupes :</dt>
+                                <dd class="col-8">{{ groups|length }} groupe(s)</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Groupes -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <em class="fa-solid fa-users me-2"></em>
+                        Groupes d'entraînement
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if groups is empty %}
+                        <p class="text-muted">Aucun groupe d'entraînement configuré.</p>
+                    {% else %}
+                        <div class="row">
+                            {% for group in groups %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-primary">
+                                        <div class="card-header bg-primary text-white">
+                                            <h5 class="card-title mb-0">{{ group.name }}</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            {% if group.description %}
+                                                <p class="card-text">{{ group.description|raw }}</p>
+                                            {% endif %}
+                                            <p class="card-text">
+                                                <strong>{{ group.licensees|length }}</strong> 
+                                                {{ group.licensees|length > 1 ? 'membres' : 'membre' }}
+                                            </p>
+                                            {% if group.licensees|length > 0 %}
+                                                <div class="mt-2">
+                                                    <small class="text-muted">Membres :</small><br>
+                                                    {% for licensee in group.licensees|slice(0, 5) %}
+                                                        <span class="badge bg-light text-dark me-1">{{ licensee.firstname }} {{ licensee.lastname }}</span>
+                                                    {% endfor %}
+                                                    {% if group.licensees|length > 5 %}
+                                                        <span class="badge bg-secondary">+{{ group.licensees|length - 5 }} autres</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Actions rapides -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <em class="fa-solid fa-bolt me-2"></em>
+                        Actions rapides
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_licensee_index') }}" class="btn btn-primary">
+                            <em class="fa-solid fa-users me-2"></em>
+                            Voir le trombinoscope
+                        </a>
+                        
+                        <a href="{{ path('app_event_index') }}" class="btn btn-outline-primary">
+                            <em class="fa-solid fa-calendar me-2"></em>
+                            Calendrier des événements
+                        </a>
+                        
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <hr>
+                            <a href="{{ path('admin') }}" class="btn btn-warning">
+                                <em class="fa-solid fa-screwdriver-wrench me-2"></em>
+                                Administration
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <em class="fa-solid fa-chart-bar me-2"></em>
+                        Statistiques {{ season }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary">{{ licensees|length }}</h4>
+                                <small class="text-muted">Licenciés</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">{{ groups|length }}</h4>
+                            <small class="text-muted">Groupes</small>
+                        </div>
+                    </div>
+                    
+                    {% if groups|length > 0 %}
+                        <hr>
+                        <h6 class="text-muted">Répartition par groupe :</h6>
+                        {% for group in groups %}
+                            <div class="d-flex justify-content-between mb-1">
+                                <small>{{ group.name }}</small>
+                                <small class="text-primary">{{ group.licensees|length }}</small>
+                            </div>
+                            <div class="progress mb-2" style="height: 4px;">
+                                <div class="progress-bar" 
+                                     role="progressbar" 
+                                     style="width: {{ (group.licensees|length / licensees|length * 100)|round }}%"
+                                     aria-valuenow="{{ group.licensees|length }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="{{ licensees|length }}">
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -4,7 +4,7 @@
     {% if licenseeHelper.licenseeFromSession.id is same as licensee.id %}
         {{ path('app_mobile_othermenu') }}
     {% else %}
-        {{ path('app_licensee_index') }}
+        {{ path('app_club_show') }}
     {% endif %}
 {% endblock %}
 
@@ -12,7 +12,7 @@
     {% if licenseeHelper.licenseeFromSession.id is same as licensee.id %}
         Autre
     {% else %}
-        Trombinoscope
+        Mon Club
     {% endif %}
 {% endblock %}
 

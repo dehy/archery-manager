@@ -45,11 +45,11 @@
         </li>
         {% if licenseHelper.currentLicenseeCurrentLicense %}
         <li class="nav-item">
-            <a href="{{ path('app_licensee_index') }}" class="nav-link {{ _self.isActive('app_licensee_') }}">
+            <a href="{{ path('app_club_show') }}" class="nav-link {{ _self.isActive('app_club_') }}">
                 <div class="icon">
-                    <em class="fa-solid fa-users"></em>
+                    <em class="fa-solid fa-building"></em>
                 </div>
-                Trombinoscope
+                Mon Club
             </a>
         </li>
         <li class="nav-item">
@@ -102,10 +102,10 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ _self.isActive('app_licensee_') }}"
-                       href="{{ path('app_licensee_index') }}">
-                        <em class="fa-solid fa-users"></em>
-                        Trombinoscope
+                    <a class="nav-link {{ _self.isActive('app_club_') }}"
+                       href="{{ path('app_club_show') }}">
+                        <em class="fa-solid fa-building"></em>
+                        Mon Club
                     </a>
                 </li>
                 <li class="nav-item">
