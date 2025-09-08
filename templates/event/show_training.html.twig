@@ -28,27 +28,35 @@
             <div class="col">
                 <div class="alert alert-warning">
                     <h4 class="alert-heading"><em class="fa-solid fa-screwdriver-wrench"></em> Administration</h4>
-                    <a href="{{
-                    adminUrlGenerator
-                        .setController('App\\Controller\\Admin\\'~event|get_short_class~'CrudController')
-                        .setAction('edit')
-                        .setEntityId(event.id)
-                    .generateUrl
-                    }}" class="btn btn-secondary">
-                        <em class="fa-solid fa-pencil"></em>
-                        Modifier
-                    </a>
-                    <a href="{{
-                    adminUrlGenerator
-                        .setController('App\\Controller\\Admin\\EventParticipationCrudController')
-                        .setAction('index')
-                        .set('filters[event][comparison]', '=')
-                        .set('filters[event][value]', event.id)
-                    .generateUrl
-                    }}" class="btn btn-secondary">
-                        <em class="fa-solid fa-people-group"></em>
-                        Participations
-                    </a>
+                    <div class="btn-group" role="group">
+                        <a href="{{ path('app_admin_events_edit', {id: event.id}) }}" class="btn btn-primary">
+                            <em class="fa-solid fa-edit"></em>
+                            Modifier l'événement
+                        </a>
+                        <a href="{{
+                        adminUrlGenerator
+                            .setController('App\\Controller\\Admin\\'~event|get_short_class~'CrudController')
+                            .setAction('edit')
+                            .setEntityId(event.id)
+                        .generateUrl
+                        }}" class="btn btn-secondary">
+                            <em class="fa-solid fa-cog"></em>
+                            EasyAdmin
+                        </a>
+                    </div>
+                    <div class="btn-group ms-2" role="group">
+                        <a href="{{
+                        adminUrlGenerator
+                            .setController('App\\Controller\\Admin\\EventParticipationCrudController')
+                            .setAction('index')
+                            .set('filters[event][comparison]', '=')
+                            .set('filters[event][value]', event.id)
+                        .generateUrl
+                        }}" class="btn btn-secondary">
+                            <em class="fa-solid fa-people-group"></em>
+                            Participations
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

@@ -91,6 +91,12 @@ class AdminDashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Évènements');
 
+        yield MenuItem::linkToRoute(
+            'Gestion des événements',
+            'fa-solid fa-calendar-plus',
+            'app_admin_events_index',
+        );
+
         yield MenuItem::linkToCrud(
             'Entrainements',
             'fa-regular fa-calendar',

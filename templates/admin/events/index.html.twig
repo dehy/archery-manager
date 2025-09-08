@@ -1,0 +1,208 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des événements{% endblock %}
+
+{% block return_link %}{{ path('app_admin_dashboard') }}{% endblock %}
+{% block return_text %}Administration{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <em class="fa-solid fa-calendar-days me-2"></em>
+                    Gestion des événements
+                </h1>
+                <a href="{{ path('app_admin_events_create') }}" class="btn btn-primary">
+                    <em class="fa-solid fa-plus me-2"></em>
+                    Créer un événement
+                </a>
+            </div>
+
+            {% if events|length > 0 %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <em class="fa-solid fa-list me-2"></em>
+                            Événements ({{ totalEvents }})
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Événement</th>
+                                        <th>Type</th>
+                                        <th>Discipline</th>
+                                        <th>Date</th>
+                                        <th>Lieu</th>
+                                        <th>Participants</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in events %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2">
+                                                        {% if event is instanceof('App\\Entity\\ContestEvent') or event is instanceof('App\\Entity\\HobbyContestEvent') %}
+                                                            <em class="fa-solid fa-trophy text-warning"></em>
+                                                        {% elseif event is instanceof('App\\Entity\\TrainingEvent') %}
+                                                            <em class="fa-solid fa-crosshairs text-primary"></em>
+                                                        {% elseif event is instanceof('App\\Entity\\FreeTrainingEvent') %}
+                                                            <em class="fa-solid fa-clock text-info"></em>
+                                                        {% else %}
+                                                            <em class="fa-solid fa-calendar text-secondary"></em>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-medium">{{ event.name }}</div>
+                                                        {% if event.assignedGroups|length > 0 %}
+                                                            <small class="text-muted">
+                                                                <em class="fa-solid fa-users me-1"></em>
+                                                                {{ event.assignedGroups|map(g => g.name)|join(', ') }}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ event is instanceof('App\\Entity\\ContestEvent') ? 'warning' : (event is instanceof('App\\Entity\\HobbyContestEvent') ? 'info' : 'primary') }}">
+                                                    {{ event|get_short_class|readable_enum }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">
+                                                    {{ event.discipline|readable_enum }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="small">
+                                                    <div>{{ event.startsAt|date('d/m/Y') }}</div>
+                                                    {% if not event.allDay %}
+                                                        <div class="text-muted">
+                                                            {{ event.startsAt|date('H:i') }} - {{ event.endsAt|date('H:i') }}
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="text-muted">Toute la journée</div>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="small text-truncate" style="max-width: 200px;" title="{{ event.address }}">
+                                                    {{ event.address }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark">
+                                                    {{ event.participations|length }}
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{{ path('app_event_show', {slug: event.slug}) }}" 
+                                                       class="btn btn-outline-secondary" title="Voir">
+                                                        <em class="fa-solid fa-eye"></em>
+                                                    </a>
+                                                    <a href="{{ path('app_admin_events_edit', {id: event.id}) }}" 
+                                                       class="btn btn-outline-primary" title="Modifier">
+                                                        <em class="fa-solid fa-edit"></em>
+                                                    </a>
+                                                    <button type="button" class="btn btn-outline-danger" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#deleteModal{{ event.id }}" title="Supprimer">
+                                                        <em class="fa-solid fa-trash"></em>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <!-- Modal de suppression -->
+                                        <div class="modal fade" id="deleteModal{{ event.id }}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Confirmer la suppression</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>Êtes-vous sûr de vouloir supprimer l'événement :</p>
+                                                        <strong>{{ event.name }}</strong>
+                                                        <p class="text-muted mt-2">Cette action est irréversible.</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                        <form method="post" action="{{ path('app_admin_events_delete', {id: event.id}) }}" class="d-inline">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                                                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if totalPages > 1 %}
+                        <div class="card-footer">
+                            <nav aria-label="Navigation des événements">
+                                <ul class="pagination justify-content-center mb-0">
+                                    {% if currentPage > 1 %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('app_admin_events_index', {page: currentPage - 1}) }}">
+                                                <em class="fa-solid fa-chevron-left"></em>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for page in 1..totalPages %}
+                                        {% if page == currentPage %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page }}</span>
+                                            </li>
+                                        {% elseif page <= 3 or page >= totalPages - 2 or (page >= currentPage - 1 and page <= currentPage + 1) %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ path('app_admin_events_index', {page: page}) }}">{{ page }}</a>
+                                            </li>
+                                        {% elseif page == 4 or page == totalPages - 3 %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if currentPage < totalPages %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('app_admin_events_index', {page: currentPage + 1}) }}">
+                                                <em class="fa-solid fa-chevron-right"></em>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <em class="fa-solid fa-calendar-xmark fa-3x text-muted"></em>
+                    </div>
+                    <h3 class="text-muted">Aucun événement</h3>
+                    <p class="text-muted">Créez votre premier événement pour commencer.</p>
+                    <a href="{{ path('app_admin_events_create') }}" class="btn btn-primary">
+                        <em class="fa-solid fa-plus me-2"></em>
+                        Créer un événement
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -17,6 +17,8 @@ class EventVoter extends Voter
 {
     final public const string EDIT = 'EVENT_EDIT';
 
+    final public const string DELETE = 'EVENT_DELETE';
+
     final public const string VIEW = 'EVENT_VIEW';
 
     public function __construct(
@@ -29,7 +31,7 @@ class EventVoter extends Voter
     {
         // replace with your own logic
         // https://symfony.com/doc/current/security/voters.html
-        return \in_array($attribute, [self::EDIT, self::VIEW])
+        return \in_array($attribute, [self::EDIT, self::DELETE, self::VIEW])
             && $subject instanceof Event;
     }
 
@@ -57,6 +59,7 @@ class EventVoter extends Voter
         // ... (check conditions and return true to grant permission) ...
         return match ($attribute) {
             self::EDIT => $this->security->isGranted(UserRoleType::ADMIN, $user),
+            self::DELETE => $this->security->isGranted(UserRoleType::ADMIN, $user),
             self::VIEW => \in_array($event->getClub(), $clubs),
             default => false,
         };

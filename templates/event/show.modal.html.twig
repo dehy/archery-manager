@@ -1,49 +1,195 @@
 {% set licensee = licenseeHelper.licenseeFromSession %}
 {% set license = licenseHelper.currentLicenseeCurrentLicense %}
 {% set canAttend = licenseHelper.licenseIsValidForEvent(license, event) %}
+
+<div class="event-detail-modal">
+<!-- En-tête de l'événement -->
+<div class="d-flex align-items-center mb-4">
+    <div class="event-pill me-3" style="background-color: {{ event|eventColor }}; width: 4px; height: 60px; border-radius: 2px;"></div>
+    <div class="flex-grow-1">
+        <h3 class="mb-1">{{ event.name }}</h3>
+        <div class="text-muted">
+            <i class="fa-solid fa-tag me-2"></i>
+            {{ event|get_class|readable_enum }} - {{ event.discipline|readable_enum('DisciplineType') }}
+        </div>
+    </div>
+    {% if is_granted('ROLE_ADMIN') %}
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ path('app_admin_events_edit', {id: event.id}) }}">
+                    <i class="fa-solid fa-edit me-2"></i>Modifier
+                </a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{{ path('app_admin_events_delete', {id: event.id}) }}" 
+                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')">
+                    <i class="fa-solid fa-trash me-2"></i>Supprimer
+                </a></li>
+            </ul>
+        </div>
+    {% endif %}
+</div>
+
 {% if not canAttend %}
-    <div class="alert alert-warning">
-        Ta licence ne te permet pas de participer à ce type d'évènement.
+    <div class="alert alert-warning d-flex align-items-center">
+        <i class="fa-solid fa-exclamation-triangle me-2"></i>
+        Ta licence ne te permet pas de participer à ce type d'événement.
     </div>
 {% endif %}
-<dl class="row">
-    <dt class="col-3 text-end">date</dt>
-    <dd class="col-9">
-        {% if event.endsAt.diff(event.startsAt).days == 1 %}
-            les {{ event.startsAt|date('j') }} et {{ event.endsAt|format_date(locale='fr') }}
-        {% elseif event.startsAt|date('d') != event.endsAt|date('d') %}
-            du {{ event.startsAt|date('j') }} au {{ event.endsAt|format_date(locale='fr') }}
-        {% else %}
-            le {{ event.startsAt|format_date(locale='fr') }}
-            de {{ event.startsAt|format_time('short', locale='fr') }}
-            à  {{ event.endsAt|format_time('short', locale='fr') }}
-        {% endif %}
-        {% set diffDays = event.startsAt.diff(date()).days %}
-        {% if diffDays == 0 %}
-            (aujourd'hui)
-        {% else %}
-            (dans {{ event.startsAt.diff(date()).days }} jours)
-        {% endif %}
-    </dd>
-    <dt class="col-3 text-end">adresse</dt>
-    <dd class="col-9">
-        {{ event.address }}<br>
-        <a href="https://www.google.com/maps/search/?api=1&query={{ event.address|url_encode }}"
-           target="_blank">Afficher sur Google Maps <em class="fa-solid fa-arrow-up-right-from-square"></em></a>
-    </dd>
-    {{ _self.attachment(event, 'mandate') }}
-    <dt class="col-3 text-end mb-2">ont prévu d'y aller</dt>
+
+<!-- Informations principales -->
+<div class="row g-4 mb-4 event-info-section">
+    <!-- Date et heure -->
+    <div class="col-md-6">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body">
+                <h6 class="card-title d-flex align-items-center">
+                    <i class="fa-solid fa-calendar-days me-2 text-primary"></i>
+                    Date et heure
+                </h6>
+                <div class="card-text">
+                    {% if event.allDay %}
+                        <div class="fw-bold">Toute la journée</div>
+                    {% endif %}
+                    {% if event.endsAt.diff(event.startsAt).days == 1 %}
+                        <div>Les {{ event.startsAt|date('j') }} et {{ event.endsAt|format_date(locale='fr') }}</div>
+                    {% elseif event.startsAt|date('d') != event.endsAt|date('d') %}
+                        <div>Du {{ event.startsAt|date('j') }} au {{ event.endsAt|format_date(locale='fr') }}</div>
+                    {% else %}
+                        <div>{{ event.startsAt|format_date('full', locale='fr') }}</div>
+                        {% if not event.allDay %}
+                            <div class="text-muted">
+                                {{ event.startsAt|format_time('short', locale='fr') }} - {{ event.endsAt|format_time('short', locale='fr') }}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                    {% set diffDays = event.startsAt.diff(date()).days %}
+                    <small class="text-muted">
+                        {% if diffDays == 0 %}
+                            <i class="fa-solid fa-clock me-1"></i>Aujourd'hui
+                        {% elseif diffDays > 0 %}
+                            <i class="fa-solid fa-hourglass me-1"></i>Dans {{ diffDays }} jour{{ diffDays > 1 ? 's' }}
+                        {% else %}
+                            <i class="fa-solid fa-history me-1"></i>Il y a {{ (-diffDays) }} jour{{ (-diffDays) > 1 ? 's' }}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lieu -->
+    <div class="col-md-6">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body">
+                <h6 class="card-title d-flex align-items-center">
+                    <i class="fa-solid fa-map-marker-alt me-2 text-primary"></i>
+                    Lieu
+                </h6>
+                <div class="card-text">
+                    <div>{{ event.address }}</div>
+                    <div class="mt-2">
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ event.address|url_encode }}"
+                           target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fa-solid fa-external-link-alt me-1"></i>
+                            Ouvrir dans Google Maps
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Groupes assignés -->
+{% if event.assignedGroups|length > 0 %}
+<div class="card border-0 bg-light mb-4">
+    <div class="card-body">
+        <h6 class="card-title d-flex align-items-center">
+            <i class="fa-solid fa-users me-2 text-primary"></i>
+            Groupes concernés
+        </h6>
+        <div class="d-flex flex-wrap gap-2">
+            {% for group in event.assignedGroups %}
+                <span class="badge bg-secondary">{{ group.name }}</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Participations -->
+<div class="row g-4 mb-4">
     {% set goingParticipations = event.participations|filter(p => p.participationState == 'going') %}
-    <dd class="col-9">
-        {{ goingParticipations|length > 0 ? goingParticipations|map(p => p.participant)|join(', ') : '-' }}
-    </dd>
     {% set registeredParticipations = event.participations|filter(p => p.participationState == 'registered') %}
-    <dt class="col-3 text-end">sont inscrits</dt>
-    <dd class="col-9">
-        {{ registeredParticipations|length > 0 ? registeredParticipations|map(p => p.participant)|join(', ') : '-' }}
-    </dd>
-    {{ _self.attachment(event, 'results', true) }}
-</dl>
+    {% set interestedParticipations = event.participations|filter(p => p.participationState == 'interested') %}
+    
+    {% if goingParticipations|length > 0 %}
+    <div class="col-md-4">
+        <div class="card border-0 bg-light h-100 participation-card">
+            <div class="card-body">
+                <h6 class="card-title d-flex align-items-center">
+                    <i class="fa-solid fa-check-circle me-2 text-success"></i>
+                    Vont y aller ({{ goingParticipations|length }})
+                </h6>
+                <div class="card-text">
+                    {% for participation in goingParticipations %}
+                        <div class="d-flex align-items-center participant-item">
+                            <small>{{ participation.participant }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if registeredParticipations|length > 0 %}
+    <div class="col-md-4">
+        <div class="card border-0 bg-light h-100 participation-card">
+            <div class="card-body">
+                <h6 class="card-title d-flex align-items-center">
+                    <i class="fa-solid fa-user-check me-2 text-primary"></i>
+                    Inscrits ({{ registeredParticipations|length }})
+                </h6>
+                <div class="card-text">
+                    {% for participation in registeredParticipations %}
+                        <div class="d-flex align-items-center participant-item">
+                            <small>{{ participation.participant }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if interestedParticipations|length > 0 %}
+    <div class="col-md-4">
+        <div class="card border-0 bg-light h-100 participation-card">
+            <div class="card-body">
+                <h6 class="card-title d-flex align-items-center">
+                    <i class="fa-solid fa-question-circle me-2 text-warning"></i>
+                    Intéressés ({{ interestedParticipations|length }})
+                </h6>
+                <div class="card-text">
+                    {% for participation in interestedParticipations %}
+                        <div class="d-flex align-items-center participant-item">
+                            <small>{{ participation.participant }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{{ _self.attachment(event, 'mandate') }}
+{{ _self.attachment(event, 'results', true) }}
+</div>
 
 {% if canAttend %}
     {% set licenseeParticipation = eventHelper.licenseeParticipationToEvent(licensee, event) %}
@@ -84,19 +230,37 @@
 
 {% macro attachment(event, type, plural = false) %}
     {% if event is instanceof('ContestEvent') %}
-        <dt class="col-3 text-end">{{ type|readable_enum('EventAttachmentType')|lower }}</dt>
-        <dd class="col-9">
-            {% if not event.attachments(type).empty %}
-                {% for attachment in event.attachments(type) %}
-                    <a href="{{ path('events_attachments_download', {'attachment': attachment.id}) }}"
-                       class="btn btn-sm btn-primary"
-                       target="_blank">
-                        <em class="fa-solid fa-download"></em> Télécharger
-                    </a>
-                {% endfor %}
-            {% else %}
-                <em>Pas encore disponible{{ plural ? 's' }}</em>
-            {% endif %}
-        </dd>
+        <div class="card border-0 bg-light mb-3">
+            <div class="card-body">
+                <h6 class="card-title d-flex align-items-center">
+                    {% if type == 'mandate' %}
+                        <i class="fa-solid fa-file-contract me-2 text-primary"></i>
+                    {% elseif type == 'results' %}
+                        <i class="fa-solid fa-trophy me-2 text-primary"></i>
+                    {% else %}
+                        <i class="fa-solid fa-paperclip me-2 text-primary"></i>
+                    {% endif %}
+                    {{ type|readable_enum('EventAttachmentType') }}
+                </h6>
+                <div class="card-text">
+                    {% if not event.attachments(type).empty %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for attachment in event.attachments(type) %}
+                                <a href="{{ path('events_attachments_download', {'attachment': attachment.id}) }}"
+                                   class="btn btn-sm btn-primary"
+                                   target="_blank">
+                                    <i class="fa-solid fa-download me-1"></i> Télécharger
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-muted">
+                            <i class="fa-solid fa-info-circle me-1"></i>
+                            Pas encore disponible{{ plural ? 's' }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     {% endif %}
 {% endmacro %}

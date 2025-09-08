@@ -3,24 +3,37 @@
 {% block title %}Calendrier{% endblock %}
 
 {% block body %}
-    <h2>Calendrier</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Calendrier</h2>
+        {% if is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('app_admin_events_create') }}" class="btn btn-primary btn-create-event">
+                <i class="fa-solid fa-plus me-2"></i>
+                Nouvel événement
+            </a>
+        {% endif %}
+    </div>
 
     {% set start_of_month = date(year ~ '-' ~ month ~ '-01') %}
     {% set previous_month = start_of_month|date_modify('previous month') %}
     {% set next_month = start_of_month|date_modify('next month') %}
-    <h3>
-        <a href="{{ path('app_event_index', {'m': previous_month|date('n'), 'y': previous_month|date('Y')}) }}"
-           class="btn btn-sm btn-secondary">
-            <em class="fa-solid fa-angle-left"></em>
-        </a>
-        <a href="{{ path('app_event_index') }}" class="btn btn-sm btn-secondary">Aujourd'hui</a>
-        <a href="{{ path('app_event_index', {'m': next_month|date('n'), 'y': next_month|date('Y')}) }}"
-           class="btn btn-sm btn-secondary">
-            <em class="fa-solid fa-angle-right"></em>
-        </a>
-        {{ start_of_month|format_date(pattern='MMMM', locale='fr') }}
-        <span class="fw-normal text-primary">{{ start_of_month|format_date(pattern='yyyy', locale='fr') }}</span>
-    </h3>
+    <div class="d-flex justify-content-between align-items-center mb-4 calendar-controls">
+        <div class="btn-group" role="group">
+            <a href="{{ path('app_event_index', {'m': previous_month|date('n'), 'y': previous_month|date('Y')}) }}"
+               class="btn btn-outline-secondary">
+                <i class="fa-solid fa-chevron-left"></i>
+            </a>
+            <a href="{{ path('app_event_index') }}" class="btn btn-outline-secondary">Aujourd'hui</a>
+            <a href="{{ path('app_event_index', {'m': next_month|date('n'), 'y': next_month|date('Y')}) }}"
+               class="btn btn-outline-secondary">
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+        <h3 class="mb-0">
+            {{ start_of_month|format_date(pattern='MMMM', locale='fr') }}
+            <span class="fw-normal text-primary">{{ start_of_month|format_date(pattern='yyyy', locale='fr') }}</span>
+        </h3>
+        <div style="width: 140px;"></div> <!-- Spacer pour centrer le titre -->
+    </div>
 
     <div class="row">
         <div class="col-xl-9 d-xl-block d-none">
@@ -102,48 +115,61 @@
             </div>
         </div>
         <div class="col-xl-3 col-12">
-            <ul class="ps-0">
-                {% for date_key, events in calendar|filter((e) => e|length > 0) %}
-                    {% set day = date(date_key) %}
-                    {% set date_elements = date_key|split('-') %}
-                    <li class="list-unstyled{% if day|date('Y-n') != (year ~ "-" ~ month) %} d-none d-xl-block{% endif %}">
-                        <h4>
-                            <strong>{{ day|format_date(pattern='eeee', locale='fr') }}</strong>
-                            <span class="text-black-50 fs-5">{{ day|date('d/m/Y') }}</span>
-                        </h4>
-                        <ul class="list-unstyled">
-                            {% for event in events %}
-                                <li class="event-list-event">
-                                    <a href="{{ path('app_event_show', {slug: event.slug}) }}"
-                                       class="d-flex flex-row link-unstyled p-2"
-                                    >
-                                        <div class="event-pill me-1"
-                                             style="background-color: {{ event|eventColor }}">
-                                        </div>
-                                        <div class="d-flex flex-column">
-                                            <div class="time">
-                                                {% if event.allDay %}
-                                                Toute la journée
-                                                {% else %}
-                                                {{ event.startsAt|date('H:i') }}
-                                                — {{ event.endsAt|date('H:i') }}
-                                                {% endif %}
+            <!-- Bouton nouvel événement pour mobile -->
+            {% if is_granted('ROLE_ADMIN') %}
+                <div class="d-xl-none mb-4">
+                    <a href="{{ path('app_admin_events_create') }}" class="btn btn-primary w-100 btn-create-event">
+                        <i class="fa-solid fa-plus me-2"></i>
+                        Nouvel événement
+                    </a>
+                </div>
+            {% endif %}
+            
+            <!-- Container avec scroll pour desktop, normal pour mobile -->
+            <div class="events-list-container">
+                <ul class="ps-0">
+                    {% for date_key, events in calendar|filter((e) => e|length > 0) %}
+                        {% set day = date(date_key) %}
+                        {% set date_elements = date_key|split('-') %}
+                        <li class="list-unstyled{% if day|date('Y-n') != (year ~ "-" ~ month) %} d-none d-xl-block{% endif %}">
+                            <h4>
+                                <strong>{{ day|format_date(pattern='eeee', locale='fr') }}</strong>
+                                <span class="text-black-50 fs-5">{{ day|date('d/m/Y') }}</span>
+                            </h4>
+                            <ul class="list-unstyled">
+                                {% for event in events %}
+                                    <li class="event-list-event">
+                                        <a href="{{ path('app_event_show', {slug: event.slug}) }}"
+                                           class="d-flex flex-row link-unstyled p-2"
+                                        >
+                                            <div class="event-pill me-1"
+                                                 style="background-color: {{ event|eventColor }}">
                                             </div>
-                                            <div class="name">
-                                                {{ event|get_class|readable_enum }} - {{ event.name }}
-                                                {% if event.attachments|length > 0 %}
-                                                    <em class="fa-solid fa-paperclip"></em>
-                                                {% endif %}
+                                            <div class="d-flex flex-column">
+                                                <div class="time">
+                                                    {% if event.allDay %}
+                                                    Toute la journée
+                                                    {% else %}
+                                                    {{ event.startsAt|date('H:i') }}
+                                                    — {{ event.endsAt|date('H:i') }}
+                                                    {% endif %}
+                                                </div>
+                                                <div class="name">
+                                                    {{ event|get_class|readable_enum }} - {{ event.name }}
+                                                    {% if event.attachments|length > 0 %}
+                                                        <em class="fa-solid fa-paperclip"></em>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="address">{{ event.address }}</div>
                                             </div>
-                                            <div class="address">{{ event.address }}</div>
-                                        </div>
-                                    </a>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </li>
-                {% endfor %}
-            </ul>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
 {% endblock %}

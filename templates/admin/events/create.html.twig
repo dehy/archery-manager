@@ -1,0 +1,195 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un événement{% endblock %}
+
+{% block return_link %}{{ path('app_admin_events_index') }}{% endblock %}
+{% block return_text %}Événements{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="mb-4 text-center">
+                <h1>
+                    <em class="fa-solid fa-plus-circle me-2"></em>
+                    Créer un événement
+                </h1>
+                <p class="text-muted">Choisissez le type d'événement que vous souhaitez créer</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card h-100 border-primary event-type-card" data-type="contest">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <em class="fa-solid fa-trophy fa-3x text-warning"></em>
+                            </div>
+                            <h4 class="card-title">Concours officiel</h4>
+                            <p class="card-text text-muted">
+                                Compétition officielle avec règlement FFTA, résultats comptabilisés, 
+                                classements et possibilité d'importer les résultats depuis Result'Arc.
+                            </p>
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <em class="fa-solid fa-check me-1"></em> Mandat<br>
+                                    <em class="fa-solid fa-check me-1"></em> Résultats<br>
+                                    <em class="fa-solid fa-check me-1"></em> Types de concours
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="{{ path('app_admin_events_create_type', {type: 'contest'}) }}" 
+                               class="btn btn-primary">
+                                <em class="fa-solid fa-plus me-2"></em>
+                                Créer un concours
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100 border-info event-type-card" data-type="hobby_contest">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <em class="fa-solid fa-heart fa-3x text-danger"></em>
+                            </div>
+                            <h4 class="card-title">Concours loisir</h4>
+                            <p class="card-text text-muted">
+                                Compétition interne ou amicale, plus détendue, 
+                                idéale pour débuter ou s'amuser entre archers du club.
+                            </p>
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <em class="fa-solid fa-check me-1"></em> Résultats<br>
+                                    <em class="fa-solid fa-check me-1"></em> Convivial<br>
+                                    <em class="fa-solid fa-check me-1"></em> Interne au club
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="{{ path('app_admin_events_create_type', {type: 'hobby_contest'}) }}" 
+                               class="btn btn-info">
+                                <em class="fa-solid fa-plus me-2"></em>
+                                Créer un concours loisir
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100 border-success event-type-card" data-type="training">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <em class="fa-solid fa-crosshairs fa-3x text-primary"></em>
+                            </div>
+                            <h4 class="card-title">Entraînement</h4>
+                            <p class="card-text text-muted">
+                                Séance d'entraînement structurée avec un encadrant, 
+                                généralement destinée à un groupe spécifique.
+                            </p>
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <em class="fa-solid fa-check me-1"></em> Groupes assignés<br>
+                                    <em class="fa-solid fa-check me-1"></em> Encadrement<br>
+                                    <em class="fa-solid fa-check me-1"></em> Progression
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="{{ path('app_admin_events_create_type', {type: 'training'}) }}" 
+                               class="btn btn-success">
+                                <em class="fa-solid fa-plus me-2"></em>
+                                Créer un entraînement
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100 border-secondary event-type-card" data-type="free_training">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <em class="fa-solid fa-clock fa-3x text-info"></em>
+                            </div>
+                            <h4 class="card-title">Entraînement libre</h4>
+                            <p class="card-text text-muted">
+                                Créneau libre où les archers peuvent venir s'entraîner 
+                                sans encadrement spécifique.
+                            </p>
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <em class="fa-solid fa-check me-1"></em> Accès libre<br>
+                                    <em class="fa-solid fa-check me-1"></em> Flexible<br>
+                                    <em class="fa-solid fa-check me-1"></em> Autonome
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="{{ path('app_admin_events_create_type', {type: 'free_training'}) }}" 
+                               class="btn btn-secondary">
+                                <em class="fa-solid fa-plus me-2"></em>
+                                Créer un entraînement libre
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <em class="fa-solid fa-lightbulb me-2"></em>
+                                Conseils pour choisir le bon type
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><em class="fa-solid fa-trophy text-warning me-1"></em> Concours officiel</h6>
+                                    <p class="small text-muted">
+                                        Pour les compétitions avec mandat FFTA, participation aux championnats, 
+                                        classements officiels.
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><em class="fa-solid fa-heart text-danger me-1"></em> Concours loisir</h6>
+                                    <p class="small text-muted">
+                                        Pour les challenges internes, concours de Noël, 
+                                        animations spéciales du club.
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><em class="fa-solid fa-crosshairs text-primary me-1"></em> Entraînement</h6>
+                                    <p class="small text-muted">
+                                        Pour les créneaux d'entraînement avec coach, 
+                                        séances jeunes, perfectionnement.
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><em class="fa-solid fa-clock text-info me-1"></em> Entraînement libre</h6>
+                                    <p class="small text-muted">
+                                        Pour les créneaux ouverts, pas de coach obligatoire, 
+                                        tir libre.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.event-type-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.event-type-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

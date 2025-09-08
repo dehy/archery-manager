@@ -1,0 +1,309 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {% if isEdit %}
+        Modifier {{ event.name }}
+    {% else %}
+        Créer un {{ eventType|replace({'_': ' '})|title }}
+    {% endif %}
+{% endblock %}
+
+{% block return_link %}{{ path('app_admin_events_index') }}{% endblock %}
+{% block return_text %}Événements{% endblock %}
+
+{% block body %}
+<div class="container-fluid event-form">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <h1>
+                    {% if isEdit %}
+                        <em class="fa-solid fa-edit me-2"></em>
+                        Modifier l'événement
+                    {% else %}
+                        <em class="fa-solid fa-plus me-2"></em>
+                        Créer un 
+                        {% if eventType == 'contest' %}
+                            <em class="fa-solid fa-trophy text-warning"></em> concours officiel
+                        {% elseif eventType == 'hobby_contest' %}
+                            <em class="fa-solid fa-heart text-danger"></em> concours loisir
+                        {% elseif eventType == 'training' %}
+                            <em class="fa-solid fa-crosshairs text-primary"></em> entraînement
+                        {% elseif eventType == 'free_training' %}
+                            <em class="fa-solid fa-clock text-info"></em> entraînement libre
+                        {% endif %}
+                    {% endif %}
+                </h1>
+                {% if not isEdit %}
+                    <p class="text-muted">
+                        Remplissez les informations ci-dessous pour créer votre événement
+                    </p>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <em class="fa-solid fa-info-circle me-2"></em>
+                        Informations de l'événement
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    
+                    <div class="row g-3">
+                        <!-- Nom de l'événement -->
+                        <div class="col-12">
+                            <div class="form-group">
+                                {{ form_label(form.name, null, {'label_attr': {'class': 'form-label fw-medium'}}) }}
+                                {{ form_widget(form.name) }}
+                                {{ form_errors(form.name) }}
+                                <div class="form-text">
+                                    <em class="fa-solid fa-lightbulb me-1"></em>
+                                    Donnez un nom clair et descriptif à votre événement
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Discipline -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(form.discipline, null, {'label_attr': {'class': 'form-label fw-medium'}}) }}
+                                {{ form_widget(form.discipline) }}
+                                {{ form_errors(form.discipline) }}
+                            </div>
+                        </div>
+
+                        <!-- Type de concours (seulement pour les concours) -->
+                        {% if form.contestType is defined %}
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form_label(form.contestType, null, {'label_attr': {'class': 'form-label fw-medium'}}) }}
+                                    {{ form_widget(form.contestType) }}
+                                    {{ form_errors(form.contestType) }}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="mb-3">
+                        <em class="fa-solid fa-calendar me-2"></em>
+                        Dates et horaires
+                    </h6>
+
+                    <div class="row g-3">
+                        <!-- Événement toute la journée -->
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                {{ form_widget(form.allDay) }}
+                                {{ form_label(form.allDay, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                            </div>
+                        </div>
+
+                        <!-- Date de début -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(form.startsAt, null, {'label_attr': {'class': 'form-label fw-medium'}}) }}
+                                {{ form_widget(form.startsAt) }}
+                                {{ form_errors(form.startsAt) }}
+                            </div>
+                        </div>
+
+                        <!-- Date de fin -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(form.endsAt, null, {'label_attr': {'class': 'form-label fw-medium'}}) }}
+                                {{ form_widget(form.endsAt) }}
+                                {{ form_errors(form.endsAt) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="mb-3">
+                        <em class="fa-solid fa-map-marker-alt me-2"></em>
+                        Localisation
+                    </h6>
+
+                    <div class="row g-3">
+                        <!-- Adresse -->
+                        <div class="col-12">
+                            <div class="form-group">
+                                {{ form_label(form.address, null, {'label_attr': {'class': 'form-label fw-medium'}}) }}
+                                {{ form_widget(form.address) }}
+                                {{ form_errors(form.address) }}
+                            </div>
+                        </div>
+
+                        <!-- Coordonnées GPS -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(form.latitude, null, {'label_attr': {'class': 'form-label fw-medium'}}) }}
+                                {{ form_widget(form.latitude) }}
+                                {{ form_errors(form.latitude) }}
+                                <div class="form-text">
+                                    <em class="fa-solid fa-info-circle me-1"></em>
+                                    Pour l'affichage sur la carte
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(form.longitude, null, {'label_attr': {'class': 'form-label fw-medium'}}) }}
+                                {{ form_widget(form.longitude) }}
+                                {{ form_errors(form.longitude) }}
+                                <div class="form-text">
+                                    <em class="fa-solid fa-info-circle me-1"></em>
+                                    Pour l'affichage sur la carte
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="mb-3">
+                        <em class="fa-solid fa-users me-2"></em>
+                        Groupes assignés
+                    </h6>
+
+                    <div class="form-group">
+                        {{ form_label(form.assignedGroups, null, {'label_attr': {'class': 'form-label fw-medium'}}) }}
+                        <div class="row g-2">
+                            {% for groupChoice in form.assignedGroups %}
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        {{ form_widget(groupChoice, {'attr': {'class': 'form-check-input'}}) }}
+                                        {{ form_label(groupChoice, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {{ form_errors(form.assignedGroups) }}
+                        <div class="form-text">
+                            <em class="fa-solid fa-info-circle me-1"></em>
+                            Sélectionnez les groupes qui sont spécifiquement concernés par cet événement. 
+                            Laissez vide si l'événement est ouvert à tous.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ path('app_admin_events_index') }}" class="btn btn-secondary">
+                            <em class="fa-solid fa-arrow-left me-2"></em>
+                            Annuler
+                        </a>
+                        
+                        <div>
+                            {% if isEdit %}
+                                <button type="button" class="btn btn-outline-danger me-2" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#deleteModal">
+                                    <em class="fa-solid fa-trash me-2"></em>
+                                    Supprimer
+                                </button>
+                            {% endif %}
+                            {{ form_widget(form.submit) }}
+                        </div>
+                    </div>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+
+            {% if isEdit %}
+                <!-- Modal de suppression -->
+                <div class="modal fade" id="deleteModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirmer la suppression</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Êtes-vous sûr de vouloir supprimer cet événement ?</p>
+                                <div class="alert alert-warning">
+                                    <strong>{{ event.name }}</strong><br>
+                                    <small>{{ event.startsAt|date('d/m/Y H:i') }}</small>
+                                </div>
+                                <p class="text-muted">
+                                    Cette action supprimera également toutes les participations associées. 
+                                    Cette action est irréversible.
+                                </p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                <form method="post" action="{{ path('app_admin_events_delete', {id: event.id}) }}" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                                    <button type="submit" class="btn btn-danger">
+                                        <em class="fa-solid fa-trash me-2"></em>
+                                        Supprimer définitivement
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Aide contextuelle -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <em class="fa-solid fa-question-circle me-2"></em>
+                                Aide
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small>
+                                        <strong>Groupes assignés :</strong><br>
+                                        Permet de cibler un événement vers certains groupes. 
+                                        Les licenciés de ces groupes recevront une notification spéciale.
+                                    </small>
+                                </div>
+                                <div class="col-md-6">
+                                    <small>
+                                        <strong>Coordonnées GPS :</strong><br>
+                                        Optionnelles mais recommandées pour afficher l'événement sur une carte 
+                                        et faciliter la navigation.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion de l'option "Toute la journée"
+    const allDayCheckbox = document.querySelector('#{{ form.allDay.vars.id }}');
+    const startDateInput = document.querySelector('#{{ form.startsAt.vars.id }}');
+    const endDateInput = document.querySelector('#{{ form.endsAt.vars.id }}');
+    
+    if (allDayCheckbox) {
+        allDayCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Si toute la journée, on met les heures à 00:00 et 23:59
+                if (startDateInput.value) {
+                    startDateInput.value = startDateInput.value.substring(0, 10) + 'T00:00';
+                }
+                if (endDateInput.value) {
+                    endDateInput.value = endDateInput.value.substring(0, 10) + 'T23:59';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
