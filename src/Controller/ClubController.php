@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\Licensee;
 use App\Helper\ClubHelper;
 use App\Helper\LicenseHelper;
 use App\Repository\GroupRepository;
