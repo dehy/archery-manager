@@ -23,7 +23,29 @@
   }
 }
 
-// Cartes modernes pour les détails d'événements
+// Hero section pour la homepage/dashboard
+.hero-section {
+  .display-5 {
+    font-weight: 600;
+    color: #212529;
+  }
+
+  .lead {
+    font-size: 1.1rem;
+  }
+
+  .btn {
+    transition: all 0.2s ease-in-out;
+    font-weight: 500;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+// Cartes modernes pour les détails d'événements et homepage
 .card {
   transition: all 0.2s ease-in-out;
   border: 0;
@@ -44,6 +66,58 @@
     background: transparent;
     border-bottom: 1px solid rgba(0, 0, 0, 0.125);
     padding: 1.25rem 1.25rem 0.75rem;
+  }
+}
+
+// Styles pour la homepage/dashboard
+.events-list {
+  .event-item {
+    transition: all 0.2s ease-in-out;
+    background: rgba(248, 249, 250, 0.5);
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+      background: #f8f9fa;
+    }
+  }
+}
+
+.results-list {
+  .result-item {
+    transition: all 0.2s ease-in-out;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .result-score {
+    .h5 {
+      font-size: 1.5rem;
+    }
+  }
+}
+
+// Actions rapides section
+.quick-actions {
+  .btn {
+    transition: all 0.3s ease-in-out;
+    border-radius: 0.75rem;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    i {
+      transition: transform 0.2s ease-in-out;
+    }
+    
+    &:hover i {
+      transform: scale(1.1);
+    }
   }
 }
 
@@ -337,6 +411,44 @@
     
     .card-body {
       padding: 1rem;
+    }
+  }
+
+  .hero-section {
+    text-align: center;
+    
+    .display-5 {
+      font-size: 2rem;
+    }
+    
+    .btn {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  .events-list {
+    .event-item {
+      .row {
+        .col-2 {
+          flex: 0 0 auto;
+          width: 15%;
+        }
+        
+        .col-10 {
+          flex: 0 0 auto;
+          width: 85%;
+        }
+      }
+    }
+  }
+
+  .quick-actions {
+    .btn {
+      padding: 1.5rem 1rem !important;
+      
+      i {
+        font-size: 1.5rem !important;
+      }
     }
   }
 }

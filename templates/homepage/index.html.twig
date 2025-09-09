@@ -3,106 +3,211 @@
 {% block title %}Tableau de bord{% endblock %}
 
 {% block body %}
-    <div class="row mb-3">
-        <div class="col">
-            <h1>Bonjour {{ licenseeHelper.licenseeFromSession.firstname }} 👋</h1>
+    <!-- Welcome Hero Section -->
+    <div class="hero-section mb-5">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-5 mb-2">
+                    Bonjour {{ licenseeHelper.licenseeFromSession.firstname }} 👋
+                </h1>
+                <p class="text-muted lead mb-0">
+                    Bienvenue sur votre tableau de bord
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
+                    <a href="{{ path('app_event_index') }}" class="btn btn-primary">
+                        <i class="fa-solid fa-calendar me-1"></i>
+                        Calendrier
+                    </a>
+                    <a href="{{ path('app_club_show') }}" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-building me-1"></i>
+                        Mon Club
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-4 col-xs-12 mb-3" data-controller="modal">
-            {{ include('_modal.html.twig') }}
-            <h2 class="mb-3"><em class="fa-solid fa-calendar-days"></em> Prochains évènements</h2>
-            {% if events is empty %}
-                <p><em>Aucun évènement prévu</em></p>
-            {% else %}
-                <ul class="list-group">
-                    {% for event in events %}
-                        {% set participation = eventHelper.licenseeParticipationToEvent(licenseeHelper.licenseeFromSession, event) %}
-                        {% if participation.participationState is same as null %}
-                            {% set link_class = '' %}
-                            {% set icon = '' %}
-                        {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
-                            {% set link_class = 'bg-danger' %}
-                            {% set icon = 'calendar-xmark' %}
-                        {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::INTERESTED') %}
-                            {% set link_class = 'bg-warning' %}
-                            {% set icon = 'hourglass' %}
-                        {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') %}
-                            {% set link_class = 'bg-success' %}
-                            {% set icon = 'calendar-check' %}
-                        {% endif %}
-                        <a href="{{ path('app_event_show', {slug: event.slug}) }}"
-                           class="list-group-item list-group-item-action link-unstyled bg-opacity-10 {{ link_class }}"
-                        >
-                            <div class="d-flex flex-column">
-                                <div class="fw-bold">
-                                    {{ event.title }}
-                                    <span class="badge rounded-pill text-bg-info">
-                                        <em class="fa-solid fa-people-group"></em>
-                                        {{ event.participations|filter(p => p.participationState != 'not_going')|length }}
-                                    </span>
-                                    {% if icon %}
-                                        <span class="badge rounded-pill {{ link_class }}">
-                                            <em class="fa-solid fa-{{ icon }}"></em>
-                                        </span>
-                                    {% endif %}
+
+    <div class="row g-4">
+        <!-- Upcoming Events Card -->
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm border-0" data-controller="modal">
+                {{ include('_modal.html.twig') }}
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fa-solid fa-calendar-days text-primary me-2"></i>
+                        Prochains événements
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if events is empty %}
+                        <div class="text-center py-4">
+                            <i class="fa-solid fa-calendar-xmark fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">Aucun événement prévu</p>
+                        </div>
+                    {% else %}
+                        <div class="events-list">
+                            {% for event in events %}
+                                {% set participation = eventHelper.licenseeParticipationToEvent(licenseeHelper.licenseeFromSession, event) %}
+                                {% if participation.participationState is same as null %}
+                                    {% set status_class = 'border-secondary' %}
+                                    {% set icon = 'calendar' %}
+                                    {% set icon_class = 'text-secondary' %}
+                                {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
+                                    {% set status_class = 'border-danger' %}
+                                    {% set icon = 'calendar-xmark' %}
+                                    {% set icon_class = 'text-danger' %}
+                                {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::INTERESTED') %}
+                                    {% set status_class = 'border-warning' %}
+                                    {% set icon = 'hourglass' %}
+                                    {% set icon_class = 'text-warning' %}
+                                {% elseif participation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') %}
+                                    {% set status_class = 'border-success' %}
+                                    {% set icon = 'calendar-check' %}
+                                    {% set icon_class = 'text-success' %}
+                                {% endif %}
+                                
+                                <a href="{{ path('app_event_show', {slug: event.slug}) }}" 
+                                   class="text-decoration-none">
+                                    <div class="event-item p-3 rounded border {{ status_class }} mb-3 position-relative overflow-hidden">
+                                        <div class="row align-items-center">
+                                            <div class="col-2 text-center">
+                                                <i class="fa-solid fa-{{ icon }} fa-lg {{ icon_class }}"></i>
+                                            </div>
+                                            <div class="col-10">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-1 text-dark fw-semibold">{{ event.title }}</h6>
+                                                        <small class="text-muted">
+                                                            {{ event|event_date(diff=true) }}
+                                                        </small>
+                                                    </div>
+                                                    <div class="ms-2">
+                                                        <span class="badge bg-light text-dark border">
+                                                            <i class="fa-solid fa-people-group me-1"></i>
+                                                            {{ event.participations|filter(p => p.participationState != 'not_going')|length }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{{ path('app_event_index') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fa-solid fa-calendar me-1"></i>
+                                Voir tous les événements
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Results Card -->
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fa-solid fa-bullseye text-success me-2"></i>
+                        Mes derniers résultats
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if results is empty %}
+                        <div class="text-center py-4">
+                            <i class="fa-solid fa-bullseye fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">Aucun résultat enregistré</p>
+                        </div>
+                    {% else %}
+                        <div class="results-list">
+                            {% for result in results %}
+                                <div class="result-item p-3 rounded bg-light mb-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <a href="{{ path('app_event_show', {slug: result.event.slug}) }}" 
+                                               class="text-decoration-none">
+                                                <h6 class="mb-1 text-dark fw-semibold">
+                                                    {{ result.event.title }}
+                                                    <i class="fa-solid fa-external-link-alt fa-xs text-muted ms-1"></i>
+                                                </h6>
+                                            </a>
+                                            <div class="mb-2">
+                                                <small class="text-muted">
+                                                    {{ result.event|event_date(includeTime=false) }}
+                                                </small>
+                                            </div>
+                                            <div class="d-flex gap-1 flex-wrap">
+                                                <span class="badge bg-secondary bg-opacity-75">{{ result.distance }}m</span>
+                                                <span class="badge bg-secondary bg-opacity-75">{{ result.targetType|readable_enum }}</span>
+                                                <span class="badge bg-secondary bg-opacity-75">{{ result.targetSize }}cm</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="result-score">
+                                                <span class="h5 mb-0 text-primary fw-bold">{{ result.total }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <small>
-                                        {{ event|event_date(diff=true) }}
-                                    </small>
-                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if results|length >= 5 %}
+                            <div class="text-center mt-3">
+                                <a href="{{ path('app_licensee_my_profile') }}" class="btn btn-outline-success btn-sm">
+                                    <i class="fa-solid fa-chart-line me-1"></i>
+                                    Voir tous mes résultats
+                                </a>
                             </div>
-                        </a>
-                    {% endfor %}
-                    <a href="{{ path('app_event_index') }}"
-                       class="list-group-item text-center"
-                    >
-                        Voir les autres évènements
-                    </a>
-                </ul>
-            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        <div class="col-md-5 col-xs-12">
-            <h2 class="mb-3"><em class="fa-solid fa-bullseye"></em> Mes 5 derniers résultats</h2>
-            {% if results is empty %}
-                <p><em>Aucun résultat enregistré</em></p>
-            {% else %}
-                <table class="table">
-                    {% for result in results %}
-                        <tr>
-                            <td>
-                                <a href="{{ path('app_event_show', {slug: result.event.slug}) }}" class="link-unstyled">
-                                    <span class="fw-bold">{{ result.event.title }}</span>
-                                    <em class="fa-solid fa-circle-right text-muted"></em>
-                                </a><br>
-                                <span class="fst-italic">
-                                    <small>{{ result.event|event_date(includeTime=false) }}</small>
-                                </span>
-                                <span class="badge bg-secondary badge-pill">{{ result.distance }}m</span>
-                                <span class="badge bg-secondary badge-pill">{{ result.targetType|readable_enum }}</span>
-                                <span class="badge bg-secondary badge-pill">{{ result.targetSize }}cm</span>
-                            </td>
-                            <td>{{ result.total }}</td>
-                        </tr>
-                    {% endfor %}
-                </table>
-            {% endif %}
-        </div>
-        <div class="col-md-3 col-xs-12">
-            <h2 class="mb-3"><em class="fa-solid fa-comment"></em> Mes conseils de pratique</h2>
-            {% if advices is empty %}
-                <p><em>Aucun conseil pour le moment</em></p>
-            {% else %}
-                <ul class="list-group">
-                    {% for advice in advices %}
-                        <a href="{{ path('app_practice_advice_show', {'advice': advice.id}) }}" class="list-group-item">
-                            <strong>{{ advice.title }}</strong><br/>
-                            <em>par {{ advice.author.firstname }}</em>
-                        </a>
-                    {% endfor %}
-                </ul>
-            {% endif %}
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fa-solid fa-bolt text-warning me-2"></i>
+                        Actions rapides
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3 col-sm-6">
+                            <a href="{{ path('app_licensee_index') }}" class="btn btn-outline-primary w-100 p-3">
+                                <i class="fa-solid fa-users fa-2x mb-2 d-block"></i>
+                                <span class="fw-semibold">Trombinoscope</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <a href="{{ path('app_event_index') }}" class="btn btn-outline-primary w-100 p-3">
+                                <i class="fa-solid fa-calendar fa-2x mb-2 d-block"></i>
+                                <span class="fw-semibold">Calendrier</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <a href="{{ path('app_licensee_my_profile') }}" class="btn btn-outline-primary w-100 p-3">
+                                <i class="fa-solid fa-user fa-2x mb-2 d-block"></i>
+                                <span class="fw-semibold">Mon Profil</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <a href="{{ path('app_club_show') }}" class="btn btn-outline-primary w-100 p-3">
+                                <i class="fa-solid fa-building fa-2x mb-2 d-block"></i>
+                                <span class="fw-semibold">Mon Club</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
