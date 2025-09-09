@@ -1,6 +1,9 @@
 {% extends 'base.html.twig' %}
 
-{% set licensee = licenseeHelper.licenseeFromSession %}
+{% set licensee =                 {% else %}
+                    {% set participationButtonLabel = 'Définir participation' %}
+                    {% set participationButtonColor = 'outline-secondary' %}
+                    {% set participationIcon = 'question' %}nseeHelper.licenseeFromSession %}
 {% set license = licenseHelper.currentLicenseeCurrentLicense %}
 {% set canAttend = licenseHelper.licenseIsValidForEvent(license, event) %}
 {% set licenseeParticipation = eventHelper.licenseeParticipationToEvent(licensee, event) %}
@@ -18,187 +21,280 @@
 {% endblock %}
 
 {% block body %}
-    <div class="row my-3">
-        <div class="col-12">
-            <h4>{{ event.title }}</h4>
+    <!-- Hero Section -->
+    <div class="event-hero mb-4">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-info me-2 fs-6">
+                        <i class="fa-solid fa-calendar-check me-1"></i>
+                        Événement
+                    </span>
+                    <span class="badge bg-secondary">{{ event.discipline|readable_enum }}</span>
+                </div>
+                <h1 class="display-6 mb-2">{{ event.title }}</h1>
+                <p class="text-muted mb-0">
+                    <i class="fa-solid fa-calendar me-2"></i>
+                    {{ event|event_date(diff=true) }}
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{{ path('app_event_ics', {slug: event.slug}) }}" class="btn btn-outline-primary me-2">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                    Ajouter au calendrier
+                </a>
+                {% if licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
+                    {% set participationButtonLabel = 'Absent•e' %}
+                    {% set participationButtonColor = 'danger' %}
+                    {% set participationIcon = 'user-xmark' %}
+                {% elseif licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') %}
+                    {% set participationButtonLabel = 'Participe' %}
+                    {% set participationButtonColor = 'success' %}
+                    {% set participationIcon = 'user-check' %}
+                {% else %}
+                    {% set participationButtonLabel = 'Définir participation' %}
+                    {% set participationButtonColor = 'outline-secondary' %}
+                    {% set participationIcon = 'user-question' %}
+                {% endif %}
+                <button type="button" class="btn btn-{{ participationButtonColor }} {{ not canAttend ? 'disabled' }}"
+                        data-bs-toggle="modal" data-bs-target="#participationModal">
+                    <i class="fa-solid fa-{{ participationIcon }} me-1"></i>
+                    {{ participationButtonLabel }}
+                </button>
+            </div>
         </div>
     </div>
+
     {% if is_granted('ROLE_ADMIN') %}
-        <div class="row">
-            <div class="col">
-                <div class="alert alert-warning">
-                    <h4 class="alert-heading"><em class="fa-solid fa-screwdriver-wrench"></em> Administration</h4>
-                    <div class="btn-group" role="group">
-                        <a href="{{ path('app_admin_events_edit', {id: event.id}) }}" class="btn btn-primary">
-                            <em class="fa-solid fa-edit"></em>
-                            Modifier l'événement
-                        </a>
-                        <a href="{{
-                        adminUrlGenerator
-                            .setController('App\\Controller\\Admin\\TrainingEventCrudController')
-                            .setAction('edit')
-                            .setEntityId(event.id)
-                        .generateUrl
-                        }}" class="btn btn-secondary">
-                            <em class="fa-solid fa-cog"></em>
-                            EasyAdmin
-                        </a>
-                    </div>
-                    <div class="btn-group ms-2" role="group">
-                        <a href="{{
-                        adminUrlGenerator
-                            .setController('App\\Controller\\Admin\\EventParticipationCrudController')
-                            .setAction('index')
-                            .set('filters[event][comparison]', '=')
-                            .set('filters[event][value]', event.id)
-                        .generateUrl
-                        }}" class="btn btn-secondary">
-                            <em class="fa-solid fa-people-group"></em>
-                            Participations
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% endif %}
-    {% if licenseeParticipation.participationState is same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
-        <div class="row">
+        <!-- Admin Section -->
+        <div class="row mb-4">
             <div class="col-12">
-                <div class="alert alert-warning">
-                    <em class="fa-solid fa-user-xmark"></em>
-                    Tu as indiqué que tu ne seras pas présent à cet entraînement.
+                <div class="card border-warning bg-warning bg-opacity-10">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">
+                            <i class="fa-solid fa-screwdriver-wrench me-2"></i>
+                            Administration
+                        </h5>
+                        <div class="btn-group me-2" role="group">
+                            <a href="{{ path('app_admin_events_edit', {id: event.id}) }}" class="btn btn-warning btn-sm">
+                                <i class="fa-solid fa-edit me-1"></i>
+                                Modifier l'événement
+                            </a>
+                            <a href="{{
+                            adminUrlGenerator
+                                .setController('App\\Controller\\Admin\\TrainingEventCrudController')
+                                .setAction('edit')
+                                .setEntityId(event.id)
+                            .generateUrl
+                            }}" class="btn btn-outline-warning btn-sm">
+                                <i class="fa-solid fa-cog me-1"></i>
+                                EasyAdmin
+                            </a>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <a href="{{
+                            adminUrlGenerator
+                                .setController('App\\Controller\\Admin\\EventParticipationCrudController')
+                                .setAction('index')
+                                .set('filters[event][comparison]', '=')
+                                .set('filters[event][value]', event.id)
+                            .generateUrl
+                            }}" class="btn btn-outline-warning btn-sm">
+                                <i class="fa-solid fa-people-group me-1"></i>
+                                Participations
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     {% endif %}
+
+    {% if licenseeParticipation.participationState is same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
+        <!-- Alert for not going -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-info border-0 shadow-sm">
+                    <i class="fa-solid fa-user-xmark me-2"></i>
+                    Tu as indiqué que tu ne seras pas présent à cet événement.
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Main Content Cards -->
     <div class="row">
-        <div class="col-sm-12">
-            <div class="row">
-                <div class="col-sm-6">
-                    <h5>
-                        <em class="fa-solid fa-calendar-alt"></em> Date
-                        <a href="{{ path('app_event_ics', {slug: event.slug}) }}"
-                           class="btn btn-secondary btn-sm">
-                            <em class="fa-solid fa-calendar-plus fa-fw"></em>
-                            Ajouter à mon calendrier
-                        </a>
+        <!-- Event Details Card -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fa-solid fa-info-circle text-info me-2"></i>
+                        Détails de l'événement
                     </h5>
-                    <p>{{ event|event_date(diff=true) }}</p>
                 </div>
-
-                <div class="col-sm-6">
-                    <h5><em class="fa-solid fa-bullseye"></em> Catégorie et Type</h5>
-                    <dl>
-                        <dt>Type</dt>
-                        <dd>{{ event|get_class|readable_enum }}</dd>
-                        <dt>Discipline</dt>
-                        <dd>{{ event.discipline|readable_enum }}</dd>
-                    </dl>
-                </div>
-
-                <div class="col-sm-12">
-                    <h5>
-                        <em class="fa-solid fa-people-group"></em> Participation
-                        {% if licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') %}
-                            {% set participationButtonLabel = 'Absent•e' %}
-                            {% set participationButtonColor = 'danger' %}
-                        {% elseif licenseeParticipation and licenseeParticipation.participationState == constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') %}
-                            {% set participationButtonLabel = 'Participe' %}
-                            {% set participationButtonColor = 'success' %}
-                        {% else %}
-                            {% set participationButtonLabel = 'Indisponible ?' %}
-                            {% set participationButtonColor = 'secondary' %}
-                        {% endif %}
-                        <button type="button"
-                                class="btn btn-sm btn-{{ participationButtonColor }} {{ not canAttend ? 'disabled' }}"
-                                data-bs-toggle="modal" data-bs-target="#participationModal"
-                        >
-                            <em class="fa-solid fa-pencil-alt fa-fw"></em> {{ participationButtonLabel }}
-                        </button>
-                    </h5>
-                    <div>
-                        {% set participants = event.participations|filter(p => p.participationState is not same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
-                        {% set absents = event.participations|filter(p => p.participationState is same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
-                        <h6>Participants</h6>
-                        {% if participants is not empty %}
-                            {{ participants|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => licensee_display_name(p.participant))|join(', ') }}
-                        {% else %}
-                            <em>Aucun</em>
-                        {% endif %}
-                    </div>
-                    <div class="mt-3">
-                        <h6>Absents</h6>
-                        {% if absents is not empty %}
-                            {{ absents|sort((a, b) => a.participant.fullname <=> b.participant.fullname)|map(p => licensee_display_name(p.participant))|join(', ') }}
-                        {% else %}
-                            <em>Aucun</em>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="col-sm-12 p-3">
-                    <h5>
-                        <em class="fa-solid fa-map"></em>
-                        Adresse
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-secondary btn-sm dropdown-toggle"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false">
-                                Ouvrir dans
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a class="dropdown-item"
-                                       href="https://maps.apple.com/?q={{ event.address|url_encode }}">
-                                        <em class="fa-brands fa-apple fa-fw"></em>
-                                        Apple Plans
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item"
-                                       href="https://www.google.com/maps/search/?api=1&query={{ event.address|url_encode }}">
-                                        <em class="fa-brands fa-google fa-fw"></em>
-                                        Google Maps
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item"
-                                       href="https://waze.com/ul?q={{ event.address|url_encode }}">
-                                        <em class="fa-brands fa-waze fa-fw"></em>
-                                        Waze
-                                    </a>
-                                </li>
-                            </ul>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="icon-box bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="fa-solid fa-calendar text-info"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-semibold mb-1">Date et heure</h6>
+                                    <p class="text-muted mb-0">{{ event|event_date(diff=true) }}</p>
+                                </div>
+                            </div>
                         </div>
-                    </h5>
-                    <address>{{ event.address }}</address>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="icon-box bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="fa-solid fa-bullseye text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-semibold mb-1">Discipline</h6>
+                                    <span class="badge bg-success">{{ event.discipline|readable_enum }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% if event.address %}
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="icon-box bg-secondary bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="fa-solid fa-map-marker-alt text-secondary"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-semibold mb-2">Lieu</h6>
+                                    <address class="mb-2">{{ event.address }}</address>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa-solid fa-external-link-alt me-1"></i>
+                                            Ouvrir dans
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" 
+                                                   href="https://maps.apple.com/?q={{ event.address|url_encode }}">
+                                                    <i class="fa-brands fa-apple text-muted me-2"></i>
+                                                    Apple Plans
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="https://www.google.com/maps/search/?api=1&query={{ event.address|url_encode }}">
+                                                    <i class="fa-brands fa-google text-muted me-2"></i>
+                                                    Google Maps
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="https://waze.com/ul?q={{ event.address|url_encode }}">
+                                                    <i class="fa-brands fa-waze text-muted me-2"></i>
+                                                    Waze
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="col-sm-6">
+            </div>
+        </div>
 
+        <!-- Participants Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fa-solid fa-users text-info me-2"></i>
+                        Participants
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% set participants = event.participations|filter(p => p.participationState is not same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
+                    {% set absents = event.participations|filter(p => p.participationState is same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-semibold text-success mb-2">
+                            <i class="fa-solid fa-user-check me-1"></i>
+                            Présents ({{ participants|length }})
+                        </h6>
+                        {% if participants is not empty %}
+                            <div class="participants-list">
+                                {% for participant in participants|sort((a, b) => a.participant.fullname <=> b.participant.fullname) %}
+                                    <span class="badge bg-success bg-opacity-10 text-success me-1 mb-1">
+                                        {{ licensee_display_name(participant.participant) }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted small mb-0">Aucun participant pour le moment</p>
+                        {% endif %}
+                    </div>
+
+                    {% if absents is not empty %}
+                    <div>
+                        <h6 class="fw-semibold text-danger mb-2">
+                            <i class="fa-solid fa-user-xmark me-1"></i>
+                            Absents ({{ absents|length }})
+                        </h6>
+                        <div class="participants-list">
+                            {% for absent in absents|sort((a, b) => a.participant.fullname <=> b.participant.fullname) %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger me-1 mb-1">
+                                    {{ licensee_display_name(absent.participant) }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal" id="participationModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
+    <!-- Participation Modal -->
+    <div class="modal fade" id="participationModal" tabindex="-1" aria-labelledby="participationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
                 {{ form_start(event_participation_form) }}
-                <div class="modal-header">
-                    <h5 class="modal-title">Ma participation</h5>
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title" id="participationModalLabel">
+                        <i class="fa-solid fa-user-check text-primary me-2"></i>
+                        Ma participation
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <p>Ma participation au {{ event.title[:1]|lower ~ event.title[1:] }}</p>
-                    <div class="mb-3 row text-center mt-3">
-                        <div class="col-12">
-                            {{ form_widget(event_participation_form.participationState) }}
-                        </div>
+                <div class="modal-body pt-0">
+                    <p class="text-muted mb-4">
+                        Confirme ta participation à {{ event.title[:1]|lower ~ event.title[1:] }}
+                    </p>
+                    
+                    <div class="participation-options mb-4">
+                        {{ form_widget(event_participation_form.participationState, {
+                            'attr': {'class': 'form-check-input-lg'}
+                        }) }}
                     </div>
-                    {{ form_row(event_participation_form.departure) }}
+                    
+                    <div class="departure-section">
+                        {{ form_row(event_participation_form.departure, {
+                            'label_attr': {'class': 'form-label fw-semibold'},
+                            'attr': {'class': 'form-control-lg'}
+                        }) }}
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fa-solid fa-times me-1"></i>
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save me-1"></i>
+                        Enregistrer
+                    </button>
                 </div>
                 {{ form_end(event_participation_form) }}
             </div>
