@@ -16,10 +16,11 @@ class LicenseeDisplayExtension extends AbstractExtension
     ) {
     }
 
+    #[\Override]
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('licensee_display_name', [$this, 'getLicenseeDisplayName']),
+            new TwigFunction('licensee_display_name', $this->getLicenseeDisplayName(...)),
         ];
     }
 

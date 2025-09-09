@@ -30,6 +30,7 @@ class ContestEventType extends AbstractType
     ) {
     }
 
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -106,12 +107,10 @@ class ContestEventType extends AbstractType
                 'expanded' => true,
                 'required' => false,
                 'label' => 'Groupes assignés',
-                'query_builder' => function () {
-                    return $this->groupRepository->createQueryBuilder('g')
-                        ->where('g.club = :club')
-                        ->setParameter('club', $this->clubHelper->activeClub())
-                        ->orderBy('g.name', 'ASC');
-                },
+                'query_builder' => fn () => $this->groupRepository->createQueryBuilder('g')
+                    ->where('g.club = :club')
+                    ->setParameter('club', $this->clubHelper->activeClub())
+                    ->orderBy('g.name', 'ASC'),
                 'attr' => [
                     'class' => 'form-check-group',
                 ],
@@ -124,6 +123,7 @@ class ContestEventType extends AbstractType
             ]);
     }
 
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([

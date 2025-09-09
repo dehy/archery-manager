@@ -66,9 +66,7 @@ class LicenseeController extends BaseController
 
         // Filtrer par groupe si un groupe est sélectionné
         if ($selectedGroup) {
-            $licensees = $licensees->filter(function ($licensee) use ($selectedGroup) {
-                return $licensee->getGroups()->contains($selectedGroup);
-            });
+            $licensees = $licensees->filter(fn ($licensee) => $licensee->getGroups()->contains($selectedGroup));
         }
 
         /** @var ArrayCollection<int, Licensee> $orderedLicensees */

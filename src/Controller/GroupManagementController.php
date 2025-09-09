@@ -71,19 +71,19 @@ class GroupManagementController extends BaseController
 
         // Vérifier que le groupe appartient au club de l'utilisateur
         if ($group->getClub() !== $club) {
-            return new JsonResponse(['error' => 'Accès refusé'], 403);
+            return new JsonResponse(['error' => 'Accès refusé'], Response::HTTP_FORBIDDEN);
         }
 
         $licenseeId = $request->request->get('licenseeId');
         $licensee = $licenseeRepository->find($licenseeId);
 
         if (!$licensee) {
-            return new JsonResponse(['error' => 'Licencié non trouvé'], 404);
+            return new JsonResponse(['error' => 'Licencié non trouvé'], Response::HTTP_NOT_FOUND);
         }
 
         // Vérifier que le licencié appartient au club
         if (!$licensee->getClubs()->contains($club)) {
-            return new JsonResponse(['error' => 'Ce licencié n\'appartient pas à votre club'], 400);
+            return new JsonResponse(['error' => 'Ce licencié n\'appartient pas à votre club'], Response::HTTP_BAD_REQUEST);
         }
 
         // Ajouter le licencié au groupe s'il n'y est pas déjà
@@ -97,7 +97,7 @@ class GroupManagementController extends BaseController
             ]);
         }
 
-        return new JsonResponse(['error' => 'Ce licencié fait déjà partie du groupe'], 400);
+        return new JsonResponse(['error' => 'Ce licencié fait déjà partie du groupe'], Response::HTTP_BAD_REQUEST);
     }
 
     #[Route('/admin/groups/{id}/remove-member', name: 'app_group_remove_member', methods: ['POST'])]
@@ -114,14 +114,14 @@ class GroupManagementController extends BaseController
 
         // Vérifier que le groupe appartient au club de l'utilisateur
         if ($group->getClub() !== $club) {
-            return new JsonResponse(['error' => 'Accès refusé'], 403);
+            return new JsonResponse(['error' => 'Accès refusé'], Response::HTTP_FORBIDDEN);
         }
 
         $licenseeId = $request->request->get('licenseeId');
         $licensee = $licenseeRepository->find($licenseeId);
 
         if (!$licensee) {
-            return new JsonResponse(['error' => 'Licencié non trouvé'], 404);
+            return new JsonResponse(['error' => 'Licencié non trouvé'], Response::HTTP_NOT_FOUND);
         }
 
         // Retirer le licencié du groupe s'il en fait partie
@@ -135,7 +135,7 @@ class GroupManagementController extends BaseController
             ]);
         }
 
-        return new JsonResponse(['error' => 'Ce licencié ne fait pas partie du groupe'], 400);
+        return new JsonResponse(['error' => 'Ce licencié ne fait pas partie du groupe'], Response::HTTP_BAD_REQUEST);
     }
 
     #[Route('/admin/groups/create', name: 'app_group_create')]

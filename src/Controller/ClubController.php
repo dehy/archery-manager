@@ -26,7 +26,7 @@ class ClubController extends BaseController
         $this->assertHasValidLicense();
 
         $club = $clubHelper->activeClub();
-        if (!$club) {
+        if (!$club instanceof \App\Entity\Club) {
             throw $this->createNotFoundException('Aucun club actif trouvé');
         }
 
