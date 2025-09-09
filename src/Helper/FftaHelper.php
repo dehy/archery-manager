@@ -226,7 +226,7 @@ class FftaHelper
 
         $this->entityManager->flush();
 
-        return SyncReturnValues::UNTOUCHED === $syncResult ? $this->syncLicenseForLicensee($club, $licensee, $season) : $syncResult;
+        return $this->syncLicenseForLicensee($club, $licensee, $season);
     }
 
     public function fetchProfilePictureForLicensee(Club $club, Licensee $licensee): ?string
