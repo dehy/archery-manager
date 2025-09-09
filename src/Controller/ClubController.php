@@ -30,10 +30,10 @@ class ClubController extends BaseController
         }
 
         $season = $this->seasonHelper->getSelectedSeason();
-        
+
         // Récupération des groupes du club
         $groups = $groupRepository->findBy(['club' => $club], ['name' => 'ASC']);
-        
+
         // Récupération des licenciés du club pour l'année courante
         $licensees = new ArrayCollection(
             $licenseeRepository->findByLicenseYear($club, $season),

@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Group;
-use App\Entity\Licensee;
 use App\Form\Type\GroupType;
 use App\Helper\LicenseHelper;
-use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,7 +28,7 @@ class GroupManagementController extends BaseController
 
         $season = $this->seasonHelper->getSelectedSeason();
         $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
-        
+
         // Vérifier que le groupe appartient au club de l'utilisateur
         if ($group->getClub() !== $club) {
             throw $this->createAccessDeniedException('Vous ne pouvez pas gérer ce groupe.');
@@ -38,11 +36,11 @@ class GroupManagementController extends BaseController
 
         // Récupérer tous les licenciés du club pour la saison courante
         $allLicensees = $licenseeRepository->findByLicenseYear($club, $season);
-        
+
         // Séparer les licenciés membres et non-membres du groupe
         $groupMembers = [];
         $availableLicensees = [];
-        
+
         foreach ($allLicensees as $licensee) {
             if ($group->getLicensees()->contains($licensee)) {
                 $groupMembers[] = $licensee;
@@ -70,7 +68,7 @@ class GroupManagementController extends BaseController
         $this->assertHasValidLicense();
 
         $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
-        
+
         // Vérifier que le groupe appartient au club de l'utilisateur
         if ($group->getClub() !== $club) {
             return new JsonResponse(['error' => 'Accès refusé'], 403);
@@ -92,10 +90,10 @@ class GroupManagementController extends BaseController
         if (!$group->getLicensees()->contains($licensee)) {
             $group->addLicensee($licensee);
             $entityManager->flush();
-            
+
             return new JsonResponse([
                 'success' => true,
-                'message' => sprintf('%s a été ajouté(e) au groupe %s', $licensee->getFullname(), $group->getName())
+                'message' => \sprintf('%s a été ajouté(e) au groupe %s', $licensee->getFullname(), $group->getName()),
             ]);
         }
 
@@ -113,7 +111,7 @@ class GroupManagementController extends BaseController
         $this->assertHasValidLicense();
 
         $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
-        
+
         // Vérifier que le groupe appartient au club de l'utilisateur
         if ($group->getClub() !== $club) {
             return new JsonResponse(['error' => 'Accès refusé'], 403);
@@ -130,10 +128,10 @@ class GroupManagementController extends BaseController
         if ($group->getLicensees()->contains($licensee)) {
             $group->removeLicensee($licensee);
             $entityManager->flush();
-            
+
             return new JsonResponse([
                 'success' => true,
-                'message' => sprintf('%s a été retiré(e) du groupe %s', $licensee->getFullname(), $group->getName())
+                'message' => \sprintf('%s a été retiré(e) du groupe %s', $licensee->getFullname(), $group->getName()),
             ]);
         }
 
@@ -149,10 +147,10 @@ class GroupManagementController extends BaseController
         $this->assertHasValidLicense();
 
         $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
-        
+
         $group = new Group();
         $group->setClub($club);
-        
+
         $form = $this->createForm(GroupType::class, $group);
         $form->handleRequest($request);
 
@@ -160,8 +158,8 @@ class GroupManagementController extends BaseController
             $entityManager->persist($group);
             $entityManager->flush();
 
-            $this->addFlash('success', sprintf('Le groupe "%s" a été créé avec succès.', $group->getName()));
-            
+            $this->addFlash('success', \sprintf('Le groupe "%s" a été créé avec succès.', $group->getName()));
+
             return $this->redirectToRoute('app_group_manage', ['id' => $group->getId()]);
         }
 

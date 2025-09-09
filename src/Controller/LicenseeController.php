@@ -16,9 +16,9 @@ use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
 use App\Helper\LicenseHelper;
 use App\Helper\ResultHelper;
+use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
 use App\Repository\ResultRepository;
-use App\Repository\GroupRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\NonUniqueResultException;
@@ -48,15 +48,15 @@ class LicenseeController extends BaseController
 
         $season = $this->seasonHelper->getSelectedSeason();
         $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
-        
+
         // Récupérer le filtre de groupe depuis la query string
         $groupId = $request->query->get('group');
         $selectedGroup = null;
-        
+
         if ($groupId) {
             $selectedGroup = $groupRepository->find($groupId);
         }
-        
+
         $licensees = new ArrayCollection(
             $licenseeRepository->findByLicenseYear($club, $season),
         );
@@ -66,7 +66,7 @@ class LicenseeController extends BaseController
 
         // Filtrer par groupe si un groupe est sélectionné
         if ($selectedGroup) {
-            $licensees = $licensees->filter(function($licensee) use ($selectedGroup) {
+            $licensees = $licensees->filter(function ($licensee) use ($selectedGroup) {
                 return $licensee->getGroups()->contains($selectedGroup);
             });
         }

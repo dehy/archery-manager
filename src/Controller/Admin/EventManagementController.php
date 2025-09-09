@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
-use App\DBAL\Types\ContestType;
-use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
@@ -42,7 +40,7 @@ class EventManagementController extends AbstractController
     {
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->entityManager->getRepository(Event::class);
-        
+
         $page = max(1, $request->query->getInt('page', 1));
         $limit = 20;
         $offset = ($page - 1) * $limit;
@@ -95,6 +93,7 @@ class EventManagementController extends AbstractController
             $this->entityManager->flush();
 
             $this->addFlash('success', 'L\'événement a été créé avec succès.');
+
             return $this->redirectToRoute('app_admin_events_index');
         }
 
@@ -118,6 +117,7 @@ class EventManagementController extends AbstractController
             $this->entityManager->flush();
 
             $this->addFlash('success', 'L\'événement a été modifié avec succès.');
+
             return $this->redirectToRoute('app_admin_events_index');
         }
 
@@ -134,7 +134,7 @@ class EventManagementController extends AbstractController
     {
         $this->denyAccessUnlessGranted(EventVoter::DELETE, $event);
 
-        if ($this->isCsrfTokenValid('delete' . $event->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$event->getId(), $request->request->get('_token'))) {
             $this->entityManager->remove($event);
             $this->entityManager->flush();
 
