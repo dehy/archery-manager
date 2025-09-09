@@ -2,7 +2,7 @@
 
 {% block title %}Gestion des événements{% endblock %}
 
-{% block return_link %}{{ path('app_admin_dashboard') }}{% endblock %}
+{% block return_link %}{{ path('admin') }}{% endblock %}
 {% block return_text %}Administration{% endblock %}
 
 {% block body %}
@@ -71,7 +71,18 @@
                                             </td>
                                             <td>
                                                 <span class="badge bg-{{ event is instanceof('App\\Entity\\ContestEvent') ? 'warning' : (event is instanceof('App\\Entity\\HobbyContestEvent') ? 'info' : 'primary') }}">
-                                                    {{ event|get_short_class|readable_enum }}
+                                                    {% set eventType = event|get_short_class %}
+                                                    {% if eventType == 'TrainingEvent' %}
+                                                        Entraînement
+                                                    {% elseif eventType == 'FreeTrainingEvent' %}
+                                                        Entraînement libre
+                                                    {% elseif eventType == 'ContestEvent' %}
+                                                        Concours
+                                                    {% elseif eventType == 'HobbyContestEvent' %}
+                                                        Concours loisir
+                                                    {% else %}
+                                                        {{ eventType }}
+                                                    {% endif %}
                                                 </span>
                                             </td>
                                             <td>
