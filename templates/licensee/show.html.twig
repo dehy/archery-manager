@@ -39,14 +39,14 @@
 
                 <div class="px-3 pt-3">
                     <h4>
-                        Licence 2025
+                        Licence {{ licenseHelper.seasonForDate(date()) }}
                         <a href="https://monespace.ffta.fr/licences" class="btn btn-sm btn-secondary" target="_blank">
                             <em class="fa-solid fa-share"></em>
                             FFTA
                         </a>
                     </h4>
-                    {% set license = licensee.licenseForSeason(2025) %}
-                    {% if not licensee.licenseForSeason(2025) %}
+                    {% set license = licensee.licenseForSeason(licenseHelper.seasonForDate(date())) %}
+                    {% if not licensee.licenseForSeason(licenseHelper.seasonForDate(date())) %}
                         <em>Aucune license</em>
                     {% else %}
                         <ul class="list-unstyled mb-0">
