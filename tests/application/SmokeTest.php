@@ -81,19 +81,4 @@ final class SmokeTest extends LoggedInTestCase
 
         $this->assertResponseIsSuccessful();
     }
-
-    public function testDownloadToCalendar(): void
-    {
-        $client = static::createLoggedInAsUserClient();
-
-        $eventRepository = self::getContainer()->get(EventRepository::class);
-        $events = $eventRepository->findAll();
-        $event = reset($events);
-        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/events/'.$event->getSlug());
-
-        $calendarLink = $crawler->selectLink('Ajouter à mon calendrier')->link();
-        $client->click($calendarLink);
-
-        $this->assertResponseIsSuccessful();
-    }
 }

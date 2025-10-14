@@ -82,17 +82,26 @@ final class FftaHelperTest extends KernelTestCase
 
         self::bootKernel();
 
+        // Create and persist the club entity first with all required fields
         $club = (new Club())
+            ->setName('Test Club')
+            ->setCity('Test City')
+            ->setPrimaryColor('#FF0000')
             ->setFftaCode('1033093')
             ->setFftaUsername('invalid@ffta.fr')
             ->setFftaPassword('invalid')
             ->setContactEmail('reply@club.invalid');
+
+        $entityManager = $this->getContainer()->get('doctrine.orm.entity_manager');
+        $entityManager->persist($club);
+        $entityManager->flush();
 
         $mockHttpClient = new MockHttpClient($mockResponses, $baseUrl);
         /** @var FftaHelper $fftaHelper */
         $fftaHelper = $this->getContainer()->get(FftaHelper::class);
         $fftaHelper->setHttpClient($mockHttpClient);
         $fftaHelper->setUserRepository($mockUserRepository);
+        
         $fftaHelper->syncLicensees($club, 2025);
 
         // 5 mails queues for users (1 welcome for each), 1 summary for club admins

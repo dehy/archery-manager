@@ -1,2 +1,7 @@
 spec_shaper_encrypt:
     encrypt_key: '%env(SPEC_SHAPER_ENCRYPT_KEY)%'
+
+when@test:
+    spec_shaper_encrypt:
+        # Disable encryption for tests
+        is_disabled: true
