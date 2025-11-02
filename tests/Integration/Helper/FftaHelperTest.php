@@ -101,7 +101,7 @@ final class FftaHelperTest extends KernelTestCase
         $fftaHelper = $this->getContainer()->get(FftaHelper::class);
         $fftaHelper->setHttpClient($mockHttpClient);
         $fftaHelper->setUserRepository($mockUserRepository);
-        
+
         $fftaHelper->syncLicensees($club, 2025);
 
         // 5 mails queues for users (1 welcome for each), 1 summary for club admins

@@ -23,7 +23,7 @@ class EventParticipationType extends AbstractType
         /** @var License|null $license */
         $license = $options['license_context'];
         $isContest = $options['is_contest'];
-        
+
         $activityChoices = [];
         if ($license) {
             foreach ($license->getActivities() as $activity) {
@@ -39,14 +39,14 @@ class EventParticipationType extends AbstractType
             $participationChoices = [
                 "N'y va pas" => EventParticipationStateType::NOT_GOING,
                 "Intéressé (je vais m'inscrire)" => EventParticipationStateType::INTERESTED,
-                "Inscrit" => EventParticipationStateType::REGISTERED,
+                'Inscrit' => EventParticipationStateType::REGISTERED,
             ];
             $defaultState = null; // No default for contests - user must explicitly choose
         } else {
             // For trainings: 2 options
             $participationChoices = [
-                "Absent" => EventParticipationStateType::NOT_GOING,
-                "Présent" => EventParticipationStateType::REGISTERED,
+                'Absent' => EventParticipationStateType::NOT_GOING,
+                'Présent' => EventParticipationStateType::REGISTERED,
             ];
             $defaultState = EventParticipationStateType::REGISTERED; // Default to present for trainings
         }
@@ -62,7 +62,7 @@ class EventParticipationType extends AbstractType
                 'required' => true,
                 'data' => $options['data']->getActivity() ?? ($license && !empty($license->getActivities()) ? $license->getActivities()[0] : null),
             ]);
-        
+
         // Only add contest-specific fields for contest events
         if ($isContest) {
             $builder
@@ -88,7 +88,7 @@ class EventParticipationType extends AbstractType
             'license_context' => null,
             'is_contest' => false,
         ]);
-        
+
         $resolver->setAllowedTypes('is_contest', 'bool');
     }
 }

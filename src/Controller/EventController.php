@@ -234,7 +234,7 @@ class EventController extends BaseController
         }
 
         $licensee = $licenseeHelper->getLicenseeFromSession();
-        
+
         // Check if licensee can participate in this event
         $canParticipate = $eventHelper->canLicenseeParticipateInEvent($licensee, $event);
 
@@ -242,9 +242,9 @@ class EventController extends BaseController
             $licensee,
             $event
         );
-        
-        $isContest = $event instanceof \App\Entity\ContestEvent || $event instanceof \App\Entity\HobbyContestEvent;
-        
+
+        $isContest = $event instanceof ContestEvent || $event instanceof HobbyContestEvent;
+
         $eventParticipationForm = $this->createForm(EventParticipationType::class, $eventParticipation, [
             'license_context' => $licensee
                 ->getLicenseForSeason(Season::seasonForDate($event->getStartsAt())),
@@ -256,9 +256,10 @@ class EventController extends BaseController
             // Verify authorization before saving
             if (!$canParticipate) {
                 $this->addFlash('error', "Vous n'êtes pas autorisé à participer à cet événement. Il est réservé à d'autres groupes.");
+
                 return $this->redirectToRoute('app_event_show', ['slug' => $event->getSlug()]);
             }
-            
+
             if (null === $eventParticipation->getId() || 0 === $eventParticipation->getId()) {
                 $entityManager->persist($eventParticipation);
             }
