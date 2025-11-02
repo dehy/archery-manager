@@ -51,16 +51,25 @@
                     {% set participationButtonLabel = 'Participe' %}
                     {% set participationButtonColor = 'success' %}
                     {% set participationIcon = 'user-check' %}
+                                    {% set participationIcon = 'user-check' %}
                 {% else %}
                     {% set participationButtonLabel = 'Définir participation' %}
                     {% set participationButtonColor = 'outline-secondary' %}
-                    {% set participationIcon = 'user-question' %}
+                    {% set participationIcon = 'question' %}
                 {% endif %}
-                <button type="button" class="btn btn-{{ participationButtonColor }} {{ not canAttend ? 'disabled' }}"
-                        data-bs-toggle="modal" data-bs-target="#participationModal">
+                <button type="button" 
+                        class="btn btn-{{ participationButtonColor }} {{ not canAttend or not can_participate ? 'disabled' }}"
+                        data-bs-toggle="{{ can_participate ? 'modal' : '' }}" 
+                        data-bs-target="{{ can_participate ? '#participationModal' : '' }}"
+                        {{ not can_participate ? 'title="Cet événement est réservé à d\'autres groupes" data-bs-toggle="tooltip"' : '' }}>
                     <i class="fa-solid fa-{{ participationIcon }} me-1"></i>
                     {{ participationButtonLabel }}
                 </button>
+            </div>
+        </div>
+    </div>
+
+    {% if is_granted('ROLE_ADMIN') %}
             </div>
         </div>
     </div>
@@ -215,8 +224,8 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    {% set participants = event.participations|filter(p => p.participationState is not same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
-                    {% set absents = event.participations|filter(p => p.participationState is same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
+                    {% set participants = all_participants|filter(p => p.participationState is not same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
+                    {% set absents = all_participants|filter(p => p.participationState is same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
                     
                     <div class="mb-4">
                         <h6 class="fw-semibold text-success mb-2">
@@ -256,48 +265,14 @@
         </div>
     </div>
 
-    <!-- Participation Modal -->
-    <div class="modal fade" id="participationModal" tabindex="-1" aria-labelledby="participationModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                {{ form_start(event_participation_form) }}
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title" id="participationModalLabel">
-                        <i class="fa-solid fa-user-check text-primary me-2"></i>
-                        Ma participation
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body pt-0">
-                    <p class="text-muted mb-4">
-                        Confirme ta participation à {{ event.title[:1]|lower ~ event.title[1:] }}
-                    </p>
-                    
-                    <div class="participation-options mb-4">
-                        {{ form_widget(event_participation_form.participationState, {
-                            'attr': {'class': 'form-check-input-lg'}
-                        }) }}
-                    </div>
-                    
-                    <div class="departure-section">
-                        {{ form_row(event_participation_form.departure, {
-                            'label_attr': {'class': 'form-label fw-semibold'},
-                            'attr': {'class': 'form-control-lg'}
-                        }) }}
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        <i class="fa-solid fa-times me-1"></i>
-                        Annuler
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-save me-1"></i>
-                        Enregistrer
-                    </button>
-                </div>
-                {{ form_end(event_participation_form) }}
-            </div>
+    </div>
         </div>
     </div>
+
+    <!-- Participation Modal -->
+    {% include 'event/_participation_modal.html.twig' with {
+        'event': event,
+        'event_participation_form': event_participation_form
+    } %}
+{% endblock %}
 {% endblock %}
