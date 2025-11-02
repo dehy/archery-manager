@@ -12,6 +12,9 @@ container:
 start:
 	$(DOCKER_COMPOSE) up -d
 
+start-fg:
+	$(DOCKER_COMPOSE) up
+
 stop:
 	$(DOCKER_COMPOSE) stop
 
