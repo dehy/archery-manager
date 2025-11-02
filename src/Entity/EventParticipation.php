@@ -35,7 +35,7 @@ class EventParticipation
     #[ORM\Column(type: 'LicenseActivityType')]
     private ?string $activity = null;
 
-    #[ORM\Column(type: 'TargetTypeType')]
+    #[ORM\Column(type: 'TargetTypeType', nullable: true)]
     private ?string $targetType = null;
 
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
