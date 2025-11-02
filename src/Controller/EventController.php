@@ -233,18 +233,32 @@ class EventController extends BaseController
             throw $this->createNotFoundException();
         }
 
+        $licensee = $licenseeHelper->getLicenseeFromSession();
+        
+        // Check if licensee can participate in this event
+        $canParticipate = $eventHelper->canLicenseeParticipateInEvent($licensee, $event);
+
         $eventParticipation = $eventHelper->licenseeParticipationToEvent(
-            $licenseeHelper->getLicenseeFromSession(),
+            $licensee,
             $event
         );
+        
+        $isContest = $event instanceof \App\Entity\ContestEvent || $event instanceof \App\Entity\HobbyContestEvent;
+        
         $eventParticipationForm = $this->createForm(EventParticipationType::class, $eventParticipation, [
-            'license_context' => $licenseeHelper
-                ->getLicenseeFromSession()
+            'license_context' => $licensee
                 ->getLicenseForSeason(Season::seasonForDate($event->getStartsAt())),
+            'is_contest' => $isContest,
         ]);
 
         $eventParticipationForm->handleRequest($request);
         if ($eventParticipationForm->isSubmitted() && $eventParticipationForm->isValid()) {
+            // Verify authorization before saving
+            if (!$canParticipate) {
+                $this->addFlash('error', "Vous n'êtes pas autorisé à participer à cet événement. Il est réservé à d'autres groupes.");
+                return $this->redirectToRoute('app_event_show', ['slug' => $event->getSlug()]);
+            }
+            
             if (null === $eventParticipation->getId() || 0 === $eventParticipation->getId()) {
                 $entityManager->persist($eventParticipation);
             }
@@ -265,6 +279,8 @@ class EventController extends BaseController
         return $this->render($template, [
             'event' => $event,
             'event_participation_form' => $eventParticipationForm,
+            'can_participate' => $canParticipate,
+            'all_participants' => $eventHelper->getAllParticipantsForEvent($event),
         ]);
     }
 
