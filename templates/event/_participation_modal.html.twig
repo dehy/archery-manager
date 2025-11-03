@@ -43,7 +43,7 @@
                     
                     {# Activity field - shown for all event types #}
                     <div class="{{ isContest ? 'col-12' : 'mb-3' }}">
-                        <div class="mb-3">
+                        <div class="{{ isContest ? 'mb-3' : '' }}">
                             <label class="form-label fw-bold">
                                 <i class="fa-solid fa-bullseye text-primary me-2"></i>
                                 Activité
@@ -63,11 +63,8 @@
                         {% endif %}
                     
                         {% if event_participation_form.departure is defined %}
-                            <div class="{{ isContest ? 'col-12' : 'departure-section' }}">
-                                {{ form_row(event_participation_form.departure, isContest ? {} : {
-                                    'label_attr': {'class': 'form-label fw-semibold'},
-                                    'attr': {'class': 'form-control-lg'}
-                                }) }}
+                            <div class="col-12">
+                                {{ form_row(event_participation_form.departure) }}
                             </div>
                         {% endif %}
                     {% endif %}

@@ -51,7 +51,6 @@
                     {% set participationButtonLabel = 'Participe' %}
                     {% set participationButtonColor = 'success' %}
                     {% set participationIcon = 'user-check' %}
-                                    {% set participationIcon = 'user-check' %}
                 {% else %}
                     {% set participationButtonLabel = 'Définir participation' %}
                     {% set participationButtonColor = 'outline-secondary' %}
@@ -65,11 +64,6 @@
                     <i class="fa-solid fa-{{ participationIcon }} me-1"></i>
                     {{ participationButtonLabel }}
                 </button>
-            </div>
-        </div>
-    </div>
-
-    {% if is_granted('ROLE_ADMIN') %}
             </div>
         </div>
     </div>
@@ -265,14 +259,9 @@
         </div>
     </div>
 
-    </div>
-        </div>
-    </div>
-
     <!-- Participation Modal -->
     {% include 'event/_participation_modal.html.twig' with {
         'event': event,
         'event_participation_form': event_participation_form
     } %}
-{% endblock %}
 {% endblock %}
