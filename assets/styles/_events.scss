@@ -255,39 +255,11 @@
   }
 }
 
-// Container pour la liste des événements avec scroll
+// Container pour la liste des événements - scroll normal avec la page
 .events-list-container {
-  // Sur desktop (XL et plus), hauteur fixe avec scroll
-  @media (min-width: 1200px) {
-    height: calc(100vh - 300px); // Ajuster selon la hauteur de l'en-tête
-    overflow-y: auto;
-    overflow-x: hidden;
-    
-    // Style de la scrollbar
-    &::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    &::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 4px;
-    }
-    
-    &::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 4px;
-      
-      &:hover {
-        background: #a8a8a8;
-      }
-    }
-    
-    // Pour Firefox
-    scrollbar-width: thin;
-    scrollbar-color: #c1c1c1 #f1f1f1;
-  }
+  // Le container des événements scroll normalement avec la page (pas de hauteur fixe)
   
-  // Sur mobile et tablette, pas de hauteur fixe (scroll normal de la page)
+  // Sur mobile et tablette, scroll normal de la page
   @media (max-width: 1199.98px) {
     height: auto;
     overflow: visible;
@@ -450,5 +422,20 @@
         font-size: 1.5rem !important;
       }
     }
+  }
+}
+
+// Event list highlight styles
+.event-list-event {
+  transition: all 0.2s ease-in-out;
+
+  &.highlight {
+    background-color: rgba(0, 123, 255, 0.1);
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  }
+
+  .event-list-item {
+    transition: all 0.2s ease-in-out;
   }
 }
