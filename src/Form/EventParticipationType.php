@@ -41,7 +41,7 @@ class EventParticipationType extends AbstractType
                 "Intéressé (je vais m'inscrire)" => EventParticipationStateType::INTERESTED,
                 'Inscrit' => EventParticipationStateType::REGISTERED,
             ];
-        } else {    
+        } else {
             // For trainings: 2 options
             $participationChoices = [
                 'Absent' => EventParticipationStateType::NOT_GOING,
