@@ -41,26 +41,22 @@ class EventParticipationType extends AbstractType
                 "Intéressé (je vais m'inscrire)" => EventParticipationStateType::INTERESTED,
                 'Inscrit' => EventParticipationStateType::REGISTERED,
             ];
-            $defaultState = null; // No default for contests - user must explicitly choose
-        } else {
+        } else {    
             // For trainings: 2 options
             $participationChoices = [
                 'Absent' => EventParticipationStateType::NOT_GOING,
                 'Présent' => EventParticipationStateType::REGISTERED,
             ];
-            $defaultState = EventParticipationStateType::REGISTERED; // Default to present for trainings
         }
 
         $builder
             ->add('participationState', ChoiceType::class, [
                 'expanded' => true,
                 'choices' => $participationChoices,
-                'data' => $options['data']->getParticipationState() ?? $defaultState,
             ])
             ->add('activity', null, [
                 'choices' => $activityChoices,
                 'required' => true,
-                'data' => $options['data']->getActivity() ?? ($license && !empty($license->getActivities()) ? $license->getActivities()[0] : null),
             ]);
 
         // Only add contest-specific fields for contest events
