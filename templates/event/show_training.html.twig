@@ -53,14 +53,25 @@
                     {% set participationButtonColor = 'outline-secondary' %}
                     {% set participationIcon = 'question' %}
                 {% endif %}
+                {% if not can_participate %}
+                <span class="d-inline-block" 
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Cet entraînement est réservé à d'autres groupes">
+                {% endif %}
                 <button type="button" 
                         class="btn btn-{{ participationButtonColor }} {{ not canAttend or not can_participate ? 'disabled' }}"
-                        data-bs-toggle="{{ can_participate ? 'modal' : '' }}" 
-                        data-bs-target="{{ can_participate ? '#participationModal' : '' }}"
-                        {{ not can_participate ? 'title="Cet entraînement est réservé à d\'autres groupes" data-bs-toggle="tooltip"' : '' }}>
+                        {% if can_participate %}
+                        data-bs-toggle="modal" 
+                        data-bs-target="#participationModal"
+                        {% endif %}
+                        style="{{ not can_participate ? 'pointer-events: none;' : '' }}">
                     <i class="fa-solid fa-{{ participationIcon }} me-1"></i>
                     {{ participationButtonLabel }}
                 </button>
+                {% if not can_participate %}
+                </span>
+                {% endif %}
             </div>
         </div>
     </div>
