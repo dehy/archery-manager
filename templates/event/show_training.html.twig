@@ -53,30 +53,30 @@
                     {% set participationButtonColor = 'outline-secondary' %}
                     {% set participationIcon = 'question' %}
                 {% endif %}
+                
                 {% set isDisabled = not canAttend or not can_participate %}
-                {% set tooltipMessage = '' %}
-                {% if not can_participate %}
-                    {% set tooltipMessage = "Cet entraînement est réservé à d'autres groupes" %}
-                {% elseif not canAttend %}
-                    {% set tooltipMessage = "Cet entraînement est terminé" %}
-                {% endif %}
+                {% set wrapperAttrs = {} %}
+                {% set buttonAttrs = {'type': 'button', 'class': 'btn btn-' ~ participationButtonColor} %}
+                
                 {% if isDisabled %}
-                <span class="d-inline-block" 
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="{{ tooltipMessage }}">
+                    {% set buttonAttrs = buttonAttrs|merge({'class': buttonAttrs.class ~ ' disabled', 'style': 'pointer-events: none;'}) %}
+                    {% if not can_participate %}
+                        {% set wrapperAttrs = {'class': 'd-inline-block', 'data-bs-toggle': 'tooltip', 'data-bs-placement': 'top', 'title': "Cet entraînement est réservé à d'autres groupes"} %}
+                    {% elseif not canAttend %}
+                        {% set wrapperAttrs = {'class': 'd-inline-block', 'data-bs-toggle': 'tooltip', 'data-bs-placement': 'top', 'title': "Cet entraînement est terminé"} %}
+                    {% endif %}
+                {% else %}
+                    {% set buttonAttrs = buttonAttrs|merge({'data-bs-toggle': 'modal', 'data-bs-target': '#participationModal'}) %}
                 {% endif %}
-                <button type="button" 
-                        class="btn btn-{{ participationButtonColor }} {{ isDisabled ? 'disabled' }}"
-                        {% if can_participate and canAttend %}
-                        data-bs-toggle="modal" 
-                        data-bs-target="#participationModal"
-                        {% endif %}
-                        style="{{ isDisabled ? 'pointer-events: none;' : '' }}">
+                
+                {% if wrapperAttrs %}
+                <span {{ wrapperAttrs|map((value, key) => key ~ '="' ~ value|e('html_attr') ~ '"')|join(' ')|raw }}>
+                {% endif %}
+                <button {{ buttonAttrs|map((value, key) => key ~ '="' ~ value|e('html_attr') ~ '"')|join(' ')|raw }}>
                     <i class="fa-solid fa-{{ participationIcon }} me-1"></i>
                     {{ participationButtonLabel }}
                 </button>
-                {% if isDisabled %}
+                {% if wrapperAttrs %}
                 </span>
                 {% endif %}
             </div>
