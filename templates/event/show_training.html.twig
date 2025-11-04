@@ -157,6 +157,21 @@
                                 </div>
                             </div>
                         </div>
+                        {% if event.assignedGroups is not empty %}
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="icon-box bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="fa-solid fa-users text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-semibold mb-1">Groupes autorisés</h6>
+                                    {% for group in event.assignedGroups %}
+                                        <span class="badge bg-primary me-1 mb-1">{{ group.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                         {% if event.address %}
                         <div class="col-12">
                             <div class="d-flex align-items-start">
