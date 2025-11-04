@@ -53,23 +53,30 @@
                     {% set participationButtonColor = 'outline-secondary' %}
                     {% set participationIcon = 'question' %}
                 {% endif %}
+                {% set isDisabled = not canAttend or not can_participate %}
+                {% set tooltipMessage = '' %}
                 {% if not can_participate %}
+                    {% set tooltipMessage = "Cet événement est réservé à d'autres groupes" %}
+                {% elseif not canAttend %}
+                    {% set tooltipMessage = "Cet événement est terminé" %}
+                {% endif %}
+                {% if isDisabled %}
                 <span class="d-inline-block" 
                       data-bs-toggle="tooltip"
                       data-bs-placement="top"
-                      title="Cet événement est réservé à d'autres groupes">
+                      title="{{ tooltipMessage }}">
                 {% endif %}
                 <button type="button" 
-                        class="btn btn-{{ participationButtonColor }} {{ not canAttend or not can_participate ? 'disabled' }}"
-                        {% if can_participate %}
+                        class="btn btn-{{ participationButtonColor }} {{ isDisabled ? 'disabled' }}"
+                        {% if can_participate and canAttend %}
                         data-bs-toggle="modal" 
                         data-bs-target="#participationModal"
                         {% endif %}
-                        style="{{ not can_participate ? 'pointer-events: none;' : '' }}">
+                        style="{{ isDisabled ? 'pointer-events: none;' : '' }}">
                     <i class="fa-solid fa-{{ participationIcon }} me-1"></i>
                     {{ participationButtonLabel }}
                 </button>
-                {% if not can_participate %}
+                {% if isDisabled %}
                 </span>
                 {% endif %}
             </div>
