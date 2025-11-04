@@ -6,30 +6,42 @@ export default class extends Controller {
     declare readonly listItemTargets: HTMLElement[];
     declare readonly calendarEventTargets: HTMLElement[];
 
+    // Store bound functions to ensure proper cleanup
+    private boundHighlightCalendarEvent!: (event: Event) => void;
+    private boundUnhighlightCalendarEvent!: (event: Event) => void;
+    private boundHighlightListEvent!: (event: Event) => void;
+    private boundUnhighlightListEvent!: (event: Event) => void;
+
     connect() {
+        // Bind functions once and store references
+        this.boundHighlightCalendarEvent = this.highlightCalendarEvent.bind(this);
+        this.boundUnhighlightCalendarEvent = this.unhighlightCalendarEvent.bind(this);
+        this.boundHighlightListEvent = this.highlightListEvent.bind(this);
+        this.boundUnhighlightListEvent = this.unhighlightListEvent.bind(this);
+
         // Add hover listeners to list items
         this.listItemTargets.forEach((listItem) => {
-            listItem.addEventListener("mouseenter", this.highlightCalendarEvent.bind(this));
-            listItem.addEventListener("mouseleave", this.unhighlightCalendarEvent.bind(this));
+            listItem.addEventListener("mouseenter", this.boundHighlightCalendarEvent);
+            listItem.addEventListener("mouseleave", this.boundUnhighlightCalendarEvent);
         });
 
         // Add hover listeners to calendar events
         this.calendarEventTargets.forEach((calendarEvent) => {
-            calendarEvent.addEventListener("mouseenter", this.highlightListEvent.bind(this));
-            calendarEvent.addEventListener("mouseleave", this.unhighlightListEvent.bind(this));
+            calendarEvent.addEventListener("mouseenter", this.boundHighlightListEvent);
+            calendarEvent.addEventListener("mouseleave", this.boundUnhighlightListEvent);
         });
     }
 
     disconnect() {
-        // Clean up listeners
+        // Clean up listeners using stored bound functions
         this.listItemTargets.forEach((listItem) => {
-            listItem.removeEventListener("mouseenter", this.highlightCalendarEvent.bind(this));
-            listItem.removeEventListener("mouseleave", this.unhighlightCalendarEvent.bind(this));
+            listItem.removeEventListener("mouseenter", this.boundHighlightCalendarEvent);
+            listItem.removeEventListener("mouseleave", this.boundUnhighlightCalendarEvent);
         });
 
         this.calendarEventTargets.forEach((calendarEvent) => {
-            calendarEvent.removeEventListener("mouseenter", this.highlightListEvent.bind(this));
-            calendarEvent.removeEventListener("mouseleave", this.unhighlightListEvent.bind(this));
+            calendarEvent.removeEventListener("mouseenter", this.boundHighlightListEvent);
+            calendarEvent.removeEventListener("mouseleave", this.boundUnhighlightListEvent);
         });
     }
 
