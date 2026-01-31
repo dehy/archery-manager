@@ -40,7 +40,7 @@ This document contains important context and guidelines for AI coding assistants
 - **Templates**: Twig 3.x
 - **JavaScript**: TypeScript with Stimulus (Hotwired)
 - **CSS**: Bootstrap 5.3+ with custom SCSS
-- **Icons**: Font Awesome 6.5+ (Solid, Brands, Regular)
+- **Icons**: Font Awesome 7.1+ Pro (Solid, Light, Regular, Duotone, Thin)
 - **Build Tool**: Webpack Encore 4.x
 - **Charts**: Chart.js 3.x with annotation and datalabels plugins
 - **Maps**: Leaflet 1.9+ with Geocoder (Mapbox provider)
@@ -1155,9 +1155,8 @@ $entityManager->flush();
 
 ---
 
-**Last Updated**: November 4, 2025  
+**Last Updated**: January 31, 2026  
 **Project Status**: Active Development  
-**Current Branch**: `event-enhancement`  
 **License**: AGPL v3  
 **Maintainer**: dehy  
 **GitHub**: https://github.com/dehy/archery-manager
@@ -1165,6 +1164,19 @@ $entityManager->flush();
 ---
 
 ## Changelog (Recent Major Changes)
+
+### January 2026 - User Management & UI Redesign
+- ✅ Created user profile pages at `/user/{id}` with three-tier access control
+- ✅ Redesigned `/my-account` page with modern card-based layout
+- ✅ Updated licensee profile page with better UX/UI
+- ✅ Added user account links from licensee profiles
+- ✅ Implemented permission-based visibility (ROLE_ADMIN, ROLE_USER, ROLE_CLUB_ADMIN)
+- ✅ Card-based layouts with color-coded headers
+- ✅ Improved icon usage throughout frontend
+- ✅ Better empty states with icons and messages
+- ✅ Enhanced responsive design for mobile devices
+- ✅ Upgraded Font Awesome to 7.1+ Pro with all icon styles (Solid, Light, Regular, Duotone, Thin)
+- ✅ Removed deprecated `fa-fw` classes (icons are fixed-width by default in v7)
 
 ### November 2025 - Event Participation System Overhaul
 - ✅ Created reusable `_participation_modal.html.twig` component
@@ -1187,5 +1199,214 @@ $entityManager->flush();
 - ✅ Test configuration improvements
 
 ---
+
+## Frontend Development Guidelines
+
+### Font Awesome Icon Management
+
+**CRITICAL WORKFLOW**: Every time you add a Font Awesome icon to a template, you MUST:
+
+1. **Add icon to imports** in `assets/app.ts`:
+   ```typescript
+   import {
+     // ... existing imports
+     faYourNewIcon,  // Add here
+   } from "@fortawesome/free-solid-svg-icons";
+   ```
+
+2. **Add icon to library.add()** in `assets/app.ts`:
+   ```typescript
+   library.add(
+       // ... existing icons
+       faYourNewIcon,  // Add here
+   );
+   ```
+
+3. **Rebuild JavaScript assets**:
+   ```bash
+   docker compose exec -u symfony -w /app app yarn run encore dev
+   ```
+
+**Without rebuilding**, icons will not render! You'll see empty spaces where icons should be.
+
+**Available Icon Packs**:
+- `@fortawesome/pro-solid-svg-icons` - Solid weight icons (fa-solid)
+- `@fortawesome/pro-regular-svg-icons` - Regular weight icons (fa-regular)
+- `@fortawesome/pro-light-svg-icons` - Light weight icons (fa-light)
+- `@fortawesome/pro-thin-svg-icons` - Thin weight icons (fa-thin)
+- `@fortawesome/pro-duotone-svg-icons` - Duotone icons (fa-duotone)
+- `@fortawesome/free-brands-svg-icons` - Brand logos (fa-brands, like Discord, Google)
+
+**Template Usage**:
+```twig
+<em class="fa-solid fa-user me-2"></em>
+<em class="fa-light fa-user me-2"></em>
+<em class="fa-duotone fa-user me-2"></em>
+<em class="fa-brands fa-discord me-2"></em>
+```
+
+**Icon Naming Convention**:
+- Template: `fa-user-gear` → Import: `faUserGear` (camelCase)
+- Template: `fa-arrow-right` → Import: `faArrowRight`
+- Template: `fa-circle-info` → Import: `faCircleInfo`
+
+### Card-Based UI Pattern
+
+**Standard Card Structure**:
+```twig
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+            <em class="fa-solid fa-icon me-2"></em>
+            Card Title
+        </h5>
+    </div>
+    <div class="card-body">
+        <!-- Content -->
+    </div>
+</div>
+```
+
+**Color Schemes**:
+- `bg-primary` - Main actions, personal info
+- `bg-success` - Positive content, results, licensees
+- `bg-warning` - Admin actions, important notices
+- `bg-info` - Help, informational content
+- `bg-danger` - Errors, deletions
+- `bg-ffta` - FFTA-branded sections (custom class)
+
+**Card Spacing**:
+- Use `mb-4` for card bottom margin
+- Use `h-100` for equal height cards in rows
+- Wrap cards in `col-lg-*` for responsive layout
+
+### Empty States
+
+**Always provide meaningful empty states**:
+```twig
+{% if items is empty %}
+    <div class="text-center text-muted py-4">
+        <em class="fa-solid fa-icon fa-3x mb-3"></em>
+        <p class="mb-0">No items found</p>
+    </div>
+{% endif %}
+```
+
+### Icon Sizing and Spacing
+
+**Common Patterns**:
+- Inline with text: `me-2` (margin-end 2)
+- Large standalone: `fa-lg`, `fa-2x`, `fa-3x`
+- Fixed width: All icons are fixed-width by default in Font Awesome 7+ (no need for `fa-fw`)
+- Alignment: `d-flex align-items-center` for parent
+
+**Button Icons**:
+```twig
+<button class="btn btn-primary">
+    <em class="fa-solid fa-save me-2"></em>
+    Save
+</button>
+```
+
+### Access Control in Templates
+
+**Three-Tier Permission Pattern** (User/Licensee pages):
+```twig
+{% if is_granted('ROLE_ADMIN') or (app.user and app.user.id == user.id) %}
+    {# Content visible to admin or owner #}
+{% endif %}
+```
+
+**Club Admin Pattern**:
+```twig
+{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_CLUB_ADMIN') %}
+    {# Content visible to admin or club admin #}
+{% endif %}
+```
+
+**Permission Checks in Controllers**:
+```php
+// Admin or self-access
+if (!$this->isGranted('ROLE_ADMIN') && $currentUser->getId() !== $user->getId()) {
+    throw $this->createAccessDeniedException();
+}
+
+// Club admin (check club membership)
+$hasAccess = false;
+foreach ($user->getLicensees() as $licensee) {
+    if ($license = $licensee->getLicenseForSeason($currentSeason)) {
+        if ($currentUserLicense && $currentUserLicense->getClub() === $license->getClub()) {
+            $hasAccess = true;
+            break;
+        }
+    }
+}
+```
+
+### Responsive Design Patterns
+
+**Column Breakpoints**:
+```twig
+<div class="row">
+    <div class="col-lg-4 col-12">  {# 4 cols desktop, full mobile #}
+        {# Sidebar content #}
+    </div>
+    <div class="col-lg-8 col-12">  {# 8 cols desktop, full mobile #}
+        {# Main content #}
+    </div>
+</div>
+```
+
+**Button Groups**:
+```twig
+<div class="d-flex flex-wrap gap-2">
+    <button class="btn btn-primary">Action 1</button>
+    <button class="btn btn-secondary">Action 2</button>
+</div>
+```
+
+### User-Licensee Relationship Pattern
+
+**Display User from Licensee**:
+```twig
+{# In licensee profile #}
+<a href="{{ path('app_user_show', {'id': licensee.user.id}) }}">
+    Voir le compte de {{ licensee.user.firstname }} {{ licensee.user.lastname }}
+</a>
+```
+
+**Display Licensees from User**:
+```twig
+{# In user account #}
+{% for licensee in user.licensees %}
+    <a href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}">
+        {{ licensee_display_name(licensee) }}
+    </a>
+{% endfor %}
+```
+
+**Permission Context**:
+- User profile: Broader account management, authentication, contact info
+- Licensee profile: Archery-specific (licenses, results, equipment, FFTA integration)
+- Always link between them for easy navigation
+
+### Webpack Encore Commands
+
+**Development Build** (with source maps):
+```bash
+docker compose exec -u symfony -w /app app yarn run encore dev
+```
+
+**Watch Mode** (auto-rebuild on changes):
+```bash
+docker compose exec -u symfony -w /app app yarn run encore dev --watch
+```
+
+**Production Build** (minified, optimized):
+```bash
+docker compose exec -u symfony -w /app app yarn run encore production
+```
+
+**IMPORTANT**: Always run build commands inside Docker container!
 
 **Note for AI Agents**: This document is comprehensive but not exhaustive. When encountering unfamiliar code, explore the codebase directly rather than making assumptions. The project follows Symfony best practices and PSR-12 coding standards. Always prioritize user security and data integrity.
