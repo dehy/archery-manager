@@ -1,0 +1,203 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Utilisateur - {{ user.fullname }}{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>
+                <em class="fa-solid fa-user me-2"></em>
+                Détails de l'utilisateur
+            </h1>
+            <h2 class="text-primary">{{ user.fullname }}</h2>
+        </div>
+        <div>
+            <a href="{{ path('app_user_management_index') }}" class="btn btn-outline-secondary">
+                <em class="fa-solid fa-arrow-left me-1"></em>
+                Retour à la liste
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informations de l'utilisateur -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <em class="fa-solid fa-id-card me-2"></em>
+                        Informations personnelles
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Genre</dt>
+                        <dd class="col-sm-8">
+                            {% if user.gender == constant('App\\DBAL\\Types\\GenderType::MALE') %}
+                                <em class="fa-solid fa-mars text-primary me-1"></em> Masculin
+                            {% elseif user.gender == constant('App\\DBAL\\Types\\GenderType::FEMALE') %}
+                                <em class="fa-solid fa-venus text-danger me-1"></em> Féminin
+                            {% else %}
+                                <em class="fa-solid fa-genderless text-secondary me-1"></em> Autre
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Nom</dt>
+                        <dd class="col-sm-8">{{ user.lastname }}</dd>
+
+                        <dt class="col-sm-4">Prénom</dt>
+                        <dd class="col-sm-8">{{ user.firstname }}</dd>
+
+                        <dt class="col-sm-4">Email</dt>
+                        <dd class="col-sm-8">
+                            <a href="mailto:{{ user.email }}">
+                                <em class="fa-solid fa-envelope me-1"></em>
+                                {{ user.email }}
+                            </a>
+                        </dd>
+
+                        <dt class="col-sm-4">Téléphone</dt>
+                        <dd class="col-sm-8">
+                            {% if user.phoneNumber %}
+                                <a href="tel:{{ user.phoneNumber }}">
+                                    <em class="fa-solid fa-phone me-1"></em>
+                                    {{ user.phoneNumber }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">Non renseigné</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Vérifié</dt>
+                        <dd class="col-sm-8">
+                            {% if user.isVerified %}
+                                <span class="badge bg-success">
+                                    <em class="fa-solid fa-check me-1"></em>
+                                    Vérifié
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning">
+                                    <em class="fa-solid fa-clock me-1"></em>
+                                    En attente
+                                </span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Rôles</dt>
+                        <dd class="col-sm-8">
+                            {% for role in user.roles %}
+                                <span class="badge bg-secondary mb-1">{{ role }}</span>
+                            {% endfor %}
+                        </dd>
+
+                        {% if user.discordId %}
+                            <dt class="col-sm-4">Discord</dt>
+                            <dd class="col-sm-8">
+                                <em class="fa-brands fa-discord me-1"></em>
+                                {{ user.discordId }}
+                            </dd>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Licenciés gérés -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <em class="fa-solid fa-users me-2"></em>
+                        Licenciés gérés ({{ user.licensees|length }})
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if user.licensees is empty %}
+                        <div class="text-center text-muted py-4">
+                            <em class="fa-solid fa-user-slash fa-3x mb-3"></em>
+                            <p class="mb-0">Aucun licencié associé à cet utilisateur</p>
+                        </div>
+                    {% else %}
+                        <div class="list-group">
+                            {% for licensee in user.licensees %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}"
+                                             class="rounded-circle me-3" 
+                                             style="width: 60px; height: 60px; object-fit: cover;" 
+                                             alt="{{ licensee.fullname }}">
+                                        <div>
+                                            <h5 class="mb-1">{{ licensee.fullname }}</h5>
+                                            <p class="mb-1">
+                                                {% if licensee.gender == constant('App\\DBAL\\Types\\GenderType::MALE') %}
+                                                    <em class="fa-solid fa-mars text-primary me-1"></em>
+                                                {% elseif licensee.gender == constant('App\\DBAL\\Types\\GenderType::FEMALE') %}
+                                                    <em class="fa-solid fa-venus text-danger me-1"></em>
+                                                {% endif %}
+                                                <span class="text-muted">{{ licensee.birthdate|date('d/m/Y') }}</span>
+                                            </p>
+                                            {% if licensee.fftaMemberCode %}
+                                                <small class="text-muted">
+                                                    <em class="fa-solid fa-id-badge me-1"></em>
+                                                    FFTA: {{ licensee.fftaMemberCode }}
+                                                </small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <a href="{{ path('app_licensee_show', {fftaMemberCode: licensee.fftaMemberCode}) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <em class="fa-solid fa-eye me-1"></em>
+                                            Voir le profil
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Résumé des licences -->
+                        <div class="mt-4">
+                            <h5 class="mb-3">
+                                <em class="fa-solid fa-id-card me-2"></em>
+                                Licences actives
+                            </h5>
+                            <div class="row">
+                                {% for licensee in user.licensees %}
+                                    {% set currentLicense = licensee.currentLicense %}
+                                    {% if currentLicense %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card border-start border-primary border-4">
+                                                <div class="card-body">
+                                                    <h6 class="card-title">{{ licensee.fullname }}</h6>
+                                                    <p class="card-text mb-1">
+                                                        <small class="text-muted">
+                                                            <em class="fa-solid fa-calendar me-1"></em>
+                                                            Saison {{ currentLicense.season }}
+                                                        </small>
+                                                    </p>
+                                                    <p class="card-text mb-1">
+                                                        <small>
+                                                            <span class="badge bg-info">{{ currentLicense.type }}</span>
+                                                            <span class="badge bg-secondary">{{ currentLicense.category }}</span>
+                                                        </small>
+                                                    </p>
+                                                    <p class="card-text mb-0">
+                                                        <small class="text-muted">
+                                                            {% for activity in currentLicense.activities %}
+                                                                <span class="badge bg-light text-dark">{{ activity }}</span>
+                                                            {% endfor %}
+                                                        </small>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
