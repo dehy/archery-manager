@@ -183,6 +183,11 @@
                             Calendrier des événements
                         </a>
                         
+                        <a href="{{ path('app_club_equipment_index') }}" class="btn btn-outline-primary">
+                            <em class="fa-solid fa-bow-arrow me-2"></em>
+                            Matériel du club
+                        </a>
+                        
                         {% if is_granted('ROLE_ADMIN') %}
                             <hr>
                             <a href="{{ path('admin') }}" class="btn btn-warning">
