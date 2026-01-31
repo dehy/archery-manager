@@ -63,10 +63,16 @@ class LicenseeController extends BaseController
 
         // Compter le nombre total de licenciés avant filtrage
         $totalLicensees = $licensees->count();
+        
+        // Compter les licenciés sans groupe avant filtrage
+        $noGroupLicenseesCount = $licensees->filter(fn ($licensee) => $licensee->getGroups()->isEmpty())->count();
 
         // Filtrer par groupe si un groupe est sélectionné
         if ($selectedGroup) {
             $licensees = $licensees->filter(fn ($licensee) => $licensee->getGroups()->contains($selectedGroup));
+        } elseif ($groupId === 'no-group') {
+            // Filtrer les licenciés sans groupe
+            $licensees = $licensees->filter(fn ($licensee) => $licensee->getGroups()->isEmpty());
         }
 
         /** @var ArrayCollection<int, Licensee> $orderedLicensees */
@@ -86,6 +92,8 @@ class LicenseeController extends BaseController
             'selectedGroup' => $selectedGroup,
             'allGroups' => $allGroups,
             'totalLicensees' => $totalLicensees,
+            'noGroupLicenseesCount' => $noGroupLicenseesCount,
+            'isNoGroupFilter' => $groupId === 'no-group',
         ]);
     }
 

@@ -127,6 +127,36 @@
                                 </div>
                             {% endfor %}
                         </div>
+                        
+                        <!-- No Group Card -->
+                        {% if noGroupLicenseesCount > 0 %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h5 class="card-title mb-0">
+                                            <em class="fa-solid fa-user-slash me-2"></em>
+                                            Sans groupe
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text">
+                                            Licenciés qui ne sont assignés à aucun groupe d'entraînement.
+                                        </p>
+                                        <p class="card-text">
+                                            <strong>{{ noGroupLicenseesCount }}</strong> 
+                                            {{ noGroupLicenseesCount > 1 ? 'membres' : 'membre' }}
+                                        </p>
+                                        <div class="d-grid">
+                                            <a href="{{ path('app_licensee_index', {'group': 'no-group'}) }}" 
+                                               class="btn btn-sm btn-outline-secondary">
+                                                <em class="fa-solid fa-users me-1"></em>
+                                                Voir dans le trombinoscope
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>

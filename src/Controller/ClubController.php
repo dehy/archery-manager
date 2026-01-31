@@ -48,11 +48,15 @@ class ClubController extends BaseController
             ]),
         );
 
+        // Compter les licenciés sans groupe
+        $noGroupLicenseesCount = $licensees->filter(fn ($licensee) => $licensee->getGroups()->isEmpty())->count();
+
         return $this->render('club/show.html.twig', [
             'club' => $club,
             'groups' => $groups,
             'licensees' => $orderedLicensees,
             'season' => $season,
+            'noGroupLicenseesCount' => $noGroupLicenseesCount,
         ]);
     }
 }
