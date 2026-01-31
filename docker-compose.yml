@@ -5,6 +5,7 @@ services:
       dockerfile: docker/Dockerfile
     environment:
       - APP_ENV=dev
+      - FONTAWESOME_NPM_AUTH_TOKEN=${FONTAWESOME_NPM_AUTH_TOKEN}
 
   messenger-async:
     build:
