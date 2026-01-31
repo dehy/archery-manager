@@ -5,7 +5,7 @@ import {
   faArrowLeft,
   faArrowRightToBracket,
   faHeart,
-} from "@fortawesome/free-solid-svg-icons";
+} from "@fortawesome/pro-solid-svg-icons";
 
 library.add(faArrowLeft, faArrowRightToBracket, faHeart);
 dom.watch();

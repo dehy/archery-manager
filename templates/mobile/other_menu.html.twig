@@ -6,32 +6,32 @@
     <div class="list-group">
         {% if (is_granted("ROLE_ADMIN")) %}
         <a href="{{ path('admin') }}" class="list-group-item list-group-item-action">
-            <em class="fa-solid fa-screwdriver-wrench fa-fw"></em>
+            <em class="fa-solid fa-screwdriver-wrench"></em>
             Administration
-            <em class="fa-solid fa-chevron-right fa-fw ms-auto"></em>
+            <em class="fa-solid fa-chevron-right ms-auto"></em>
         </a>
         {% endif %}
         <a href="{{ path('app_user_account') }}" class="list-group-item list-group-item-action">
-            <em class="fa-solid fa-user-gear fa-fw"></em>
+            <em class="fa-solid fa-user-gear"></em>
             Mon compte
-            <em class="fa-solid fa-chevron-right fa-fw ms-auto"></em>
+            <em class="fa-solid fa-chevron-right ms-auto"></em>
         </a>
         <a href="{{ path('app_licensee_my_profile') }}" class="list-group-item list-group-item-action">
-            <em class="fa-solid fa-address-card fa-fw"></em>
+            <em class="fa-solid fa-address-card"></em>
             Mon profil
-            <em class="fa-solid fa-chevron-right fa-fw ms-auto"></em>
+            <em class="fa-solid fa-chevron-right ms-auto"></em>
         </a>
         {% if app.user.licensees|length > 1 %}
             {% for licensee in app.user.licensees|filter(l => l.id is not same as(licenseeHelper.licenseeFromSession.id)) %}
                     <a class="list-group-item list-group-item-action"
                        href="{{ path(app.request.get('_route'), app.request.get('_route_params')|merge({'_switch_licensee': licensee.fftaMemberCode })) }}">
-                        <em class="fa-solid fa-arrows-rotate fa-fw"></em>
+                        <em class="fa-solid fa-arrows-rotate"></em>
                         {{ licensee_display_name(licensee) }}
                     </a>
             {% endfor %}
         {% endif %}
         <a href="{{ path('app_logout') }}" class="list-group-item list-group-item-action text-danger">
-            <em class="fa-solid fa-arrow-right-from-bracket fa-fw"></em>
+            <em class="fa-solid fa-arrow-right-from-bracket"></em>
             Se déconnecter
         </a>
     </div>

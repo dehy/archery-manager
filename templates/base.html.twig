@@ -137,13 +137,13 @@
                         {% if (is_granted("ROLE_ADMIN")) %}
                             <li>
                                 <a class="dropdown-item" href="{{ path('admin') }}">
-                                    <em class="fa-solid fa-screwdriver-wrench fa-fw"></em>
+                                    <em class="fa-solid fa-screwdriver-wrench"></em>
                                     Administration
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{{ path('app_admin_events_index') }}">
-                                    <em class="fa-solid fa-calendar fa-fw"></em>
+                                    <em class="fa-solid fa-calendar"></em>
                                     Gestion des évènements
                                 </a>
                             </li>
@@ -155,7 +155,7 @@
                             <li>
                                 <a class="dropdown-item {{ _self.isActive('app_licensee_my_profile') }}"
                                    href="{{ path('app_licensee_my_profile') }}">
-                                    <em class="fa-solid fa-address-card fa-fw"></em>
+                                    <em class="fa-solid fa-address-card"></em>
                                     Mon profil
                                 </a>
                             </li>
@@ -168,7 +168,7 @@
                                 <li>
                                     <a class="dropdown-item"
                                        href="{{ path(app.request.get('_route'), app.request.get('_route_params')|merge({'_switch_licensee': licensee.fftaMemberCode })) }}">
-                                        <em class="fa-solid fa-arrows-rotate fa-fw"></em>
+                                        <em class="fa-solid fa-arrows-rotate"></em>
                                         {{ licensee_display_name(licensee) }}
                                     </a>
                                 </li>
@@ -180,7 +180,7 @@
                         <li>
                             <a class="dropdown-item {{ _self.isActive('app_user_account') }}"
                                href="{{ path('app_user_account') }}">
-                                <em class="fa-solid fa-user-gear fa-fw"></em>
+                                <em class="fa-solid fa-user-gear"></em>
                                 Mon compte
                             </a>
                         </li>
@@ -189,7 +189,7 @@
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ path('app_logout') }}">
-                                <em class="fa-solid fa-arrow-right-from-bracket fa-fw"></em>
+                                <em class="fa-solid fa-arrow-right-from-bracket"></em>
                                 Se déconnecter
                             </a>
                         </li>
