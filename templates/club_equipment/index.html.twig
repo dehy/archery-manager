@@ -1,0 +1,216 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Matériel du club - {{ club.name }}{% endblock %}
+
+{% block body %}
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <em class="fa-solid fa-bow-arrow me-2"></em>
+                Matériel du club
+            </h1>
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('app_club_equipment_new') }}" class="btn btn-primary">
+                    <em class="fa-solid fa-plus me-2"></em>
+                    Ajouter du matériel
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-check-circle me-2"></em>
+                            Disponible
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="display-4">{{ availableEquipment|length }}</div>
+                        <p class="text-muted mb-0">équipement(s) disponible(s)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-hand-holding me-2"></em>
+                            Prêté
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="display-4">{{ loanedEquipment|length }}</div>
+                        <p class="text-muted mb-0">équipement(s) prêté(s)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-boxes me-2"></em>
+                            Total
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="display-4">{{ equipment|length }}</div>
+                        <p class="text-muted mb-0">équipement(s) au total</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <em class="fa-solid fa-list me-2"></em>
+                    Liste du matériel
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if equipment is empty %}
+                    <div class="text-center text-muted py-4">
+                        <em class="fa-solid fa-boxes fa-3x mb-3"></em>
+                        <p class="mb-0">Aucun équipement enregistré</p>
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Nom</th>
+                                    <th>N° de série</th>
+                                    <th>Quantité</th>
+                                    <th>Statut</th>
+                                    <th>Prêté à</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in equipment %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                {{ item.type|club_equipment_type_readable }}
+                                            </span>
+                                        </td>
+                                        <td>{{ item.name }}</td>
+                                        <td>{{ item.serialNumber ?? '-' }}</td>
+                                        <td>{{ item.count ?? '-' }}</td>
+                                        <td>
+                                            {% if item.isAvailable %}
+                                                <span class="badge bg-success">
+                                                    <em class="fa-solid fa-check me-1"></em>
+                                                    Disponible
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <em class="fa-solid fa-clock me-1"></em>
+                                                    Prêté
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% set currentLoan = item.currentLoan %}
+                                            {% if currentLoan %}
+                                                <a href="{{ path('app_licensee_profile', {fftaCode: currentLoan.borrower.fftaMemberCode}) }}">
+                                                    {{ currentLoan.borrower.firstname }} {{ currentLoan.borrower.lastname }}
+                                                </a>
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ path('app_club_equipment_show', {id: item.id}) }}" 
+                                                   class="btn btn-outline-primary"
+                                                   title="Voir les détails">
+                                                    <em class="fa-solid fa-eye"></em>
+                                                </a>
+                                                {% if is_granted('ROLE_ADMIN') %}
+                                                    <a href="{{ path('app_club_equipment_edit', {id: item.id}) }}" 
+                                                       class="btn btn-outline-secondary"
+                                                       title="Modifier">
+                                                        <em class="fa-solid fa-edit"></em>
+                                                    </a>
+                                                    {% if item.isAvailable %}
+                                                        <a href="{{ path('app_club_equipment_loan', {id: item.id}) }}" 
+                                                           class="btn btn-outline-warning"
+                                                           title="Prêter">
+                                                            <em class="fa-solid fa-hand-holding"></em>
+                                                        </a>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if is_granted('ROLE_ADMIN') and loanedEquipment is not empty %}
+            <div class="card mt-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <em class="fa-solid fa-hand-holding me-2"></em>
+                        Prêts en cours
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Équipement</th>
+                                    <th>Emprunteur</th>
+                                    <th>Date de prêt</th>
+                                    <th>Durée</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in loanedEquipment %}
+                                    {% set loan = item.currentLoan %}
+                                    {% if loan %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ path('app_club_equipment_show', {id: item.id}) }}">
+                                                {{ item.name }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a href="{{ path('app_licensee_profile', {fftaCode: loan.borrower.fftaMemberCode}) }}">
+                                                {{ loan.borrower.firstname }} {{ loan.borrower.lastname }}
+                                            </a>
+                                        </td>
+                                        <td>{{ loan.startDate|date('d/m/Y') }}</td>
+                                        <td>{{ loan.loanDurationInDays }} jour(s)</td>
+                                        <td>
+                                            <form method="post" 
+                                                  action="{{ path('app_club_equipment_return', {id: item.id}) }}"
+                                                  onsubmit="return confirm('Confirmer le retour de cet équipement ?');"
+                                                  class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <em class="fa-solid fa-check me-1"></em>
+                                                    Retourné
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
