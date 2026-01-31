@@ -18,6 +18,7 @@ use App\Helper\LicenseHelper;
 use App\Helper\ResultHelper;
 use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
+use App\Repository\EquipmentLoanRepository;
 use App\Repository\ResultRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
@@ -108,6 +109,7 @@ class LicenseeController extends BaseController
     public function show(
         LicenseeRepository $licenseeRepository,
         ResultRepository $resultRepository,
+        EquipmentLoanRepository $loanRepository,
         ChartBuilderInterface $chartBuilder,
         ?string $fftaCode,
     ): Response {
@@ -255,6 +257,9 @@ class LicenseeController extends BaseController
 
         ksort($resultsCharts);
 
+        // Fetch active equipment loans for this licensee
+        $activeLoans = $loanRepository->findActiveLoansByBorrower($licensee);
+
         $licenseeSyncForm = null;
         if ($this->isGranted('ROLE_ADMIN')) {
             $licenseeSyncForm = $this->createSyncForm($licensee);
@@ -265,6 +270,7 @@ class LicenseeController extends BaseController
             'seasons' => $seasons,
             'results_charts' => $resultsCharts,
             'licensee_sync_form' => $licenseeSyncForm?->createView(),
+            'activeLoans' => $activeLoans,
         ]);
     }
 

@@ -116,6 +116,35 @@
                         {% endif %}
                     </div>
 
+                    <!-- Borrowed Equipment -->
+                    <div class="mb-4">
+                        <h5 class="mb-2">
+                            <em class="fa-solid fa-bow-arrow me-2"></em>
+                            Matériel emprunté
+                        </h5>
+                        {% if activeLoans is empty %}
+                            <em class="text-muted">Aucun matériel emprunté</em>
+                        {% else %}
+                            <div class="list-group">
+                                {% for loan in activeLoans %}
+                                    <a href="{{ path('app_club_equipment_show', {id: loan.equipment.id}) }}" 
+                                       class="list-group-item list-group-item-action">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">{{ loan.equipment.name }}</h6>
+                                                <small class="text-muted">
+                                                    <span class="badge bg-secondary me-1">{{ loan.equipment.type|club_equipment_type_readable }}</span>
+                                                    Depuis le {{ loan.startDate|date('d/m/Y') }} ({{ loan.loanDurationInDays }} jour(s))
+                                                </small>
+                                            </div>
+                                            <em class="fa-solid fa-arrow-right text-muted"></em>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
                     <!-- User Account Link -->
                     {% if is_granted('ROLE_ADMIN') or (app.user and app.user.id == licensee.user.id) %}
                         <div class="border-top pt-3">
