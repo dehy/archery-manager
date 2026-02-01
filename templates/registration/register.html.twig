@@ -1,21 +1,63 @@
 {% extends 'base_unauthenticated.html.twig' %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Créer un compte{% endblock %}
 
 {% block body %}
     {% for flash_error in app.flashes('verify_email_error') %}
         <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
     {% endfor %}
 
-    <h1>Register</h1>
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <em class="fa-solid fa-user-plus me-2"></em>
+                Créer un compte
+            </h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-4">
+                Créez votre compte pour pouvoir faire une demande de licence et rejoindre un club de tir à l'arc.
+            </p>
 
-    {{ form_start(registrationForm) }}
-        {{ form_row(registrationForm.email) }}
-        {{ form_row(registrationForm.plainPassword, {
-            label: 'Password'
-        }) }}
-        {{ form_row(registrationForm.agreeTerms) }}
+            {% form_theme registrationForm 'bootstrap_5_layout.html.twig' %}
+            {{ form_start(registrationForm) }}
+                {{ form_row(registrationForm.gender) }}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form_row(registrationForm.firstname) }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_row(registrationForm.lastname) }}
+                    </div>
+                </div>
+                
+                {{ form_row(registrationForm.email) }}
+                {{ form_row(registrationForm.phoneNumber) }}
+                {{ form_row(registrationForm.plainPassword, {
+                    help: 'Au moins 8 caractères'
+                }) }}
+                {{ form_row(registrationForm.agreeTerms, {
+                    label: 'J\'accepte les <a href="' ~ path('app_legal_cgu') ~ '" target="_blank">conditions générales d\'utilisation</a> *'|raw
+                }) }}
 
-        <button type="submit" class="btn">Register</button>
-    {{ form_end(registrationForm) }}
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <em class="fa-solid fa-user-plus me-2"></em>
+                        Créer mon compte
+                    </button>
+                </div>
+            {{ form_end(registrationForm) }}
+
+            <hr class="my-4">
+            
+            <div class="text-center">
+                <p class="mb-0">Vous avez déjà un compte ?</p>
+                <a href="{{ path('app_login') }}" class="btn btn-link">
+                    <em class="fa-solid fa-arrow-right-to-bracket me-2"></em>
+                    Se connecter
+                </a>
+            </div>
+        </div>
+    </div>
 {% endblock %}
