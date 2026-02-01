@@ -113,8 +113,8 @@ if [[ "${1:-}" == "sut" ]]; then
       apt-get install -y --no-install-recommends curl unzip
 
       # Install sonar-scanner
-      SONAR_CLI_VERSION="6.2.0.4584-linux-x64"
-      SONAR_CLI_SHA256_SUM="bc77135e0755bacb1049635928027f3e6c9fec6d728134935df0f43c77108e35"
+      SONAR_CLI_VERSION="8.0.1.6346-linux-x64"
+      SONAR_CLI_SHA256_SUM="4bd40bf8411ed104853e94a3746ec92bc92845fde2b27dbf5c33fb5cfa8ecbe9"
       SONAR_CLI_DIRNAME="sonar-scanner-cli-${SONAR_CLI_VERSION}"
       SONAR_CLI_FILENAME="${SONAR_CLI_DIRNAME}.zip"
       SONAR_CLI_FILEPATH="/tmp/${SONAR_CLI_FILENAME}"

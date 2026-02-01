@@ -343,19 +343,17 @@ docker compose exec -u symfony -w /app app bin/console encrypt:genkey
 
 #### Commit Conventions
 - **Atomic commits**: Group related changes by functionality
-- **Commit messages**:
-  - Simple changes: One-line message
-  - Complex features: Multi-line with bullet points
+- **Commit messages**: Always use one-line messages with gitmoji for clarity
 - **Example commit sequence** (recent work):
   ```
-  1. Fix Doctrine cascade persist in FftaHelperTest + add group authorization
-  2. Create reusable participation modal component
-  3. Implement event type-based participation choices
-  4. Add authorization checks in EventController
-  5. Update templates with disabled button and tooltips
-  6. Make target_type nullable for training events + migration
-  7. Add Makefile start-fg target
-  8. Format code with PHP CS Fixer
+  1. ✨ Add group-based event authorization
+  2. ♻️ Create reusable participation modal component
+  3. ✨ Implement event type-based participation choices
+  4. ✅ Add authorization checks in EventController
+  5. 💄 Update templates with disabled button and tooltips
+  6. ♻️ Make target_type nullable for training events + migration
+  7. ✨ Add Makefile start-fg target
+  8. 🎨 Format code with PHP CS Fixer
   ```
 
 #### Branching
