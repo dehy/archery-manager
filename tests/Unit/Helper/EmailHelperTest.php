@@ -48,7 +48,7 @@ final class EmailHelperTest extends TestCase
         $this->mailer
             ->expects($this->once())
             ->method('send')
-            ->with($this->callback(function (TemplatedEmail $email) use ($licensee, $club): bool {
+            ->with($this->callback(static function (TemplatedEmail $email) use ($licensee, $club): bool {
                 $toAddresses = $email->getTo();
                 $replyToAddresses = $email->getReplyTo();
                 $context = $email->getContext();
@@ -114,7 +114,7 @@ final class EmailHelperTest extends TestCase
         $this->mailer
             ->expects($this->once())
             ->method('send')
-            ->with($this->callback(function (TemplatedEmail $email) use ($addedLicensee1, $addedLicensee2, $updatedLicensee): bool {
+            ->with($this->callback(static function (TemplatedEmail $email) use ($addedLicensee1, $addedLicensee2, $updatedLicensee): bool {
                 $toAddresses = $email->getTo();
                 $context = $email->getContext();
 
@@ -169,7 +169,7 @@ final class EmailHelperTest extends TestCase
         $this->mailer
             ->expects($this->once())
             ->method('send')
-            ->with($this->callback(function (TemplatedEmail $email): bool {
+            ->with($this->callback(static function (TemplatedEmail $email): bool {
                 $context = $email->getContext();
 
                 return 0 === $context['count']
@@ -202,7 +202,7 @@ final class EmailHelperTest extends TestCase
         $this->mailer
             ->expects($this->once())
             ->method('send')
-            ->with($this->callback(function (TemplatedEmail $email): bool {
+            ->with($this->callback(static function (TemplatedEmail $email): bool {
                 $toAddresses = $email->getTo();
 
                 return 1 === \count($toAddresses)

@@ -11,3 +11,4 @@ parameters:
         - tests/
     excludePaths:
         - tests/Unit/Helper/*Test.php
+        - config/reference.php

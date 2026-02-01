@@ -94,7 +94,7 @@ final class MapHelperTest extends TestCase
         $this->mapboxGeocoder
             ->expects($this->once())
             ->method('geocodeQuery')
-            ->with($this->callback(fn (GeocodeQuery $query): bool => $query->getText() === $address))
+            ->with($this->callback(static fn (GeocodeQuery $query): bool => $query->getText() === $address))
             ->willReturn($collection);
 
         $this->mapHelper->urlForAddress($address);
