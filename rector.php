@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Rector\CodeQuality\Rector\Equal\UseIdenticalOverEqualWithSameTypeRector;
 use Rector\Config\RectorConfig;
+use Rector\Symfony\CodeQuality\Rector\Class_\ControllerMethodInjectionToConstructorRector;
 use Rector\ValueObject\PhpVersion;
 
 return RectorConfig::configure()
@@ -14,6 +15,9 @@ return RectorConfig::configure()
     ->withSkip([
         UseIdenticalOverEqualWithSameTypeRector::class => [
             __DIR__.'/src/Helper/ObjectComparator.php',
+        ],
+        ControllerMethodInjectionToConstructorRector::class => [
+            __DIR__.'/src/Controller/Admin/*',
         ],
     ])
     ->withPhpVersion(PhpVersion::PHP_84)
