@@ -55,16 +55,17 @@ if [[ -z "${1:-}" && ("${APP_ENV}" == "dev" || "${APP_ENV}" == "test") ]]; then
             -e 's!\(error_reporting\) = .*!\1 = E_ALL!' \
             -e 's!\(display_errors\) = off!\1 = on!' \
             -e 's!\(display_startup_errors\) = off!\1 = on!' \
-            /etc/php/8.3/fpm/conf.d/99-symfony.ini
+            /etc/php/8.4/fpm/conf.d/99-symfony.ini
 
         apt-get update
-        apt-get install -y --no-install-recommends php8.3-xdebug
+        apt-get install -y --no-install-recommends php8.4-xdebug
         apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
         apt-get autoremove -y
     fi
 
     ${GOSU} composer install --prefer-dist
-    [[ "${APP_ENV}" == "dev" ]] && ${GOSU} yarn
+    # Yarn is run on host in dev mode, not in container
+    # [[ "${APP_ENV}" == "dev" ]] && ${GOSU} yarn
 fi
 
 DATABASE_URL_PARTS=$(php -r "echo json_encode(parse_url('${DATABASE_URL}'));")

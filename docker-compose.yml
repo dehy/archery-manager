@@ -3,9 +3,10 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+      args:
+        BUILD_TARGET: dev
     environment:
       - APP_ENV=dev
-      - FONTAWESOME_NPM_AUTH_TOKEN=${FONTAWESOME_NPM_AUTH_TOKEN}
 
   messenger-async:
     build:
@@ -29,7 +30,7 @@ services:
 
 ###> doctrine/doctrine-bundle ###
   database:
-    image: mariadb:${MARIADB_VERSION:-10.11.5}
+    image: mariadb:${MARIADB_VERSION:-12.1}
     environment:
       MARIADB_ROOT_PASSWORD: "root"
       MARIADB_DATABASE: ${MARIADB_DATABASE:-app}
