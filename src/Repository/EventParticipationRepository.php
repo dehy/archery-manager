@@ -23,9 +23,9 @@ class EventParticipationRepository extends ServiceEntityRepository
 
     public function add(EventParticipation $entity, bool $flush = true): void
     {
-        $this->_em->persist($entity);
+        $this->getEntityManager()->persist($entity);
         if ($flush) {
-            $this->_em->flush();
+            $this->getEntityManager()->flush();
         }
     }
 
@@ -33,9 +33,9 @@ class EventParticipationRepository extends ServiceEntityRepository
         EventParticipation $entity,
         bool $flush = true,
     ): void {
-        $this->_em->remove($entity);
+        $this->getEntityManager()->remove($entity);
         if ($flush) {
-            $this->_em->flush();
+            $this->getEntityManager()->flush();
         }
     }
 

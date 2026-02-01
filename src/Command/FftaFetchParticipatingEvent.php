@@ -24,12 +24,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[
-    AsCommand(
-        name: 'app:ffta:fetch-participating-events',
-        description: 'Fetch and display the events our bowmen participated',
-    ),
-]
+#[AsCommand(
+    name: 'app:ffta:fetch-participating-events',
+    description: 'Fetch and display the events our bowmen participated',
+),]
 class FftaFetchParticipatingEvent extends Command
 {
     public function __construct(
@@ -130,12 +128,10 @@ class FftaFetchParticipatingEvent extends Command
                 ->andWhere('e.startsAt <= :fromNight')
                 ->andWhere('e.endsAt >= :toMorning')
                 ->andWhere('e.endsAt <= :toNight')
-                ->setParameters([
-                    'fromMorning' => $fftaEvent->getFrom()->setTime(0, 0, 0),
-                    'fromNight' => $fftaEvent->getFrom()->setTime(23, 59, 59),
-                    'toMorning' => $fftaEvent->getTo()->setTime(0, 0, 0),
-                    'toNight' => $fftaEvent->getTo()->setTime(23, 59, 59),
-                ])
+                ->setParameter('fromMorning', $fftaEvent->getFrom()->setTime(0, 0, 0))
+                ->setParameter('fromNight', $fftaEvent->getFrom()->setTime(23, 59, 59))
+                ->setParameter('toMorning', $fftaEvent->getTo()->setTime(0, 0, 0))
+                ->setParameter('toNight', $fftaEvent->getTo()->setTime(23, 59, 59))
                 ->getQuery()
                 ->getOneOrNullResult();
             if (!$event) {

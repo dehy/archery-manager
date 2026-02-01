@@ -33,11 +33,11 @@ class DiscordBotRunCommand extends Command
             'token' => $this->botToken,
         ]);
 
-        $discord->on('ready', function (Discord $discord) use ($io): void {
+        $discord->on('ready', static function (Discord $discord) use ($io): void {
             $io->info('Bot is ready!');
 
             // Listen for messages.
-            $discord->on(Event::MESSAGE_CREATE, function (Message $message, Discord $discord) use ($io): void {
+            $discord->on(Event::MESSAGE_CREATE, static function (Message $message, Discord $discord) use ($io): void {
                 $io->writeln(\sprintf('%s: %s', $message->author->username, $message->content));
             });
         });

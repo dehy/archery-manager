@@ -26,7 +26,7 @@ class SwitchLicenseeListener
     {
         $request = $event->getRequest();
 
-        $licenseeCode = $request->get('_switch_licensee');
+        $licenseeCode = $request->query->get('_switch_licensee');
 
         if (null === $licenseeCode || '' === $licenseeCode) {
             return;

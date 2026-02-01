@@ -19,7 +19,6 @@ use Symfony\Component\BrowserKit\Response;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -242,28 +241,29 @@ class FftaScrapper
             $ajaxResponse = $this->managerSpaceBrowser->getResponse();
             $ajaxStatusCode = $ajaxResponse->getStatusCode();
             $ajaxContent = (string) $ajaxResponse->getContent();
-            
+
             // Check for rate limiting
             if (429 === $ajaxStatusCode) {
                 throw new \RuntimeException('CRITICAL: HTTP 429 Too Many Requests on AJAX call. FFTA rate limit reached. STOPPING execution immediately.');
             }
-            
+
             // Check for authentication failure
             if (401 === $ajaxStatusCode) {
                 // Check if account is suspended
                 if (str_contains($ajaxContent, 'Unauthenticated') || str_contains($ajaxContent, 'suspendu')) {
                     throw new \RuntimeException('CRITICAL: Authentication failed (401) - account may be suspended or session expired. STOPPING execution to prevent further issues.');
                 }
+
                 throw new \RuntimeException('CRITICAL: 401 Unauthorized on AJAX request. Session expired or authentication failed. STOPPING execution.');
             }
-            
+
             // Check for forbidden
             if (403 === $ajaxStatusCode) {
                 throw new \RuntimeException('CRITICAL: HTTP 403 Forbidden. Access denied by FFTA. STOPPING execution.');
             }
-            
+
             if (200 !== $ajaxStatusCode) {
-                throw new \RuntimeException(sprintf('CRITICAL: AJAX request failed with HTTP %d. STOPPING execution to prevent issues.', $ajaxStatusCode));
+                throw new \RuntimeException(\sprintf('CRITICAL: AJAX request failed with HTTP %d. STOPPING execution to prevent issues.', $ajaxStatusCode));
             }
 
             $this->cachedResponse = json_decode(
@@ -404,9 +404,9 @@ class FftaScrapper
         if (429 === $statusCode) {
             throw new \RuntimeException('CRITICAL: HTTP 429 when fetching profile picture. Rate limit reached. STOPPING execution.');
         }
-        
+
         if (401 === $statusCode || 403 === $statusCode) {
-            throw new \RuntimeException(sprintf('CRITICAL: HTTP %d when fetching profile picture. Authentication issue. STOPPING execution.', $statusCode));
+            throw new \RuntimeException(\sprintf('CRITICAL: HTTP %d when fetching profile picture. Authentication issue. STOPPING execution.', $statusCode));
         }
 
         if (200 !== $statusCode) {
@@ -599,7 +599,7 @@ class FftaScrapper
         );
         $tableCrawler = $crawler->filter('table.orbe3');
         $eventLinesCrawler = $tableCrawler->filter('tbody tr');
-        $eventLinesCrawler->each(function (Crawler $row) use (&$events): void {
+        $eventLinesCrawler->each(static function (Crawler $row) use (&$events): void {
             $dateCell = $row->filter('td:nth-child(2)')->text();
             preg_match(
                 '#(du|le) (\d+/\d+/\d+)(au (\d+/\d+/\d+))?#',
@@ -667,7 +667,7 @@ class FftaScrapper
         );
         $tableCrawler = $crawler->filter('table.orbe3');
         $rowsCrawler = $tableCrawler->filter('tbody tr');
-        $rowsCrawler->each(function (Crawler $row) use (
+        $rowsCrawler->each(static function (Crawler $row) use (
             &$fftaResults,
             $fftaEvent,
             &$distance,
@@ -736,15 +736,15 @@ class FftaScrapper
         }
 
         $this->managerSpaceBrowser = new HttpBrowser($this->managerSpaceHttpClient);
-        
+
         // Enable following redirects
         $this->managerSpaceBrowser->followRedirects(true);
-        
+
         $crawler = $this->managerSpaceBrowser->request(
             'GET',
             \sprintf('%s/auth/login', $this->managerSpaceBaseUrl),
         );
-        
+
         $form = $crawler->filter('#form-login')->form();
         $this->managerSpaceBrowser->submit($form, [
             'username' => $this->club->getFftaUsername(),
@@ -755,37 +755,37 @@ class FftaScrapper
         $response = $this->managerSpaceBrowser->getResponse();
         $statusCode = $response->getStatusCode();
         $currentUrl = $this->managerSpaceBrowser->getHistory()->current()->getUri();
-        
+
         // Check for rate limiting
         if (429 === $statusCode) {
             throw new \RuntimeException('CRITICAL: HTTP 429 Too Many Requests. FFTA rate limit reached. STOPPING execution to prevent account suspension. Wait several hours before retrying.');
         }
-        
+
         // Check if we're still on the login page (login failed)
         if (str_contains($currentUrl, '/auth/login')) {
             $fullContent = $response->getContent();
-            
+
             // Check for account suspension - CRITICAL ERROR
             if (str_contains($fullContent, 'Votre compte a été suspendu') || str_contains($fullContent, 'compte a été suspendu') || str_contains($fullContent, 'compte suspendu')) {
                 throw new \RuntimeException('CRITICAL: FFTA account is SUSPENDED. STOPPING all operations immediately. Account suspended due to rate limiting. Wait several hours or days before retrying.');
             }
-            
+
             // Check for rate limiting messages
             if (str_contains($fullContent, 'rate limit') || str_contains($fullContent, 'trop de tentatives') || str_contains($fullContent, 'too many') || str_contains($fullContent, 'trop de connexions')) {
                 throw new \RuntimeException('CRITICAL: Rate limited by FFTA. STOPPING execution. Wait before retrying.');
             }
-            
+
             // Try to find error messages
             $crawler = $this->managerSpaceBrowser->getCrawler();
-            $errorMessages = $crawler->filter('.alert-danger, .error, .invalid-feedback, .text-danger')->each(fn($node) => trim($node->text()));
-            $errorMsg = $errorMessages ? implode(' | ', $errorMessages) : 'Unknown error';
-            
-            throw new \RuntimeException(sprintf('CRITICAL: Authentication FAILED. STOPPING execution to prevent account suspension. Error: %s', $errorMsg));
+            $errorMessages = $crawler->filter('.alert-danger, .error, .invalid-feedback, .text-danger')->each(static fn ($node): string => trim((string) $node->text()));
+            $errorMsg = $errorMessages !== [] ? implode(' | ', $errorMessages) : 'Unknown error';
+
+            throw new \RuntimeException(\sprintf('CRITICAL: Authentication FAILED. STOPPING execution to prevent account suspension. Error: %s', $errorMsg));
         }
-        
+
         // Accept 200 (direct success) or 302 (redirect after login)
         if (200 !== $statusCode && 302 !== $statusCode) {
-            throw new \RuntimeException(sprintf('CRITICAL: Bad response from FFTA login (HTTP %d). STOPPING execution to prevent account issues.', $statusCode));
+            throw new \RuntimeException(\sprintf('CRITICAL: Bad response from FFTA login (HTTP %d). STOPPING execution to prevent account issues.', $statusCode));
         }
 
         $this->managerSpaceIsConnected = true;
@@ -798,10 +798,10 @@ class FftaScrapper
         }
 
         $this->myFftaSpaceBrowser = new HttpBrowser($this->myFftaSpaceHttpClient);
-        
+
         // Enable following redirects
         $this->myFftaSpaceBrowser->followRedirects(true);
-        
+
         $crawler = $this->myFftaSpaceBrowser->request(
             'GET',
             $this->myFftaSpaceBaseUrl,
@@ -817,27 +817,27 @@ class FftaScrapper
         $response = $this->myFftaSpaceBrowser->getResponse();
         $statusCode = $response->getStatusCode();
         $currentUrl = $this->myFftaSpaceBrowser->getHistory()->current()->getUri();
-        
+
         // Check for rate limiting
         if (429 === $statusCode) {
             throw new \RuntimeException('CRITICAL: HTTP 429 Too Many Requests on Mon Espace FFTA. STOPPING execution.');
         }
-        
+
         // Check if still on login page or redirected back
         if (str_contains($currentUrl, '/auth/login') || str_contains($currentUrl, 'login')) {
             $fullContent = $response->getContent();
-            
+
             // Check for suspension
             if (str_contains($fullContent, 'suspendu') || str_contains($fullContent, 'suspended')) {
                 throw new \RuntimeException('CRITICAL: Mon Espace FFTA account suspended. STOPPING execution.');
             }
-            
+
             throw new \RuntimeException('CRITICAL: Mon Espace FFTA authentication failed. STOPPING execution to prevent account issues.');
         }
-        
+
         // Accept 200 (direct success) or 302 (redirect after login)
         if (200 !== $statusCode && 302 !== $statusCode) {
-            throw new \RuntimeException(sprintf('CRITICAL: Bad response from Mon Espace FFTA login (HTTP %d). STOPPING execution.', $statusCode));
+            throw new \RuntimeException(\sprintf('CRITICAL: Bad response from Mon Espace FFTA login (HTTP %d). STOPPING execution.', $statusCode));
         }
 
         $this->myFftaSpaceIsConnected = true;

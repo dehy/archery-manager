@@ -29,17 +29,17 @@ class EventRepository extends ServiceEntityRepository
 
     public function add(Event $entity, bool $flush = true): void
     {
-        $this->_em->persist($entity);
+        $this->getEntityManager()->persist($entity);
         if ($flush) {
-            $this->_em->flush();
+            $this->getEntityManager()->flush();
         }
     }
 
     public function remove(Event $entity, bool $flush = true): void
     {
-        $this->_em->remove($entity);
+        $this->getEntityManager()->remove($entity);
         if ($flush) {
-            $this->_em->flush();
+            $this->getEntityManager()->flush();
         }
     }
 
@@ -84,7 +84,7 @@ class EventRepository extends ServiceEntityRepository
      */
     public function findForLicenseeByMonthAndYear(Licensee $licensee, int $month, int $year): array
     {
-        $clubs = $licensee->getLicenses()->map(fn (License $license): ?\App\Entity\Club => $license->getClub());
+        $clubs = $licensee->getLicenses()->map(static fn (License $license): ?\App\Entity\Club => $license->getClub());
         $clubs = array_unique($clubs->toArray());
 
         $firstDate = new \DateTime(\sprintf('%s-%s-01 midnight', $year, $month));
@@ -103,11 +103,9 @@ class EventRepository extends ServiceEntityRepository
             ->where('e.endsAt >= :monthStart')
             ->andWhere('e.startsAt <= :monthEnd')
             ->andWhere('e.club IN (:clubs) OR e.club IS NULL')
-            ->setParameters([
-                'monthStart' => $firstDate,
-                'monthEnd' => $lastDate,
-                'clubs' => $clubs,
-            ])
+            ->setParameter('monthStart', $firstDate)
+            ->setParameter('monthEnd', $lastDate)
+            ->setParameter('clubs', $clubs)
             ->getQuery()
             ->getResult();
     }

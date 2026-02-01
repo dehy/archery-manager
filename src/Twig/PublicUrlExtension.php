@@ -8,7 +8,7 @@ use Doctrine\Common\Util\ClassUtils;
 use League\Flysystem\FilesystemOperator;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
-use Vich\UploaderBundle\Mapping\Annotation\UploadableField;
+use Vich\UploaderBundle\Mapping\Attribute\UploadableField;
 
 class PublicUrlExtension extends AbstractExtension
 {
@@ -51,7 +51,7 @@ class PublicUrlExtension extends AbstractExtension
         /** @var UploadableField $uploadableField */
         $uploadableField = $reflectionAttribute->newInstance();
         $mapping = $uploadableField->getMapping();
-        $parts = array_map(fn (string $part): string => ucfirst($part), explode('_', $mapping));
+        $parts = array_map(static fn (string $part): string => ucfirst($part), explode('_', $mapping));
         $storageName = lcfirst(implode('', $parts).'Storage');
 
         if ('clubsLogosStorage' === $storageName) {

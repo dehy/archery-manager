@@ -15,12 +15,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[
-    AsCommand(
-        name: 'app:ffta:find-id',
-        description: 'Find licensee ID from various data',
-    ),
-]
+#[AsCommand(
+    name: 'app:ffta:find-id',
+    description: 'Find licensee ID from various data',
+),]
 class FftaFindId extends Command
 {
     public function __construct(
