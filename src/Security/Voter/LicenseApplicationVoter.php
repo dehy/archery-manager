@@ -6,8 +6,6 @@ namespace App\Security\Voter;
 
 use App\Entity\LicenseApplication;
 use App\Entity\User;
-use App\Helper\LicenseHelper;
-use App\Helper\LicenseeHelper;
 use App\Helper\SeasonHelper;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -17,8 +15,6 @@ class LicenseApplicationVoter extends Voter
     final public const string MANAGE = 'manage';
 
     public function __construct(
-        private readonly LicenseeHelper $licenseeHelper,
-        private readonly LicenseHelper $licenseHelper,
         private readonly SeasonHelper $seasonHelper,
     ) {
     }
@@ -26,7 +22,7 @@ class LicenseApplicationVoter extends Voter
     #[\Override]
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return $attribute === self::MANAGE && $subject instanceof LicenseApplication;
+        return self::MANAGE === $attribute && $subject instanceof LicenseApplication;
     }
 
     #[\Override]
@@ -61,12 +57,11 @@ class LicenseApplicationVoter extends Voter
 
         $licensees = $user->getLicensees();
         foreach ($licensees as $licensee) {
-            $license = $this->licenseHelper->getLicenseForLicenseeAndSeason(
-                $licensee,
-                $this->seasonHelper->currentSeason(),
+            $license = $licensee->getLicenseForSeason(
+                $this->seasonHelper->getSelectedSeason(),
             );
 
-            if ($license !== null && $license->getClub() === $application->getClub()) {
+            if (null !== $license && $license->getClub() === $application->getClub()) {
                 return true;
             }
         }

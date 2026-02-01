@@ -33,9 +33,7 @@ class RegistrationFormType extends AbstractType
                 'required' => true,
                 'expanded' => true,  // Radio buttons
                 'label_attr' => ['class' => 'btn-check'],
-                'choice_attr' => function() {
-                    return ['class' => 'btn-check'];
-                },
+                'choice_attr' => static fn (): array => ['class' => 'btn-check'],
                 'attr' => ['class' => 'btn-group'],
             ])
             ->add('firstname', null, [

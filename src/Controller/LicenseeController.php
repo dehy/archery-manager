@@ -140,12 +140,15 @@ class LicenseeController extends BaseController
                 if (!($userLicense = $userLicensee->getLicenseForSeason($currentSeason))) {
                     continue;
                 }
+
                 if (!($targetLicense = $licensee->getLicenseForSeason($currentSeason)) instanceof \App\Entity\License) {
                     continue;
                 }
+
                 if ($userLicense->getClub() !== $targetLicense->getClub()) {
                     continue;
                 }
+
                 $hasAccess = true;
                 break;
             }
@@ -475,12 +478,15 @@ class LicenseeController extends BaseController
                 if (!($userLicense = $userLicensee->getLicenseForSeason($currentSeason))) {
                     continue;
                 }
+
                 if (!($targetLicense = $licensee->getLicenseForSeason($currentSeason)) instanceof \App\Entity\License) {
                     continue;
                 }
+
                 if ($userLicense->getClub() !== $targetLicense->getClub()) {
                     continue;
                 }
+
                 $hasAccess = true;
                 break;
             }

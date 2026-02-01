@@ -9,7 +9,6 @@ use App\Form\ApplicantRenewalType;
 use App\Form\ApplicantType;
 use App\Repository\ApplicantRepository;
 use App\Repository\LicenseeRepository;
-use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;

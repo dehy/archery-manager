@@ -22,7 +22,7 @@ final class LicenseApplicationStatusType extends AbstractEnumType
     protected static array $choices = [
         self::PENDING => 'En attente',
         self::VALIDATED => 'Validée',
-        self::WAITING_LIST => 'Liste d\'attente',
+        self::WAITING_LIST => "Liste d'attente",
         self::REJECTED => 'Refusée',
     ];
 }

@@ -325,6 +325,6 @@ class ClubEquipment
 
     public function isCurrentlyLoaned(): bool
     {
-        return $this->getCurrentLoan() instanceof \App\Entity\EquipmentLoan;
+        return $this->getCurrentLoan() instanceof EquipmentLoan;
     }
 }

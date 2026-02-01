@@ -34,7 +34,7 @@ class LicenseeUserLinkType extends AbstractType
             ->add('existing_user', EntityType::class, [
                 'label' => 'Utilisateur existant',
                 'class' => User::class,
-                'choice_label' => static fn(User $user): string => \sprintf('%s %s (%s)', $user->getFirstname(), $user->getLastname(), $user->getEmail()),
+                'choice_label' => static fn (User $user): string => \sprintf('%s %s (%s)', $user->getFirstname(), $user->getLastname(), $user->getEmail()),
                 'placeholder' => 'Sélectionner un utilisateur',
                 'required' => false,
             ])
@@ -58,7 +58,7 @@ class LicenseeUserLinkType extends AbstractType
                 $form->add('existing_user', EntityType::class, [
                     'label' => 'Utilisateur existant',
                     'class' => User::class,
-                    'choice_label' => static fn(User $user): string => \sprintf('%s %s (%s)', $user->getFirstname(), $user->getLastname(), $user->getEmail()),
+                    'choice_label' => static fn (User $user): string => \sprintf('%s %s (%s)', $user->getFirstname(), $user->getLastname(), $user->getEmail()),
                     'placeholder' => 'Sélectionner un utilisateur',
                     'required' => true,
                     'constraints' => [
@@ -80,7 +80,7 @@ class LicenseeUserLinkType extends AbstractType
                 $form->add('existing_user', EntityType::class, [
                     'label' => 'Utilisateur existant',
                     'class' => User::class,
-                    'choice_label' => static fn(User $user): string => \sprintf('%s %s (%s)', $user->getFirstname(), $user->getLastname(), $user->getEmail()),
+                    'choice_label' => static fn (User $user): string => \sprintf('%s %s (%s)', $user->getFirstname(), $user->getLastname(), $user->getEmail()),
                     'placeholder' => 'Sélectionner un utilisateur',
                     'required' => false,
                 ]);

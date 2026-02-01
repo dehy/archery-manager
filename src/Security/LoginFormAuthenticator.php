@@ -50,7 +50,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
             new UserBadge($email, function (string $userIdentifier): User {
                 $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $userIdentifier]);
 
-                if ($user === null) {
+                if (null === $user) {
                     throw new CustomUserMessageAuthenticationException('Email ou mot de passe incorrect.');
                 }
 

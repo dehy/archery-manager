@@ -777,8 +777,8 @@ class FftaScrapper
 
             // Try to find error messages
             $crawler = $this->managerSpaceBrowser->getCrawler();
-            $errorMessages = $crawler->filter('.alert-danger, .error, .invalid-feedback, .text-danger')->each(static fn ($node): string => trim((string) $node->text()));
-            $errorMsg = $errorMessages !== [] ? implode(' | ', $errorMessages) : 'Unknown error';
+            $errorMessages = $crawler->filter('.alert-danger, .error, .invalid-feedback, .text-danger')->each(static fn ($node): string => trim($node->text()));
+            $errorMsg = [] !== $errorMessages ? implode(' | ', $errorMessages) : 'Unknown error';
 
             throw new \RuntimeException(\sprintf('CRITICAL: Authentication FAILED. STOPPING execution to prevent account suspension. Error: %s', $errorMsg));
         }

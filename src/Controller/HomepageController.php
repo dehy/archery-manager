@@ -6,8 +6,8 @@ namespace App\Controller;
 
 use App\Entity\Event;
 use App\Entity\Result;
-use App\Helper\LicenseHelper;
 use App\Helper\LicenseeHelper;
+use App\Helper\LicenseHelper;
 use App\Helper\SeasonHelper;
 use App\Repository\EventRepository;
 use App\Repository\LicenseApplicationRepository;
@@ -35,14 +35,14 @@ class HomepageController extends AbstractController
 
         $licensee = $licenseeHelper->getLicenseeFromSession();
         $currentSeason = $seasonHelper->getSelectedSeason();
-        
+
         // Check if user has a valid license for current season
         $currentLicense = $licensee->getLicenseForSeason($currentSeason);
-        
-        if ($currentLicense === null) {
+
+        if (!$currentLicense instanceof \App\Entity\License) {
             // User has no valid license - show application-focused homepage
             $applications = $applicationRepository->findByLicenseeAndSeason($licensee, $currentSeason);
-            
+
             return $this->render('homepage/no_license.html.twig', [
                 'licensee' => $licensee,
                 'applications' => $applications,

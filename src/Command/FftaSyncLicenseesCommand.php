@@ -55,7 +55,7 @@ class FftaSyncLicenseesCommand extends Command
         $clubRepository = $this->entityManager->getRepository(Club::class);
         $club = $clubRepository->findOneBy(['fftaCode' => $fftaClubCode]);
 
-        if ($club === null) {
+        if (null === $club) {
             $io->error(\sprintf('Unknown club %s', $fftaClubCode));
 
             return Command::INVALID;

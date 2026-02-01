@@ -74,18 +74,17 @@ class LicenseeManagementController extends BaseController
         try {
             $scrapper = $fftaHelper->getScrapper($club);
             $fftaId = $scrapper->findLicenseeIdFromCode($fftaMemberCode);
-            if ($fftaId === null || $fftaId === 0) {
+            if (null === $fftaId || 0 === $fftaId) {
                 $this->addFlash('danger', 'Licencié non trouvé sur le site FFTA.');
 
                 return $this->redirectToRoute('app_licensee_new_choice');
             }
-            
+
             $currentSeason = $this->seasonHelper->getSelectedSeason();
             $fftaLicensee = $scrapper->fetchLicenseeProfile($fftaId, $currentSeason);
 
             if (!$fftaLicensee) {
                 $this->addFlash('danger', 'Impossible de récupérer les données du licencié.');
-
 
                 return $this->redirectToRoute('app_licensee_new_choice');
             }

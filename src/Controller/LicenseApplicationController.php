@@ -8,8 +8,8 @@ use App\DBAL\Types\LicenseApplicationStatusType;
 use App\Entity\LicenseApplication;
 use App\Form\LicenseApplicationRejectType;
 use App\Form\LicenseApplicationType;
-use App\Helper\LicenseHelper;
 use App\Helper\LicenseeHelper;
+use App\Helper\LicenseHelper;
 use App\Helper\SeasonHelper;
 use App\Repository\LicenseApplicationRepository;
 use App\Repository\LicenseRepository;
@@ -38,7 +38,7 @@ class LicenseApplicationController extends AbstractController
     public function new(Request $request): Response
     {
         $licensee = $this->licenseeHelper->getLicenseeFromSession();
-        if ($licensee === null) {
+        if (!$licensee instanceof \App\Entity\Licensee) {
             $this->addFlash('danger', 'Vous devez être un licencié pour faire une demande de licence.');
 
             return $this->redirectToRoute('app_homepage');
@@ -48,7 +48,7 @@ class LicenseApplicationController extends AbstractController
 
         // Check if already has a valid license for current season
         $currentLicense = $licensee->getLicenseForSeason($currentSeason);
-        if ($currentLicense !== null) {
+        if ($currentLicense instanceof \App\Entity\License) {
             $this->addFlash('info', 'Vous avez déjà une licence valide pour cette saison.');
 
             return $this->redirectToRoute('app_homepage');
@@ -61,7 +61,7 @@ class LicenseApplicationController extends AbstractController
             static fn (LicenseApplication $app): bool => $app->isPending(),
         );
 
-        if (\count($pendingApplications) > 0) {
+        if ([] !== $pendingApplications) {
             $this->addFlash('info', 'Vous avez déjà une demande de licence en attente.');
 
             return $this->redirectToRoute('app_license_application_status');
@@ -94,7 +94,7 @@ class LicenseApplicationController extends AbstractController
     public function status(): Response
     {
         $licensee = $this->licenseeHelper->getLicenseeFromSession();
-        if ($licensee === null) {
+        if (!$licensee instanceof \App\Entity\Licensee) {
             $this->addFlash('danger', 'Vous devez être un licencié pour consulter vos demandes.');
 
             return $this->redirectToRoute('app_homepage');
@@ -114,14 +114,14 @@ class LicenseApplicationController extends AbstractController
     public function manage(): Response
     {
         $licensee = $this->licenseeHelper->getLicenseeFromSession();
-        if ($licensee === null) {
+        if (!$licensee instanceof \App\Entity\Licensee) {
             throw $this->createAccessDeniedException('Vous devez être un licencié pour gérer les demandes.');
         }
 
         $currentSeason = $this->seasonHelper->getSelectedSeason();
         $license = $licensee->getLicenseForSeason($currentSeason);
 
-        if ($license === null) {
+        if (!$license instanceof \App\Entity\License) {
             throw $this->createAccessDeniedException('Vous devez avoir une licence pour gérer les demandes.');
         }
 
@@ -149,11 +149,12 @@ class LicenseApplicationController extends AbstractController
 
         $application->setStatus(LicenseApplicationStatusType::VALIDATED);
         $application->setProcessedBy($this->getUser());
+
         $this->entityManager->flush();
 
-        $this->addFlash('success', sprintf(
+        $this->addFlash('success', \sprintf(
             'La demande de %s a été validée.',
-            $application->getLicensee()->getFirstname() . ' ' . $application->getLicensee()->getLastname(),
+            $application->getLicensee()->getFirstname().' '.$application->getLicensee()->getLastname(),
         ));
 
         return $this->redirectToRoute('app_license_application_manage');
@@ -173,11 +174,12 @@ class LicenseApplicationController extends AbstractController
 
         $application->setStatus(LicenseApplicationStatusType::WAITING_LIST);
         $application->setProcessedBy($this->getUser());
+
         $this->entityManager->flush();
 
-        $this->addFlash('success', sprintf(
+        $this->addFlash('success', \sprintf(
             'La demande de %s a été mise sur liste d\'attente.',
-            $application->getLicensee()->getFirstname() . ' ' . $application->getLicensee()->getLastname(),
+            $application->getLicensee()->getFirstname().' '.$application->getLicensee()->getLastname(),
         ));
 
         return $this->redirectToRoute('app_license_application_manage');
@@ -205,9 +207,9 @@ class LicenseApplicationController extends AbstractController
             $application->setProcessedBy($this->getUser());
             $this->entityManager->flush();
 
-            $this->addFlash('success', sprintf(
+            $this->addFlash('success', \sprintf(
                 'La demande de %s a été refusée.',
-                $application->getLicensee()->getFirstname() . ' ' . $application->getLicensee()->getLastname(),
+                $application->getLicensee()->getFirstname().' '.$application->getLicensee()->getLastname(),
             ));
 
             return $this->redirectToRoute('app_license_application_manage');

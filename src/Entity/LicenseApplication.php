@@ -56,7 +56,6 @@ class LicenseApplication
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
-        $this->status = LicenseApplicationStatusType::PENDING;
     }
 
     public function getId(): ?int
@@ -163,21 +162,21 @@ class LicenseApplication
 
     public function isPending(): bool
     {
-        return $this->status === LicenseApplicationStatusType::PENDING;
+        return LicenseApplicationStatusType::PENDING === $this->status;
     }
 
     public function isValidated(): bool
     {
-        return $this->status === LicenseApplicationStatusType::VALIDATED;
+        return LicenseApplicationStatusType::VALIDATED === $this->status;
     }
 
     public function isOnWaitingList(): bool
     {
-        return $this->status === LicenseApplicationStatusType::WAITING_LIST;
+        return LicenseApplicationStatusType::WAITING_LIST === $this->status;
     }
 
     public function isRejected(): bool
     {
-        return $this->status === LicenseApplicationStatusType::REJECTED;
+        return LicenseApplicationStatusType::REJECTED === $this->status;
     }
 }

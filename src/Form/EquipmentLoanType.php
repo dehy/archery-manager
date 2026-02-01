@@ -34,7 +34,7 @@ class EquipmentLoanType extends AbstractType
             ->add('borrower', EntityType::class, [
                 'label' => 'Emprunteur',
                 'class' => Licensee::class,
-                'query_builder' => static fn(EntityRepository $er): \Doctrine\ORM\QueryBuilder => $er->createQueryBuilder('l')
+                'query_builder' => static fn (EntityRepository $er): \Doctrine\ORM\QueryBuilder => $er->createQueryBuilder('l')
                     ->leftJoin('l.licenses', 'li')
                     ->where('li.club = :club')
                     ->andWhere('li.season = :season')

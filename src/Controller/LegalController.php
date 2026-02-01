@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use League\CommonMark\CommonMarkConverter;
-use League\CommonMark\Environment\Environment;
-use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
-use League\CommonMark\Extension\Table\TableExtension;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,8 +13,8 @@ class LegalController extends AbstractController
 {
     private function renderMarkdownFile(string $filePath, string $title): Response
     {
-        $markdownPath = $this->getParameter('kernel.project_dir') . '/' . $filePath;
-        
+        $markdownPath = $this->getParameter('kernel.project_dir').'/'.$filePath;
+
         if (!file_exists($markdownPath)) {
             throw $this->createNotFoundException('Le document demandé n\'existe pas.');
         }
@@ -29,11 +26,7 @@ class LegalController extends AbstractController
             'allow_unsafe_links' => false,
         ];
 
-        $environment = new Environment($config);
-        $environment->addExtension(new CommonMarkCoreExtension());
-        $environment->addExtension(new TableExtension());
-
-        $converter = new CommonMarkConverter($config, $environment);
+        $converter = new CommonMarkConverter($config);
         $html = $converter->convert($markdown);
 
         return $this->render('legal/document.html.twig', [

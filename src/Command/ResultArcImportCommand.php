@@ -50,7 +50,7 @@ class ResultArcImportCommand extends Command
         $contestEventRepository = $this->entityManager->getRepository(ContestEvent::class);
         $contestEvent = $contestEventRepository->find($eventId);
 
-        if ($contestEvent === null) {
+        if (null === $contestEvent) {
             $io->error(\sprintf('Event #%s not found', $eventId));
 
             return Command::INVALID;
@@ -90,7 +90,7 @@ class ResultArcImportCommand extends Command
                 'licensee' => $licensee->getId(),
                 'event' => $contestEvent->getId(),
             ]);
-            if ($existingResult !== null) {
+            if (null !== $existingResult) {
                 $result = $existingResult;
             } else {
                 $result = (new Result())

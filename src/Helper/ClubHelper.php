@@ -24,7 +24,7 @@ class ClubHelper
 
     public function getClubForUser(?User $user): ?Club
     {
-        if (!$user instanceof \App\Entity\User) {
+        if (!$user instanceof User) {
             return null;
         }
 
