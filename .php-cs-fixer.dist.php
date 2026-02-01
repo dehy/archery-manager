@@ -15,7 +15,7 @@ return (new PhpCsFixer\Config())
     ->setRules([
         '@Symfony' => true,
         '@Symfony:risky' => true,
-        '@PHP83Migration' => true,
+        '@PHP84Migration' => true,
     ])
     ->setFinder($finder)
     ;

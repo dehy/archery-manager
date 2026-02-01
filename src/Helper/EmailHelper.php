@@ -49,7 +49,7 @@ readonly class EmailHelper
         $added = $this->licenseeRepository->findBy(['fftaId' => $syncResults[SyncReturnValues::CREATED->value]]);
         $updated = $this->licenseeRepository->findBy(['fftaId' => $syncResults[SyncReturnValues::UPDATED->value]]);
 
-        $to = array_map(fn (User $user): Address => new Address($user->getEmail(), $user->getFullname()), $toEmails);
+        $to = array_map(static fn (User $user): Address => new Address($user->getEmail(), $user->getFullname()), $toEmails);
         $email = new TemplatedEmail()
             ->to(...$to)
             ->subject('Synchronisation FFTA')
