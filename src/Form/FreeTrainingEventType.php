@@ -101,7 +101,7 @@ class FreeTrainingEventType extends AbstractType
                 'expanded' => true,
                 'required' => false,
                 'label' => 'Groupes assignés',
-                'query_builder' => fn () => $this->groupRepository->createQueryBuilder('g')
+                'query_builder' => fn (): \Doctrine\ORM\QueryBuilder => $this->groupRepository->createQueryBuilder('g')
                     ->where('g.club = :club')
                     ->setParameter('club', $this->clubHelper->activeClub())
                     ->orderBy('g.name', 'ASC'),

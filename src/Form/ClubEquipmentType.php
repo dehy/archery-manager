@@ -21,13 +21,14 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ClubEquipmentType extends AbstractType
 {
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
             ->add('type', ChoiceType::class, [
                 'label' => 'Type d\'équipement',
                 'choices' => ClubEquipmentTypeEnum::getChoices(),
-                'choice_label' => fn ($choice) => ClubEquipmentTypeEnum::getReadableValue($choice),
+                'choice_label' => static fn ($choice) => ClubEquipmentTypeEnum::getReadableValue($choice),
                 'placeholder' => 'Sélectionnez un type',
                 'attr' => [
                     'data-equipment-type-target' => 'equipmentType',
@@ -65,7 +66,7 @@ class ClubEquipmentType extends AbstractType
             $form = $event->getForm();
 
             // Add bow-specific fields if equipment is a bow
-            if ($equipment instanceof ClubEquipment && $equipment->getType() === ClubEquipmentTypeEnum::BOW) {
+            if ($equipment instanceof ClubEquipment && ClubEquipmentTypeEnum::BOW === $equipment->getType()) {
                 $this->addBowFields($form);
             }
         });
@@ -75,24 +76,24 @@ class ClubEquipmentType extends AbstractType
             $form = $event->getForm();
 
             // Add bow-specific fields if type is bow
-            if (isset($data['type']) && $data['type'] === ClubEquipmentTypeEnum::BOW) {
+            if (isset($data['type']) && ClubEquipmentTypeEnum::BOW === $data['type']) {
                 $this->addBowFields($form);
             }
 
             // Add arrow-specific fields if type is arrows
-            if (isset($data['type']) && $data['type'] === ClubEquipmentTypeEnum::ARROWS) {
+            if (isset($data['type']) && ClubEquipmentTypeEnum::ARROWS === $data['type']) {
                 $this->addArrowFields($form);
             }
         });
     }
 
-    private function addBowFields($form): void
+    private function addBowFields(\Symfony\Component\Form\FormInterface $form): void
     {
         $form
             ->add('bowType', ChoiceType::class, [
-                'label' => 'Type d\'arc',
+                'label' => "Type d'arc",
                 'choices' => BowType::getChoices(),
-                'choice_label' => fn ($choice) => BowType::getReadableValue($choice),
+                'choice_label' => static fn ($choice) => BowType::getReadableValue($choice),
                 'placeholder' => 'Sélectionnez un type',
                 'required' => false,
             ])
@@ -117,13 +118,13 @@ class ClubEquipmentType extends AbstractType
         ;
     }
 
-    private function addArrowFields($form): void
+    private function addArrowFields(\Symfony\Component\Form\FormInterface $form): void
     {
         $form
             ->add('arrowType', ChoiceType::class, [
                 'label' => 'Type de flèche',
                 'choices' => ArrowType::getChoices(),
-                'choice_label' => fn ($choice) => ArrowType::getReadableValue($choice),
+                'choice_label' => static fn ($choice) => ArrowType::getReadableValue($choice),
                 'placeholder' => 'Sélectionnez un type',
                 'required' => false,
             ])
@@ -138,15 +139,16 @@ class ClubEquipmentType extends AbstractType
                 'help' => 'Ex: 500, 600',
             ])
             ->add('fletchingType', ChoiceType::class, [
-                'label' => 'Type d\'empennage',
+                'label' => "Type d'empennage",
                 'choices' => FletchingType::getChoices(),
-                'choice_label' => fn ($choice) => FletchingType::getReadableValue($choice),
+                'choice_label' => static fn ($choice) => FletchingType::getReadableValue($choice),
                 'placeholder' => 'Sélectionnez un type',
                 'required' => false,
             ])
         ;
     }
 
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([

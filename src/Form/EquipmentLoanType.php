@@ -24,6 +24,7 @@ class EquipmentLoanType extends AbstractType
     ) {
     }
 
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $club = $this->clubHelper->activeClub();
@@ -33,17 +34,15 @@ class EquipmentLoanType extends AbstractType
             ->add('borrower', EntityType::class, [
                 'label' => 'Emprunteur',
                 'class' => Licensee::class,
-                'query_builder' => function (EntityRepository $er) use ($club, $season) {
-                    return $er->createQueryBuilder('l')
-                        ->leftJoin('l.licenses', 'li')
-                        ->where('li.club = :club')
-                        ->andWhere('li.season = :season')
-                        ->setParameter('club', $club)
-                        ->setParameter('season', $season)
-                        ->orderBy('l.firstname', 'ASC')
-                        ->addOrderBy('l.lastname', 'ASC');
-                },
-                'choice_label' => fn (Licensee $licensee) => $licensee->getFirstname().' '.$licensee->getLastname(),
+                'query_builder' => static fn(EntityRepository $er): \Doctrine\ORM\QueryBuilder => $er->createQueryBuilder('l')
+                    ->leftJoin('l.licenses', 'li')
+                    ->where('li.club = :club')
+                    ->andWhere('li.season = :season')
+                    ->setParameter('club', $club)
+                    ->setParameter('season', $season)
+                    ->orderBy('l.firstname', 'ASC')
+                    ->addOrderBy('l.lastname', 'ASC'),
+                'choice_label' => static fn (Licensee $licensee): string => $licensee->getFirstname().' '.$licensee->getLastname(),
                 'placeholder' => 'Sélectionnez un licencié',
             ])
             ->add('startDate', DateType::class, [
@@ -62,6 +61,7 @@ class EquipmentLoanType extends AbstractType
         ;
     }
 
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
