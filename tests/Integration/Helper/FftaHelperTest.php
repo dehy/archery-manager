@@ -92,7 +92,7 @@ final class FftaHelperTest extends KernelTestCase
             ->setName('Test Club')
             ->setCity('Test City')
             ->setPrimaryColor('#FF0000')
-            ->setFftaCode('1033093')
+            ->setFftaCode('9999999')
             ->setFftaUsername('invalid@ffta.fr')
             ->setFftaPassword('invalid')
             ->setContactEmail('reply@club.invalid');

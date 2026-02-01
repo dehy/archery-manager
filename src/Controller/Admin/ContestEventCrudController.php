@@ -42,7 +42,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ContestEventCrudController extends AbstractCrudController
 {
-    public function __construct(protected AdminUrlGenerator $urlGenerator, private readonly AdminContext $context, private readonly ResultArcParser $resultArcParser)
+    public function __construct(protected AdminUrlGenerator $urlGenerator, private readonly ResultArcParser $resultArcParser)
     {
     }
 
@@ -133,9 +133,10 @@ class ContestEventCrudController extends AbstractCrudController
     public function importResults(
         Request $request,
         EntityManagerInterface $entityManager,
+        AdminContext $context,
     ): Response {
         /** @var ContestEvent $event */
-        $event = $this->context->getEntity()->getInstance();
+        $event = $context->getEntity()->getInstance();
 
         $form = $this->createFormBuilder()
             ->add('event', TextType::class, [

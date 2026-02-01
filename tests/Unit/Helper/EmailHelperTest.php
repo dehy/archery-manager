@@ -48,7 +48,7 @@ final class EmailHelperTest extends TestCase
         $this->mailer
             ->expects($this->once())
             ->method('send')
-            ->with($this->callback(static function (TemplatedEmail $email) use ($licensee, $club): bool {
+            ->with($this->callback(function (TemplatedEmail $email) use ($licensee, $club): bool {
                 $toAddresses = $email->getTo();
                 $replyToAddresses = $email->getReplyTo();
                 $context = $email->getContext();
@@ -118,7 +118,7 @@ final class EmailHelperTest extends TestCase
         $this->mailer
             ->expects($this->once())
             ->method('send')
-            ->with($this->callback(static function (TemplatedEmail $email) use ($addedLicensee1, $addedLicensee2, $updatedLicensee): bool {
+            ->with($this->callback(function (TemplatedEmail $email) use ($addedLicensee1, $addedLicensee2, $updatedLicensee): bool {
                 $toAddresses = $email->getTo();
                 $context = $email->getContext();
                 $this->assertCount(2, $toAddresses);
@@ -175,7 +175,7 @@ final class EmailHelperTest extends TestCase
         $this->mailer
             ->expects($this->once())
             ->method('send')
-            ->with($this->callback(static function (TemplatedEmail $email): bool {
+            ->with($this->callback(function (TemplatedEmail $email): bool {
                 $context = $email->getContext();
                 $this->assertSame(0, $context['count']);
                 $this->assertSame($context['added'], []);
@@ -209,7 +209,7 @@ final class EmailHelperTest extends TestCase
         $this->mailer
             ->expects($this->once())
             ->method('send')
-            ->with($this->callback(static function (TemplatedEmail $email): bool {
+            ->with($this->callback(function (TemplatedEmail $email): bool {
                 $toAddresses = $email->getTo();
                 $this->assertCount(1, $toAddresses);
                 $this->assertSame('single@example.com', $toAddresses[0]->getAddress());
