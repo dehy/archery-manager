@@ -23,12 +23,10 @@ class EventParticipation
     #[ORM\JoinColumn(nullable: false)]
     private Event $event;
 
-    #[
-        ORM\ManyToOne(
-            targetEntity: Licensee::class,
-            inversedBy: 'eventParticipations',
-        ),
-    ]
+    #[ORM\ManyToOne(
+        targetEntity: Licensee::class,
+        inversedBy: 'eventParticipations',
+    ),]
     #[ORM\JoinColumn(nullable: false)]
     private Licensee $participant;
 

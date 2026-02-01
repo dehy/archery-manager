@@ -10,15 +10,14 @@ use App\Entity\EventParticipation;
 use App\Helper\LicenseHelper;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20230109101825 extends AbstractMigration implements ContainerAwareInterface
+final class Version20230109101825 extends AbstractMigration
 {
-    private ?ContainerInterface $container = null;
+    private ?EntityManagerInterface $entityManager = null;
 
     public function getDescription(): string
     {
@@ -42,15 +41,18 @@ final class Version20230109101825 extends AbstractMigration implements Container
         $this->addSql('ALTER TABLE event_participation DROP activity, DROP target_type');
     }
 
-    public function setContainer(?ContainerInterface $container)
+    public function setEntityManager(EntityManagerInterface $entityManager): void
     {
-        $this->container = $container;
+        $this->entityManager = $entityManager;
     }
 
     public function postUp(Schema $schema): void
     {
-        $entityManager = $this->container->get('doctrine.orm.default_entity_manager');
-        $eventParticipationRepository = $entityManager->getRepository(EventParticipation::class);
+        if (null === $this->entityManager) {
+            return;
+        }
+
+        $eventParticipationRepository = $this->entityManager->getRepository(EventParticipation::class);
 
         /** @var EventParticipation[] $participations */
         $participations = $eventParticipationRepository->findAll();
@@ -64,6 +66,6 @@ final class Version20230109101825 extends AbstractMigration implements Container
             $participation->setTargetType($targetType);
         }
 
-        $entityManager->flush();
+        $this->entityManager->flush();
     }
 }

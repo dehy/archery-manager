@@ -17,12 +17,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-#[
-    UniqueEntity(
-        fields: ['email'],
-        message: 'There is already an account with this email',
-    ),
-]
+#[UniqueEntity(
+    fields: ['email'],
+    message: 'There is already an account with this email',
+),]
 #[Auditable]
 class User implements UserInterface, PasswordAuthenticatedUserInterface, \Stringable
 {
@@ -38,8 +36,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::JSON)]
     private array $roles = [];
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING)]
-    private string $password;
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, nullable: true)]
+    private ?string $password = null;
 
     #[ORM\Column(type: 'GenderType')]
     private string $gender;
@@ -56,14 +54,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     /**
      * @var Collection<int, Licensee>
      */
-    #[
-        ORM\OneToMany(
-            mappedBy: 'user',
-            targetEntity: Licensee::class,
-            cascade: ['remove'],
-            fetch: 'EAGER',
-        ),
-    ]
+    #[ORM\OneToMany(
+        mappedBy: 'user',
+        targetEntity: Licensee::class,
+        cascade: ['remove'],
+        fetch: 'EAGER',
+    ),]
     private Collection $licensees;
 
     #[ORM\Column]
@@ -157,12 +153,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
      * @see PasswordAuthenticatedUserInterface
      */
     #[\Override]
-    public function getPassword(): string
+    public function getPassword(): ?string
     {
         return $this->password;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(?string $password): self
     {
         $this->password = $password;
 

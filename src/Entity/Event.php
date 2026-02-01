@@ -54,13 +54,11 @@ class Event implements \Stringable
     /**
      * @var Collection<int, EventParticipation>
      */
-    #[
-        ORM\OneToMany(
-            mappedBy: 'event',
-            targetEntity: EventParticipation::class,
-            orphanRemoval: true,
-        ),
-    ]
+    #[ORM\OneToMany(
+        mappedBy: 'event',
+        targetEntity: EventParticipation::class,
+        orphanRemoval: true,
+    ),]
     protected Collection $participations;
 
     /**
@@ -218,7 +216,7 @@ class Event implements \Stringable
     {
         if (null !== $type && '' !== $type && '0' !== $type) {
             return $this->attachments
-                ->filter(fn (EventAttachment $attachment): bool => $attachment->getType() === $type);
+                ->filter(static fn (EventAttachment $attachment): bool => $attachment->getType() === $type);
         }
 
         return $this->attachments;

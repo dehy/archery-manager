@@ -56,61 +56,51 @@ class Licensee implements \Stringable
     /**
      * @var Collection<int, License>
      */
-    #[
-        ORM\OneToMany(
-            mappedBy: 'licensee',
-            targetEntity: License::class,
-            orphanRemoval: true,
-        ),
-    ]
+    #[ORM\OneToMany(
+        mappedBy: 'licensee',
+        targetEntity: License::class,
+        orphanRemoval: true,
+    ),]
     private Collection $licenses;
 
     /**
      * @var Collection<int, Bow>
      */
-    #[
-        ORM\OneToMany(
-            mappedBy: 'owner',
-            targetEntity: Bow::class,
-            orphanRemoval: true,
-        ),
-    ]
+    #[ORM\OneToMany(
+        mappedBy: 'owner',
+        targetEntity: Bow::class,
+        orphanRemoval: true,
+    ),]
     private Collection $bows;
 
     /**
      * @var Collection<int, Arrow>
      */
-    #[
-        ORM\OneToMany(
-            mappedBy: 'owner',
-            targetEntity: Arrow::class,
-            orphanRemoval: true,
-        ),
-    ]
+    #[ORM\OneToMany(
+        mappedBy: 'owner',
+        targetEntity: Arrow::class,
+        orphanRemoval: true,
+    ),]
     private Collection $arrows;
 
     /**
      * @var Collection<int, EventParticipation>
      */
-    #[
-        ORM\OneToMany(
-            mappedBy: 'participant',
-            targetEntity: EventParticipation::class,
-            orphanRemoval: true,
-        ),
-    ]
+    #[ORM\OneToMany(
+        mappedBy: 'participant',
+        targetEntity: EventParticipation::class,
+        orphanRemoval: true,
+    ),]
     private Collection $eventParticipations;
 
     /**
      * @var Collection<int, Result>
      */
-    #[
-        ORM\OneToMany(
-            mappedBy: 'licensee',
-            targetEntity: Result::class,
-            orphanRemoval: true,
-        ),
-    ]
+    #[ORM\OneToMany(
+        mappedBy: 'licensee',
+        targetEntity: Result::class,
+        orphanRemoval: true,
+    ),]
     private Collection $results;
 
     /**
@@ -122,13 +112,11 @@ class Licensee implements \Stringable
     /**
      * @var Collection<int, PracticeAdvice>
      */
-    #[
-        ORM\OneToMany(
-            mappedBy: 'licensee',
-            targetEntity: PracticeAdvice::class,
-            orphanRemoval: true,
-        ),
-    ]
+    #[ORM\OneToMany(
+        mappedBy: 'licensee',
+        targetEntity: PracticeAdvice::class,
+        orphanRemoval: true,
+    ),]
     private Collection $practiceAdvices;
 
     /**
@@ -297,7 +285,7 @@ class Licensee implements \Stringable
     public function getLicenseForSeason(int $year): ?License
     {
         $filteredLicenses = $this->licenses->filter(
-            fn (License $l): bool => $l->getSeason() === $year,
+            static fn (License $l): bool => $l->getSeason() === $year,
         );
 
         if ($filteredLicenses->count() > 1) {

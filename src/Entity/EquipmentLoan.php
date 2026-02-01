@@ -130,12 +130,12 @@ class EquipmentLoan
 
     public function isActive(): bool
     {
-        return null === $this->returnDate;
+        return !$this->returnDate instanceof \DateTimeImmutable;
     }
 
     public function getLoanDuration(): ?\DateInterval
     {
-        if (null === $this->returnDate) {
+        if (!$this->returnDate instanceof \DateTimeImmutable) {
             return $this->startDate->diff(new \DateTimeImmutable());
         }
 
@@ -146,6 +146,6 @@ class EquipmentLoan
     {
         $duration = $this->getLoanDuration();
 
-        return $duration ? (int) $duration->format('%a') : null;
+        return $duration instanceof \DateInterval ? (int) $duration->format('%a') : null;
     }
 }

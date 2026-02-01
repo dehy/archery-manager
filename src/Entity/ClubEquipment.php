@@ -305,10 +305,8 @@ class ClubEquipment
 
     public function removeLoan(EquipmentLoan $loan): self
     {
-        if ($this->loans->removeElement($loan)) {
-            if ($loan->getEquipment() === $this) {
-                $loan->setEquipment(null);
-            }
+        if ($this->loans->removeElement($loan) && $loan->getEquipment() === $this) {
+            $loan->setEquipment(null);
         }
 
         return $this;
@@ -327,6 +325,6 @@ class ClubEquipment
 
     public function isCurrentlyLoaned(): bool
     {
-        return null !== $this->getCurrentLoan();
+        return $this->getCurrentLoan() instanceof \App\Entity\EquipmentLoan;
     }
 }
