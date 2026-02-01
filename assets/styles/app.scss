@@ -43,3 +43,65 @@
 
 @import '_calendar.scss';
 @import '_event_participation.scss';
+
+// Legal documents styling
+.legal-document {
+    h1 {
+        font-size: 1.75rem;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        color: $primary;
+        border-bottom: 2px solid $primary;
+        padding-bottom: 0.5rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        color: $secondary;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    p {
+        margin-bottom: 1rem;
+        line-height: 1.6;
+        text-align: justify;
+    }
+
+    ul, ol {
+        margin-bottom: 1rem;
+        padding-left: 2rem;
+    }
+
+    strong {
+        font-weight: 600;
+    }
+
+    a {
+        color: $primary;
+        text-decoration: underline;
+
+        &:hover {
+            color: darken($primary, 15%);
+        }
+    }
+
+    hr {
+        margin: 2rem 0;
+    }
+}
+
+// Mobile adjustments for legal documents
+@media (max-width: 768px) {
+    .legal-document {
+        p {
+            text-align: left;
+        }
+    }
+}
