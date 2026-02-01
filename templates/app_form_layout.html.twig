@@ -1,3 +1,5 @@
+{% extends 'bootstrap_5_layout.html.twig' %}
+
 {# Override des blocks Bootstrap pour les labels #}
 {%- block form_label -%}
     {%- if label is not same as(false) -%}
@@ -41,6 +43,22 @@
         </div>
     {%- endif -%}
 {%- endblock form_row -%}
+
+{# Widget for radio buttons as Bootstrap button group #}
+{%- block choice_widget_expanded -%}
+    {%- if 'btn-group' in attr.class|default('') -%}
+        <div {{ block('widget_container_attributes') }}>
+            {%- for child in form %}
+                <input type="radio" class="btn-check" name="{{ full_name }}" id="{{ child.vars.id }}" value="{{ child.vars.value }}"{{ child.vars.checked ? ' checked' : '' }}{% if required %} required{% endif %}>
+                <label class="btn btn-outline-primary" for="{{ child.vars.id }}">
+                    {{- child.vars.label|trans({}, translation_domain) -}}
+                </label>
+            {%- endfor %}
+        </div>
+    {%- else -%}
+        {{- parent() -}}
+    {%- endif -%}
+{%- endblock choice_widget_expanded -%}
 
 {# Widget pour les participations aux événements #}
 {%- block _event_participation_participationState_widget -%}
