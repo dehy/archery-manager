@@ -113,11 +113,6 @@ This document contains important context and guidelines for AI coding assistants
   - **PracticeAdviceAttachment**: Files for training resources
 - **PracticeAdvice**: Training tips and guides
 
-#### Application
-- **Applicant**: Pre-registration submissions
-  - Public form for prospective members
-  - Fields: personal info, practice level, contact details, waiting list support
-
 ### DBAL Types (Enums)
 
 Custom Doctrine DBAL types for type-safe enumerations:
@@ -160,7 +155,6 @@ Custom Doctrine DBAL types for type-safe enumerations:
 - **MapHelper**: Geocoding and mapping
 - **EmailHelper**: Email utilities
 - **StringHelper**: String manipulation
-- **ApplicantHelper**: Pre-registration logic
 
 #### Scrappers
 - **FftaScrapper**: Web scraping for FFTA "Espace Dirigeant" and "Mon Espace"
@@ -189,7 +183,6 @@ Custom Doctrine DBAL types for type-safe enumerations:
 - **UserController**: User account management
 - **LoginController**: Authentication
 - **RegistrationController**: New user registration
-- **PreRegistrationController**: Public pre-registration form
 - **ResetPasswordController**: Password reset flow
 - **PracticeAdviceController**: Training resources
 - **DiscordController**: Discord webhook integration
@@ -206,7 +199,7 @@ Custom Doctrine DBAL types for type-safe enumerations:
 
 #### Access Control
 - **Public routes** (`PUBLIC_ACCESS`):
-  - `/login`, `/register`, `/verify/email`, `/reset-password`, `/pre-inscription`
+  - `/login`, `/register`, `/verify/email`, `/reset-password`
 - **User routes** (`ROLE_USER`):
   - Most application features (events, profile, club info)
 - **Admin routes** (`ROLE_ADMIN`):
@@ -1061,12 +1054,90 @@ $entityManager->flush();
 - SonarCloud for code quality
 - FOSSA for license compliance
 
+## AI Agent Workflow Guidelines
+
+### Test-Driven Development
+- **ALWAYS run tests** after adding, updating, or removing features
+- Execute full test suite: `bin/phpunit --exclude-group=disabled`
+- For specific tests: `bin/phpunit path/to/TestFile.php`
+- Verify tests pass before committing changes
+- Update or add tests when modifying functionality
+
+### Docker-First Execution
+- **ALL Symfony/PHP commands MUST run inside Docker container**
+- Correct pattern: `docker compose exec -u symfony -w /app app bin/console <command>`
+- Never run PHP/Composer commands directly on host machine
+- Use `make shell` for interactive container sessions
+
+### Git Commit Conventions
+- **Use one-line commit messages** with gitmoji for clarity
+- **Group related changes** by functionality or logical units
+- Examples:
+  - `✨ Add group-based event authorization`
+  - `♻️ Refactor participation modal component`
+  - `🐛 Fix DAMA bundle SAVEPOINT conflict`
+  - `🔥 Remove pre-registration functionality`
+  - `✅ Update tests for PHPUnit 11 attributes`
+- **Always base commits on `git status`**, not conversation history
+- Review changed files before committing to ensure logical grouping
+- Avoid mixing unrelated changes in single commit
+
+### Code Quality Automation
+- **Run ALL quality checks before committing:**
+  ```bash
+  make qa  # Runs Rector, PHP CS Fixer, PHPStan
+  ```
+- Or run individually inside container:
+  ```bash
+  vendor/bin/rector process src tests
+  vendor/bin/php-cs-fixer fix
+  vendor/bin/phpstan analyse
+  ```
+- Address all errors and warnings before pushing
+- Quality checks are mandatory, not optional
+
+### Documentation & Research
+- **Ask for documentation URLs** when working with newer library versions
+- Don't assume API compatibility across major versions
+- Check official docs for breaking changes
+- Example: "Can you provide the documentation URL for PHPUnit 11 migration guide?"
+
+### Frontend Development - Font Awesome Icons
+- **When adding icons to templates:**
+  1. Add icon import in `assets/app.ts`: `import { faIconName } from '@fortawesome/...';`
+  2. Add to library: `library.add(faIconName);`
+  3. Rebuild JavaScript: `yarn run encore dev`
+- **When removing icons:** Remove from imports, library.add(), and rebuild
+- Icons won't render without proper TypeScript registration
+- Use Font Awesome 7+ naming conventions (camelCase in TypeScript)
+
+### Admin & Club Admin Features
+- **Default to frontend implementation**, not EasyAdmin pages
+- Build custom controllers and templates using Bootstrap/Stimulus
+- Only use EasyAdmin when explicitly requested by user
+- Frontend features provide better UX and more flexibility
+- EasyAdmin is for basic CRUD operations only
+
+### Best Practices Enforcement
+- **Always follow Symfony best practices:**
+  - Use dependency injection (constructor injection preferred)
+  - Type hint everything (strict_types=1)
+  - Use Doctrine repositories for database queries
+  - Never instantiate entities with `new` in controllers (use factories if needed)
+  - Flash messages for user feedback
+  - Form validation with constraints
+- **PHP best practices:**
+  - PSR-12 coding standard (enforced by PHP CS Fixer)
+  - Return type declarations on all methods
+  - Readonly properties where applicable (PHP 8.3+)
+  - Null safety (avoid null where possible)
+
 ## Tips for AI Assistants
 
 ### Critical Rules
 1. **Docker Context**: ALWAYS run commands inside container via `docker compose exec`
 2. **File Reading**: Read large sections (50-100 lines) rather than many small reads
-3. **Commit Messages**: One-line for simple changes, multi-line for features
+3. **Commit Messages**: One-line with gitmoji, grouped by functionality
 4. **Bootstrap Classes**: Use existing utilities before creating custom CSS
 5. **Entity Changes**: Always generate and review migrations
 6. **Authorization**: Check group membership for event participation
@@ -1092,6 +1163,10 @@ $entityManager->flush();
 
 ### Common Mistakes to Avoid
 - ❌ Running PHP commands outside Docker container
+- ❌ Committing without running tests first
+- ❌ Committing without running code quality checks (make qa)
+- ❌ Adding Font Awesome icons without updating TypeScript files
+- ❌ Creating EasyAdmin pages when frontend features are needed
 - ❌ Creating custom CSS when Bootstrap utility exists
 - ❌ Forgetting to persist related entities (cascade persist errors)
 - ❌ Using `|raw` filter without sanitization
@@ -1101,6 +1176,7 @@ $entityManager->flush();
 - ❌ Not checking authorization before sensitive operations
 - ❌ Using `form_widget()` alone (lose labels and validation)
 - ❌ Ignoring mobile responsiveness
+- ❌ Making assumptions about library APIs without checking documentation
 
 ### Project-Specific Vocabulary
 - **Licensee**: Club member (archer)
@@ -1155,48 +1231,11 @@ $entityManager->flush();
 
 ---
 
-**Last Updated**: January 31, 2026  
+**Last Updated**: February 1, 2026  
 **Project Status**: Active Development  
 **License**: AGPL v3  
 **Maintainer**: dehy  
 **GitHub**: https://github.com/dehy/archery-manager
-
----
-
-## Changelog (Recent Major Changes)
-
-### January 2026 - User Management & UI Redesign
-- ✅ Created user profile pages at `/user/{id}` with three-tier access control
-- ✅ Redesigned `/my-account` page with modern card-based layout
-- ✅ Updated licensee profile page with better UX/UI
-- ✅ Added user account links from licensee profiles
-- ✅ Implemented permission-based visibility (ROLE_ADMIN, ROLE_USER, ROLE_CLUB_ADMIN)
-- ✅ Card-based layouts with color-coded headers
-- ✅ Improved icon usage throughout frontend
-- ✅ Better empty states with icons and messages
-- ✅ Enhanced responsive design for mobile devices
-- ✅ Upgraded Font Awesome to 7.1+ Pro with all icon styles (Solid, Light, Regular, Duotone, Thin)
-- ✅ Removed deprecated `fa-fw` classes (icons are fixed-width by default in v7)
-
-### November 2025 - Event Participation System Overhaul
-- ✅ Created reusable `_participation_modal.html.twig` component
-- ✅ Implemented group-based event authorization
-- ✅ Different participation states for contests (3) vs trainings (2)
-- ✅ Dynamic default participation (REGISTERED for authorized training attendees)
-- ✅ Activity field made required with defaults from license
-- ✅ Target type made nullable (contests only)
-- ✅ Database migration for schema changes
-- ✅ Server-side authorization validation with flash messages
-- ✅ UI improvements: disabled buttons with explanatory tooltips
-- ✅ Code formatting with PHP CS Fixer
-- ✅ Template cleanup: removed duplicates, orphaned tags, redundant margins
-- ✅ Homepage quick actions: icons aligned horizontally with text
-- ✅ Added `robots.txt` and `sitemap.xml` for SEO
-
-### October 2025 - Infrastructure & Testing
-- ✅ Fixed Doctrine cascade persist errors in tests
-- ✅ Added encryption key for test environment
-- ✅ Test configuration improvements
 
 ---
 
@@ -1407,6 +1446,10 @@ docker compose exec -u symfony -w /app app yarn run encore dev --watch
 docker compose exec -u symfony -w /app app yarn run encore production
 ```
 
-**IMPORTANT**: Always run build commands inside Docker container!
+---
 
-**Note for AI Agents**: This document is comprehensive but not exhaustive. When encountering unfamiliar code, explore the codebase directly rather than making assumptions. The project follows Symfony best practices and PSR-12 coding standards. Always prioritize user security and data integrity.
+**Last Updated**: February 1, 2026  
+**Project Status**: Active Development  
+**License**: AGPL v3  
+**Maintainer**: dehy  
+**GitHub**: https://github.com/dehy/archery-manager

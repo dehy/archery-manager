@@ -90,24 +90,27 @@ final class EmailHelperTest extends TestCase
         $addedLicensee1 = $this->createMock(Licensee::class);
         $addedLicensee2 = $this->createMock(Licensee::class);
         $updatedLicensee = $this->createMock(Licensee::class);
-        // Set up repository expectations
-        $matcher = $this->exactly(2);
+
+        $invocationCount = 0;
 
         // Set up repository expectations
         $this->licenseeRepository
-            ->expects($matcher)
-            ->method('findBy')->willReturnCallback(function (...$parameters) use ($matcher, $addedLicensee1, $addedLicensee2, $updatedLicensee) {
-                if (1 === $matcher->getInvocationCount()) {
+            ->expects($this->exactly(2))
+            ->method('findBy')->willReturnCallback(function (...$parameters) use (&$invocationCount, $addedLicensee1, $addedLicensee2, $updatedLicensee): array {
+                ++$invocationCount;
+                if (1 === $invocationCount) {
                     $this->assertSame(['fftaId' => [123, 456]], $parameters[0]);
 
                     return [$addedLicensee1, $addedLicensee2];
                 }
 
-                if (2 === $matcher->getInvocationCount()) {
+                if (2 === $invocationCount) {
                     $this->assertSame(['fftaId' => [789]], $parameters[0]);
 
                     return [$updatedLicensee];
                 }
+
+                return [];
             });
 
         // Set up mailer expectations
@@ -148,18 +151,19 @@ final class EmailHelperTest extends TestCase
             SyncReturnValues::UPDATED->value => [],
             SyncReturnValues::REMOVED->value => [],
         ];
-        // Repository should still be called but with empty arrays
-        $matcher = $this->exactly(2);
+
+        $invocationCount = 0;
 
         // Repository should still be called but with empty arrays
         $this->licenseeRepository
-            ->expects($matcher)
-            ->method('findBy')->willReturnCallback(function (...$parameters) use ($matcher): array {
-                if (1 === $matcher->getInvocationCount()) {
+            ->expects($this->exactly(2))
+            ->method('findBy')->willReturnCallback(function (...$parameters) use (&$invocationCount): array {
+                ++$invocationCount;
+                if (1 === $invocationCount) {
                     $this->assertSame(['fftaId' => []], $parameters[0]);
                 }
 
-                if (2 === $matcher->getInvocationCount()) {
+                if (2 === $invocationCount) {
                     $this->assertSame(['fftaId' => []], $parameters[0]);
                 }
 

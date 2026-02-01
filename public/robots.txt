@@ -6,7 +6,6 @@ User-agent: *
 # Allow public pages
 Allow: /login
 Allow: /register
-Allow: /pre-inscription
 Allow: /reset-password
 
 # Disallow authenticated areas

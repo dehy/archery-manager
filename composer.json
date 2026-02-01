@@ -145,7 +145,7 @@
         "hautelook/alice-bundle": "^2.11",
         "phpstan/phpstan": "^1.8",
         "phpstan/phpstan-phpunit": "^1.4",
-        "phpunit/phpunit": "^9.5",
+        "phpunit/phpunit": "^11.0",
         "rector/rector": "^1.2",
         "symfony/css-selector": "*",
         "symfony/debug-bundle": "*",

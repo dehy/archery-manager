@@ -10,6 +10,7 @@ use App\DBAL\Types\LicenseType;
 use App\Helper\LicenseeHelper;
 use App\Helper\LicenseHelper;
 use App\Helper\SeasonHelper;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class LicenseHelperTest extends TestCase
@@ -192,9 +193,7 @@ final class LicenseHelperTest extends TestCase
     // Future dates are rejected with validation, past dates should always find a category.
     // This is by design - every person should have an age category.
 
-    /**
-     * @dataProvider seasonDateProvider
-     */
+    #[DataProvider('seasonDateProvider')]
     public function testGetSeasonForDateVariousDates(string $dateString, int $expectedSeason): void
     {
         $date = new \DateTimeImmutable($dateString);

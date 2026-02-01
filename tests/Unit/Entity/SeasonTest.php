@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Entity;
 
 use App\Entity\Season;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class SeasonTest extends TestCase
@@ -61,9 +62,7 @@ final class SeasonTest extends TestCase
         $this->assertSame(2024, Season::seasonForDate($septemberDate));
     }
 
-    /**
-     * @dataProvider seasonDataProvider
-     */
+    #[DataProvider('seasonDataProvider')]
     public function testSeasonForVariousDates(string $dateString, int $expectedSeason): void
     {
         $date = new \DateTimeImmutable($dateString);

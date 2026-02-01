@@ -48,6 +48,7 @@ final class EventHelperTest extends TestCase
     {
         $licensee = $this->createMock(Licensee::class);
         $event = $this->createMock(Event::class);
+        $event->method('getStartsAt')->willReturn(new \DateTimeImmutable('2025-01-15'));
 
         $this->eventParticipationRepository
             ->expects($this->once())
@@ -70,6 +71,7 @@ final class EventHelperTest extends TestCase
     {
         $licensee = $this->createMock(Licensee::class);
         $event = $this->createMock(Event::class);
+        $event->method('getStartsAt')->willReturn(new \DateTimeImmutable('2025-01-15'));
 
         $this->eventParticipationRepository
             ->method('findOneBy')
@@ -89,6 +91,7 @@ final class EventHelperTest extends TestCase
     {
         $licensee = $this->createMock(Licensee::class);
         $event = $this->createMock(Event::class);
+        $event->method('getStartsAt')->willReturn(new \DateTimeImmutable('2025-01-15'));
 
         $this->eventParticipationRepository
             ->expects($this->once())

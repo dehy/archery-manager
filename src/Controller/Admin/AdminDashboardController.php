@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
-use App\Entity\Applicant;
 use App\Entity\Club;
 use App\Entity\ContestEvent;
 use App\Entity\EventParticipation;
@@ -126,26 +125,6 @@ class AdminDashboardController extends AbstractDashboardController
             'fa-solid fa-square-poll-vertical',
             Result::class,
         );
-
-        yield MenuItem::section('Pré-inscriptions');
-
-        yield MenuItem::linkToRoute(
-            'Stats Pré-inscriptions',
-            'fa-solid fa-chart-simple',
-            'app_admin_applicants_stats',
-        );
-
-        yield MenuItem::linkToCrud(
-            'Pré-inscripts',
-            'fa-solid fa-user-plus',
-            Applicant::class,
-        )->setController(ApplicantCrudController::class);
-
-        yield MenuItem::linkToCrud(
-            'Création des licenses',
-            'fa-solid fa-id-badge',
-            Applicant::class,
-        )->setController(RegistrationCrudController::class);
 
         yield MenuItem::section('Technique');
 

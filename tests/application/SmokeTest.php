@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\application;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+
 /**
  * @internal
  */
 final class SmokeTest extends LoggedInTestCase
 {
-    /**
-     * @dataProvider publicUrlsProvider
-     */
+    #[DataProvider('publicUrlsProvider')]
     public function testPublicUrls(string $url): void
     {
         $client = self::createClient();
@@ -19,18 +19,12 @@ final class SmokeTest extends LoggedInTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    public function publicUrlsProvider(): \Iterator
+    public static function publicUrlsProvider(): \Iterator
     {
         yield ['/login'];
-        yield ['/pre-inscription'];
-        yield ['/pre-inscription/merci'];
-        yield ['/pre-inscription-renouvellement'];
-        yield ['/pre-inscription-renouvellement/merci'];
     }
 
-    /**
-     * @dataProvider adminPrivateUrlsProvider
-     */
+    #[DataProvider('adminPrivateUrlsProvider')]
     public function testPrivateUrlsAsAdmin(string $url): void
     {
         $client = static::createLoggedInAsAdminClient();
@@ -38,16 +32,14 @@ final class SmokeTest extends LoggedInTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    public function adminPrivateUrlsProvider(): \Iterator
+    public static function adminPrivateUrlsProvider(): \Iterator
     {
         yield ['/', true];
         yield ['/my-account', true];
         yield ['/admin', true];
     }
 
-    /**
-     * @dataProvider userPrivateUrlsProvider
-     */
+    #[DataProvider('userPrivateUrlsProvider')]
     public function testPrivateUrlsAsUser(string $url, bool $authorized): void
     {
         $client = static::createLoggedInAsUserClient();
@@ -59,7 +51,7 @@ final class SmokeTest extends LoggedInTestCase
         }
     }
 
-    public function userPrivateUrlsProvider(): \Iterator
+    public static function userPrivateUrlsProvider(): \Iterator
     {
         yield ['/', true];
         yield ['/licensees', true];

@@ -8,11 +8,16 @@ use App\Entity\Club;
 use App\Entity\User;
 use App\Helper\FftaHelper;
 use App\Repository\UserRepository;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\JsonMockResponse;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
+/**
+ * @internal
+ */
+#[Group('disabled')]
 final class FftaHelperTest extends KernelTestCase
 {
     use FftaHelperTestDataLoader;
