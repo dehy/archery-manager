@@ -8,5 +8,5 @@
 Départ n°{{ event_participation.departure }}
 {% endif %}
 
-Profil du licencié : {{ url('app_licensee_profile', {fftaCode: licensee.fftaMemberCode}) }}
+Profil du licencié : {{ url('app_licensee_profile', {id: licensee.id}) }}
 Page de l'évènement : {{ url('app_event_show', {slug: event.slug}) }}

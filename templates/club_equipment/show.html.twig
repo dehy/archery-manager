@@ -178,7 +178,7 @@
                                 <tr>
                                     <th width="40%">Emprunteur :</th>
                                     <td>
-                                        <a href="{{ path('app_licensee_profile', {fftaCode: currentLoan.borrower.fftaMemberCode}) }}">
+                                        <a href="{{ path('app_licensee_profile', {id: currentLoan.borrower.id}) }}">
                                             {{ currentLoan.borrower.firstname }} {{ currentLoan.borrower.lastname }}
                                         </a>
                                     </td>
@@ -284,7 +284,7 @@
                                 {% for loan in loanHistory %}
                                     <tr>
                                         <td>
-                                            <a href="{{ path('app_licensee_profile', {fftaCode: loan.borrower.fftaMemberCode}) }}">
+                                            <a href="{{ path('app_licensee_profile', {id: loan.borrower.id}) }}">
                                                 {{ loan.borrower.firstname }} {{ loan.borrower.lastname }}
                                             </a>
                                         </td>

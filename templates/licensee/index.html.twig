@@ -12,11 +12,19 @@
                 - Sans groupe
             {% endif %}
         </h2>
-        {% if is_granted('ROLE_ADMIN') %}
-            <button class="btn btn-warning disabled">
-                <em class="fa-solid fa-arrows-rotate"></em> Sync
-            </button>
-        {% endif %}
+        <div>
+            {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_CLUB_ADMIN') %}
+                <a href="{{ path('app_licensee_new_choice') }}" class="btn btn-success me-2">
+                    <em class="fa-solid fa-user-plus me-2"></em>
+                    Nouveau licencié
+                </a>
+            {% endif %}
+            {% if is_granted('ROLE_ADMIN') %}
+                <button class="btn btn-warning disabled">
+                    <em class="fa-solid fa-arrows-rotate"></em> Sync
+                </button>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Filtres par groupe -->
@@ -71,9 +79,9 @@
     <div class="row">
         {% for licensee in licensees %}
             <div class="col-xxl-3 col-lg-4 col-md-6 col-12 mb-3">
-                {% if licensee.fftaMemberCode and (is_granted('ROLE_ADMIN') or is_granted('ROLE_COACH')) %}
+                {% if (is_granted('ROLE_ADMIN') or is_granted('ROLE_COACH')) %}
                     <a class="text-reset text-decoration-none"
-                       href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}"
+                       href="{{ path('app_licensee_profile', {'id': licensee.id}) }}"
                     >
                         {{ _self.card(licensee, year) }}
                     </a>

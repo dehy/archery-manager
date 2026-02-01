@@ -52,6 +52,7 @@
                 Mon Club
             </a>
         </li>
+        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_CLUB_ADMIN') %}
         <li class="nav-item">
             <a href="{{ path('app_club_equipment_index') }}" class="nav-link {{ _self.isActive('app_club_equipment_') }}">
                 <div class="icon">
@@ -60,12 +61,22 @@
                 Matériel
             </a>
         </li>
+        {% endif %}
         <li class="nav-item">
             <a href="{{ path('app_event_index') }}" class="nav-link {{ _self.isActive('app_event_') }}">
                 <div class="icon">
                     <em class="fa-solid fa-calendar"></em>
                 </div>
                 Calendrier
+            </a>
+        </li>
+        {% else %}
+        <li class="nav-item">
+            <a href="{{ path('app_license_application_status') }}" class="nav-link {{ _self.isActive('app_license_application') }}">
+                <div class="icon">
+                    <em class="fa-solid fa-id-badge"></em>
+                </div>
+                Demandes
             </a>
         </li>
         {% endif %}
@@ -116,6 +127,7 @@
                         Mon Club
                     </a>
                 </li>
+                {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_CLUB_ADMIN') %}
                 <li class="nav-item">
                     <a class="nav-link {{ _self.isActive('app_club_equipment_') }}"
                        href="{{ path('app_club_equipment_index') }}">
@@ -123,6 +135,7 @@
                         Matériel
                     </a>
                 </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link {{ _self.isActive('app_event_') }}" href="{{ path('app_event_index') }}">
                         <em class="fa-solid fa-calendar"></em>
@@ -131,9 +144,15 @@
                 </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link {{ _self.isActive('app_license_application') }}" href="{{ path('app_license_application') }}">
+                        <a class="nav-link {{ _self.isActive('app_license_application') }}" href="{{ path('app_license_application_new') }}">
                             <em class="fa-solid fa-id-badge"></em>
                             Demande de licence
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ _self.isActive('app_license_application') }}" href="{{ path('app_license_application_status') }}">
+                            <em class="fa-solid fa-list-check"></em>
+                            Mes demandes
                         </a>
                     </li>
                 {% endif %}
@@ -162,6 +181,16 @@
                                     Gestion des évènements
                                 </a>
                             </li>
+                        {% endif %}
+                        {% if (is_granted("ROLE_CLUB_ADMIN")) %}
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_license_application_manage') }}">
+                                    <em class="fa-solid fa-clipboard-check"></em>
+                                    Demandes de licence
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if (is_granted("ROLE_ADMIN") or is_granted("ROLE_CLUB_ADMIN")) %}
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
@@ -182,7 +211,7 @@
                             {% for licensee in app.user.licensees|filter(l => l.id is not same as(licenseeHelper.licenseeFromSession.id)) %}
                                 <li>
                                     <a class="dropdown-item"
-                                       href="{{ path(app.request.get('_route'), app.request.get('_route_params')|merge({'_switch_licensee': licensee.fftaMemberCode })) }}">
+                                       href="{{ path(app.request.get('_route'), app.request.get('_route_params')|merge({'_switch_licensee': licensee.id })) }}">
                                         <em class="fa-solid fa-arrows-rotate"></em>
                                         {{ licensee_display_name(licensee) }}
                                     </a>

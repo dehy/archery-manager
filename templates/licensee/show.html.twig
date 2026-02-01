@@ -24,6 +24,14 @@
             <em class="fa-solid fa-user me-2"></em>
             {{ licenseeHelper.licenseeFromSession.id is same as licensee.id ? licensee.fullname : licensee_display_name(licensee) }}
         </h1>
+        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_COACH') or is_granted('ROLE_CLUB_ADMIN') %}
+            <div>
+                <a href="{{ path('app_licensee_edit', {'id': licensee.id}) }}" class="btn btn-warning">
+                    <em class="fa-solid fa-pen-to-square me-2"></em>
+                    Modifier
+                </a>
+            </div>
+        {% endif %}
     </div>
 
     <div class="row">
@@ -196,7 +204,7 @@
                                 <em class="fa-solid fa-square-poll-vertical me-2"></em>
                                 Résultats
                             </a>
-                            <a href="{{ path('app_homepage', {'_switch_user': licensee.user.email, '_switch_licensee': licensee.fftaMemberCode}) }}"
+                            <a href="{{ path('app_homepage', {'_switch_user': licensee.user.email, '_switch_licensee': licensee.id}) }}"
                                class="btn btn-warning">
                                 <em class="fa-solid fa-user-secret me-2"></em>
                                 Usurper l'identité

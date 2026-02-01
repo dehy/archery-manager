@@ -116,7 +116,7 @@
                                         <td>
                                             {% set currentLoan = item.currentLoan %}
                                             {% if currentLoan %}
-                                                <a href="{{ path('app_licensee_profile', {fftaCode: currentLoan.borrower.fftaMemberCode}) }}">
+                                                <a href="{{ path('app_licensee_profile', {id: currentLoan.borrower.id}) }}">
                                                     {{ currentLoan.borrower.firstname }} {{ currentLoan.borrower.lastname }}
                                                 </a>
                                             {% else %}
@@ -186,7 +186,7 @@
                                             </a>
                                         </td>
                                         <td>
-                                            <a href="{{ path('app_licensee_profile', {fftaCode: loan.borrower.fftaMemberCode}) }}">
+                                            <a href="{{ path('app_licensee_profile', {id: loan.borrower.id}) }}">
                                                 {{ loan.borrower.firstname }} {{ loan.borrower.lastname }}
                                             </a>
                                         </td>

@@ -11,6 +11,15 @@
             </h1>
             <h2 class="text-primary">{{ user.fullname }}</h2>
         </div>
+        {% if is_granted('ROLE_ADMIN') %}
+            <div>
+                <a href="{{ path('app_user_edit', {'id': user.id}) }}" 
+                   class="btn btn-warning">
+                    <em class="fa-solid fa-pen-to-square me-2"></em>
+                    Modifier
+                </a>
+            </div>
+        {% endif %}
     </div>
 
     <div class="row">
@@ -139,7 +148,7 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <a href="{{ path('app_licensee_profile', {fftaCode: licensee.fftaMemberCode}) }}" 
+                                        <a href="{{ path('app_licensee_profile', {id: licensee.id}) }}" 
                                            class="btn btn-sm btn-outline-primary">
                                             <em class="fa-solid fa-eye me-1"></em>
                                             Voir le profil

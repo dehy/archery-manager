@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Étape 4 : Compte utilisateur{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_licensee_index') }}">Licenciés</a></li>
+                    <li class="breadcrumb-item active">Création</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <em class="fa-solid fa-user-circle me-2"></em>
+                        Étape 4/4 : Compte utilisateur
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Licencié :</strong> {{ licensee_data.firstname }} {{ licensee_data.lastname }}
+                    </div>
+
+                    {{ form_start(form) }}
+                        <div class="mb-4">
+                            {{ form_row(form.user_choice) }}
+                        </div>
+
+                        <div id="existing_user_field" style="display: none;">
+                            <div class="mb-3">
+                                {{ form_row(form.existing_user) }}
+                            </div>
+                        </div>
+
+                        <div id="new_user_field" style="display: none;">
+                            <div class="mb-3">
+                                {{ form_row(form.email) }}
+                                <small class="form-text text-muted">
+                                    Un email de création de mot de passe sera envoyé à cette adresse
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="progress mb-3" style="height: 30px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                                Étape 4/4
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('app_licensee_new_step3') }}" class="btn btn-secondary">
+                                <em class="fa-solid fa-arrow-left me-2"></em>
+                                Retour
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <em class="fa-solid fa-check me-2"></em>
+                                Créer le licencié
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const existingRadio = document.querySelector('input[value="existing"]');
+    const newRadio = document.querySelector('input[value="new"]');
+    const existingField = document.getElementById('existing_user_field');
+    const newField = document.getElementById('new_user_field');
+
+    function updateFields() {
+        if (existingRadio && existingRadio.checked) {
+            existingField.style.display = 'block';
+            newField.style.display = 'none';
+        } else if (newRadio && newRadio.checked) {
+            existingField.style.display = 'none';
+            newField.style.display = 'block';
+        }
+    }
+
+    if (existingRadio) existingRadio.addEventListener('change', updateFields);
+    if (newRadio) newRadio.addEventListener('change', updateFields);
+    updateFields();
+});
+</script>
+{% endblock %}
