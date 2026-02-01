@@ -54,12 +54,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     /**
      * @var Collection<int, Licensee>
      */
-    #[ORM\OneToMany(
-        mappedBy: 'user',
-        targetEntity: Licensee::class,
-        cascade: ['remove'],
-        fetch: 'EAGER',
-    ),]
+    #[ORM\OneToMany(targetEntity: Licensee::class, mappedBy: 'user', cascade: ['remove'], fetch: 'EAGER'),]
     private Collection $licensees;
 
     #[ORM\Column]

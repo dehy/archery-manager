@@ -79,7 +79,7 @@ class FftaHelper
      */
     public function syncLicensees(Club $club, int $season): array
     {
-        $syncResults = array_fill_keys(array_map(static fn ($enum) => $enum->value, SyncReturnValues::cases()), []);
+        $syncResults = array_fill_keys(array_map(static fn (SyncReturnValues $enum) => $enum->value, SyncReturnValues::cases()), []);
         $scrapper = $this->getScrapper($club);
         $fftaIds = $scrapper->fetchLicenseeIdList($season);
         $this->logger->notice(

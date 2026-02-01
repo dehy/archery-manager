@@ -28,7 +28,7 @@ class ClubEquipmentType extends AbstractType
             ->add('type', ChoiceType::class, [
                 'label' => 'Type d\'équipement',
                 'choices' => ClubEquipmentTypeEnum::getChoices(),
-                'choice_label' => static fn ($choice) => ClubEquipmentTypeEnum::getReadableValue($choice),
+                'choice_label' => ClubEquipmentTypeEnum::getReadableValue(...),
                 'placeholder' => 'Sélectionnez un type',
                 'attr' => [
                     'data-equipment-type-target' => 'equipmentType',
@@ -93,7 +93,7 @@ class ClubEquipmentType extends AbstractType
             ->add('bowType', ChoiceType::class, [
                 'label' => "Type d'arc",
                 'choices' => BowType::getChoices(),
-                'choice_label' => static fn ($choice) => BowType::getReadableValue($choice),
+                'choice_label' => BowType::getReadableValue(...),
                 'placeholder' => 'Sélectionnez un type',
                 'required' => false,
             ])
@@ -124,7 +124,7 @@ class ClubEquipmentType extends AbstractType
             ->add('arrowType', ChoiceType::class, [
                 'label' => 'Type de flèche',
                 'choices' => ArrowType::getChoices(),
-                'choice_label' => static fn ($choice) => ArrowType::getReadableValue($choice),
+                'choice_label' => ArrowType::getReadableValue(...),
                 'placeholder' => 'Sélectionnez un type',
                 'required' => false,
             ])
@@ -141,7 +141,7 @@ class ClubEquipmentType extends AbstractType
             ->add('fletchingType', ChoiceType::class, [
                 'label' => "Type d'empennage",
                 'choices' => FletchingType::getChoices(),
-                'choice_label' => static fn ($choice) => FletchingType::getReadableValue($choice),
+                'choice_label' => FletchingType::getReadableValue(...),
                 'placeholder' => 'Sélectionnez un type',
                 'required' => false,
             ])

@@ -25,7 +25,7 @@ final class FftaHelperTest extends KernelTestCase
     public function testSyncLicenseesSendsSummaryEmail(): void
     {
         $clubManagers = [
-            (new User())
+            new User()
                 ->setEmail('manager@club.fr')
                 ->setFirstname('Firstname')
                 ->setLastname('Lastname'),
@@ -88,7 +88,7 @@ final class FftaHelperTest extends KernelTestCase
         self::bootKernel();
 
         // Create and persist the club entity first with all required fields
-        $club = (new Club())
+        $club = new Club()
             ->setName('Test Club')
             ->setCity('Test City')
             ->setPrimaryColor('#FF0000')

@@ -9,31 +9,26 @@ use App\Entity\LicenseApplication;
 use App\Form\LicenseApplicationRejectType;
 use App\Form\LicenseApplicationType;
 use App\Helper\LicenseeHelper;
-use App\Helper\LicenseHelper;
 use App\Helper\SeasonHelper;
 use App\Repository\LicenseApplicationRepository;
-use App\Repository\LicenseRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/license-application')]
 class LicenseApplicationController extends AbstractController
 {
     public function __construct(
         private readonly LicenseeHelper $licenseeHelper,
-        private readonly LicenseHelper $licenseHelper,
         private readonly SeasonHelper $seasonHelper,
         private readonly EntityManagerInterface $entityManager,
         private readonly LicenseApplicationRepository $applicationRepository,
-        private readonly LicenseRepository $licenseRepository,
     ) {
     }
 
-    #[Route('/new', name: 'app_license_application_new', methods: ['GET', 'POST'])]
+    #[Route('/license-application/new', name: 'app_license_application_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
     public function new(Request $request): Response
     {
@@ -89,7 +84,7 @@ class LicenseApplicationController extends AbstractController
         ]);
     }
 
-    #[Route('/status', name: 'app_license_application_status', methods: ['GET'])]
+    #[Route('/license-application/status', name: 'app_license_application_status', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function status(): Response
     {
@@ -109,7 +104,7 @@ class LicenseApplicationController extends AbstractController
         ]);
     }
 
-    #[Route('/manage', name: 'app_license_application_manage', methods: ['GET'])]
+    #[Route('/license-application/manage', name: 'app_license_application_manage', methods: ['GET'])]
     #[IsGranted('ROLE_CLUB_ADMIN')]
     public function manage(): Response
     {
@@ -135,7 +130,7 @@ class LicenseApplicationController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/validate', name: 'app_license_application_validate', methods: ['POST'])]
+    #[Route('/license-application/{id}/validate', name: 'app_license_application_validate', methods: ['POST'])]
     #[IsGranted('ROLE_CLUB_ADMIN')]
     public function validate(LicenseApplication $application): Response
     {
@@ -160,7 +155,7 @@ class LicenseApplicationController extends AbstractController
         return $this->redirectToRoute('app_license_application_manage');
     }
 
-    #[Route('/{id}/waiting-list', name: 'app_license_application_waiting_list', methods: ['POST'])]
+    #[Route('/license-application/{id}/waiting-list', name: 'app_license_application_waiting_list', methods: ['POST'])]
     #[IsGranted('ROLE_CLUB_ADMIN')]
     public function waitingList(LicenseApplication $application): Response
     {
@@ -185,7 +180,7 @@ class LicenseApplicationController extends AbstractController
         return $this->redirectToRoute('app_license_application_manage');
     }
 
-    #[Route('/{id}/reject', name: 'app_license_application_reject', methods: ['GET', 'POST'])]
+    #[Route('/license-application/{id}/reject', name: 'app_license_application_reject', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_CLUB_ADMIN')]
     public function reject(Request $request, LicenseApplication $application): Response
     {

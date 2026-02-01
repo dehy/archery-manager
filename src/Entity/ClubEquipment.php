@@ -73,7 +73,7 @@ class ClubEquipment
     /**
      * @var Collection<int, EquipmentLoan>
      */
-    #[ORM\OneToMany(mappedBy: 'equipment', targetEntity: EquipmentLoan::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: EquipmentLoan::class, mappedBy: 'equipment', cascade: ['persist', 'remove'])]
     #[ORM\OrderBy(['startDate' => 'DESC'])]
     private Collection $loans;
 

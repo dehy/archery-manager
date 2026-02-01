@@ -53,19 +53,19 @@ class Club implements \Stringable
     /**
      * @var Collection<int, Event>
      */
-    #[ORM\OneToMany(mappedBy: 'club', targetEntity: Event::class)]
+    #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'club')]
     private Collection $events;
 
     /**
      * @var Collection<int, Group>
      */
-    #[ORM\OneToMany(mappedBy: 'club', targetEntity: Group::class)]
+    #[ORM\OneToMany(targetEntity: Group::class, mappedBy: 'club')]
     private Collection $groups;
 
     /**
      * @var Collection<int, License>
      */
-    #[ORM\OneToMany(mappedBy: 'club', targetEntity: License::class)]
+    #[ORM\OneToMany(targetEntity: License::class, mappedBy: 'club')]
     private Collection $licenses;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -243,6 +243,9 @@ class Club implements \Stringable
         return $this;
     }
 
+    /**
+     * @return Collection<int, Event>
+     */
     public function getEvents(): ?Collection
     {
         return $this->events;
@@ -255,6 +258,9 @@ class Club implements \Stringable
         return $this;
     }
 
+    /**
+     * @return Collection<int, Group>
+     */
     public function getGroups(): ?Collection
     {
         return $this->groups;
@@ -269,7 +275,7 @@ class Club implements \Stringable
 
     public function generateLogoName(): string
     {
-        return strtolower((new AsciiSlugger())->slug($this->getName()));
+        return strtolower(new AsciiSlugger()->slug($this->getName()));
     }
 
     public function getFftaUsername(): ?string

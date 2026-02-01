@@ -7,11 +7,9 @@ namespace App\Twig;
 use App\Entity\Event;
 use Knp\Bundle\TimeBundle\DateTimeFormatter;
 use Twig\Environment;
-use Twig\Extension\AbstractExtension;
 use Twig\Extra\Intl\IntlExtension;
-use Twig\TwigFilter;
 
-class EventDateExtension extends AbstractExtension
+class EventDateExtension
 {
     public function __construct(
         private readonly IntlExtension $intlExtension,
@@ -19,14 +17,7 @@ class EventDateExtension extends AbstractExtension
     ) {
     }
 
-    #[\Override]
-    public function getFilters(): array
-    {
-        return [
-            new TwigFilter('event_date', $this->eventDate(...), ['needs_environment' => true]),
-        ];
-    }
-
+    #[\Twig\Attribute\AsTwigFilter(name: 'event_date', needsEnvironment: true)]
     public function eventDate(
         Environment $environment,
         Event $event,

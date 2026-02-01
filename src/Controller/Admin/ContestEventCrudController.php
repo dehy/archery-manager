@@ -33,7 +33,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use League\Flysystem\FilesystemOperator;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -43,7 +42,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ContestEventCrudController extends AbstractCrudController
 {
-    public function __construct(protected AdminUrlGenerator $urlGenerator)
+    public function __construct(protected AdminUrlGenerator $urlGenerator, private readonly AdminContext $context, private readonly ResultArcParser $resultArcParser)
     {
     }
 
@@ -132,14 +131,11 @@ class ContestEventCrudController extends AbstractCrudController
      * @throws NonUniqueResultException
      */
     public function importResults(
-        AdminContext $context,
         Request $request,
-        ResultArcParser $resultArcParser,
         EntityManagerInterface $entityManager,
-        FilesystemOperator $eventsStorage,
     ): Response {
         /** @var ContestEvent $event */
-        $event = $context->getEntity()->getInstance();
+        $event = $this->context->getEntity()->getInstance();
 
         $form = $this->createFormBuilder()
             ->add('event', TextType::class, [
@@ -167,7 +163,7 @@ class ContestEventCrudController extends AbstractCrudController
             $entityManager->persist($eventAttachment);
             $entityManager->flush();
 
-            $resultLines = $resultArcParser->parseFile($file);
+            $resultLines = $this->resultArcParser->parseFile($file);
 
             /** @var LicenseeRepository $licenseeRepository */
             $licenseeRepository = $entityManager->getRepository(
@@ -199,7 +195,7 @@ class ContestEventCrudController extends AbstractCrudController
                 if ($existingResult) {
                     $result = $existingResult;
                 } else {
-                    $result = (new Result())
+                    $result = new Result()
                         ->setEvent($event)
                         ->setLicensee($licensee);
 

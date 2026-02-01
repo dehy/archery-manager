@@ -45,11 +45,7 @@ class Bow
     /**
      * @var Collection<int, SightAdjustment>
      */
-    #[ORM\OneToMany(
-        mappedBy: 'bow',
-        targetEntity: SightAdjustment::class,
-        orphanRemoval: true,
-    ),]
+    #[ORM\OneToMany(targetEntity: SightAdjustment::class, mappedBy: 'bow', orphanRemoval: true),]
     private Collection $sightAdjustments;
 
     public function __construct()

@@ -13,6 +13,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Bow|null findOneBy(array $criteria, array $orderBy = null)
  * @method Bow[]    findAll()
  * @method Bow[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends \Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository<\App\Entity\Bow>
  */
 class BowRepository extends ServiceEntityRepository
 {

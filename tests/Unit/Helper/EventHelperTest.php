@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 final class EventHelperTest extends TestCase
 {
-    private EventParticipationRepository $eventParticipationRepository;
+    private \PHPUnit\Framework\MockObject\MockObject $eventParticipationRepository;
 
     private EventHelper $eventHelper;
 

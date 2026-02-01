@@ -12,7 +12,7 @@ class LicenseeFactory
     public static function createFromFftaProfile(
         FftaProfile $profile,
     ): Licensee {
-        return (new Licensee())
+        return new Licensee()
             ->setGender($profile->getSexe())
             ->setLastname($profile->getNom())
             ->setFirstname($profile->getPrenom())

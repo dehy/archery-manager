@@ -34,34 +34,36 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 
 class LicenseeController extends BaseController
 {
+    public function __construct(\App\Helper\LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly FilesystemOperator $licenseesStorage)
+    {
+        parent::__construct($licenseeHelper, $seasonHelper);
+    }
+
     #[Route('/licensees', name: 'app_licensee_index')]
     public function index(
-        LicenseeRepository $licenseeRepository,
-        LicenseHelper $licenseHelper,
-        GroupRepository $groupRepository,
         Request $request,
     ): Response {
         $this->assertHasValidLicense();
 
         $season = $this->seasonHelper->getSelectedSeason();
-        $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
+        $club = $this->licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
 
         // Récupérer le filtre de groupe depuis la query string
         $groupId = $request->query->get('group');
         $selectedGroup = null;
 
         if ($groupId) {
-            $selectedGroup = $groupRepository->find($groupId);
+            $selectedGroup = $this->groupRepository->find($groupId);
         }
 
         $licensees = new ArrayCollection(
-            $licenseeRepository->findByLicenseYear($club, $season),
+            $this->licenseeRepository->findByLicenseYear($club, $season),
         );
 
         // Compter le nombre total de licenciés avant filtrage
@@ -87,7 +89,7 @@ class LicenseeController extends BaseController
         );
 
         // Récupérer tous les groupes pour l'affichage des filtres
-        $allGroups = $groupRepository->findBy(['club' => $club], ['name' => 'ASC']);
+        $allGroups = $this->groupRepository->findBy(['club' => $club], ['name' => 'ASC']);
 
         return $this->render('licensee/index.html.twig', [
             'licensees' => $orderedLicensees,
@@ -102,18 +104,9 @@ class LicenseeController extends BaseController
 
     #[Route('/my-profile', name: 'app_licensee_my_profile', methods: ['GET'])]
     #[
-        Route(
-            '/licensee/{id}',
-            name: 'app_licensee_profile',
-            methods: ['GET'],
-            requirements: ['id' => '\d+'],
-        ),
+        Route('/licensee/{id}', name: 'app_licensee_profile', requirements: ['id' => '\d+'], methods: ['GET']),
     ]
     public function show(
-        LicenseeRepository $licenseeRepository,
-        ResultRepository $resultRepository,
-        EquipmentLoanRepository $loanRepository,
-        ChartBuilderInterface $chartBuilder,
         ?int $id = null,
     ): Response {
         $this->assertHasValidLicense();
@@ -121,7 +114,7 @@ class LicenseeController extends BaseController
         /** @var User $user */
         $user = $this->getUser();
 
-        $licensee = null !== $id ? $licenseeRepository->find($id) : $this->licenseeHelper->getLicenseeFromSession();
+        $licensee = null !== $id ? $this->licenseeRepository->find($id) : $this->licenseeHelper->getLicenseeFromSession();
 
         if (!$licensee instanceof Licensee) {
             throw $this->createNotFoundException();
@@ -161,7 +154,7 @@ class LicenseeController extends BaseController
         $resultsBySeason = [];
         $seasons = [];
         /** @var Result[] $licenseeResults */
-        $licenseeResults = $resultRepository->findForLicensee(
+        $licenseeResults = $this->resultRepository->findForLicensee(
             $licensee
         );
         foreach ($licenseeResults as $result) {
@@ -195,7 +188,7 @@ class LicenseeController extends BaseController
 
                 $scoreDiff = $bestScore - $lowestScore;
 
-                $resultsChart = $chartBuilder->createChart(Chart::TYPE_BAR);
+                $resultsChart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
                 $resultsChart->setData([
                     'labels' => array_map(static fn (Result $result): ?string => $result->getEvent()->getName(), $results),
                     'datasets' => [
@@ -288,7 +281,7 @@ class LicenseeController extends BaseController
         ksort($resultsCharts);
 
         // Fetch active equipment loans for this licensee
-        $activeLoans = $loanRepository->findActiveLoansByBorrower($licensee);
+        $activeLoans = $this->loanRepository->findActiveLoansByBorrower($licensee);
 
         $licenseeSyncForm = null;
         if ($this->isGranted('ROLE_ADMIN')) {
@@ -308,18 +301,15 @@ class LicenseeController extends BaseController
      * @throws NonUniqueResultException
      * @throws TransportExceptionInterface
      */
-    #[Route('/licensee/{id}/sync', name: 'app_licensee_sync', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/licensee/{id}/sync', name: 'app_licensee_sync', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function sync(
         int $id,
-        LicenseeRepository $licenseeRepository,
-        FftaHelper $fftaHelper,
-        ClubHelper $clubHelper,
         Request $request,
     ): RedirectResponse {
         $this->assertHasValidLicense();
         $this->isGranted(UserRoleType::ADMIN);
 
-        $licensee = $licenseeRepository->find($id);
+        $licensee = $this->licenseeRepository->find($id);
         if (!$licensee instanceof Licensee) {
             throw $this->createNotFoundException();
         }
@@ -329,8 +319,8 @@ class LicenseeController extends BaseController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $fftaHelper->syncLicenseeWithId(
-                    $clubHelper->activeClub(),
+                $this->fftaHelper->syncLicenseeWithId(
+                    $this->clubHelper->activeClub(),
                     $licensee->getFftaId(),
                     $this->seasonHelper->getSelectedSeason(),
                 );
@@ -364,19 +354,12 @@ class LicenseeController extends BaseController
     /**
      * @throws NonUniqueResultException|FilesystemException
      */
-    #[Route(
-        '/licensee/{id}/picture',
-        name: 'app_licensee_picture',
-        methods: ['GET'],
-        requirements: ['id' => '\d+'],
-    ),]
+    #[Route('/licensee/{id}/picture', name: 'app_licensee_picture', requirements: ['id' => '\d+'], methods: ['GET']),]
     public function profilePicture(
         int $id,
-        LicenseeRepository $licenseeRepository,
-        FilesystemOperator $licenseesStorage,
         Request $request,
     ): Response {
-        $licensee = $licenseeRepository->find($id);
+        $licensee = $this->licenseeRepository->find($id);
         if (!$licensee instanceof Licensee) {
             throw $this->createNotFoundException();
         }
@@ -390,7 +373,7 @@ class LicenseeController extends BaseController
 
         $imagePath = \sprintf('%s.jpg', $licensee->getFftaMemberCode());
 
-        if (!$licenseesStorage->fileExists($imagePath)) {
+        if (!$this->licenseesStorage->fileExists($imagePath)) {
             return new Response(
                 '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg width="100%" height="100%" viewBox="0 0 175 275"
@@ -417,9 +400,9 @@ class LicenseeController extends BaseController
             );
         }
 
-        $response = new StreamedResponse(static function () use ($licenseesStorage, $imagePath): void {
+        $response = new StreamedResponse(function () use ($imagePath): void {
             $outputStream = fopen('php://output', 'w');
-            $fileStream = $licenseesStorage->readStream($imagePath);
+            $fileStream = $this->licenseesStorage->readStream($imagePath);
 
             stream_copy_to_stream($fileStream, $outputStream);
         }, Response::HTTP_OK, [
@@ -433,8 +416,7 @@ class LicenseeController extends BaseController
     #[Route('/licensees/attachments/{attachment}', name: 'licensees_attachements_download')]
     public function downloadAttachement(
         Request $request,
-        LicenseeAttachment $attachment,
-        FilesystemOperator $licenseesStorage
+        LicenseeAttachment $attachment
     ): Response {
         $forceDownload = $request->query->get('forceDownload');
         $contentDisposition = \sprintf(
@@ -443,9 +425,9 @@ class LicenseeController extends BaseController
             $attachment->getFile()->getName()
         );
 
-        $response = new StreamedResponse(static function () use ($licenseesStorage, $attachment): void {
+        $response = new StreamedResponse(function () use ($attachment): void {
             $outputStream = fopen('php://output', 'w');
-            $fileStream = $licenseesStorage->readStream($attachment->getFile()->getName());
+            $fileStream = $this->licenseesStorage->readStream($attachment->getFile()->getName());
 
             stream_copy_to_stream($fileStream, $outputStream);
         }, Response::HTTP_OK, [

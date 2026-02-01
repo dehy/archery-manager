@@ -16,10 +16,9 @@ use App\Repository\EquipmentLoanRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/club-equipment')]
 #[IsGranted('ROLE_ADMIN')]
 class ClubEquipmentController extends BaseController
 {
@@ -27,23 +26,24 @@ class ClubEquipmentController extends BaseController
         LicenseeHelper $licenseeHelper,
         SeasonHelper $seasonHelper,
         protected readonly ClubHelper $clubHelper,
+        private readonly ClubEquipmentRepository $equipmentRepository,
+        private readonly EquipmentLoanRepository $loanRepository,
     ) {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
 
-    #[Route('', name: 'app_club_equipment_index')]
-    public function index(ClubEquipmentRepository $equipmentRepository): Response
+    #[Route('/club-equipment', name: 'app_club_equipment_index')]
+    public function index(): Response
     {
         $this->assertHasValidLicense();
-
         $club = $this->clubHelper->activeClub();
         if (!$club instanceof \App\Entity\Club) {
             throw $this->createNotFoundException('Aucun club actif trouvé');
         }
 
-        $equipment = $equipmentRepository->findByClub($club);
-        $availableEquipment = $equipmentRepository->findAvailableByClub($club);
-        $loanedEquipment = $equipmentRepository->findCurrentlyLoanedByClub($club);
+        $equipment = $this->equipmentRepository->findByClub($club);
+        $availableEquipment = $this->equipmentRepository->findAvailableByClub($club);
+        $loanedEquipment = $this->equipmentRepository->findCurrentlyLoanedByClub($club);
 
         return $this->render('club_equipment/index.html.twig', [
             'equipment' => $equipment,
@@ -53,7 +53,7 @@ class ClubEquipmentController extends BaseController
         ]);
     }
 
-    #[Route('/new', name: 'app_club_equipment_new')]
+    #[Route('/club-equipment/new', name: 'app_club_equipment_new')]
     #[IsGranted('ROLE_ADMIN')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
@@ -85,8 +85,8 @@ class ClubEquipmentController extends BaseController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_club_equipment_show', requirements: ['id' => '\d+'])]
-    public function show(ClubEquipment $equipment, EquipmentLoanRepository $loanRepository): Response
+    #[Route('/club-equipment/{id}', name: 'app_club_equipment_show', requirements: ['id' => '\d+'])]
+    public function show(ClubEquipment $equipment): Response
     {
         $this->assertHasValidLicense();
 
@@ -96,7 +96,7 @@ class ClubEquipmentController extends BaseController
             throw $this->createAccessDeniedException();
         }
 
-        $loanHistory = $loanRepository->findByEquipment($equipment);
+        $loanHistory = $this->loanRepository->findByEquipment($equipment);
 
         return $this->render('club_equipment/show.html.twig', [
             'equipment' => $equipment,
@@ -105,7 +105,7 @@ class ClubEquipmentController extends BaseController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_club_equipment_edit', requirements: ['id' => '\d+'])]
+    #[Route('/club-equipment/{id}/edit', name: 'app_club_equipment_edit', requirements: ['id' => '\d+'])]
     #[IsGranted('ROLE_ADMIN')]
     public function edit(ClubEquipment $equipment, Request $request, EntityManagerInterface $em): Response
     {
@@ -134,7 +134,7 @@ class ClubEquipmentController extends BaseController
         ]);
     }
 
-    #[Route('/{id}/delete', name: 'app_club_equipment_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/club-equipment/{id}/delete', name: 'app_club_equipment_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function delete(ClubEquipment $equipment, EntityManagerInterface $em): Response
     {
@@ -161,7 +161,7 @@ class ClubEquipmentController extends BaseController
         return $this->redirectToRoute('app_club_equipment_index');
     }
 
-    #[Route('/{id}/loan', name: 'app_club_equipment_loan', requirements: ['id' => '\d+'])]
+    #[Route('/club-equipment/{id}/loan', name: 'app_club_equipment_loan', requirements: ['id' => '\d+'])]
     #[IsGranted('ROLE_ADMIN')]
     public function loan(ClubEquipment $equipment, Request $request, EntityManagerInterface $em): Response
     {
@@ -205,7 +205,7 @@ class ClubEquipmentController extends BaseController
         ]);
     }
 
-    #[Route('/{id}/return', name: 'app_club_equipment_return', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/club-equipment/{id}/return', name: 'app_club_equipment_return', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function returnEquipment(ClubEquipment $equipment, EntityManagerInterface $em): Response
     {
@@ -234,17 +234,16 @@ class ClubEquipmentController extends BaseController
         return $this->redirectToRoute('app_club_equipment_show', ['id' => $equipment->getId()]);
     }
 
-    #[Route('/loans', name: 'app_club_equipment_loans')]
-    public function loans(EquipmentLoanRepository $loanRepository): Response
+    #[Route('/club-equipment/loans', name: 'app_club_equipment_loans')]
+    public function loans(): Response
     {
         $this->assertHasValidLicense();
-
         $club = $this->clubHelper->activeClub();
         if (!$club instanceof \App\Entity\Club) {
             throw $this->createNotFoundException('Aucun club actif trouvé');
         }
 
-        $activeLoans = $loanRepository->findActiveLoans();
+        $activeLoans = $this->loanRepository->findActiveLoans();
 
         return $this->render('club_equipment/loans.html.twig', [
             'activeLoans' => $activeLoans,

@@ -17,7 +17,7 @@ final class LicenseCrudControllerTest extends LoggedInTestCase
 {
     public function testWelcomeEmailIsSentAfterPersisting(): void
     {
-        $client = static::createLoggedInAsAdminClient();
+        $client = self::createLoggedInAsAdminClient();
 
         /** @var EntityManagerInterface $entityManager */
         $entityManager = $this->getContainer()->get(EntityManagerInterface::class);
@@ -29,7 +29,7 @@ final class LicenseCrudControllerTest extends LoggedInTestCase
             ->setEmail('john.doe@acme.org')
             ->setPassword('password');
 
-        $licensee = (new Licensee())
+        $licensee = new Licensee()
             ->setUser($user)
             ->setGender(GenderType::MALE)
             ->setFirstname($user->getFirstname())

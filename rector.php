@@ -18,6 +18,7 @@ return RectorConfig::configure()
     ])
     ->withPhpVersion(PhpVersion::PHP_84)
     ->withPhpSets(php84: true)
-    ->withPreparedSets(deadCode: true, codeQuality: true, codingStyle: true, typeDeclarations: true, privatization: true, naming: false, instanceOf: true, earlyReturn: true, strictBooleans: true, carbon: false, rectorPreset: true, phpunitCodeQuality: true, doctrineCodeQuality: true, symfonyCodeQuality: true, symfonyConfigs: true, twig: true, phpunit: true)
+    ->withPreparedSets(deadCode: true, codeQuality: true, codingStyle: true, typeDeclarations: true, privatization: true, naming: false, instanceOf: true, earlyReturn: true, carbon: false, rectorPreset: true, phpunitCodeQuality: true, doctrineCodeQuality: true, symfonyCodeQuality: true, symfonyConfigs: true)
+    ->withComposerBased(twig: true, doctrine: true, phpunit: true, symfony: true)
     ->withAttributesSets(symfony: true, doctrine: true, sensiolabs: true)
 ;

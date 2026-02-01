@@ -13,6 +13,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method SightAdjustment|null findOneBy(array $criteria, array $orderBy = null)
  * @method SightAdjustment[]    findAll()
  * @method SightAdjustment[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends \Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository<\App\Entity\SightAdjustment>
  */
 class SightAdjustmentRepository extends ServiceEntityRepository
 {

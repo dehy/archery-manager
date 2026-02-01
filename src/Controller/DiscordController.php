@@ -12,19 +12,22 @@ use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Wohali\OAuth2\Client\Provider\DiscordResourceOwner;
 
 class DiscordController extends AbstractController
 {
+    public function __construct(private readonly ClientRegistry $clientRegistry)
+    {
+    }
+
     /**
      * Link to this controller to start the "connect" process.
      */
     #[Route('/connect/discord', name: 'connect_discord_start')]
-    public function connect(ClientRegistry $clientRegistry, RequestStack $requestStack): RedirectResponse
+    public function connect(): RedirectResponse
     {
-        return $clientRegistry
+        return $this->clientRegistry
             ->getClient('discord') // key used in config/packages/knpu_oauth2_client.yaml
             ->redirect([
                 'identify', // the scopes you want to access
@@ -40,8 +43,6 @@ class DiscordController extends AbstractController
     public function connectCheck(
         Request $request,
         EntityManagerInterface $entityManager,
-        ClientRegistry $clientRegistry,
-        RequestStack $requestStack,
     ): RedirectResponse {
         if ($request->query->get('error')) {
             $description = $request->query->get('error_description');
@@ -52,7 +53,7 @@ class DiscordController extends AbstractController
         }
 
         /** @var DiscordClient $client */
-        $client = $clientRegistry->getClient('discord');
+        $client = $this->clientRegistry->getClient('discord');
 
         try {
             $accessToken = $client->getAccessToken();

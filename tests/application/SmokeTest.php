@@ -27,7 +27,7 @@ final class SmokeTest extends LoggedInTestCase
     #[DataProvider('adminPrivateUrlsProvider')]
     public function testPrivateUrlsAsAdmin(string $url): void
     {
-        $client = static::createLoggedInAsAdminClient();
+        $client = self::createLoggedInAsAdminClient();
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $url);
         $this->assertResponseIsSuccessful();
     }
@@ -42,7 +42,7 @@ final class SmokeTest extends LoggedInTestCase
     #[DataProvider('userPrivateUrlsProvider')]
     public function testPrivateUrlsAsUser(string $url, bool $authorized): void
     {
-        $client = static::createLoggedInAsUserClient();
+        $client = self::createLoggedInAsUserClient();
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $url);
         if ($authorized) {
             $this->assertResponseIsSuccessful();
@@ -63,7 +63,7 @@ final class SmokeTest extends LoggedInTestCase
 
     public function testEvent(): void
     {
-        $client = static::createLoggedInAsUserClient();
+        $client = self::createLoggedInAsUserClient();
         $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/events');
 
         $eventLink = $crawler->filter('li.event-list-event > a')->link();

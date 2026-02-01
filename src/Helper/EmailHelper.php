@@ -26,7 +26,7 @@ readonly class EmailHelper
      */
     public function sendWelcomeEmail(Licensee $licensee, Club $club): void
     {
-        $email = (new TemplatedEmail())
+        $email = new TemplatedEmail()
             ->to($licensee->getUser()->getEmail())
             ->replyTo($club->getContactEmail())
             ->subject(\sprintf('%s - Bienvenue', $club->getName()))
@@ -50,7 +50,7 @@ readonly class EmailHelper
         $updated = $this->licenseeRepository->findBy(['fftaId' => $syncResults[SyncReturnValues::UPDATED->value]]);
 
         $to = array_map(static fn (User $user): Address => new Address($user->getEmail(), $user->getFullname()), $toEmails);
-        $email = (new TemplatedEmail())
+        $email = new TemplatedEmail()
             ->to(...$to)
             ->subject('Synchronisation FFTA')
             ->text('test')

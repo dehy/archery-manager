@@ -93,7 +93,7 @@ class ResultArcImportCommand extends Command
             if (null !== $existingResult) {
                 $result = $existingResult;
             } else {
-                $result = (new Result())
+                $result = new Result()
                     ->setEvent($contestEvent)
                     ->setLicensee($licensee);
             }

@@ -200,7 +200,7 @@ class IcsFactory
                 $escapedValue = $this->escapeString($v);
             }
 
-            $props[strtoupper($realKey)] = $escapedValue;
+            $props[strtoupper((string) $realKey)] = $escapedValue;
         }
 
         // Set some default values

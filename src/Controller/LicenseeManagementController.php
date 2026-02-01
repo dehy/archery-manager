@@ -21,14 +21,18 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/licensees/manage')]
 #[IsGranted('ROLE_ADMIN')]
 class LicenseeManagementController extends BaseController
 {
-    #[Route('/new', name: 'app_licensee_new_choice', methods: ['GET', 'POST'])]
+    public function __construct(\App\Helper\LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly UserRepository $userRepository)
+    {
+        parent::__construct($licenseeHelper, $seasonHelper);
+    }
+
+    #[Route('/licensees/manage/new', name: 'app_licensee_new_choice', methods: ['GET', 'POST'])]
     public function newChoice(Request $request): Response
     {
         // Check if user is CLUB_ADMIN and restrict to their club
@@ -52,11 +56,9 @@ class LicenseeManagementController extends BaseController
         return $this->render('licensee_management/choice.html.twig');
     }
 
-    #[Route('/new/sync/{fftaMemberCode}', name: 'app_licensee_new_sync', methods: ['GET', 'POST'])]
+    #[Route('/licensees/manage/new/sync/{fftaMemberCode}', name: 'app_licensee_new_sync', methods: ['GET', 'POST'])]
     public function newFromFfta(
         string $fftaMemberCode,
-        FftaHelper $fftaHelper,
-        ClubHelper $clubHelper,
         EntityManagerInterface $entityManager,
         Request $request,
     ): Response {
@@ -64,7 +66,7 @@ class LicenseeManagementController extends BaseController
             throw $this->createAccessDeniedException();
         }
 
-        $club = $clubHelper->getClubForUser($this->getUser());
+        $club = $this->clubHelper->getClubForUser($this->getUser());
         if (!$club instanceof \App\Entity\Club) {
             $this->addFlash('danger', 'Impossible de déterminer votre club.');
 
@@ -72,7 +74,7 @@ class LicenseeManagementController extends BaseController
         }
 
         try {
-            $scrapper = $fftaHelper->getScrapper($club);
+            $scrapper = $this->fftaHelper->getScrapper($club);
             $fftaId = $scrapper->findLicenseeIdFromCode($fftaMemberCode);
             if (null === $fftaId || 0 === $fftaId) {
                 $this->addFlash('danger', 'Licencié non trouvé sur le site FFTA.');
@@ -104,7 +106,7 @@ class LicenseeManagementController extends BaseController
         }
     }
 
-    #[Route('/new/manual', name: 'app_licensee_new_manual', methods: ['GET'])]
+    #[Route('/licensees/manage/new/manual', name: 'app_licensee_new_manual', methods: ['GET'])]
     public function newManual(Request $request): Response
     {
         if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_CLUB_ADMIN')) {
@@ -120,7 +122,7 @@ class LicenseeManagementController extends BaseController
         return $this->redirectToRoute('app_licensee_new_step1');
     }
 
-    #[Route('/new/step1', name: 'app_licensee_new_step1', methods: ['GET', 'POST'])]
+    #[Route('/licensees/manage/new/step1', name: 'app_licensee_new_step1', methods: ['GET', 'POST'])]
     public function step1Licensee(
         Request $request,
         EntityManagerInterface $entityManager,
@@ -175,11 +177,9 @@ class LicenseeManagementController extends BaseController
         ]);
     }
 
-    #[Route('/new/step2', name: 'app_licensee_new_step2', methods: ['GET', 'POST'])]
+    #[Route('/licensees/manage/new/step2', name: 'app_licensee_new_step2', methods: ['GET', 'POST'])]
     public function step2License(
         Request $request,
-        ClubHelper $clubHelper,
-        LicenseHelper $licenseHelper,
     ): Response {
         if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_CLUB_ADMIN')) {
             throw $this->createAccessDeniedException();
@@ -192,7 +192,7 @@ class LicenseeManagementController extends BaseController
             return $this->redirectToRoute('app_licensee_new_step1');
         }
 
-        $club = $clubHelper->getClubForUser($this->getUser());
+        $club = $this->clubHelper->getClubForUser($this->getUser());
         $currentSeason = Season::seasonForDate(new \DateTimeImmutable());
 
         $license = new License();
@@ -207,8 +207,8 @@ class LicenseeManagementController extends BaseController
             try {
                 $birthdate = new \DateTimeImmutable($creationData['licensee']['birthdate']);
                 $birthdateDisplay = $birthdate->format('d/m/Y');
-                $suggestedAgeCategory = $licenseHelper->ageCategoryForBirthdate($birthdate);
-                $suggestedCategory = $licenseHelper->categoryTypeForAgeCategory($suggestedAgeCategory);
+                $suggestedAgeCategory = $this->licenseHelper->ageCategoryForBirthdate($birthdate);
+                $suggestedCategory = $this->licenseHelper->categoryTypeForAgeCategory($suggestedAgeCategory);
             } catch (\Exception) {
                 // Invalid birthdate, ignore suggestions
             }
@@ -260,11 +260,9 @@ class LicenseeManagementController extends BaseController
         ]);
     }
 
-    #[Route('/new/step3', name: 'app_licensee_new_step3', methods: ['GET', 'POST'])]
+    #[Route('/licensees/manage/new/step3', name: 'app_licensee_new_step3', methods: ['GET', 'POST'])]
     public function step3Groups(
         Request $request,
-        GroupRepository $groupRepository,
-        ClubHelper $clubHelper,
     ): Response {
         if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_CLUB_ADMIN')) {
             throw $this->createAccessDeniedException();
@@ -277,8 +275,8 @@ class LicenseeManagementController extends BaseController
             return $this->redirectToRoute('app_licensee_new_step2');
         }
 
-        $club = $clubHelper->getClubForUser($this->getUser());
-        $availableGroups = $groupRepository->findBy(['club' => $club]);
+        $club = $this->clubHelper->getClubForUser($this->getUser());
+        $availableGroups = $this->groupRepository->findBy(['club' => $club]);
 
         $form = $this->createForm(LicenseeGroupSelectionType::class, null, [
             'groups' => $availableGroups,
@@ -298,13 +296,10 @@ class LicenseeManagementController extends BaseController
         ]);
     }
 
-    #[Route('/new/step4', name: 'app_licensee_new_step4', methods: ['GET', 'POST'])]
+    #[Route('/licensees/manage/new/step4', name: 'app_licensee_new_step4', methods: ['GET', 'POST'])]
     public function step4User(
         Request $request,
-        UserRepository $userRepository,
         EntityManagerInterface $entityManager,
-        ClubHelper $clubHelper,
-        GroupRepository $groupRepository,
     ): Response {
         if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_CLUB_ADMIN')) {
             throw $this->createAccessDeniedException();
@@ -357,7 +352,7 @@ class LicenseeManagementController extends BaseController
                 $licensee->setUser($user);
 
                 // Create License
-                $club = $clubHelper->getClubForUser($this->getUser());
+                $club = $this->clubHelper->getClubForUser($this->getUser());
                 $license = new License();
                 $license->setLicensee($licensee);
                 $license->setClub($club);
@@ -372,7 +367,7 @@ class LicenseeManagementController extends BaseController
 
                 // Add to groups
                 foreach ($creationData['groups'] as $groupId) {
-                    $group = $groupRepository->find($groupId);
+                    $group = $this->groupRepository->find($groupId);
                     if ($group) {
                         $licensee->addGroup($group);
                     }
@@ -399,7 +394,7 @@ class LicenseeManagementController extends BaseController
         ]);
     }
 
-    #[Route('/cancel', name: 'app_licensee_new_cancel', methods: ['GET'])]
+    #[Route('/licensees/manage/cancel', name: 'app_licensee_new_cancel', methods: ['GET'])]
     public function cancel(Request $request): Response
     {
         $session = $request->getSession();

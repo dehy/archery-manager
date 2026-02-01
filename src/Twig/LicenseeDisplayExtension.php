@@ -6,24 +6,15 @@ namespace App\Twig;
 
 use App\Entity\Licensee;
 use Symfony\Bundle\SecurityBundle\Security;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFunction;
 
-class LicenseeDisplayExtension extends AbstractExtension
+class LicenseeDisplayExtension
 {
     public function __construct(
         private readonly Security $security,
     ) {
     }
 
-    #[\Override]
-    public function getFunctions(): array
-    {
-        return [
-            new TwigFunction('licensee_display_name', $this->getLicenseeDisplayName(...)),
-        ];
-    }
-
+    #[\Twig\Attribute\AsTwigFunction(name: 'licensee_display_name')]
     public function getLicenseeDisplayName(Licensee $licensee): string
     {
         // Si l'utilisateur est admin ou coach, on affiche le nom complet

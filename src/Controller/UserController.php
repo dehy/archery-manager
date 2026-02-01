@@ -6,11 +6,10 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\Type\UserFormType;
-use App\Helper\LicenseHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class UserController extends BaseController
@@ -28,7 +27,7 @@ class UserController extends BaseController
 
     #[Route('/user/{id}', name: 'app_user_show', requirements: ['id' => '\d+'])]
     #[IsGranted('ROLE_USER')]
-    public function show(User $user, LicenseHelper $licenseHelper): Response
+    public function show(User $user): Response
     {
         $this->assertHasValidLicense();
 

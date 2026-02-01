@@ -25,7 +25,7 @@ class FftaLicenseesProvider implements ScheduleProviderInterface
     #[\Override]
     public function getSchedule(): Schedule
     {
-        return $this->schedule ??= (new Schedule())
+        return $this->schedule ??= new Schedule()
             ->with(
                 RecurringMessage::cron(
                     '#midnight',

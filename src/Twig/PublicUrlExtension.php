@@ -6,24 +6,15 @@ namespace App\Twig;
 
 use Doctrine\Common\Util\ClassUtils;
 use League\Flysystem\FilesystemOperator;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFilter;
 use Vich\UploaderBundle\Mapping\Attribute\UploadableField;
 
-class PublicUrlExtension extends AbstractExtension
+class PublicUrlExtension
 {
     public function __construct(private readonly FilesystemOperator $clubsLogosStorage)
     {
     }
 
-    #[\Override]
-    public function getFilters(): array
-    {
-        return [
-            new TwigFilter('public_url', $this->publicUrl(...)),
-        ];
-    }
-
+    #[\Twig\Attribute\AsTwigFilter(name: 'public_url')]
     public function publicUrl(mixed $object, ?string $propertyName): string
     {
         $reflectionAttributes = [];
@@ -51,7 +42,7 @@ class PublicUrlExtension extends AbstractExtension
         /** @var UploadableField $uploadableField */
         $uploadableField = $reflectionAttribute->newInstance();
         $mapping = $uploadableField->getMapping();
-        $parts = array_map(static fn (string $part): string => ucfirst($part), explode('_', $mapping));
+        $parts = array_map(ucfirst(...), explode('_', $mapping));
         $storageName = lcfirst(implode('', $parts).'Storage');
 
         if ('clubsLogosStorage' === $storageName) {

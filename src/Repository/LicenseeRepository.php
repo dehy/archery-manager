@@ -15,6 +15,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Licensee|null findOneBy(array $criteria, array $orderBy = null)
  * @method Licensee[]    findAll()
  * @method Licensee[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends \Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository<\App\Entity\Licensee>
  */
 class LicenseeRepository extends ServiceEntityRepository
 {

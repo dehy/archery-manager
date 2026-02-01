@@ -8,14 +8,18 @@ use App\Entity\PracticeAdvice;
 use App\Helper\LicenseeHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class PracticeAdviceController extends AbstractController
 {
-    #[Route('/practice-advices/{advice}', name: 'app_practice_advice_show')]
-    public function show(PracticeAdvice $advice, LicenseeHelper $licenseeHelper): Response
+    public function __construct(private readonly LicenseeHelper $licenseeHelper)
     {
-        if ($advice->getLicensee()->getId() !== $licenseeHelper->getLicenseeFromSession()->getId()) {
+    }
+
+    #[Route('/practice-advices/{advice}', name: 'app_practice_advice_show')]
+    public function show(PracticeAdvice $advice): Response
+    {
+        if ($advice->getLicensee()->getId() !== $this->licenseeHelper->getLicenseeFromSession()->getId()) {
             throw $this->createNotFoundException();
         }
 

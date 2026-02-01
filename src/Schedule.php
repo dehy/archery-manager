@@ -20,7 +20,7 @@ class Schedule implements ScheduleProviderInterface
     #[\Override]
     public function getSchedule(): SymfonySchedule
     {
-        return (new SymfonySchedule())
+        return new SymfonySchedule()
             ->stateful($this->cache) // ensure missed tasks are executed
             ->processOnlyLastMissedRun(true) // ensure only last missed task is run
 

@@ -27,7 +27,7 @@ class ResultFactory
 
         $season = $event->getSeason();
 
-        return (new Result())
+        return new Result()
             ->setEvent($event)
             ->setLicensee($licensee)
             ->setDiscipline($event->getDiscipline())

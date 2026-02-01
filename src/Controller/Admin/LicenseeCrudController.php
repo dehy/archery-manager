@@ -31,6 +31,7 @@ class LicenseeCrudController extends AbstractCrudController
         protected AdminUrlGenerator $urlGenerator,
         protected readonly EmailHelper $emailHelper,
         protected readonly ClubHelper $clubHelper,
+        private readonly AdminContext $context,
     ) {
     }
 
@@ -105,13 +106,12 @@ class LicenseeCrudController extends AbstractCrudController
             ->add('groups');
     }
 
-    public function resendWelcomeEmail(AdminContext $context): RedirectResponse
+    public function resendWelcomeEmail(): RedirectResponse
     {
         /** @var Licensee $licensee */
-        $licensee = $context->getEntity()->getInstance();
+        $licensee = $this->context->getEntity()->getInstance();
         $club = $this->clubHelper->activeClubFor($licensee);
         $this->emailHelper->sendWelcomeEmail($licensee, $club);
-
         $detailUrl = $this->urlGenerator->setAction('detail')->generateUrl();
 
         return $this->redirect($detailUrl);

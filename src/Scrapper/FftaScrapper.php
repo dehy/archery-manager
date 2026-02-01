@@ -626,7 +626,7 @@ class FftaScrapper
                 $disciplineStr,
             );
 
-            $event = (new FftaEvent())
+            $event = new FftaEvent()
                 ->setFrom(
                     \DateTimeImmutable::createFromFormat('!d/m/Y', $fromDate),
                 )
@@ -690,7 +690,7 @@ class FftaScrapper
                 $ageCategory,
             );
 
-            $fftaResult = (new FftaResult())
+            $fftaResult = new FftaResult()
                 ->setPosition((int) $row->filter('td:nth-child(1)')->text())
                 ->setName($row->filter('td:nth-child(2)')->text())
                 ->setClub($row->filter('td:nth-child(3)')->text())

@@ -5,19 +5,10 @@ declare(strict_types=1);
 namespace App\Twig;
 
 use App\DBAL\Types\ArrowType;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFilter;
 
-class ArrowTypeExtension extends AbstractExtension
+class ArrowTypeExtension
 {
-    #[\Override]
-    public function getFilters(): array
-    {
-        return [
-            new TwigFilter('arrow_type_readable', $this->readable(...)),
-        ];
-    }
-
+    #[\Twig\Attribute\AsTwigFilter(name: 'arrow_type_readable')]
     public function readable(string $arrowType): string
     {
         return ArrowType::getReadableValue($arrowType);

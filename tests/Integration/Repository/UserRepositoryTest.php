@@ -42,7 +42,7 @@ final class UserRepositoryTest extends KernelTestCase
         $club = $this->entityManager
             ->getRepository(Club::class)
             ->findOneBy(['name' => 'Les Archers de Guyenne']);
-        $this->assertNotNull($club);
+        $this->assertInstanceOf(Club::class, $club);
         $this->assertSame('Les Archers de Guyenne', $club->getName());
 
         /** @var UserRepository $userRepository */

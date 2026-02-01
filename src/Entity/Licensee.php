@@ -56,51 +56,31 @@ class Licensee implements \Stringable
     /**
      * @var Collection<int, License>
      */
-    #[ORM\OneToMany(
-        mappedBy: 'licensee',
-        targetEntity: License::class,
-        orphanRemoval: true,
-    ),]
+    #[ORM\OneToMany(targetEntity: License::class, mappedBy: 'licensee', orphanRemoval: true),]
     private Collection $licenses;
 
     /**
      * @var Collection<int, Bow>
      */
-    #[ORM\OneToMany(
-        mappedBy: 'owner',
-        targetEntity: Bow::class,
-        orphanRemoval: true,
-    ),]
+    #[ORM\OneToMany(targetEntity: Bow::class, mappedBy: 'owner', orphanRemoval: true),]
     private Collection $bows;
 
     /**
      * @var Collection<int, Arrow>
      */
-    #[ORM\OneToMany(
-        mappedBy: 'owner',
-        targetEntity: Arrow::class,
-        orphanRemoval: true,
-    ),]
+    #[ORM\OneToMany(targetEntity: Arrow::class, mappedBy: 'owner', orphanRemoval: true),]
     private Collection $arrows;
 
     /**
      * @var Collection<int, EventParticipation>
      */
-    #[ORM\OneToMany(
-        mappedBy: 'participant',
-        targetEntity: EventParticipation::class,
-        orphanRemoval: true,
-    ),]
+    #[ORM\OneToMany(targetEntity: EventParticipation::class, mappedBy: 'participant', orphanRemoval: true),]
     private Collection $eventParticipations;
 
     /**
      * @var Collection<int, Result>
      */
-    #[ORM\OneToMany(
-        mappedBy: 'licensee',
-        targetEntity: Result::class,
-        orphanRemoval: true,
-    ),]
+    #[ORM\OneToMany(targetEntity: Result::class, mappedBy: 'licensee', orphanRemoval: true),]
     private Collection $results;
 
     /**
@@ -112,23 +92,19 @@ class Licensee implements \Stringable
     /**
      * @var Collection<int, PracticeAdvice>
      */
-    #[ORM\OneToMany(
-        mappedBy: 'licensee',
-        targetEntity: PracticeAdvice::class,
-        orphanRemoval: true,
-    ),]
+    #[ORM\OneToMany(targetEntity: PracticeAdvice::class, mappedBy: 'licensee', orphanRemoval: true),]
     private Collection $practiceAdvices;
 
     /**
      * @var Collection<int, PracticeAdvice>
      */
-    #[ORM\OneToMany(mappedBy: 'author', targetEntity: PracticeAdvice::class)]
+    #[ORM\OneToMany(targetEntity: PracticeAdvice::class, mappedBy: 'author')]
     private Collection $givenPracticeAdvices;
 
     /**
      * @var Collection<int, LicenseeAttachment>
      */
-    #[ORM\OneToMany(mappedBy: 'licensee', targetEntity: LicenseeAttachment::class, orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: LicenseeAttachment::class, mappedBy: 'licensee', orphanRemoval: true)]
     private Collection $attachments;
 
     /**

@@ -13,6 +13,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method EventParticipation|null findOneBy(array $criteria, array $orderBy = null)
  * @method EventParticipation[]    findAll()
  * @method EventParticipation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends \Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository<\App\Entity\EventParticipation>
  */
 class EventParticipationRepository extends ServiceEntityRepository
 {

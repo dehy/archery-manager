@@ -17,9 +17,9 @@ use Symfony\Component\Mime\Address;
 
 final class EmailHelperTest extends TestCase
 {
-    private MailerInterface $mailer;
+    private \PHPUnit\Framework\MockObject\MockObject $mailer;
 
-    private LicenseeRepository $licenseeRepository;
+    private \PHPUnit\Framework\MockObject\MockObject $licenseeRepository;
 
     private EmailHelper $emailHelper;
 
@@ -52,15 +52,16 @@ final class EmailHelperTest extends TestCase
                 $toAddresses = $email->getTo();
                 $replyToAddresses = $email->getReplyTo();
                 $context = $email->getContext();
+                $this->assertCount(1, $toAddresses);
+                $this->assertSame('licensee@example.com', $toAddresses[0]->getAddress());
+                $this->assertCount(1, $replyToAddresses);
+                $this->assertSame('contact@archeryclub.com', $replyToAddresses[0]->getAddress());
+                $this->assertSame('Test Archery Club - Bienvenue', $email->getSubject());
+                $this->assertSame('licensee/mail_account_created.html.twig', $email->getHtmlTemplate());
+                $this->assertSame($licensee, $context['licensee']);
+                $this->assertSame($club, $context['club']);
 
-                return 1 === \count($toAddresses)
-                    && 'licensee@example.com' === $toAddresses[0]->getAddress()
-                    && 1 === \count($replyToAddresses)
-                    && 'contact@archeryclub.com' === $replyToAddresses[0]->getAddress()
-                    && 'Test Archery Club - Bienvenue' === $email->getSubject()
-                    && 'licensee/mail_account_created.html.twig' === $email->getHtmlTemplate()
-                    && $context['licensee'] === $licensee
-                    && $context['club'] === $club;
+                return true;
             }));
 
         $this->emailHelper->sendWelcomeEmail($licensee, $club);
@@ -120,20 +121,21 @@ final class EmailHelperTest extends TestCase
             ->with($this->callback(static function (TemplatedEmail $email) use ($addedLicensee1, $addedLicensee2, $updatedLicensee): bool {
                 $toAddresses = $email->getTo();
                 $context = $email->getContext();
+                $this->assertCount(2, $toAddresses);
+                $this->assertInstanceOf(Address::class, $toAddresses[0]);
+                $this->assertSame('admin1@example.com', $toAddresses[0]->getAddress());
+                $this->assertSame('Admin One', $toAddresses[0]->getName());
+                $this->assertInstanceOf(Address::class, $toAddresses[1]);
+                $this->assertSame('admin2@example.com', $toAddresses[1]->getAddress());
+                $this->assertSame('Admin Two', $toAddresses[1]->getName());
+                $this->assertSame('Synchronisation FFTA', $email->getSubject());
+                $this->assertSame('email_notification/updated_licensees.txt.twig', $email->getHtmlTemplate());
+                $this->assertSame('email_notification/updated_licensees.txt.twig', $email->getTextTemplate());
+                $this->assertSame(4, $context['count']);
+                $this->assertSame([$addedLicensee1, $addedLicensee2], $context['added']);
+                $this->assertSame([$updatedLicensee], $context['updated']);
 
-                return 2 === \count($toAddresses)
-                    && $toAddresses[0] instanceof Address
-                    && 'admin1@example.com' === $toAddresses[0]->getAddress()
-                    && 'Admin One' === $toAddresses[0]->getName()
-                    && $toAddresses[1] instanceof Address
-                    && 'admin2@example.com' === $toAddresses[1]->getAddress()
-                    && 'Admin Two' === $toAddresses[1]->getName()
-                    && 'Synchronisation FFTA' === $email->getSubject()
-                    && 'email_notification/updated_licensees.txt.twig' === $email->getHtmlTemplate()
-                    && 'email_notification/updated_licensees.txt.twig' === $email->getTextTemplate()
-                    && 4 === $context['count'] // 2 created + 1 updated + 1 removed
-                    && $context['added'] === [$addedLicensee1, $addedLicensee2]
-                    && $context['updated'] === [$updatedLicensee];
+                return true;
             }));
 
         $this->emailHelper->sendLicenseesSyncResults($toEmails, $syncResults);
@@ -175,10 +177,11 @@ final class EmailHelperTest extends TestCase
             ->method('send')
             ->with($this->callback(static function (TemplatedEmail $email): bool {
                 $context = $email->getContext();
+                $this->assertSame(0, $context['count']);
+                $this->assertSame($context['added'], []);
+                $this->assertSame($context['updated'], []);
 
-                return 0 === $context['count']
-                    && [] === $context['added']
-                    && [] === $context['updated'];
+                return true;
             }));
 
         $this->emailHelper->sendLicenseesSyncResults($toEmails, $syncResults);
@@ -208,9 +211,10 @@ final class EmailHelperTest extends TestCase
             ->method('send')
             ->with($this->callback(static function (TemplatedEmail $email): bool {
                 $toAddresses = $email->getTo();
+                $this->assertCount(1, $toAddresses);
+                $this->assertSame('single@example.com', $toAddresses[0]->getAddress());
 
-                return 1 === \count($toAddresses)
-                    && 'single@example.com' === $toAddresses[0]->getAddress();
+                return true;
             }));
 
         $this->emailHelper->sendLicenseesSyncResults($toEmails, $syncResults);

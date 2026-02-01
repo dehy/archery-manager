@@ -24,7 +24,7 @@ class ContestEvent extends Event
     /**
      * @var Collection<int, Result>
      */
-    #[ORM\OneToMany(mappedBy: 'event', targetEntity: Result::class)]
+    #[ORM\OneToMany(targetEntity: Result::class, mappedBy: 'event')]
     private Collection $results;
 
     public function __construct()

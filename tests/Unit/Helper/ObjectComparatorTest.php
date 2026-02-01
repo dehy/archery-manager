@@ -13,6 +13,7 @@ final class ObjectComparatorTest extends TestCase
     {
         $obj1 = new \stdClass();
         $obj1->id = 12;
+
         $obj2 = new \stdClass();
         $obj2->id = 12;
 
@@ -24,6 +25,7 @@ final class ObjectComparatorTest extends TestCase
     {
         $obj1 = new \stdClass();
         $obj1->id = 12;
+
         $obj2 = $obj1;
 
         $this->assertTrue(ObjectComparator::equal($obj1, $obj2));
@@ -34,6 +36,7 @@ final class ObjectComparatorTest extends TestCase
     {
         $obj1 = new \stdClass();
         $obj1->id = 11;
+
         $obj2 = new \stdClass();
         $obj2->id = 12;
 
@@ -45,6 +48,7 @@ final class ObjectComparatorTest extends TestCase
     {
         $obj1 = new \stdClass();
         $obj1->id = 11;
+
         $obj2 = new \stdClass();
         $obj2->id = 12;
 
@@ -62,6 +66,7 @@ final class ObjectComparatorTest extends TestCase
     {
         $obj1 = new \stdClass();
         $obj1->id = 12;
+
         $obj2 = new \stdClass();
         $obj2->id = 12;
 

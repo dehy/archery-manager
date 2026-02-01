@@ -15,16 +15,15 @@ use PHPUnit\Framework\TestCase;
 
 final class LicenseHelperTest extends TestCase
 {
-    private SeasonHelper $seasonHelper;
+    private \PHPUnit\Framework\MockObject\MockObject $seasonHelper;
 
     private LicenseHelper $licenseHelper;
 
     #[\Override]
     protected function setUp(): void
     {
-        $licenseeHelper = $this->createMock(LicenseeHelper::class);
         $this->seasonHelper = $this->createMock(SeasonHelper::class);
-        $this->licenseHelper = new LicenseHelper($licenseeHelper, $this->seasonHelper);
+        $this->licenseHelper = new LicenseHelper($this->createMock(LicenseeHelper::class), $this->seasonHelper);
     }
 
     public function testGetSeasonForDateInSeptember(): void
