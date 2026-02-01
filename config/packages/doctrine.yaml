@@ -21,6 +21,7 @@ doctrine:
             GenderType: App\DBAL\Types\GenderType
             LicenseActivityType: App\DBAL\Types\LicenseActivityType
             LicenseAgeCategoryType: App\DBAL\Types\LicenseAgeCategoryType
+            LicenseApplicationStatusType: App\DBAL\Types\LicenseApplicationStatusType
             LicenseeAttachmentType: App\DBAL\Types\LicenseeAttachmentType
             LicenseCategoryType: App\DBAL\Types\LicenseCategoryType
             LicenseType: App\DBAL\Types\LicenseType
