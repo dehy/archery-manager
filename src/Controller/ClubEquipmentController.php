@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/club-equipment')]
-#[IsGranted('ROLE_USER')]
+#[IsGranted('ROLE_ADMIN')]
 class ClubEquipmentController extends BaseController
 {
     public function __construct(
@@ -244,7 +244,7 @@ class ClubEquipmentController extends BaseController
             throw $this->createNotFoundException('Aucun club actif trouvé');
         }
 
-        $activeLoans = $loanRepository->findActiveLoans($club);
+        $activeLoans = $loanRepository->findActiveLoans();
 
         return $this->render('club_equipment/loans.html.twig', [
             'activeLoans' => $activeLoans,

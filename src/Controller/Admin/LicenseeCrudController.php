@@ -57,7 +57,7 @@ class LicenseeCrudController extends AbstractCrudController
             'impersonate',
             'Usurper l\'identité',
             'fa-solid fa-user-secret'
-        )->linkToUrl(fn (Licensee $licensee): string => \sprintf(
+        )->linkToUrl(static fn (Licensee $licensee): string => \sprintf(
             '/?_switch_user=%s&_switch_licensee=%s',
             $licensee->getUser()->getEmail(),
             $licensee->getFftaMemberCode()

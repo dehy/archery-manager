@@ -12,16 +12,18 @@ use App\Entity\LicenseeAttachment;
 use App\Entity\Result;
 use App\Entity\Season;
 use App\Entity\User;
+use App\Form\Type\LicenseeFormType;
 use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
 use App\Helper\LicenseHelper;
 use App\Helper\ResultHelper;
+use App\Repository\EquipmentLoanRepository;
 use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
-use App\Repository\EquipmentLoanRepository;
 use App\Repository\ResultRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
@@ -64,16 +66,16 @@ class LicenseeController extends BaseController
 
         // Compter le nombre total de licenciés avant filtrage
         $totalLicensees = $licensees->count();
-        
+
         // Compter les licenciés sans groupe avant filtrage
-        $noGroupLicenseesCount = $licensees->filter(fn ($licensee) => $licensee->getGroups()->isEmpty())->count();
+        $noGroupLicenseesCount = $licensees->filter(static fn ($licensee) => $licensee->getGroups()->isEmpty())->count();
 
         // Filtrer par groupe si un groupe est sélectionné
         if ($selectedGroup) {
-            $licensees = $licensees->filter(fn ($licensee) => $licensee->getGroups()->contains($selectedGroup));
-        } elseif ($groupId === 'no-group') {
+            $licensees = $licensees->filter(static fn ($licensee) => $licensee->getGroups()->contains($selectedGroup));
+        } elseif ('no-group' === $groupId) {
             // Filtrer les licenciés sans groupe
-            $licensees = $licensees->filter(fn ($licensee) => $licensee->getGroups()->isEmpty());
+            $licensees = $licensees->filter(static fn ($licensee) => $licensee->getGroups()->isEmpty());
         }
 
         /** @var ArrayCollection<int, Licensee> $orderedLicensees */
@@ -94,16 +96,17 @@ class LicenseeController extends BaseController
             'allGroups' => $allGroups,
             'totalLicensees' => $totalLicensees,
             'noGroupLicenseesCount' => $noGroupLicenseesCount,
-            'isNoGroupFilter' => $groupId === 'no-group',
+            'isNoGroupFilter' => 'no-group' === $groupId,
         ]);
     }
 
     #[Route('/my-profile', name: 'app_licensee_my_profile', methods: ['GET'])]
     #[
         Route(
-            '/licensee/{fftaCode}',
+            '/licensee/{id}',
             name: 'app_licensee_profile',
             methods: ['GET'],
+            requirements: ['id' => '\d+'],
         ),
     ]
     public function show(
@@ -111,21 +114,45 @@ class LicenseeController extends BaseController
         ResultRepository $resultRepository,
         EquipmentLoanRepository $loanRepository,
         ChartBuilderInterface $chartBuilder,
-        ?string $fftaCode,
+        ?int $id = null,
     ): Response {
         $this->assertHasValidLicense();
 
         /** @var User $user */
         $user = $this->getUser();
 
-        $licensee = null !== $fftaCode && '' !== $fftaCode && '0' !== $fftaCode ? $licenseeRepository->findOneByCode($fftaCode) : $this->licenseeHelper->getLicenseeFromSession();
+        $licensee = null !== $id ? $licenseeRepository->find($id) : $this->licenseeHelper->getLicenseeFromSession();
 
-        if (
-            !$licensee instanceof Licensee
-            || (!$user->getLicensees()->contains($licensee)
-                && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_COACH'))
-        ) {
+        if (!$licensee instanceof Licensee) {
             throw $this->createNotFoundException();
+        }
+
+        // Check access: user's own licensee, OR admin/coach can see all, OR club admin can see licensees in their club
+        $hasAccess = $user->getLicensees()->contains($licensee)
+            || $this->isGranted('ROLE_ADMIN')
+            || $this->isGranted('ROLE_COACH');
+
+        // Club admins can view licensees in their club
+        if (!$hasAccess && $this->isGranted('ROLE_CLUB_ADMIN')) {
+            $currentSeason = $this->seasonHelper->getSelectedSeason();
+            $userLicensees = $user->getLicensees();
+            foreach ($userLicensees as $userLicensee) {
+                if (!($userLicense = $userLicensee->getLicenseForSeason($currentSeason))) {
+                    continue;
+                }
+                if (!($targetLicense = $licensee->getLicenseForSeason($currentSeason)) instanceof \App\Entity\License) {
+                    continue;
+                }
+                if ($userLicense->getClub() !== $targetLicense->getClub()) {
+                    continue;
+                }
+                $hasAccess = true;
+                break;
+            }
+        }
+
+        if (!$hasAccess) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas accès à ce profil.');
         }
 
         $resultsBySeason = [];
@@ -154,7 +181,7 @@ class LicenseeController extends BaseController
         foreach ($resultsBySeason as $season => $resultsByCategory) {
             foreach ($resultsByCategory as $category => $categoryResults) {
                 $results = $categoryResults['results'];
-                $resultsTotals = array_map(fn (Result $result): ?int => $result->getTotal(), $results);
+                $resultsTotals = array_map(static fn (Result $result): ?int => $result->getTotal(), $results);
 
                 $lowestScore = min($resultsTotals);
                 $bestScore = max($resultsTotals);
@@ -167,13 +194,13 @@ class LicenseeController extends BaseController
 
                 $resultsChart = $chartBuilder->createChart(Chart::TYPE_BAR);
                 $resultsChart->setData([
-                    'labels' => array_map(fn (Result $result): ?string => $result->getEvent()->getName(), $results),
+                    'labels' => array_map(static fn (Result $result): ?string => $result->getEvent()->getName(), $results),
                     'datasets' => [
                         [
                             'label' => 'Score Total',
-                            'data' => array_map(fn (Result $result): ?int => $result->getTotal(), $results),
+                            'data' => array_map(static fn (Result $result): ?int => $result->getTotal(), $results),
                             'backgroundColor' => array_map(
-                                function (Result $result) use ($lowestScore, $scoreDiff): string {
+                                static function (Result $result) use ($lowestScore, $scoreDiff): string {
                                     if (0 === $scoreDiff) {
                                         return ResultHelper::colorRatio(1);
                                     }
@@ -278,9 +305,9 @@ class LicenseeController extends BaseController
      * @throws NonUniqueResultException
      * @throws TransportExceptionInterface
      */
-    #[Route('/licensee/{fftaCode}/sync', methods: ['POST'])]
+    #[Route('/licensee/{id}/sync', name: 'app_licensee_sync', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function sync(
-        string $fftaCode,
+        int $id,
         LicenseeRepository $licenseeRepository,
         FftaHelper $fftaHelper,
         ClubHelper $clubHelper,
@@ -289,7 +316,7 @@ class LicenseeController extends BaseController
         $this->assertHasValidLicense();
         $this->isGranted(UserRoleType::ADMIN);
 
-        $licensee = $licenseeRepository->findOneByCode($fftaCode);
+        $licensee = $licenseeRepository->find($id);
         if (!$licensee instanceof Licensee) {
             throw $this->createNotFoundException();
         }
@@ -320,13 +347,13 @@ class LicenseeController extends BaseController
             }
         }
 
-        return $this->redirectToRoute('app_licensee_profile', ['fftaCode' => $fftaCode]);
+        return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
     }
 
     private function createSyncForm(Licensee $licensee): FormInterface
     {
         return $this->createFormBuilder(null, [
-            'action' => $this->generateUrl('app_licensee_sync', ['fftaCode' => $licensee->getFftaMemberCode()]),
+            'action' => $this->generateUrl('app_licensee_sync', ['id' => $licensee->getId()]),
             'method' => 'POST',
         ])->getForm();
     }
@@ -334,20 +361,19 @@ class LicenseeController extends BaseController
     /**
      * @throws NonUniqueResultException|FilesystemException
      */
-    #[
-        Route(
-            '/licensee/{fftaCode}/picture',
-            name: 'app_licensee_picture',
-            methods: ['GET'],
-        ),
-    ]
+    #[Route(
+        '/licensee/{id}/picture',
+        name: 'app_licensee_picture',
+        methods: ['GET'],
+        requirements: ['id' => '\d+'],
+    ),]
     public function profilePicture(
-        string $fftaCode,
+        int $id,
         LicenseeRepository $licenseeRepository,
         FilesystemOperator $licenseesStorage,
         Request $request,
     ): Response {
-        $licensee = $licenseeRepository->findOneByCode($fftaCode);
+        $licensee = $licenseeRepository->find($id);
         if (!$licensee instanceof Licensee) {
             throw $this->createNotFoundException();
         }
@@ -359,7 +385,7 @@ class LicenseeController extends BaseController
             return $response;
         }
 
-        $imagePath = \sprintf('%s.jpg', $fftaCode);
+        $imagePath = \sprintf('%s.jpg', $licensee->getFftaMemberCode());
 
         if (!$licenseesStorage->fileExists($imagePath)) {
             return new Response(
@@ -388,7 +414,7 @@ class LicenseeController extends BaseController
             );
         }
 
-        $response = new StreamedResponse(function () use ($licenseesStorage, $imagePath): void {
+        $response = new StreamedResponse(static function () use ($licenseesStorage, $imagePath): void {
             $outputStream = fopen('php://output', 'w');
             $fileStream = $licenseesStorage->readStream($imagePath);
 
@@ -414,7 +440,7 @@ class LicenseeController extends BaseController
             $attachment->getFile()->getName()
         );
 
-        $response = new StreamedResponse(function () use ($licenseesStorage, $attachment): void {
+        $response = new StreamedResponse(static function () use ($licenseesStorage, $attachment): void {
             $outputStream = fopen('php://output', 'w');
             $fileStream = $licenseesStorage->readStream($attachment->getFile()->getName());
 
@@ -427,5 +453,57 @@ class LicenseeController extends BaseController
         $response->setLastModified($attachment->getUpdatedAt());
 
         return $response;
+    }
+
+    #[Route('/licensee/{id}/edit', name: 'app_licensee_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function edit(Licensee $licensee, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->assertHasValidLicense();
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        // Check permissions - same as show method
+        $hasAccess = $user->getLicensees()->contains($licensee)
+            || $this->isGranted('ROLE_ADMIN')
+            || $this->isGranted('ROLE_COACH');
+
+        if (!$hasAccess && $this->isGranted('ROLE_CLUB_ADMIN')) {
+            $currentSeason = $this->seasonHelper->getSelectedSeason();
+            $userLicensees = $user->getLicensees();
+            foreach ($userLicensees as $userLicensee) {
+                if (!($userLicense = $userLicensee->getLicenseForSeason($currentSeason))) {
+                    continue;
+                }
+                if (!($targetLicense = $licensee->getLicenseForSeason($currentSeason)) instanceof \App\Entity\License) {
+                    continue;
+                }
+                if ($userLicense->getClub() !== $targetLicense->getClub()) {
+                    continue;
+                }
+                $hasAccess = true;
+                break;
+            }
+        }
+
+        if (!$hasAccess) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas accès à ce profil.');
+        }
+
+        $form = $this->createForm(LicenseeFormType::class, $licensee);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Licencié modifié avec succès.');
+
+            return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
+        }
+
+        return $this->render('licensee/edit.html.twig', [
+            'licensee' => $licensee,
+            'form' => $form,
+        ]);
     }
 }

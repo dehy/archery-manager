@@ -53,7 +53,7 @@ class RegistrationCrudController extends AbstractCrudController
             BooleanField::new('paid', 'Payé'),
             BooleanField::new('licenseCreated', 'License faite'),
             BooleanField::new('tournament', 'Veut faire compétition')->renderAsSwitch(false),
-            TextField::new('realLicenseType', 'Type de licence')->formatValue(fn (?string $value) => null === $value ? null : LicenseType::getReadableValue($value))->hideOnForm(),
+            TextField::new('realLicenseType', 'Type de licence')->formatValue(static fn (?string $value) => null === $value ? null : LicenseType::getReadableValue($value))->hideOnForm(),
             ChoiceField::new('ageCategory', "Catégorie d'âge")->setChoices(
                 LicenseAgeCategoryType::getChoices(),
             )->hideOnForm(),

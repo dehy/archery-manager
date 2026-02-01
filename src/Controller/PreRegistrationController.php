@@ -9,7 +9,6 @@ use App\Form\ApplicantRenewalType;
 use App\Form\ApplicantType;
 use App\Repository\ApplicantRepository;
 use App\Repository\LicenseeRepository;
-use Dmishh\SettingsBundle\Manager\SettingsManager;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
@@ -27,8 +26,6 @@ class PreRegistrationController extends AbstractController
     /**
      * @throws OptimisticLockException
      * @throws TransportExceptionInterface
-     * @throws ORMException
-     * @throws \Doctrine\ORM\ORMException
      */
     #[Route('/pre-inscription', name: 'app_pre_registration')]
     public function form(
@@ -36,14 +33,12 @@ class PreRegistrationController extends AbstractController
         ApplicantRepository $applicantRepository,
         LicenseeRepository $licenseeRepository,
         MailerInterface $mailer,
-        SettingsManager $settingsManager,
     ): Response {
         $applicant = new Applicant();
         $error = null;
 
-        $waitingListActivated = (bool) $settingsManager->get(
-            'pre_registration_waiting_list_activated',
-        );
+        // TODO: Re-implement waiting list feature without dmishh/settings-bundle
+        $waitingListActivated = false;
 
         $buttonLabel =
             'Enregistrer ma pré-inscription'.
@@ -115,15 +110,12 @@ class PreRegistrationController extends AbstractController
     /**
      * @throws OptimisticLockException
      * @throws TransportExceptionInterface
-     * @throws \Doctrine\ORM\ORMException
      * @throws NonUniqueResultException
      */
-    #[
-        Route(
-            '/pre-inscription-renouvellement',
-            name: 'app_registration_renewal',
-        ),
-    ]
+    #[Route(
+        '/pre-inscription-renouvellement',
+        name: 'app_registration_renewal',
+    ),]
     public function renewal(
         Request $request,
         ApplicantRepository $applicantRepository,
@@ -198,12 +190,10 @@ class PreRegistrationController extends AbstractController
         ]);
     }
 
-    #[
-        Route(
-            '/pre-inscription-renouvellement/merci',
-            name: 'app_registration_renewal_thank_you',
-        ),
-    ]
+    #[Route(
+        '/pre-inscription-renouvellement/merci',
+        name: 'app_registration_renewal_thank_you',
+    ),]
     public function renewalThankYou(): Response
     {
         return $this->render('pre_registration/renewal_thank_you.html.twig');

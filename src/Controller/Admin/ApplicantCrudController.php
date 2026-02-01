@@ -8,7 +8,6 @@ use App\DBAL\Types\PracticeLevelType;
 use App\Entity\Applicant;
 use App\Form\PreRegistrationSettingsType;
 use App\Repository\ApplicantRepository;
-use Dmishh\SettingsBundle\Manager\SettingsManager;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -95,7 +94,6 @@ class ApplicantCrudController extends AbstractCrudController
     public function applicantStatistics(
         Request $request,
         ApplicantRepository $applicantRepository,
-        SettingsManager $settingsManager,
         AdminUrlGenerator $adminUrlGenerator,
     ): Response {
         $settingsForm = $this->createForm(
@@ -104,11 +102,9 @@ class ApplicantCrudController extends AbstractCrudController
 
         $settingsForm->handleRequest($request);
         if ($settingsForm->isSubmitted() && $settingsForm->isValid()) {
-            $data = $settingsForm->getData();
-            $settingsManager->set(
-                'pre_registration_waiting_list_activated',
-                $data['waitingListActivated'] ?? false,
-            );
+            // TODO: Re-implement waiting list feature without dmishh/settings-bundle
+            // $data = $settingsForm->getData();
+            // Previously saved to: 'pre_registration_waiting_list_activated'
 
             return $this->redirectToRoute(null);
         }

@@ -70,11 +70,11 @@ class EventController extends BaseController
             $endOfDay = \DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
             $eventsForThisDay = array_filter(
                 $events,
-                fn (Event $event): bool => ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
+                static fn (Event $event): bool => ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
                     || ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay)
             );
             // Sort events: multi-day all-day events, single-day all-day events, then other events
-            usort($eventsForThisDay, function (Event $a, Event $b): int {
+            usort($eventsForThisDay, static function (Event $a, Event $b): int {
                 if ($a->spanMultipleDays() !== $b->spanMultipleDays()) {
                     return $b->spanMultipleDays() <=> $a->spanMultipleDays();
                 }
@@ -141,7 +141,7 @@ class EventController extends BaseController
             throw $this->createNotFoundException();
         }
 
-        $response = new StreamedResponse(function () use ($eventsStorage, $attachment): void {
+        $response = new StreamedResponse(static function () use ($eventsStorage, $attachment): void {
             $outputStream = fopen('php://output', 'w');
             $fileStream = $eventsStorage->readStream($attachment->getFile()->getName());
 
@@ -344,7 +344,7 @@ class EventController extends BaseController
             }
         }
 
-        usort($results, function (Result $a, Result $b): int {
+        usort($results, static function (Result $a, Result $b): int {
             if ($a->getAgeCategory() === $b->getAgeCategory()) {
                 return $a->getLicensee()->getFullname() <=> $b->getLicensee()->getFullname();
             }

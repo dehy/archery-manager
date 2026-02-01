@@ -17,8 +17,6 @@ use App\Entity\PracticeAdvice;
 use App\Entity\Result;
 use App\Entity\TrainingEvent;
 use App\Entity\User;
-use Dmishh\SettingsBundle\Entity\Setting;
-use Dmishh\SettingsBundle\Manager\SettingsManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -30,7 +28,6 @@ class AdminDashboardController extends AbstractDashboardController
 {
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly SettingsManagerInterface $settingsManager,
     ) {
     }
 
@@ -152,11 +149,13 @@ class AdminDashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Technique');
 
-        yield MenuItem::linkToCrud(
-            'Paramètres',
-            'fa-solid fa-wrench',
-            Setting::class,
-        );
+        // Temporarily disabled - dmishh/settings-bundle removed for Symfony 7.4 upgrade
+        // TODO: Re-implement settings management
+        // yield MenuItem::linkToCrud(
+        //     'Paramètres',
+        //     'fa-solid fa-wrench',
+        //     Setting::class,
+        // );
 
         yield MenuItem::linkToUrl(
             'Audit',
