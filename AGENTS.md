@@ -341,9 +341,19 @@ docker compose exec -u symfony -w /app app bin/console encrypt:genkey
 
 ### Git Workflow
 
+#### Pre-Commit Checklist
+**CRITICAL**: Before committing, ALWAYS:
+1. Run `make qa` until it passes (Rector, PHP CS Fixer, PHPStan)
+2. Run tests: `docker compose exec -u symfony -w /app app bin/phpunit --exclude-group=disabled`
+3. Fix any issues and repeat steps 1-2 until both pass
+
 #### Commit Conventions
 - **Atomic commits**: Group related changes by functionality
 - **Commit messages**: Always use one-line messages with gitmoji for clarity
+- **IMPORTANT**: Base commits ONLY on `git status`, NOT on conversation history
+  - Review actual file changes before committing
+  - Don't assume what changed from conversation context
+  - Use `git status` and `git diff` to determine what to commit
 - **Example commit sequence** (recent work):
   ```
   1. ✨ Add group-based event authorization
