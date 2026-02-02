@@ -128,14 +128,6 @@ class AdminDashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Technique');
 
-        // Temporarily disabled - dmishh/settings-bundle removed for Symfony 7.4 upgrade
-        // TODO: Re-implement settings management
-        // yield MenuItem::linkToCrud(
-        //     'Paramètres',
-        //     'fa-solid fa-wrench',
-        //     Setting::class,
-        // );
-
         yield MenuItem::linkToUrl(
             'Audit',
             'fa-solid fa-user-secret',
