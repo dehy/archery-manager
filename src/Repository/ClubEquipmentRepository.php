@@ -14,6 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ClubEquipmentRepository extends ServiceEntityRepository
 {
+    private const string FILTER_CLUB = self::FILTER_CLUB;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ClubEquipment::class);
@@ -22,7 +24,7 @@ class ClubEquipmentRepository extends ServiceEntityRepository
     public function findByClub(Club $club): array
     {
         return $this->createQueryBuilder('ce')
-            ->where('ce.club = :club')
+            ->where(self::FILTER_CLUB)
             ->setParameter('club', $club)
             ->orderBy('ce.createdAt', 'DESC')
             ->getQuery()
@@ -32,7 +34,7 @@ class ClubEquipmentRepository extends ServiceEntityRepository
     public function findAvailableByClub(Club $club): array
     {
         return $this->createQueryBuilder('ce')
-            ->where('ce.club = :club')
+            ->where(self::FILTER_CLUB)
             ->andWhere('ce.isAvailable = true')
             ->setParameter('club', $club)
             ->orderBy('ce.type', 'ASC')
@@ -45,7 +47,7 @@ class ClubEquipmentRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('ce')
             ->innerJoin('ce.loans', 'l')
-            ->where('ce.club = :club')
+            ->where(self::FILTER_CLUB)
             ->andWhere('l.returnDate IS NULL')
             ->setParameter('club', $club)
             ->orderBy('ce.type', 'ASC')
@@ -57,7 +59,7 @@ class ClubEquipmentRepository extends ServiceEntityRepository
     public function findByTypeAndClub(string $type, Club $club): array
     {
         return $this->createQueryBuilder('ce')
-            ->where('ce.club = :club')
+            ->where(self::FILTER_CLUB)
             ->andWhere('ce.type = :type')
             ->setParameter('club', $club)
             ->setParameter('type', $type)

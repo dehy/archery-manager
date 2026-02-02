@@ -21,6 +21,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ClubEquipmentType extends AbstractType
 {
+    private const string PLACEHOLDER_SELECT_TYPE = self::PLACEHOLDER_SELECT_TYPE;
+
     #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -29,7 +31,7 @@ class ClubEquipmentType extends AbstractType
                 'label' => 'Type d\'équipement',
                 'choices' => ClubEquipmentTypeEnum::getChoices(),
                 'choice_label' => ClubEquipmentTypeEnum::getReadableValue(...),
-                'placeholder' => 'Sélectionnez un type',
+                'placeholder' => self::PLACEHOLDER_SELECT_TYPE,
                 'attr' => [
                     'data-equipment-type-target' => 'equipmentType',
                 ],
@@ -94,7 +96,7 @@ class ClubEquipmentType extends AbstractType
                 'label' => "Type d'arc",
                 'choices' => BowType::getChoices(),
                 'choice_label' => BowType::getReadableValue(...),
-                'placeholder' => 'Sélectionnez un type',
+                'placeholder' => self::PLACEHOLDER_SELECT_TYPE,
                 'required' => false,
             ])
             ->add('brand', TextType::class, [
@@ -125,7 +127,7 @@ class ClubEquipmentType extends AbstractType
                 'label' => 'Type de flèche',
                 'choices' => ArrowType::getChoices(),
                 'choice_label' => ArrowType::getReadableValue(...),
-                'placeholder' => 'Sélectionnez un type',
+                'placeholder' => self::PLACEHOLDER_SELECT_TYPE,
                 'required' => false,
             ])
             ->add('arrowLength', TextType::class, [
@@ -142,7 +144,7 @@ class ClubEquipmentType extends AbstractType
                 'label' => "Type d'empennage",
                 'choices' => FletchingType::getChoices(),
                 'choice_label' => FletchingType::getReadableValue(...),
-                'placeholder' => 'Sélectionnez un type',
+                'placeholder' => self::PLACEHOLDER_SELECT_TYPE,
                 'required' => false,
             ])
         ;

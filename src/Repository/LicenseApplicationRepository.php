@@ -21,6 +21,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class LicenseApplicationRepository extends ServiceEntityRepository
 {
+    private const string FILTER_SEASON = self::FILTER_SEASON;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, LicenseApplication::class);
@@ -51,7 +53,7 @@ class LicenseApplicationRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('la')
             ->andWhere('la.club = :club')
-            ->andWhere('la.season = :season')
+            ->andWhere(self::FILTER_SEASON)
             ->andWhere('la.status = :status')
             ->setParameter('club', $club)
             ->setParameter('season', $season)
@@ -70,7 +72,7 @@ class LicenseApplicationRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('la')
             ->andWhere('la.club = :club')
-            ->andWhere('la.season = :season')
+            ->andWhere(self::FILTER_SEASON)
             ->setParameter('club', $club)
             ->setParameter('season', $season)
             ->orderBy('la.createdAt', 'DESC')
@@ -87,7 +89,7 @@ class LicenseApplicationRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('la')
             ->andWhere('la.licensee = :licensee')
-            ->andWhere('la.season = :season')
+            ->andWhere(self::FILTER_SEASON)
             ->setParameter('licensee', $licensee)
             ->setParameter('season', $season)
             ->orderBy('la.createdAt', 'DESC')

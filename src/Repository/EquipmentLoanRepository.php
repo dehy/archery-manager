@@ -15,6 +15,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class EquipmentLoanRepository extends ServiceEntityRepository
 {
+    private const string FILTER_RETURN_DATE_NULL = self::FILTER_RETURN_DATE_NULL;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, EquipmentLoan::class);
@@ -23,7 +25,7 @@ class EquipmentLoanRepository extends ServiceEntityRepository
     public function findActiveLoans(): array
     {
         return $this->createQueryBuilder('el')
-            ->where('el.returnDate IS NULL')
+            ->where(self::FILTER_RETURN_DATE_NULL)
             ->orderBy('el.startDate', 'DESC')
             ->getQuery()
             ->getResult();
@@ -53,7 +55,7 @@ class EquipmentLoanRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('el')
             ->where('el.borrower = :borrower')
-            ->andWhere('el.returnDate IS NULL')
+            ->andWhere(self::FILTER_RETURN_DATE_NULL)
             ->setParameter('borrower', $borrower)
             ->orderBy('el.startDate', 'DESC')
             ->getQuery()
@@ -64,7 +66,7 @@ class EquipmentLoanRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('el')
             ->where('el.equipment = :equipment')
-            ->andWhere('el.returnDate IS NULL')
+            ->andWhere(self::FILTER_RETURN_DATE_NULL)
             ->setParameter('equipment', $equipment)
             ->setMaxResults(1)
             ->getQuery()

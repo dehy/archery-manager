@@ -20,6 +20,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class LicenseApplicationController extends AbstractController
 {
+    private const string ERROR_ALREADY_PROCESSED = self::ERROR_ALREADY_PROCESSED;
+
     public function __construct(
         private readonly LicenseeHelper $licenseeHelper,
         private readonly SeasonHelper $seasonHelper,
@@ -137,7 +139,7 @@ class LicenseApplicationController extends AbstractController
         $this->denyAccessUnlessGranted('manage', $application);
 
         if (!$application->isPending()) {
-            $this->addFlash('warning', 'Cette demande a déjà été traitée.');
+            $this->addFlash('warning', self::ERROR_ALREADY_PROCESSED);
 
             return $this->redirectToRoute('app_license_application_manage');
         }
@@ -162,7 +164,7 @@ class LicenseApplicationController extends AbstractController
         $this->denyAccessUnlessGranted('manage', $application);
 
         if (!$application->isPending()) {
-            $this->addFlash('warning', 'Cette demande a déjà été traitée.');
+            $this->addFlash('warning', self::ERROR_ALREADY_PROCESSED);
 
             return $this->redirectToRoute('app_license_application_manage');
         }
@@ -187,7 +189,7 @@ class LicenseApplicationController extends AbstractController
         $this->denyAccessUnlessGranted('manage', $application);
 
         if (!$application->isPending()) {
-            $this->addFlash('warning', 'Cette demande a déjà été traitée.');
+            $this->addFlash('warning', self::ERROR_ALREADY_PROCESSED);
 
             return $this->redirectToRoute('app_license_application_manage');
         }
