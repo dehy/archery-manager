@@ -171,7 +171,6 @@ class FftaHelper
                 ),
             );
             $syncResult = $licensee->mergeWith($fftaLicensee);
-            // TODO check image date (with its filename) instead of downloading files and calculating checksums
             $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
             $fftaProfilePictureContent = $fftaProfilePicture?->getUploadedFile()?->getContent();
             $fftaProfilePictureChecksum = $fftaProfilePicture instanceof LicenseeAttachment ? sha1((string) $fftaProfilePictureContent) : null;
