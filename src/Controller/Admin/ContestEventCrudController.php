@@ -164,7 +164,7 @@ class ContestEventCrudController extends AbstractCrudController
             $entityManager->persist($eventAttachment);
             $entityManager->flush();
 
-            $resultLines = $this->resultArcParser->parseFile($file);
+            $resultLines = $this->resultArcParser->parseFile($file->getRealPath());
 
             /** @var LicenseeRepository $licenseeRepository */
             $licenseeRepository = $entityManager->getRepository(

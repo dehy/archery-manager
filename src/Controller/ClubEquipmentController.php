@@ -22,6 +22,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class ClubEquipmentController extends BaseController
 {
+    private const string NO_ACTIVE_CLUB_ERROR = 'Aucun club actif trouvé';
+
     public function __construct(
         LicenseeHelper $licenseeHelper,
         SeasonHelper $seasonHelper,
@@ -38,7 +40,7 @@ class ClubEquipmentController extends BaseController
         $this->assertHasValidLicense();
         $club = $this->clubHelper->activeClub();
         if (!$club instanceof \App\Entity\Club) {
-            throw $this->createNotFoundException('Aucun club actif trouvé');
+            throw $this->createNotFoundException(self::NO_ACTIVE_CLUB_ERROR);
         }
 
         $equipment = $this->equipmentRepository->findByClub($club);
@@ -61,7 +63,7 @@ class ClubEquipmentController extends BaseController
 
         $club = $this->clubHelper->activeClub();
         if (!$club instanceof \App\Entity\Club) {
-            throw $this->createNotFoundException('Aucun club actif trouvé');
+            throw $this->createNotFoundException(self::NO_ACTIVE_CLUB_ERROR);
         }
 
         $equipment = new ClubEquipment();
@@ -240,7 +242,7 @@ class ClubEquipmentController extends BaseController
         $this->assertHasValidLicense();
         $club = $this->clubHelper->activeClub();
         if (!$club instanceof \App\Entity\Club) {
-            throw $this->createNotFoundException('Aucun club actif trouvé');
+            throw $this->createNotFoundException(self::NO_ACTIVE_CLUB_ERROR);
         }
 
         $activeLoans = $this->loanRepository->findActiveLoans();
