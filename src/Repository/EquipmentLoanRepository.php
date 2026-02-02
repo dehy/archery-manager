@@ -15,7 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class EquipmentLoanRepository extends ServiceEntityRepository
 {
-    private const string FILTER_RETURN_DATE_NULL = self::FILTER_RETURN_DATE_NULL;
+    private const string FILTER_RETURN_DATE_NULL = 'el.returnDate IS NULL';
 
     public function __construct(ManagerRegistry $registry)
     {

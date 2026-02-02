@@ -20,7 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class LicenseApplicationController extends AbstractController
 {
-    private const string ERROR_ALREADY_PROCESSED = self::ERROR_ALREADY_PROCESSED;
+    private const string ERROR_ALREADY_PROCESSED = 'Cette demande a déjà été traitée.';
 
     public function __construct(
         private readonly LicenseeHelper $licenseeHelper,

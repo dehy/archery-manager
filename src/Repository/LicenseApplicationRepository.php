@@ -21,7 +21,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class LicenseApplicationRepository extends ServiceEntityRepository
 {
-    private const string FILTER_SEASON = self::FILTER_SEASON;
+    private const string FILTER_SEASON = 'la.season = :season';
 
     public function __construct(ManagerRegistry $registry)
     {

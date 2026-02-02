@@ -21,7 +21,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ClubEquipmentType extends AbstractType
 {
-    private const string PLACEHOLDER_SELECT_TYPE = self::PLACEHOLDER_SELECT_TYPE;
+    private const string PLACEHOLDER_SELECT_TYPE = 'Sélectionnez un type';
 
     #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void

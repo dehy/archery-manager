@@ -14,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ClubEquipmentRepository extends ServiceEntityRepository
 {
-    private const string FILTER_CLUB = self::FILTER_CLUB;
+    private const string FILTER_CLUB = 'ce.club = :club';
 
     public function __construct(ManagerRegistry $registry)
     {
