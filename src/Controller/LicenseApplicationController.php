@@ -43,25 +43,9 @@ class LicenseApplicationController extends AbstractController
 
         $currentSeason = $this->seasonHelper->getSelectedSeason();
 
-        // Check if already has a valid license for current season
-        $currentLicense = $licensee->getLicenseForSeason($currentSeason);
-        if ($currentLicense instanceof \App\Entity\License) {
-            $this->addFlash('info', 'Vous avez déjà une licence valide pour cette saison.');
-
-            return $this->redirectToRoute('app_homepage');
-        }
-
-        // Check if already has a pending application for current season
-        $existingApplications = $this->applicationRepository->findByLicenseeAndSeason($licensee, $currentSeason);
-        $pendingApplications = array_filter(
-            $existingApplications,
-            static fn (LicenseApplication $app): bool => $app->isPending(),
-        );
-
-        if ([] !== $pendingApplications) {
-            $this->addFlash('info', 'Vous avez déjà une demande de licence en attente.');
-
-            return $this->redirectToRoute('app_license_application_status');
+        $validationResponse = $this->validateLicenseApplication($licensee, $currentSeason);
+        if ($validationResponse instanceof Response) {
+            return $validationResponse;
         }
 
         $application = new LicenseApplication();
@@ -84,6 +68,32 @@ class LicenseApplicationController extends AbstractController
             'form' => $form,
             'application' => $application,
         ]);
+    }
+
+    private function validateLicenseApplication(\App\Entity\Licensee $licensee, int $currentSeason): ?Response
+    {
+        // Check if already has a valid license for current season
+        $currentLicense = $licensee->getLicenseForSeason($currentSeason);
+        if ($currentLicense instanceof \App\Entity\License) {
+            $this->addFlash('info', 'Vous avez déjà une licence valide pour cette saison.');
+
+            return $this->redirectToRoute('app_homepage');
+        }
+
+        // Check if already has a pending application for current season
+        $existingApplications = $this->applicationRepository->findByLicenseeAndSeason($licensee, $currentSeason);
+        $pendingApplications = array_filter(
+            $existingApplications,
+            static fn (LicenseApplication $app): bool => $app->isPending(),
+        );
+
+        if ([] !== $pendingApplications) {
+            $this->addFlash('info', 'Vous avez déjà une demande de licence en attente.');
+
+            return $this->redirectToRoute('app_license_application_status');
+        }
+
+        return null;
     }
 
     #[Route('/license-application/status', name: 'app_license_application_status', methods: ['GET'])]
