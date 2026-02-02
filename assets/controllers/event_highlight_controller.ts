@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus";
 
-export default class extends Controller {
-    static targets = ["listItem", "calendarEvent"];
+export default class EventHighlightController extends Controller {
+    static readonly targets = ["listItem", "calendarEvent"];
 
     declare readonly listItemTargets: HTMLElement[];
     declare readonly calendarEventTargets: HTMLElement[];

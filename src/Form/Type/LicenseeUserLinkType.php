@@ -17,6 +17,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class LicenseeUserLinkType extends AbstractType
 {
+    private const string LABEL_EXISTING_USER = 'Utilisateur existant';
+    private const string USER_DISPLAY_FORMAT = '%s %s (%s)';
+    private const string PLACEHOLDER_SELECT_USER = 'Sélectionner un utilisateur';
+    private const string LABEL_NEW_ACCOUNT_EMAIL = 'Email du nouveau compte';
+
     #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -32,14 +37,14 @@ class LicenseeUserLinkType extends AbstractType
                 'data' => 'new',
             ])
             ->add('existing_user', EntityType::class, [
-                'label' => 'Utilisateur existant',
+                'label' => self::LABEL_EXISTING_USER,
                 'class' => User::class,
-                'choice_label' => static fn (User $user): string => \sprintf('%s %s (%s)', $user->getFirstname(), $user->getLastname(), $user->getEmail()),
-                'placeholder' => 'Sélectionner un utilisateur',
+                'choice_label' => static fn (User $user): string => \sprintf(self::USER_DISPLAY_FORMAT, $user->getFirstname(), $user->getLastname(), $user->getEmail()),
+                'placeholder' => self::PLACEHOLDER_SELECT_USER,
                 'required' => false,
             ])
             ->add('email', EmailType::class, [
-                'label' => 'Email du nouveau compte',
+                'label' => self::LABEL_NEW_ACCOUNT_EMAIL,
                 'required' => false,
                 'mapped' => false,
                 'constraints' => [
@@ -56,10 +61,10 @@ class LicenseeUserLinkType extends AbstractType
             if ('existing' === ($data['user_choice'] ?? null)) {
                 // Remove and re-add existing_user field with required constraint
                 $form->add('existing_user', EntityType::class, [
-                    'label' => 'Utilisateur existant',
+                    'label' => self::LABEL_EXISTING_USER,
                     'class' => User::class,
-                    'choice_label' => static fn (User $user): string => \sprintf('%s %s (%s)', $user->getFirstname(), $user->getLastname(), $user->getEmail()),
-                    'placeholder' => 'Sélectionner un utilisateur',
+                    'choice_label' => static fn (User $user): string => \sprintf(self::USER_DISPLAY_FORMAT, $user->getFirstname(), $user->getLastname(), $user->getEmail()),
+                    'placeholder' => self::PLACEHOLDER_SELECT_USER,
                     'required' => true,
                     'constraints' => [
                         new Assert\NotBlank(message: 'Veuillez sélectionner un utilisateur.'),
@@ -68,7 +73,7 @@ class LicenseeUserLinkType extends AbstractType
 
                 // Email not required
                 $form->add('email', EmailType::class, [
-                    'label' => 'Email du nouveau compte',
+                    'label' => self::LABEL_NEW_ACCOUNT_EMAIL,
                     'required' => false,
                     'mapped' => false,
                     'constraints' => [
@@ -78,16 +83,16 @@ class LicenseeUserLinkType extends AbstractType
             } else {
                 // existing_user not required
                 $form->add('existing_user', EntityType::class, [
-                    'label' => 'Utilisateur existant',
+                    'label' => self::LABEL_EXISTING_USER,
                     'class' => User::class,
-                    'choice_label' => static fn (User $user): string => \sprintf('%s %s (%s)', $user->getFirstname(), $user->getLastname(), $user->getEmail()),
-                    'placeholder' => 'Sélectionner un utilisateur',
+                    'choice_label' => static fn (User $user): string => \sprintf(self::USER_DISPLAY_FORMAT, $user->getFirstname(), $user->getLastname(), $user->getEmail()),
+                    'placeholder' => self::PLACEHOLDER_SELECT_USER,
                     'required' => false,
                 ]);
 
                 // Email required for new user
                 $form->add('email', EmailType::class, [
-                    'label' => 'Email du nouveau compte',
+                    'label' => self::LABEL_NEW_ACCOUNT_EMAIL,
                     'required' => true,
                     'mapped' => false,
                     'constraints' => [

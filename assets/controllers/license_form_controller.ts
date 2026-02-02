@@ -8,8 +8,8 @@ import { Controller } from '@hotwired/stimulus';
  * - Category determines available License Types
  * - User can only select valid combinations
  */
-export default class extends Controller {
-    static targets = ['ageCategory', 'category', 'type'];
+export default class LicenseFormController extends Controller {
+    static readonly targets = ['ageCategory', 'category', 'type'];
 
     declare readonly ageCategoryTarget: HTMLSelectElement;
     declare readonly categoryTarget: HTMLSelectElement;
