@@ -9,6 +9,7 @@ use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\Season;
 use App\Entity\User;
+use App\Exception\UserNotFoundException;
 use App\Form\Type\LicenseeFormType;
 use App\Form\Type\LicenseeGroupSelectionType;
 use App\Form\Type\LicenseeUserLinkType;
@@ -73,36 +74,45 @@ class LicenseeManagementController extends BaseController
         }
 
         try {
-            $scrapper = $this->fftaHelper->getScrapper($club);
-            $fftaId = $scrapper->findLicenseeIdFromCode($fftaMemberCode);
-            if (null === $fftaId || 0 === $fftaId) {
-                $this->addFlash('danger', 'Licencié non trouvé sur le site FFTA.');
-
-                return $this->redirectToRoute('app_licensee_new_choice');
-            }
-
-            $currentSeason = $this->seasonHelper->getSelectedSeason();
-            $fftaLicensee = $scrapper->fetchLicenseeProfile($fftaId, $currentSeason);
-
-            if (!$fftaLicensee) {
-                $this->addFlash('danger', 'Impossible de récupérer les données du licencié.');
-
-                return $this->redirectToRoute('app_licensee_new_choice');
-            }
-
-            // Store FFTA data in session for next steps
-            $session = $request->getSession();
-            $session->set('licensee_creation', [
-                'from_ffta' => true,
-                'ffta_data' => $fftaLicensee,
-            ]);
-
-            return $this->redirectToRoute('app_licensee_new_step1');
+            return $this->processFftaImport($club, $fftaMemberCode, $request);
         } catch (\Exception $exception) {
             $this->addFlash('danger', 'Erreur lors de la synchronisation FFTA : '.$exception->getMessage());
 
             return $this->redirectToRoute('app_licensee_new_choice');
         }
+    }
+
+    private function processFftaImport(
+        \App\Entity\Club $club,
+        string $fftaMemberCode,
+        Request $request,
+    ): Response {
+        $scrapper = $this->fftaHelper->getScrapper($club);
+        $fftaId = $scrapper->findLicenseeIdFromCode($fftaMemberCode);
+
+        if (null === $fftaId || 0 === $fftaId) {
+            $this->addFlash('danger', 'Licencié non trouvé sur le site FFTA.');
+
+            return $this->redirectToRoute('app_licensee_new_choice');
+        }
+
+        $currentSeason = $this->seasonHelper->getSelectedSeason();
+        $fftaLicensee = $scrapper->fetchLicenseeProfile($fftaId, $currentSeason);
+
+        if (!$fftaLicensee) {
+            $this->addFlash('danger', 'Impossible de récupérer les données du licencié.');
+
+            return $this->redirectToRoute('app_licensee_new_choice');
+        }
+
+        // Store FFTA data in session for next steps
+        $session = $request->getSession();
+        $session->set('licensee_creation', [
+            'from_ffta' => true,
+            'ffta_data' => $fftaLicensee,
+        ]);
+
+        return $this->redirectToRoute('app_licensee_new_step1');
     }
 
     #[Route('/licensees/manage/new/manual', name: 'app_licensee_new_manual', methods: ['GET'])]
@@ -333,7 +343,7 @@ class LicenseeManagementController extends BaseController
                 if ('existing' === $userChoice) {
                     $user = $existingUser;
                     if (!$user) {
-                        throw new \Exception('Utilisateur introuvable.');
+                        throw new UserNotFoundException('Utilisateur introuvable.');
                     }
                 } else {
                     // Create new user
