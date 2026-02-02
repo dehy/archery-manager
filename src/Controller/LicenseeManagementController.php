@@ -17,7 +17,6 @@ use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
 use App\Helper\LicenseHelper;
 use App\Repository\GroupRepository;
-use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

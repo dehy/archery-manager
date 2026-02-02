@@ -18,8 +18,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 class LicenseeUserLinkType extends AbstractType
 {
     private const string LABEL_EXISTING_USER = 'Utilisateur existant';
+
     private const string USER_DISPLAY_FORMAT = '%s %s (%s)';
+
     private const string PLACEHOLDER_SELECT_USER = 'Sélectionner un utilisateur';
+
     private const string LABEL_NEW_ACCOUNT_EMAIL = 'Email du nouveau compte';
 
     #[\Override]

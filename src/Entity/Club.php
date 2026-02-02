@@ -275,7 +275,7 @@ class Club implements \Stringable
 
     public function generateLogoName(): string
     {
-        return strtolower((new AsciiSlugger())->slug($this->getName())->toString());
+        return strtolower(new AsciiSlugger()->slug($this->getName())->toString());
     }
 
     public function getFftaUsername(): ?string
