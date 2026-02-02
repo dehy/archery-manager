@@ -48,6 +48,11 @@ class LicenseApplicationController extends AbstractController
             return $validationResponse;
         }
 
+        return $this->handleApplicationForm($request, $licensee, $currentSeason);
+    }
+
+    private function handleApplicationForm(Request $request, \App\Entity\Licensee $licensee, int $currentSeason): Response
+    {
         $application = new LicenseApplication();
         $application->setLicensee($licensee);
         $application->setSeason($currentSeason);
