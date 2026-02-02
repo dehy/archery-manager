@@ -55,6 +55,11 @@ class LicenseApplicationVoter extends Voter
             return false;
         }
 
+        return $this->hasMatchingClub($application, $user);
+    }
+
+    private function hasMatchingClub(LicenseApplication $application, User $user): bool
+    {
         $licensees = $user->getLicensees();
         foreach ($licensees as $licensee) {
             $license = $licensee->getLicenseForSeason(
