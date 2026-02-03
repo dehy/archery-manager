@@ -10,6 +10,7 @@ services:
       - GITHUB_REF
       - GITHUB_BASE_REF
       - GITHUB_HEAD_REF
+      - FONTAWESOME_NPM_AUTH_TOKEN
     command: sut
 
   database:
