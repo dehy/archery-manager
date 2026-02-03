@@ -208,38 +208,9 @@ class LicenseeManagementController extends BaseController
         $license->setClub($club);
         $license->setSeason($currentSeason);
 
-        // Calculate suggested values based on birthdate
-        $suggestedAgeCategory = null;
-        $suggestedCategory = null;
-        $birthdateDisplay = null;
-        if (!empty($creationData['licensee']['birthdate'])) {
-            try {
-                $birthdate = new \DateTimeImmutable($creationData['licensee']['birthdate']);
-                $birthdateDisplay = $birthdate->format('d/m/Y');
-                $suggestedAgeCategory = $this->licenseHelper->ageCategoryForBirthdate($birthdate);
-                $suggestedCategory = $this->licenseHelper->categoryTypeForAgeCategory($suggestedAgeCategory);
-            } catch (\Exception) {
-                // Invalid birthdate, ignore suggestions
-            }
-        }
+        [$suggestedAgeCategory, $suggestedCategory, $birthdateDisplay] = $this->calculateLicenseSuggestions($creationData);
 
-        // Pre-fill from FFTA if available
-        if (!empty($creationData['from_ffta']) && !empty($creationData['ffta_data'])) {
-            $fftaData = $creationData['ffta_data'];
-            if (!empty($fftaData['license'])) {
-                $licenseData = $fftaData['license'];
-                $license->setType($licenseData['type'] ?? null);
-                $license->setCategory($licenseData['category'] ?? null);
-                $license->setAgeCategory($licenseData['ageCategory'] ?? null);
-                if (!empty($licenseData['activities'])) {
-                    $license->setActivities($licenseData['activities']);
-                }
-            }
-        } elseif ($suggestedAgeCategory && $suggestedCategory) {
-            // Pre-select based on birthdate if not from FFTA
-            $license->setAgeCategory($suggestedAgeCategory);
-            $license->setCategory($suggestedCategory);
-        }
+        $this->prefillLicenseData($license, $creationData, $suggestedAgeCategory, $suggestedCategory);
 
         $form = $this->createForm(LicenseFormType::class, $license);
         $form->handleRequest($request);
@@ -330,58 +301,13 @@ class LicenseeManagementController extends BaseController
             $email = $form->get('email')->getData();
 
             try {
-                // Create Licensee
-                $licensee = new Licensee();
-                $licensee->setFirstname($creationData['licensee']['firstname']);
-                $licensee->setLastname($creationData['licensee']['lastname']);
-                $licensee->setGender($creationData['licensee']['gender']);
-                $licensee->setBirthdate(new \DateTime($creationData['licensee']['birthdate']));
-                $licensee->setFftaMemberCode($creationData['licensee']['fftaMemberCode']);
-                $licensee->setFftaId($creationData['licensee']['fftaId']);
-
-                // Link or create user
-                if ('existing' === $userChoice) {
-                    $user = $existingUser;
-                    if (!$user) {
-                        throw new UserNotFoundException('Utilisateur introuvable.');
-                    }
-                } else {
-                    // Create new user
-                    $user = new User();
-                    $user->setEmail($email);
-                    $user->setFirstname($creationData['licensee']['firstname']);
-                    $user->setLastname($creationData['licensee']['lastname']);
-                    $user->setGender($creationData['licensee']['gender']);
-                    $user->setRoles(['ROLE_USER']);
-                    // Password will be set via reset password flow
-                    $entityManager->persist($user);
-                }
-
-                $licensee->setUser($user);
-
-                // Create License
-                $club = $this->clubHelper->getClubForUser($this->getUser());
-                $license = new License();
-                $license->setLicensee($licensee);
-                $license->setClub($club);
-                $license->setSeason($creationData['license']['season']);
-                $license->setType($creationData['license']['type']);
-                $license->setCategory($creationData['license']['category']);
-                $license->setAgeCategory($creationData['license']['ageCategory']);
-                $license->setActivities($creationData['license']['activities']);
-
-                $entityManager->persist($licensee);
-                $entityManager->persist($license);
-
-                // Add to groups
-                foreach ($creationData['groups'] as $groupId) {
-                    $group = $this->groupRepository->find($groupId);
-                    if ($group) {
-                        $licensee->addGroup($group);
-                    }
-                }
-
-                $entityManager->flush();
+                $licensee = $this->createAndLinkLicensee(
+                    $creationData,
+                    $userChoice,
+                    $existingUser,
+                    $email,
+                    $entityManager
+                );
 
                 // Clear session
                 $session->remove('licensee_creation');
@@ -411,5 +337,110 @@ class LicenseeManagementController extends BaseController
         $this->addFlash('info', 'Création de licencié annulée.');
 
         return $this->redirectToRoute('app_licensee_index');
+    }
+
+    /**
+     * Calculate license suggestions based on birthdate.
+     *
+     * @return array{0: ?string, 1: ?string, 2: ?string}
+     */
+    private function calculateLicenseSuggestions(array $creationData): array
+    {
+        if (empty($creationData['licensee']['birthdate'])) {
+            return [null, null, null];
+        }
+
+        try {
+            $birthdate = new \DateTimeImmutable($creationData['licensee']['birthdate']);
+            $birthdateDisplay = $birthdate->format('d/m/Y');
+            $suggestedAgeCategory = $this->licenseHelper->ageCategoryForBirthdate($birthdate);
+            $suggestedCategory = $this->licenseHelper->categoryTypeForAgeCategory($suggestedAgeCategory);
+
+            return [$suggestedAgeCategory, $suggestedCategory, $birthdateDisplay];
+        } catch (\Exception) {
+            return [null, null, null];
+        }
+    }
+
+    /**
+     * Pre-fill license data from FFTA or suggestions.
+     */
+    private function prefillLicenseData(License $license, array $creationData, ?string $suggestedAgeCategory, ?string $suggestedCategory): void
+    {
+        if (!empty($creationData['from_ffta']) && !empty($creationData['ffta_data'])) {
+            $fftaData = $creationData['ffta_data'];
+            if (!empty($fftaData['license'])) {
+                $licenseData = $fftaData['license'];
+                $license->setType($licenseData['type'] ?? null);
+                $license->setCategory($licenseData['category'] ?? null);
+                $license->setAgeCategory($licenseData['ageCategory'] ?? null);
+                if (!empty($licenseData['activities'])) {
+                    $license->setActivities($licenseData['activities']);
+                }
+            }
+        } elseif ($suggestedAgeCategory && $suggestedCategory) {
+            $license->setAgeCategory($suggestedAgeCategory);
+            $license->setCategory($suggestedCategory);
+        }
+    }
+
+    /**
+     * Create licensee and link to user (existing or new).
+     */
+    private function createAndLinkLicensee(
+        array $creationData,
+        string $userChoice,
+        ?User $existingUser,
+        ?string $email,
+        EntityManagerInterface $entityManager
+    ): Licensee {
+        $licensee = new Licensee();
+        $licensee->setFirstname($creationData['licensee']['firstname']);
+        $licensee->setLastname($creationData['licensee']['lastname']);
+        $licensee->setGender($creationData['licensee']['gender']);
+        $licensee->setBirthdate(new \DateTime($creationData['licensee']['birthdate']));
+        $licensee->setFftaMemberCode($creationData['licensee']['fftaMemberCode']);
+        $licensee->setFftaId($creationData['licensee']['fftaId']);
+
+        if ('existing' === $userChoice) {
+            $user = $existingUser;
+            if (!$user instanceof User) {
+                throw new UserNotFoundException('Utilisateur introuvable.');
+            }
+        } else {
+            $user = new User();
+            $user->setEmail($email);
+            $user->setFirstname($creationData['licensee']['firstname']);
+            $user->setLastname($creationData['licensee']['lastname']);
+            $user->setGender($creationData['licensee']['gender']);
+            $user->setRoles(['ROLE_USER']);
+            $entityManager->persist($user);
+        }
+
+        $licensee->setUser($user);
+
+        $club = $this->clubHelper->getClubForUser($this->getUser());
+        $license = new License();
+        $license->setLicensee($licensee);
+        $license->setClub($club);
+        $license->setSeason($creationData['license']['season']);
+        $license->setType($creationData['license']['type']);
+        $license->setCategory($creationData['license']['category']);
+        $license->setAgeCategory($creationData['license']['ageCategory']);
+        $license->setActivities($creationData['license']['activities']);
+
+        $entityManager->persist($licensee);
+        $entityManager->persist($license);
+
+        foreach ($creationData['groups'] as $groupId) {
+            $group = $this->groupRepository->find($groupId);
+            if ($group) {
+                $licensee->addGroup($group);
+            }
+        }
+
+        $entityManager->flush();
+
+        return $licensee;
     }
 }

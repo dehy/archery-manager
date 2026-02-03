@@ -120,165 +120,9 @@ class LicenseeController extends BaseController
             throw $this->createNotFoundException();
         }
 
-        // Check access: user's own licensee, OR admin/coach can see all, OR club admin can see licensees in their club
-        $hasAccess = $user->getLicensees()->contains($licensee)
-            || $this->isGranted('ROLE_ADMIN')
-            || $this->isGranted('ROLE_COACH');
+        $this->checkLicenseeAccess($user, $licensee);
 
-        // Club admins can view licensees in their club
-        if (!$hasAccess && $this->isGranted('ROLE_CLUB_ADMIN')) {
-            $currentSeason = $this->seasonHelper->getSelectedSeason();
-            $userLicensees = $user->getLicensees();
-            foreach ($userLicensees as $userLicensee) {
-                if (!($userLicense = $userLicensee->getLicenseForSeason($currentSeason))) {
-                    continue;
-                }
-
-                if (!($targetLicense = $licensee->getLicenseForSeason($currentSeason)) instanceof \App\Entity\License) {
-                    continue;
-                }
-
-                if ($userLicense->getClub() !== $targetLicense->getClub()) {
-                    continue;
-                }
-
-                $hasAccess = true;
-                break;
-            }
-        }
-
-        if (!$hasAccess) {
-            throw $this->createAccessDeniedException('Vous n\'avez pas accès à ce profil.');
-        }
-
-        $resultsBySeason = [];
-        $seasons = [];
-        /** @var Result[] $licenseeResults */
-        $licenseeResults = $this->resultRepository->findForLicensee(
-            $licensee
-        );
-        foreach ($licenseeResults as $result) {
-            $season = Season::seasonForDate($result->getEvent()->getStartsAt());
-            $seasons[\sprintf('Saison %s', $season)] = $season;
-            $groupName = \sprintf(
-                '%s %s %sm',
-                DisciplineType::getReadableValue($result->getDiscipline()),
-                LicenseActivityType::getReadableValue($result->getActivity()),
-                $result->getDistance()
-            );
-            $resultsBySeason[$season][$groupName]['max'] = $result->getMaxTotal();
-            $resultsBySeason[$season][$groupName]['results'][] = $result;
-        }
-
-        krsort($seasons);
-
-        $resultsCharts = [];
-
-        foreach ($resultsBySeason as $season => $resultsByCategory) {
-            foreach ($resultsByCategory as $category => $categoryResults) {
-                $results = $categoryResults['results'];
-                $resultsTotals = array_map(static fn (Result $result): ?int => $result->getTotal(), $results);
-
-                $lowestScore = min($resultsTotals);
-                $bestScore = max($resultsTotals);
-                $highest3Scores = $resultsTotals;
-                sort($highest3Scores);
-                $highest3Scores = \array_slice($highest3Scores, -3, 3);
-                $averageScore = floor(array_sum($highest3Scores) / \count($highest3Scores));
-
-                $scoreDiff = $bestScore - $lowestScore;
-
-                $resultsChart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
-                $resultsChart->setData([
-                    'labels' => array_map(static fn (Result $result): ?string => $result->getEvent()->getName(), $results),
-                    'datasets' => [
-                        [
-                            'label' => 'Score Total',
-                            'data' => array_map(static fn (Result $result): ?int => $result->getTotal(), $results),
-                            'backgroundColor' => array_map(
-                                static function (Result $result) use ($lowestScore, $scoreDiff): string {
-                                    if (0 === $scoreDiff) {
-                                        return ResultHelper::colorRatio(1);
-                                    }
-
-                                    return ResultHelper::colorRatio(
-                                        ($result->getTotal() - $lowestScore) / $scoreDiff
-                                    );
-                                },
-                                $results
-                            ),
-                            'datalabels' => [
-                                'color' => 'white',
-                                'font' => [
-                                    'weight' => 'bold',
-                                ],
-                                'align' => 'end',
-                            ],
-                        ],
-                    ],
-                ]);
-
-                $resultsChart->setOptions([
-                    'aspectRatio' => 5 / 3,
-                    'scales' => [
-                        'y' => [
-                            'min' => floor($lowestScore * 0.98),
-                            'max' => floor($bestScore * 1.02),
-                        ],
-                    ],
-                    'plugins' => [
-                        'legend' => [
-                            'display' => false,
-                        ],
-                        'annotation' => [
-                            'annotations' => [
-                                'lineBest' => [
-                                    'type' => 'line',
-                                    'yMin' => $bestScore,
-                                    'yMax' => $bestScore,
-                                    'borderColor' => 'rgba(227, 29, 2, 0.8)',
-                                    'borderWidth' => 2,
-                                    'label' => [
-                                        'display' => true,
-                                        'backgroundColor' => 'rgba(227, 29, 2, 0.6)',
-                                        'borderRadius' => 7,
-                                        'color' => 'white',
-                                        'font' => [
-                                            'weight' => 'bold',
-                                        ],
-                                        'content' => \sprintf('Meilleur : %s', $bestScore),
-                                        'xAdjust' => -100,
-                                    ],
-                                ],
-                                'lineAverage' => [
-                                    'type' => 'line',
-                                    'yMin' => $averageScore,
-                                    'yMax' => $averageScore,
-                                    'borderColor' => 'rgba(18, 95, 155, 0.8)',
-                                    'borderWidth' => 1,
-                                    'borderDash' => [15, 10],
-                                    'label' => [
-                                        'display' => true,
-                                        'backgroundColor' => 'rgba(18, 95, 155, 0.6)',
-                                        'borderRadius' => 7,
-                                        'color' => 'white',
-                                        'font' => [
-                                            'weight' => 'bold',
-                                        ],
-                                        'content' => \sprintf('Moyenne : %s', $averageScore),
-                                        'xAdjust' => 0,
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ]);
-
-                $resultsCharts[$season][$category] = $resultsChart;
-            }
-        }
-
-        ksort($resultsCharts);
+        [$seasons, $resultsCharts] = $this->buildResultsData($licensee);
 
         // Fetch active equipment loans for this licensee
         $activeLoans = $this->loanRepository->findActiveLoansByBorrower($licensee);
@@ -448,35 +292,7 @@ class LicenseeController extends BaseController
         /** @var User $user */
         $user = $this->getUser();
 
-        // Check permissions - same as show method
-        $hasAccess = $user->getLicensees()->contains($licensee)
-            || $this->isGranted('ROLE_ADMIN')
-            || $this->isGranted('ROLE_COACH');
-
-        if (!$hasAccess && $this->isGranted('ROLE_CLUB_ADMIN')) {
-            $currentSeason = $this->seasonHelper->getSelectedSeason();
-            $userLicensees = $user->getLicensees();
-            foreach ($userLicensees as $userLicensee) {
-                if (!($userLicense = $userLicensee->getLicenseForSeason($currentSeason))) {
-                    continue;
-                }
-
-                if (!($targetLicense = $licensee->getLicenseForSeason($currentSeason)) instanceof \App\Entity\License) {
-                    continue;
-                }
-
-                if ($userLicense->getClub() !== $targetLicense->getClub()) {
-                    continue;
-                }
-
-                $hasAccess = true;
-                break;
-            }
-        }
-
-        if (!$hasAccess) {
-            throw $this->createAccessDeniedException('Vous n\'avez pas accès à ce profil.');
-        }
+        $this->checkLicenseeAccess($user, $licensee);
 
         $form = $this->createForm(LicenseeFormType::class, $licensee);
         $form->handleRequest($request);
@@ -493,5 +309,195 @@ class LicenseeController extends BaseController
             'licensee' => $licensee,
             'form' => $form,
         ]);
+    }
+
+    /**
+     * Check if current user has access to view/edit a licensee.
+     */
+    private function checkLicenseeAccess(User $user, Licensee $licensee): void
+    {
+        $hasAccess = $user->getLicensees()->contains($licensee)
+            || $this->isGranted('ROLE_ADMIN')
+            || $this->isGranted('ROLE_COACH');
+
+        if (!$hasAccess && $this->isGranted('ROLE_CLUB_ADMIN')) {
+            $hasAccess = $this->checkClubAdminAccess($user, $licensee);
+        }
+
+        if (!$hasAccess) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas accès à ce profil.');
+        }
+    }
+
+    /**
+     * Check if club admin has access to licensee in same club.
+     */
+    private function checkClubAdminAccess(User $user, Licensee $licensee): bool
+    {
+        $currentSeason = $this->seasonHelper->getSelectedSeason();
+        $userLicensees = $user->getLicensees();
+        foreach ($userLicensees as $userLicensee) {
+            if (!($userLicense = $userLicensee->getLicenseForSeason($currentSeason))) {
+                continue;
+            }
+
+            if (!($targetLicense = $licensee->getLicenseForSeason($currentSeason)) instanceof \App\Entity\License) {
+                continue;
+            }
+
+            if ($userLicense->getClub() === $targetLicense->getClub()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Build results data grouped by season and category with charts.
+     *
+     * @return array{0: array<string, int>, 1: array<int, array<string, Chart>>}
+     */
+    private function buildResultsData(Licensee $licensee): array
+    {
+        $licenseeResults = $this->resultRepository->findForLicensee($licensee);
+        [$resultsBySeason, $seasons] = $this->groupResultsBySeason($licenseeResults);
+        krsort($seasons);
+
+        $resultsCharts = [];
+        foreach ($resultsBySeason as $season => $resultsByCategory) {
+            foreach ($resultsByCategory as $category => $categoryResults) {
+                $resultsCharts[$season][$category] = $this->buildResultChart($categoryResults['results']);
+            }
+        }
+
+        ksort($resultsCharts);
+
+        return [$seasons, $resultsCharts];
+    }
+
+    /**
+     * Group results by season and category.
+     *
+     * @param Result[] $results
+     *
+     * @return array{0: array<int, array<string, array{max: int, results: Result[]}>>, 1: array<string, int>}
+     */
+    private function groupResultsBySeason(array $results): array
+    {
+        $resultsBySeason = [];
+        $seasons = [];
+
+        foreach ($results as $result) {
+            $season = Season::seasonForDate($result->getEvent()->getStartsAt());
+            $seasons[\sprintf('Saison %s', $season)] = $season;
+            $groupName = \sprintf(
+                '%s %s %sm',
+                DisciplineType::getReadableValue($result->getDiscipline()),
+                LicenseActivityType::getReadableValue($result->getActivity()),
+                $result->getDistance()
+            );
+            $resultsBySeason[$season][$groupName]['max'] = $result->getMaxTotal();
+            $resultsBySeason[$season][$groupName]['results'][] = $result;
+        }
+
+        return [$resultsBySeason, $seasons];
+    }
+
+    /**
+     * Build chart for a category's results.
+     *
+     * @param Result[] $results
+     */
+    private function buildResultChart(array $results): Chart
+    {
+        $resultsTotals = array_map(static fn (Result $result): ?int => $result->getTotal(), $results);
+        $lowestScore = min($resultsTotals);
+        $bestScore = max($resultsTotals);
+        $highest3Scores = $resultsTotals;
+        sort($highest3Scores);
+        $highest3Scores = \array_slice($highest3Scores, -3, 3);
+        $averageScore = floor(array_sum($highest3Scores) / \count($highest3Scores));
+        $scoreDiff = $bestScore - $lowestScore;
+
+        $chart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
+        $chart->setData([
+            'labels' => array_map(static fn (Result $result): ?string => $result->getEvent()->getName(), $results),
+            'datasets' => [
+                [
+                    'label' => 'Score Total',
+                    'data' => array_map(static fn (Result $result): ?int => $result->getTotal(), $results),
+                    'backgroundColor' => array_map(
+                        static function (Result $result) use ($lowestScore, $scoreDiff): string {
+                            if (0 === $scoreDiff) {
+                                return ResultHelper::colorRatio(1);
+                            }
+
+                            return ResultHelper::colorRatio(
+                                ($result->getTotal() - $lowestScore) / $scoreDiff
+                            );
+                        },
+                        $results
+                    ),
+                    'datalabels' => [
+                        'color' => 'white',
+                        'font' => ['weight' => 'bold'],
+                        'align' => 'end',
+                    ],
+                ],
+            ],
+        ]);
+
+        $chart->setOptions([
+            'aspectRatio' => 5 / 3,
+            'scales' => [
+                'y' => [
+                    'min' => floor($lowestScore * 0.98),
+                    'max' => floor($bestScore * 1.02),
+                ],
+            ],
+            'plugins' => [
+                'legend' => ['display' => false],
+                'annotation' => [
+                    'annotations' => [
+                        'lineBest' => [
+                            'type' => 'line',
+                            'yMin' => $bestScore,
+                            'yMax' => $bestScore,
+                            'borderColor' => 'rgba(227, 29, 2, 0.8)',
+                            'borderWidth' => 2,
+                            'label' => [
+                                'display' => true,
+                                'backgroundColor' => 'rgba(227, 29, 2, 0.6)',
+                                'borderRadius' => 7,
+                                'color' => 'white',
+                                'font' => ['weight' => 'bold'],
+                                'content' => \sprintf('Meilleur : %s', $bestScore),
+                                'xAdjust' => -100,
+                            ],
+                        ],
+                        'lineAverage' => [
+                            'type' => 'line',
+                            'yMin' => $averageScore,
+                            'yMax' => $averageScore,
+                            'borderColor' => 'rgba(18, 95, 155, 0.8)',
+                            'borderWidth' => 1,
+                            'borderDash' => [15, 10],
+                            'label' => [
+                                'display' => true,
+                                'backgroundColor' => 'rgba(18, 95, 155, 0.6)',
+                                'borderRadius' => 7,
+                                'color' => 'white',
+                                'font' => ['weight' => 'bold'],
+                                'content' => \sprintf('Moyenne : %s', $averageScore),
+                                'xAdjust' => 0,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        return $chart;
     }
 }

@@ -34,38 +34,7 @@ class UserController extends BaseController
         /** @var User $currentUser */
         $currentUser = $this->getUser();
 
-        // Check permissions
-        // If not admin, check if it's the current user
-        if (!$this->isGranted('ROLE_ADMIN') && $currentUser->getId() !== $user->getId()) {
-            // If not current user, check if club admin from same club
-            if ($this->isGranted('ROLE_CLUB_ADMIN')) {
-                $currentSeason = $this->seasonHelper->getSelectedSeason();
-                $currentUserLicensees = $currentUser->getLicensees();
-                $currentClub = null;
-                foreach ($currentUserLicensees as $currentUserLicensee) {
-                    if ($license = $currentUserLicensee->getLicenseForSeason($currentSeason)) {
-                        $currentClub = $license->getClub();
-                        break;
-                    }
-                }
-
-                // Check if the user has any licensee in the same club
-                $hasAccessToClub = false;
-                foreach ($user->getLicensees() as $licensee) {
-                    $licenseeClub = $licensee->getLicenseForSeason($currentSeason)?->getClub();
-                    if ($licenseeClub && $currentClub && $licenseeClub->getId() === $currentClub->getId()) {
-                        $hasAccessToClub = true;
-                        break;
-                    }
-                }
-
-                if (!$hasAccessToClub) {
-                    throw $this->createAccessDeniedException('Vous ne pouvez pas accéder à cet utilisateur.');
-                }
-            } else {
-                throw $this->createAccessDeniedException('Vous ne pouvez accéder qu\'à votre propre profil.');
-            }
-        }
+        $this->checkUserAccess($currentUser, $user);
 
         return $this->render('user/show.html.twig', [
             'user' => $user,
@@ -96,5 +65,61 @@ class UserController extends BaseController
             'user' => $user,
             'form' => $form,
         ]);
+    }
+
+    /**
+     * Check if current user has access to view a user profile.
+     */
+    private function checkUserAccess(User $currentUser, User $targetUser): void
+    {
+        if ($this->isGranted('ROLE_ADMIN') || $currentUser->getId() === $targetUser->getId()) {
+            return;
+        }
+
+        if ($this->isGranted('ROLE_CLUB_ADMIN')) {
+            if ($this->hasClubAdminAccessToUser($currentUser, $targetUser)) {
+                return;
+            }
+
+            throw $this->createAccessDeniedException('Vous ne pouvez pas accéder à cet utilisateur.');
+        }
+
+        throw $this->createAccessDeniedException('Vous ne pouvez accéder qu\'à votre propre profil.');
+    }
+
+    /**
+     * Check if club admin has access to user in same club.
+     */
+    private function hasClubAdminAccessToUser(User $currentUser, User $targetUser): bool
+    {
+        $currentSeason = $this->seasonHelper->getSelectedSeason();
+        $currentClub = $this->getCurrentUserClub($currentUser, $currentSeason);
+
+        if (!$currentClub instanceof \App\Entity\Club) {
+            return false;
+        }
+
+        foreach ($targetUser->getLicensees() as $licensee) {
+            $licenseeClub = $licensee->getLicenseForSeason($currentSeason)?->getClub();
+            if ($licenseeClub && $licenseeClub->getId() === $currentClub->getId()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get current user's club for given season.
+     */
+    private function getCurrentUserClub(User $user, int $season): ?\App\Entity\Club
+    {
+        foreach ($user->getLicensees() as $licensee) {
+            if ($license = $licensee->getLicenseForSeason($season)) {
+                return $license->getClub();
+            }
+        }
+
+        return null;
     }
 }
