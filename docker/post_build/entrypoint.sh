@@ -87,7 +87,7 @@ if [[ "${1:-}" == "sut" ]]; then
     ${GOSU} composer install --prefer-dist
 
     # Build frontend assets for tests
-    ${GOSU} yarn install --frozen-lockfile
+    ${GOSU} yarn install --immutable
     ${GOSU} yarn run encore dev
 
     # Executing migrations
