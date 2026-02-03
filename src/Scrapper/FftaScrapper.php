@@ -59,7 +59,15 @@ class FftaScrapper
             throw new FftaCredentialsNotSetException('FFTA Credentials not set');
         }
 
-        // Create HTTP clients with realistic browser headers
+        $this->initializeHttpClients($httpClient);
+        $this->defaultParameters = $this->buildDefaultParameters();
+    }
+
+    /**
+     * Initialize HTTP clients with realistic browser headers.
+     */
+    private function initializeHttpClients(?HttpClientInterface $httpClient): void
+    {
         $defaultOptions = [
             'headers' => [
                 'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -81,8 +89,14 @@ class FftaScrapper
             $this->managerSpaceHttpClient = HttpClient::create($defaultOptions);
             $this->myFftaSpaceHttpClient = HttpClient::create($defaultOptions);
         }
+    }
 
-        $this->defaultParameters = [
+    /**
+     * Build default DataTables parameters for AJAX requests.
+     */
+    private function buildDefaultParameters(): array
+    {
+        return [
             'draw' => '1',
             'columns[0][data]' => 'code_adherent',
             'columns[0][name]' => 'personnes.code_adherent',
