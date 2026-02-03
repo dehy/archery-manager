@@ -87,6 +87,14 @@
   overflow: hidden;
   padding: 0.125rem 0.25rem;
   min-height: 1.2rem;
+  transition: all 0.2s ease;
+  
+  &.highlight {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+    z-index: 100;
+    position: relative;
+  }
 }
 
 .all-day-event {
@@ -123,18 +131,6 @@
 
 .event-list-event:hover {
   background-color: #EEEEEE;
-}
-
-// Highlight effect for calendar events (triggered by JS)
-.calendar-case .event-link {
-  transition: all 0.2s ease;
-  
-  &.highlight {
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
-    z-index: 100;
-    position: relative;
-  }
 }
 
 .calendar-case .all-day-event.highlight {
