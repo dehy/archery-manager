@@ -22,9 +22,11 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
     private const string CLUB_NAME_LADG = 'Les Archers de Guyenne';
 
     private EntityManagerInterface $entityManager;
+
     private EquipmentLoanRepository $repository;
-    private Club $club;
+
     private ClubEquipment $equipment;
+
     private Licensee $borrower;
 
     #[\Override]
@@ -42,10 +44,9 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
 
         /** @var ClubRepository $clubRepository */
         $clubRepository = $this->entityManager->getRepository(Club::class);
-        
+
         $club = $clubRepository->findOneBy(['name' => self::CLUB_NAME_LADG]);
         $this->assertInstanceOf(Club::class, $club);
-        $this->club = $club;
 
         /** @var LicenseeRepository $licenseeRepository */
         $licenseeRepository = $this->entityManager->getRepository(Licensee::class);
@@ -55,10 +56,11 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
 
         // Create test equipment
         $this->equipment = new ClubEquipment();
-        $this->equipment->setClub($this->club);
+        $this->equipment->setClub($club);
         $this->equipment->setType(ClubEquipmentType::BOW);
         $this->equipment->setName('Test Bow');
         $this->equipment->setIsAvailable(true);
+
         $this->entityManager->persist($this->equipment);
         $this->entityManager->flush();
     }
@@ -70,6 +72,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $activeLoan->setEquipment($this->equipment);
         $activeLoan->setBorrower($this->borrower);
         $activeLoan->setStartDate(new \DateTimeImmutable('-10 days'));
+
         $this->entityManager->persist($activeLoan);
 
         // Create returned loan
@@ -78,6 +81,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $returnedLoan->setBorrower($this->borrower);
         $returnedLoan->setStartDate(new \DateTimeImmutable('-30 days'));
         $returnedLoan->setReturnDate(new \DateTimeImmutable('-20 days'));
+
         $this->entityManager->persist($returnedLoan);
 
         $this->entityManager->flush();
@@ -88,6 +92,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         foreach ($result as $loan) {
             $this->assertNull($loan->getReturnDate());
         }
+
         $this->assertContains($activeLoan, $result);
         $this->assertNotContains($returnedLoan, $result);
     }
@@ -99,6 +104,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $olderLoan->setEquipment($this->equipment);
         $olderLoan->setBorrower($this->borrower);
         $olderLoan->setStartDate(new \DateTimeImmutable('-30 days'));
+
         $this->entityManager->persist($olderLoan);
 
         // Create newer loan
@@ -106,6 +112,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $newerLoan->setEquipment($this->equipment);
         $newerLoan->setBorrower($this->borrower);
         $newerLoan->setStartDate(new \DateTimeImmutable('-5 days'));
+
         $this->entityManager->persist($newerLoan);
 
         $this->entityManager->flush();
@@ -140,6 +147,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $olderLoan->setBorrower($this->borrower);
         $olderLoan->setStartDate(new \DateTimeImmutable('-30 days'));
         $olderLoan->setReturnDate(new \DateTimeImmutable('-25 days'));
+
         $this->entityManager->persist($olderLoan);
 
         // Create loan with newer start date
@@ -148,6 +156,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $newerLoan->setBorrower($this->borrower);
         $newerLoan->setStartDate(new \DateTimeImmutable('-5 days'));
         $newerLoan->setReturnDate(new \DateTimeImmutable('-1 day'));
+
         $this->entityManager->persist($newerLoan);
 
         $this->entityManager->flush();
@@ -176,6 +185,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $activeLoan->setEquipment($this->equipment);
         $activeLoan->setBorrower($this->borrower);
         $activeLoan->setStartDate(new \DateTimeImmutable('-5 days'));
+
         $this->entityManager->persist($activeLoan);
 
         // Create returned loan
@@ -184,6 +194,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $returnedLoan->setBorrower($this->borrower);
         $returnedLoan->setStartDate(new \DateTimeImmutable('-20 days'));
         $returnedLoan->setReturnDate(new \DateTimeImmutable('-10 days'));
+
         $this->entityManager->persist($returnedLoan);
 
         $this->entityManager->flush();
@@ -195,6 +206,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
             $this->assertSame($this->borrower, $loan->getBorrower());
             $this->assertNull($loan->getReturnDate());
         }
+
         $this->assertContains($activeLoan, $result);
         $this->assertNotContains($returnedLoan, $result);
     }
@@ -206,6 +218,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $activeLoan->setEquipment($this->equipment);
         $activeLoan->setBorrower($this->borrower);
         $activeLoan->setStartDate(new \DateTimeImmutable('-3 days'));
+
         $this->entityManager->persist($activeLoan);
 
         $this->entityManager->flush();
@@ -214,7 +227,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
 
         $this->assertInstanceOf(EquipmentLoan::class, $result);
         $this->assertSame($this->equipment, $result->getEquipment());
-        $this->assertNull($result->getReturnDate());
+        $this->assertNotInstanceOf(\DateTimeImmutable::class, $result->getReturnDate());
     }
 
     public function testFindCurrentLoanForEquipmentReturnsNullWhenNoActiveLoan(): void
@@ -225,12 +238,13 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $returnedLoan->setBorrower($this->borrower);
         $returnedLoan->setStartDate(new \DateTimeImmutable('-10 days'));
         $returnedLoan->setReturnDate(new \DateTimeImmutable('-5 days'));
+
         $this->entityManager->persist($returnedLoan);
 
         $this->entityManager->flush();
 
         $result = $this->repository->findCurrentLoanForEquipment($this->equipment);
 
-        $this->assertNull($result);
+        $this->assertNotInstanceOf(EquipmentLoan::class, $result);
     }
 }

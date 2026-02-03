@@ -108,7 +108,7 @@ final class LicenseApplicationTest extends TestCase
     public function testSetStatusUpdatesUpdatedAt(): void
     {
         $application = new LicenseApplication();
-        $this->assertNull($application->getUpdatedAt());
+        $this->assertNotInstanceOf(\DateTimeImmutable::class, $application->getUpdatedAt());
 
         $application->setStatus(LicenseApplicationStatusType::VALIDATED);
 
@@ -165,7 +165,7 @@ final class LicenseApplicationTest extends TestCase
     {
         $application = new LicenseApplication();
 
-        $this->assertNull($application->getUpdatedAt());
+        $this->assertNotInstanceOf(\DateTimeImmutable::class, $application->getUpdatedAt());
 
         $updatedAt = new \DateTimeImmutable('2025-02-01');
         $application->setUpdatedAt($updatedAt);
@@ -190,7 +190,7 @@ final class LicenseApplicationTest extends TestCase
     {
         $application = new LicenseApplication();
 
-        $this->assertNull($application->getProcessedBy());
+        $this->assertNotInstanceOf(User::class, $application->getProcessedBy());
 
         $user = $this->createMock(User::class);
         $application->setProcessedBy($user);

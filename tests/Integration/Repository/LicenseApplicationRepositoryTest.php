@@ -19,11 +19,15 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 final class LicenseApplicationRepositoryTest extends KernelTestCase
 {
     private const string CLUB_NAME_LADG = 'Les Archers de Guyenne';
+
     private const int TEST_SEASON = 2025;
 
     private EntityManagerInterface $entityManager;
+
     private LicenseApplicationRepository $repository;
+
     private Club $club;
+
     private Licensee $licensee;
 
     #[\Override]
@@ -91,7 +95,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $this->repository->remove($application, true);
 
         $removed = $this->repository->find($id);
-        $this->assertNull($removed);
+        $this->assertNotInstanceOf(LicenseApplication::class, $removed);
     }
 
     public function testRemoveWithoutFlush(): void
@@ -108,7 +112,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $this->entityManager->flush();
 
         $removed = $this->repository->find($id);
-        $this->assertNull($removed);
+        $this->assertNotInstanceOf(LicenseApplication::class, $removed);
     }
 
     public function testFindPendingByClubAndSeasonReturnsOnlyPendingApplications(): void
@@ -119,6 +123,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $pendingApp->setClub($this->club);
         $pendingApp->setSeason(self::TEST_SEASON);
         $pendingApp->setStatus(LicenseApplicationStatusType::PENDING);
+
         $this->repository->add($pendingApp, false);
 
         // Create validated application
@@ -127,6 +132,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $validatedApp->setClub($this->club);
         $validatedApp->setSeason(self::TEST_SEASON);
         $validatedApp->setStatus(LicenseApplicationStatusType::VALIDATED);
+
         $this->repository->add($validatedApp, false);
 
         $this->entityManager->flush();
@@ -139,6 +145,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
             $this->assertSame($this->club, $application->getClub());
             $this->assertSame(self::TEST_SEASON, $application->getSeason());
         }
+
         $this->assertContains($pendingApp, $result);
         $this->assertNotContains($validatedApp, $result);
     }
@@ -151,6 +158,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $olderApp->setClub($this->club);
         $olderApp->setSeason(self::TEST_SEASON);
         $olderApp->setCreatedAt(new \DateTimeImmutable('-10 days'));
+
         $this->repository->add($olderApp, false);
 
         // Create newer application
@@ -159,6 +167,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $newerApp->setClub($this->club);
         $newerApp->setSeason(self::TEST_SEASON);
         $newerApp->setCreatedAt(new \DateTimeImmutable('-5 days'));
+
         $this->repository->add($newerApp, false);
 
         $this->entityManager->flush();
@@ -179,6 +188,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $pendingApp->setClub($this->club);
         $pendingApp->setSeason(self::TEST_SEASON);
         $pendingApp->setStatus(LicenseApplicationStatusType::PENDING);
+
         $this->repository->add($pendingApp, false);
 
         $validatedApp = new LicenseApplication();
@@ -186,6 +196,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $validatedApp->setClub($this->club);
         $validatedApp->setSeason(self::TEST_SEASON);
         $validatedApp->setStatus(LicenseApplicationStatusType::VALIDATED);
+
         $this->repository->add($validatedApp, false);
 
         $rejectedApp = new LicenseApplication();
@@ -193,6 +204,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $rejectedApp->setClub($this->club);
         $rejectedApp->setSeason(self::TEST_SEASON);
         $rejectedApp->setStatus(LicenseApplicationStatusType::REJECTED);
+
         $this->repository->add($rejectedApp, false);
 
         $this->entityManager->flush();
@@ -204,6 +216,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
             $this->assertSame($this->club, $application->getClub());
             $this->assertSame(self::TEST_SEASON, $application->getSeason());
         }
+
         $this->assertContains($pendingApp, $result);
         $this->assertContains($validatedApp, $result);
         $this->assertContains($rejectedApp, $result);
@@ -217,6 +230,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $olderApp->setClub($this->club);
         $olderApp->setSeason(self::TEST_SEASON);
         $olderApp->setCreatedAt(new \DateTimeImmutable('-10 days'));
+
         $this->repository->add($olderApp, false);
 
         // Create newer application
@@ -225,6 +239,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $newerApp->setClub($this->club);
         $newerApp->setSeason(self::TEST_SEASON);
         $newerApp->setCreatedAt(new \DateTimeImmutable('-5 days'));
+
         $this->repository->add($newerApp, false);
 
         $this->entityManager->flush();
@@ -244,6 +259,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $application->setLicensee($this->licensee);
         $application->setClub($this->club);
         $application->setSeason(self::TEST_SEASON);
+
         $this->repository->add($application, true);
 
         $result = $this->repository->findByLicenseeAndSeason($this->licensee, self::TEST_SEASON);
@@ -253,6 +269,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
             $this->assertSame($this->licensee, $app->getLicensee());
             $this->assertSame(self::TEST_SEASON, $app->getSeason());
         }
+
         $this->assertContains($application, $result);
     }
 
@@ -264,6 +281,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $olderApp->setClub($this->club);
         $olderApp->setSeason(self::TEST_SEASON);
         $olderApp->setCreatedAt(new \DateTimeImmutable('-10 days'));
+
         $this->repository->add($olderApp, false);
 
         // Create newer application
@@ -272,6 +290,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $newerApp->setClub($this->club);
         $newerApp->setSeason(self::TEST_SEASON);
         $newerApp->setCreatedAt(new \DateTimeImmutable('-5 days'));
+
         $this->repository->add($newerApp, false);
 
         $this->entityManager->flush();

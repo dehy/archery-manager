@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 final class EquipmentLoanTest extends TestCase
 {
     private const string START_DATE = '2025-01-01';
+
     private const string RETURN_DATE = '2025-02-01';
 
     public function testConstructorInitializesTimestamps(): void
@@ -23,7 +24,7 @@ final class EquipmentLoanTest extends TestCase
 
         $this->assertInstanceOf(\DateTimeImmutable::class, $loan->getCreatedAt());
         $this->assertInstanceOf(\DateTimeImmutable::class, $loan->getStartDate());
-        $this->assertNull($loan->getReturnDate());
+        $this->assertNotInstanceOf(\DateTimeImmutable::class, $loan->getReturnDate());
     }
 
     public function testGetId(): void
@@ -126,7 +127,7 @@ final class EquipmentLoanTest extends TestCase
     {
         $loan = new EquipmentLoan();
 
-        $this->assertNull($loan->getCreatedBy());
+        $this->assertNotInstanceOf(User::class, $loan->getCreatedBy());
 
         $user = $this->createMock(User::class);
         $loan->setCreatedBy($user);
