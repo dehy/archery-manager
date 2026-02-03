@@ -305,9 +305,7 @@ class ClubEquipment
 
     public function removeLoan(EquipmentLoan $loan): self
     {
-        if ($this->loans->removeElement($loan) && $loan->getEquipment() === $this) {
-            $loan->setEquipment(null);
-        }
+        $this->loans->removeElement($loan);
 
         return $this;
     }
