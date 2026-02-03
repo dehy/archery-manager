@@ -22,8 +22,8 @@ final class LicenseTest extends TestCase
 
         $this->assertNull($license->getId());
         $this->assertNull($license->getSeason());
-        $this->assertNull($license->getLicensee());
-        $this->assertNull($license->getClub());
+        $this->assertNotInstanceOf(Licensee::class, $license->getLicensee());
+        $this->assertNotInstanceOf(Club::class, $license->getClub());
     }
 
     public function testSetAndGetSeason(): void
@@ -143,7 +143,6 @@ final class LicenseTest extends TestCase
     {
         $license = new License();
         $licensee = $this->createMock(Licensee::class);
-        $club = $this->createMock(Club::class);
         $licensee->method('addLicense');
 
         $result = $license
@@ -153,7 +152,7 @@ final class LicenseTest extends TestCase
             ->setAgeCategory(LicenseAgeCategoryType::SENIOR_1)
             ->setActivities([LicenseActivityType::CL])
             ->setLicensee($licensee)
-            ->setClub($club);
+            ->setClub($this->createMock(Club::class));
 
         $this->assertSame($license, $result);
     }

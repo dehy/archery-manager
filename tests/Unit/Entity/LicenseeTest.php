@@ -203,7 +203,7 @@ final class LicenseeTest extends TestCase
 
         $this->assertSame($license2024, $licensee->getLicenseForSeason(2024));
         $this->assertSame($license2025, $licensee->getLicenseForSeason(2025));
-        $this->assertNull($licensee->getLicenseForSeason(2026));
+        $this->assertNotInstanceOf(License::class, $licensee->getLicenseForSeason(2026));
     }
 
     public function testGetLicenseForSeasonThrowsExceptionWhenMultipleLicensesForSameSeason(): void

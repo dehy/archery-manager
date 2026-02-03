@@ -245,7 +245,7 @@ final class UserTest extends TestCase
 
         $this->assertSame($licensee1, $user->getLicenseeWithCode('12345678'));
         $this->assertSame($licensee2, $user->getLicenseeWithCode('87654321'));
-        $this->assertNull($user->getLicenseeWithCode('00000000'));
+        $this->assertNotInstanceOf(Licensee::class, $user->getLicenseeWithCode('00000000'));
     }
 
     public function testSerializeAndUnserialize(): void
