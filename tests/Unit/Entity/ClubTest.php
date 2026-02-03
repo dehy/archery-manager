@@ -98,22 +98,24 @@ final class ClubTest extends TestCase
     public function testAddAndRemoveLicense(): void
     {
         $club = new Club();
+        $license = $this->createMock(License::class);
 
-        $club->addLicense($this->createMock(License::class));
+        $club->addLicense($license);
         $this->assertCount(1, $club->getLicenses());
-        $this->assertTrue($club->getLicenses()->contains($this->createMock(License::class)));
+        $this->assertTrue($club->getLicenses()->contains($license));
 
-        $club->removeLicense($this->createMock(License::class));
+        $club->removeLicense($license);
         $this->assertCount(0, $club->getLicenses());
-        $this->assertFalse($club->getLicenses()->contains($this->createMock(License::class)));
+        $this->assertFalse($club->getLicenses()->contains($license));
     }
 
     public function testAddLicenseDoesNotDuplicateLicenses(): void
     {
         $club = new Club();
+        $license = $this->createMock(License::class);
 
-        $club->addLicense($this->createMock(License::class));
-        $club->addLicense($this->createMock(License::class));
+        $club->addLicense($license);
+        $club->addLicense($license);
 
         $this->assertCount(1, $club->getLicenses());
     }

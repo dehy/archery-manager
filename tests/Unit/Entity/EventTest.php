@@ -141,14 +141,15 @@ final class EventTest extends TestCase
     public function testAddAndRemoveParticipation(): void
     {
         $event = new Event();
+        $participation = $this->createMock(EventParticipation::class);
 
-        $event->addParticipation($this->createMock(EventParticipation::class));
+        $event->addParticipation($participation);
         $this->assertCount(1, $event->getParticipations());
-        $this->assertTrue($event->getParticipations()->contains($this->createMock(EventParticipation::class)));
+        $this->assertTrue($event->getParticipations()->contains($participation));
 
-        $event->removeParticipation($this->createMock(EventParticipation::class));
+        $event->removeParticipation($participation);
         $this->assertCount(0, $event->getParticipations());
-        $this->assertFalse($event->getParticipations()->contains($this->createMock(EventParticipation::class)));
+        $this->assertFalse($event->getParticipations()->contains($participation));
     }
 
     public function testAddParticipationDoesNotDuplicateParticipations(): void
@@ -167,14 +168,15 @@ final class EventTest extends TestCase
     public function testAddAndRemoveAttachment(): void
     {
         $event = new Event();
+        $attachment = $this->createMock(EventAttachment::class);
 
-        $event->addAttachment($this->createMock(EventAttachment::class));
+        $event->addAttachment($attachment);
         $this->assertCount(1, $event->getAttachments());
-        $this->assertTrue($event->getAttachments()->contains($this->createMock(EventAttachment::class)));
+        $this->assertTrue($event->getAttachments()->contains($attachment));
 
-        $event->removeAttachment($this->createMock(EventAttachment::class));
+        $event->removeAttachment($attachment);
         $this->assertCount(0, $event->getAttachments());
-        $this->assertFalse($event->getAttachments()->contains($this->createMock(EventAttachment::class)));
+        $this->assertFalse($event->getAttachments()->contains($attachment));
     }
 
     public function testAddAttachmentDoesNotDuplicateAttachments(): void
@@ -193,22 +195,24 @@ final class EventTest extends TestCase
     public function testAddAndRemoveAssignedGroup(): void
     {
         $event = new Event();
+        $group = $this->createMock(Group::class);
 
-        $event->addAssignedGroup($this->createMock(Group::class));
+        $event->addAssignedGroup($group);
         $this->assertCount(1, $event->getAssignedGroups());
-        $this->assertTrue($event->getAssignedGroups()->contains($this->createMock(Group::class)));
+        $this->assertTrue($event->getAssignedGroups()->contains($group));
 
-        $event->removeAssignedGroup($this->createMock(Group::class));
+        $event->removeAssignedGroup($group);
         $this->assertCount(0, $event->getAssignedGroups());
-        $this->assertFalse($event->getAssignedGroups()->contains($this->createMock(Group::class)));
+        $this->assertFalse($event->getAssignedGroups()->contains($group));
     }
 
     public function testAddAssignedGroupDoesNotDuplicateGroups(): void
     {
         $event = new Event();
+        $group = $this->createMock(Group::class);
 
-        $event->addAssignedGroup($this->createMock(Group::class));
-        $event->addAssignedGroup($this->createMock(Group::class));
+        $event->addAssignedGroup($group);
+        $event->addAssignedGroup($group);
 
         $this->assertCount(1, $event->getAssignedGroups());
     }

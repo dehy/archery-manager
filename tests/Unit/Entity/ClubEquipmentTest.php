@@ -341,9 +341,7 @@ final class ClubEquipmentTest extends TestCase
 
     public function testRemoveLoanThatDoesNotExist(): void
     {
-        $loan = $this->createMock(EquipmentLoan::class);
-
-        $result = $this->clubEquipment->removeLoan($loan);
+        $result = $this->clubEquipment->removeLoan($this->createMock(EquipmentLoan::class));
 
         $this->assertSame($this->clubEquipment, $result);
         $this->assertCount(0, $this->clubEquipment->getLoans());
@@ -351,7 +349,7 @@ final class ClubEquipmentTest extends TestCase
 
     public function testGetCurrentLoanReturnsNullWhenNoLoans(): void
     {
-        $this->assertNull($this->clubEquipment->getCurrentLoan());
+        $this->assertNotInstanceOf(EquipmentLoan::class, $this->clubEquipment->getCurrentLoan());
     }
 
     public function testGetCurrentLoanReturnsActiveLoan(): void
@@ -378,7 +376,7 @@ final class ClubEquipmentTest extends TestCase
 
         $this->clubEquipment->addLoan($returnedLoan);
 
-        $this->assertNull($this->clubEquipment->getCurrentLoan());
+        $this->assertNotInstanceOf(EquipmentLoan::class, $this->clubEquipment->getCurrentLoan());
     }
 
     public function testIsCurrentlyLoanedReturnsTrueWhenActiveLoanExists(): void

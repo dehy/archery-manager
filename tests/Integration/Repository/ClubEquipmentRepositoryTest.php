@@ -16,9 +16,11 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 final class ClubEquipmentRepositoryTest extends KernelTestCase
 {
     private const string CLUB_NAME_LADG = 'Les Archers de Guyenne';
+
     private const string CLUB_NAME_LADB = 'Les Archers du Bosquet';
 
     private ?EntityManager $entityManager;
+
     private ?ClubEquipmentRepository $repository;
 
     #[\Override]
@@ -30,7 +32,9 @@ final class ClubEquipmentRepositoryTest extends KernelTestCase
             ->get('doctrine')
             ->getManager();
 
-        $this->repository = $this->entityManager->getRepository(ClubEquipment::class);
+        /** @var ClubEquipmentRepository $repository */
+        $repository = $this->entityManager->getRepository(ClubEquipment::class);
+        $this->repository = $repository;
     }
 
     public function testFindByClubReturnsEquipmentOrderedByCreatedAt(): void
@@ -43,7 +47,7 @@ final class ClubEquipmentRepositoryTest extends KernelTestCase
 
         $this->assertIsArray($equipment);
         // Verify ordering: most recent first
-        if (count($equipment) > 1) {
+        if (\count($equipment) > 1) {
             $this->assertGreaterThanOrEqual(
                 $equipment[1]->getCreatedAt(),
                 $equipment[0]->getCreatedAt()
@@ -92,6 +96,7 @@ final class ClubEquipmentRepositoryTest extends KernelTestCase
         foreach ($equipment as $item) {
             $this->assertTrue($item->isAvailable());
         }
+
         $this->assertContains($available, $equipment);
         $this->assertNotContains($unavailable, $equipment);
     }
@@ -106,11 +111,11 @@ final class ClubEquipmentRepositoryTest extends KernelTestCase
 
         $this->assertIsArray($equipment);
         // Verify ordering: type ASC, name ASC
-        if (count($equipment) > 1) {
-            for ($i = 0; $i < count($equipment) - 1; $i++) {
+        if (\count($equipment) > 1) {
+            for ($i = 0; $i < \count($equipment) - 1; ++$i) {
                 $current = $equipment[$i];
                 $next = $equipment[$i + 1];
-                
+
                 if ($current->getType() === $next->getType()) {
                     $this->assertLessThanOrEqual(
                         $next->getName(),
@@ -225,6 +230,7 @@ final class ClubEquipmentRepositoryTest extends KernelTestCase
             $this->assertSame(ClubEquipmentType::BOW, $item->getType());
             $this->assertSame($club->getId(), $item->getClub()->getId());
         }
+
         $this->assertContains($bow, $bows);
         $this->assertNotContains($arrows, $bows);
     }
@@ -239,8 +245,8 @@ final class ClubEquipmentRepositoryTest extends KernelTestCase
 
         $this->assertIsArray($equipment);
         // Verify ordering: name ASC
-        if (count($equipment) > 1) {
-            for ($i = 0; $i < count($equipment) - 1; $i++) {
+        if (\count($equipment) > 1) {
+            for ($i = 0; $i < \count($equipment) - 1; ++$i) {
                 $this->assertLessThanOrEqual(
                     $equipment[$i + 1]->getName(),
                     $equipment[$i]->getName()

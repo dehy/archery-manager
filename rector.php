@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Rector\CodeQuality\Rector\Equal\UseIdenticalOverEqualWithSameTypeRector;
 use Rector\Config\RectorConfig;
+use Rector\PHPUnit\CodeQuality\Rector\ClassMethod\BareCreateMockAssignToDirectUseRector;
 use Rector\Symfony\CodeQuality\Rector\Class_\ControllerMethodInjectionToConstructorRector;
 use Rector\ValueObject\PhpVersion;
 
@@ -18,6 +19,11 @@ return RectorConfig::configure()
         ],
         ControllerMethodInjectionToConstructorRector::class => [
             __DIR__.'/src/Controller/Admin/*',
+        ],
+        BareCreateMockAssignToDirectUseRector::class => [
+            __DIR__.'/tests/Unit/Entity/ClubTest.php',
+            __DIR__.'/tests/Unit/Entity/EventTest.php',
+            __DIR__.'/tests/Unit/Entity/GroupTest.php',
         ],
     ])
     ->withPhpVersion(PhpVersion::PHP_84)

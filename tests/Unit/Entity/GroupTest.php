@@ -69,22 +69,24 @@ final class GroupTest extends TestCase
     public function testAddAndRemoveLicensee(): void
     {
         $group = new Group();
+        $licensee = $this->createMock(Licensee::class);
 
-        $group->addLicensee($this->createMock(Licensee::class));
+        $group->addLicensee($licensee);
         $this->assertCount(1, $group->getLicensees());
-        $this->assertTrue($group->getLicensees()->contains($this->createMock(Licensee::class)));
+        $this->assertTrue($group->getLicensees()->contains($licensee));
 
-        $group->removeLicensee($this->createMock(Licensee::class));
+        $group->removeLicensee($licensee);
         $this->assertCount(0, $group->getLicensees());
-        $this->assertFalse($group->getLicensees()->contains($this->createMock(Licensee::class)));
+        $this->assertFalse($group->getLicensees()->contains($licensee));
     }
 
     public function testAddLicenseeDoesNotDuplicateLicensees(): void
     {
         $group = new Group();
+        $licensee = $this->createMock(Licensee::class);
 
-        $group->addLicensee($this->createMock(Licensee::class));
-        $group->addLicensee($this->createMock(Licensee::class));
+        $group->addLicensee($licensee);
+        $group->addLicensee($licensee);
 
         $this->assertCount(1, $group->getLicensees());
     }
