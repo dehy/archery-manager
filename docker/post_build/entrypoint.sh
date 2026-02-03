@@ -86,6 +86,10 @@ fi
 if [[ "${1:-}" == "sut" ]]; then
     ${GOSU} composer install --prefer-dist
 
+    # Build frontend assets for tests
+    ${GOSU} yarn install --frozen-lockfile
+    ${GOSU} yarn run encore dev
+
     # Executing migrations
     ${GOSU} php bin/console doctrine:migrations:migrate --no-interaction
 
