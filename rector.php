@@ -20,11 +20,7 @@ return RectorConfig::configure()
         ControllerMethodInjectionToConstructorRector::class => [
             __DIR__.'/src/Controller/Admin/*',
         ],
-        BareCreateMockAssignToDirectUseRector::class => [
-            __DIR__.'/tests/Unit/Entity/ClubTest.php',
-            __DIR__.'/tests/Unit/Entity/EventTest.php',
-            __DIR__.'/tests/Unit/Entity/GroupTest.php',
-        ],
+        BareCreateMockAssignToDirectUseRector::class,
     ])
     ->withPhpVersion(PhpVersion::PHP_84)
     ->withPhpSets(php84: true)

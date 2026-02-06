@@ -9,27 +9,29 @@ use App\Entity\User;
 use App\Repository\LicenseeRepository;
 use App\Tests\application\LoggedInTestCase;
 
-class LicenseeControllerTest extends LoggedInTestCase
+final class LicenseeControllerTest extends LoggedInTestCase
 {
     private const string URL_INDEX = '/licensees';
+
     private const string URL_MY_PROFILE = '/my-profile';
+
     private const string URL_LICENSEE = '/licensee/';
 
     // ── Index ──────────────────────────────────────────────────────────
 
     public function testIndexRequiresAuthentication(): void
     {
-        $client = static::createClient();
-        $client->request('GET', self::URL_INDEX);
+        $client = self::createClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_INDEX);
 
         $this->assertResponseRedirects();
-        $this->assertStringContainsString('/login', $client->getResponse()->headers->get('Location'));
+        $this->assertStringContainsString('/login', (string) $client->getResponse()->headers->get('Location'));
     }
 
     public function testIndexRendersForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_INDEX);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_INDEX);
 
         $this->assertResponseIsSuccessful();
     }
@@ -37,7 +39,7 @@ class LicenseeControllerTest extends LoggedInTestCase
     public function testIndexRendersForUser(): void
     {
         $client = self::createLoggedInAsUserClient();
-        $client->request('GET', self::URL_INDEX);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_INDEX);
 
         $this->assertResponseIsSuccessful();
     }
@@ -47,11 +49,11 @@ class LicenseeControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
 
         // First load the index to see available groups
-        $client->request('GET', self::URL_INDEX);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_INDEX);
         $this->assertResponseIsSuccessful();
 
         // Try filter with a non-existent group (should still render fine)
-        $client->request('GET', self::URL_INDEX.'?group=999');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_INDEX.'?group=999');
         $this->assertResponseIsSuccessful();
     }
 
@@ -59,7 +61,7 @@ class LicenseeControllerTest extends LoggedInTestCase
     {
         $client = self::createLoggedInAsAdminClient();
 
-        $client->request('GET', self::URL_INDEX.'?group=no-group');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_INDEX.'?group=no-group');
         $this->assertResponseIsSuccessful();
     }
 
@@ -67,17 +69,17 @@ class LicenseeControllerTest extends LoggedInTestCase
 
     public function testMyProfileRequiresAuthentication(): void
     {
-        $client = static::createClient();
-        $client->request('GET', self::URL_MY_PROFILE);
+        $client = self::createClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_PROFILE);
 
         $this->assertResponseRedirects();
-        $this->assertStringContainsString('/login', $client->getResponse()->headers->get('Location'));
+        $this->assertStringContainsString('/login', (string) $client->getResponse()->headers->get('Location'));
     }
 
     public function testMyProfileRendersForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_MY_PROFILE);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_PROFILE);
 
         $this->assertResponseIsSuccessful();
     }
@@ -85,7 +87,7 @@ class LicenseeControllerTest extends LoggedInTestCase
     public function testMyProfileRendersForUser(): void
     {
         $client = self::createLoggedInAsUserClient();
-        $client->request('GET', self::URL_MY_PROFILE);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_PROFILE);
 
         $this->assertResponseIsSuccessful();
     }
@@ -102,14 +104,14 @@ class LicenseeControllerTest extends LoggedInTestCase
         $licensee = $user->getLicensees()->first();
         $this->assertInstanceOf(Licensee::class, $licensee);
 
-        $client->request('GET', self::URL_LICENSEE.$licensee->getId());
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$licensee->getId());
         $this->assertResponseIsSuccessful();
     }
 
     public function testShowNonExistentLicensee(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_LICENSEE.'99999');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.'99999');
 
         $this->assertResponseStatusCodeSame(404);
     }
@@ -119,12 +121,12 @@ class LicenseeControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
 
         // Get the user's licensee to show (admin can see any licensee)
-        $allLicensees = static::getContainer()->get(LicenseeRepository::class)->findAll();
+        $allLicensees = self::getContainer()->get(LicenseeRepository::class)->findAll();
         $this->assertNotEmpty($allLicensees);
 
         // Pick the last licensee (likely different from admin's)
         $licensee = end($allLicensees);
-        $client->request('GET', self::URL_LICENSEE.$licensee->getId());
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$licensee->getId());
 
         $this->assertResponseIsSuccessful();
     }
@@ -140,13 +142,13 @@ class LicenseeControllerTest extends LoggedInTestCase
         $licensee = $user->getLicensees()->first();
         $this->assertInstanceOf(Licensee::class, $licensee);
 
-        $client->request('GET', self::URL_LICENSEE.$licensee->getId().'/picture');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$licensee->getId().'/picture');
 
         // Should return either the real image or the SVG placeholder
         $this->assertResponseIsSuccessful();
         $contentType = $client->getResponse()->headers->get('Content-Type');
         $this->assertTrue(
-            str_contains($contentType, 'image/') || str_contains($contentType, 'svg'),
+            str_contains((string) $contentType, 'image/') || str_contains((string) $contentType, 'svg'),
             'Expected image content type, got: '.$contentType
         );
     }
@@ -154,7 +156,7 @@ class LicenseeControllerTest extends LoggedInTestCase
     public function testProfilePictureNonExistentLicensee(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_LICENSEE.'99999/picture');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.'99999/picture');
 
         $this->assertResponseStatusCodeSame(404);
     }
@@ -170,7 +172,7 @@ class LicenseeControllerTest extends LoggedInTestCase
         $licensee = $user->getLicensees()->first();
         $this->assertInstanceOf(Licensee::class, $licensee);
 
-        $client->request('GET', self::URL_LICENSEE.$licensee->getId().'/edit');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$licensee->getId().'/edit');
         $this->assertResponseIsSuccessful();
     }
 
@@ -183,7 +185,7 @@ class LicenseeControllerTest extends LoggedInTestCase
         $licensee = $user->getLicensees()->first();
         $this->assertInstanceOf(Licensee::class, $licensee);
 
-        $crawler = $client->request('GET', self::URL_LICENSEE.$licensee->getId().'/edit');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$licensee->getId().'/edit');
         $this->assertResponseIsSuccessful();
 
         // Find the form and submit with updated data
@@ -206,7 +208,7 @@ class LicenseeControllerTest extends LoggedInTestCase
         $this->assertInstanceOf(Licensee::class, $licensee);
 
         // GET should not be allowed
-        $client->request('GET', self::URL_LICENSEE.$licensee->getId().'/sync');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$licensee->getId().'/sync');
         $this->assertResponseStatusCodeSame(405);
     }
 
@@ -215,7 +217,7 @@ class LicenseeControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
 
         // Post to non-existent licensee
-        $client->request('POST', self::URL_LICENSEE.'99999/sync');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_LICENSEE.'99999/sync');
         $this->assertResponseStatusCodeSame(404);
     }
 
@@ -226,12 +228,12 @@ class LicenseeControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsUserClient();
 
         // Get the admin's licensee to attempt access
-        $allLicensees = static::getContainer()->get(LicenseeRepository::class)->findAll();
+        $allLicensees = self::getContainer()->get(LicenseeRepository::class)->findAll();
 
         // Find a licensee not belonging to user1@ladg.com
         /** @var User $currentUser */
         $currentUser = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
-        $ownLicenseeIds = $currentUser->getLicensees()->map(fn (Licensee $l) => $l->getId())->toArray();
+        $ownLicenseeIds = $currentUser->getLicensees()->map(static fn (Licensee $l): ?int => $l->getId())->toArray();
 
         $otherLicensee = null;
         foreach ($allLicensees as $l) {
@@ -242,7 +244,7 @@ class LicenseeControllerTest extends LoggedInTestCase
         }
 
         if ($otherLicensee instanceof Licensee) {
-            $client->request('GET', self::URL_LICENSEE.$otherLicensee->getId());
+            $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$otherLicensee->getId());
             // Should be 403 since user is not admin, not coach, and not same club_admin
             $this->assertResponseStatusCodeSame(403);
         } else {

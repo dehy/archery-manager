@@ -14,17 +14,16 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 
-class LicenseApplicationVoterTest extends TestCase
+final class LicenseApplicationVoterTest extends TestCase
 {
     private LicenseApplicationVoter $voter;
-    private SeasonHelper $seasonHelper;
 
     protected function setUp(): void
     {
-        $this->seasonHelper = $this->createMock(SeasonHelper::class);
-        $this->seasonHelper->method('getSelectedSeason')->willReturn(2026);
+        $seasonHelper = $this->createMock(SeasonHelper::class);
+        $seasonHelper->method('getSelectedSeason')->willReturn(2026);
 
-        $this->voter = new LicenseApplicationVoter($this->seasonHelper);
+        $this->voter = new LicenseApplicationVoter($seasonHelper);
     }
 
     public function testSupportsManageAttributeWithLicenseApplication(): void
@@ -108,14 +107,11 @@ class LicenseApplicationVoterTest extends TestCase
 
     public function testClubAdminCannotManageApplicationForDifferentClub(): void
     {
-        $applicationClub = $this->createMock(\App\Entity\Club::class);
-        $userClub = $this->createMock(\App\Entity\Club::class);
-
         $application = new LicenseApplication();
-        $application->setClub($applicationClub);
+        $application->setClub($this->createMock(\App\Entity\Club::class));
 
         $license = $this->createMock(License::class);
-        $license->method('getClub')->willReturn($userClub);
+        $license->method('getClub')->willReturn($this->createMock(\App\Entity\Club::class));
 
         $licensee = $this->createMock(Licensee::class);
         $licensee->method('getLicenseForSeason')->with(2026)->willReturn($license);
@@ -130,10 +126,8 @@ class LicenseApplicationVoterTest extends TestCase
 
     public function testClubAdminWithNoLicenseCannotManage(): void
     {
-        $club = $this->createMock(\App\Entity\Club::class);
-
         $application = new LicenseApplication();
-        $application->setClub($club);
+        $application->setClub($this->createMock(\App\Entity\Club::class));
 
         $licensee = $this->createMock(Licensee::class);
         $licensee->method('getLicenseForSeason')->with(2026)->willReturn(null);

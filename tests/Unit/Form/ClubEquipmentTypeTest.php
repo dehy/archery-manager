@@ -9,7 +9,7 @@ use App\Entity\ClubEquipment;
 use App\Form\ClubEquipmentType;
 use Symfony\Component\Form\Test\TypeTestCase;
 
-class ClubEquipmentTypeTest extends TypeTestCase
+final class ClubEquipmentTypeTest extends TypeTestCase
 {
     public function testSubmitBaseFieldsOnly(): void
     {

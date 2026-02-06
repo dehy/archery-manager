@@ -7,26 +7,27 @@ namespace App\Tests\Functional\Controller;
 use App\Entity\User;
 use App\Tests\application\LoggedInTestCase;
 
-class UserControllerTest extends LoggedInTestCase
+final class UserControllerTest extends LoggedInTestCase
 {
     private const string URL_MY_ACCOUNT = '/my-account';
+
     private const string URL_USER = '/user/';
 
     // ── My Account ─────────────────────────────────────────────────────
 
     public function testMyAccountRequiresAuthentication(): void
     {
-        $client = static::createClient();
-        $client->request('GET', self::URL_MY_ACCOUNT);
+        $client = self::createClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_ACCOUNT);
 
         $this->assertResponseRedirects();
-        $this->assertStringContainsString('/login', $client->getResponse()->headers->get('Location'));
+        $this->assertStringContainsString('/login', (string) $client->getResponse()->headers->get('Location'));
     }
 
     public function testMyAccountRendersForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_MY_ACCOUNT);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_ACCOUNT);
 
         $this->assertResponseIsSuccessful();
     }
@@ -34,7 +35,7 @@ class UserControllerTest extends LoggedInTestCase
     public function testMyAccountRendersForUser(): void
     {
         $client = self::createLoggedInAsUserClient();
-        $client->request('GET', self::URL_MY_ACCOUNT);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_ACCOUNT);
 
         $this->assertResponseIsSuccessful();
     }
@@ -48,7 +49,7 @@ class UserControllerTest extends LoggedInTestCase
         /** @var User $user */
         $user = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
 
-        $client->request('GET', self::URL_USER.$user->getId());
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_USER.$user->getId());
         $this->assertResponseIsSuccessful();
     }
 
@@ -59,7 +60,7 @@ class UserControllerTest extends LoggedInTestCase
         /** @var User $user */
         $user = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
 
-        $client->request('GET', self::URL_USER.$user->getId());
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_USER.$user->getId());
         $this->assertResponseIsSuccessful();
     }
 
@@ -72,7 +73,7 @@ class UserControllerTest extends LoggedInTestCase
         $admin = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
 
         // Find a different user via entity manager
-        $em = static::getContainer()->get('doctrine.orm.entity_manager');
+        $em = self::getContainer()->get('doctrine.orm.entity_manager');
         $allUsers = $em->getRepository(User::class)->findAll();
         $otherUser = null;
         foreach ($allUsers as $u) {
@@ -83,7 +84,7 @@ class UserControllerTest extends LoggedInTestCase
         }
 
         if ($otherUser instanceof User) {
-            $client->request('GET', self::URL_USER.$otherUser->getId());
+            $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_USER.$otherUser->getId());
             $this->assertResponseIsSuccessful();
         } else {
             $this->markTestSkipped('No other user available');
@@ -97,7 +98,7 @@ class UserControllerTest extends LoggedInTestCase
         /** @var User $currentUser */
         $currentUser = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
 
-        $em = static::getContainer()->get('doctrine.orm.entity_manager');
+        $em = self::getContainer()->get('doctrine.orm.entity_manager');
         $allUsers = $em->getRepository(User::class)->findAll();
         $otherUser = null;
         foreach ($allUsers as $u) {
@@ -108,7 +109,7 @@ class UserControllerTest extends LoggedInTestCase
         }
 
         if ($otherUser instanceof User) {
-            $client->request('GET', self::URL_USER.$otherUser->getId());
+            $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_USER.$otherUser->getId());
             $this->assertResponseStatusCodeSame(403);
         } else {
             $this->markTestSkipped('No other user available');
@@ -124,7 +125,7 @@ class UserControllerTest extends LoggedInTestCase
         /** @var User $user */
         $user = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
 
-        $client->request('GET', self::URL_USER.$user->getId().'/edit');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_USER.$user->getId().'/edit');
         $this->assertResponseIsSuccessful();
     }
 
@@ -135,7 +136,7 @@ class UserControllerTest extends LoggedInTestCase
         /** @var User $user */
         $user = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
 
-        $client->request('GET', self::URL_USER.$user->getId().'/edit');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_USER.$user->getId().'/edit');
         $this->assertResponseStatusCodeSame(403);
     }
 
@@ -146,7 +147,7 @@ class UserControllerTest extends LoggedInTestCase
         /** @var User $user */
         $user = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
 
-        $crawler = $client->request('GET', self::URL_USER.$user->getId().'/edit');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_USER.$user->getId().'/edit');
         $this->assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Enregistrer')->form();

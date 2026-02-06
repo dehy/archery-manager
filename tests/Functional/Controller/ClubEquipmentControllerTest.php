@@ -8,30 +8,32 @@ use App\DBAL\Types\ClubEquipmentType as ClubEquipmentTypeEnum;
 use App\Entity\ClubEquipment;
 use App\Repository\ClubEquipmentRepository;
 use App\Tests\application\LoggedInTestCase;
-use Doctrine\ORM\EntityManagerInterface;
 
-class ClubEquipmentControllerTest extends LoggedInTestCase
+final class ClubEquipmentControllerTest extends LoggedInTestCase
 {
     private const string URL_INDEX = '/club-equipment';
+
     private const string URL_NEW = '/club-equipment/new';
+
     private const string URL_LOANS = '/club-equipment/loans';
+
     private const string URL_EQUIPMENT = '/club-equipment/';
 
     // ── Index ──────────────────────────────────────────────────────────
 
     public function testIndexRequiresAuthentication(): void
     {
-        $client = static::createClient();
-        $client->request('GET', self::URL_INDEX);
+        $client = self::createClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_INDEX);
 
         $this->assertResponseRedirects();
-        $this->assertStringContainsString('/login', $client->getResponse()->headers->get('Location'));
+        $this->assertStringContainsString('/login', (string) $client->getResponse()->headers->get('Location'));
     }
 
     public function testIndexDeniedForRegularUser(): void
     {
         $client = self::createLoggedInAsUserClient();
-        $client->request('GET', self::URL_INDEX);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_INDEX);
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -39,7 +41,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
     public function testIndexRendersForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_INDEX);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_INDEX);
 
         $this->assertResponseIsSuccessful();
     }
@@ -49,7 +51,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
     public function testNewEquipmentFormRenders(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_NEW);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_NEW);
 
         $this->assertResponseIsSuccessful();
     }
@@ -57,7 +59,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
     public function testNewEquipmentSubmitOtherType(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $crawler = $client->request('GET', self::URL_NEW);
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_NEW);
 
         $this->assertResponseIsSuccessful();
 
@@ -73,7 +75,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
     public function testNewEquipmentDeniedForRegularUser(): void
     {
         $client = self::createLoggedInAsUserClient();
-        $client->request('GET', self::URL_NEW);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_NEW);
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -85,7 +87,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $equipmentId = $this->createTestEquipment($client);
 
-        $client->request('GET', self::URL_EQUIPMENT.$equipmentId);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId);
         $this->assertResponseIsSuccessful();
     }
 
@@ -96,7 +98,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $equipmentId = $this->createTestEquipment($client);
 
-        $client->request('GET', self::URL_EQUIPMENT.$equipmentId.'/edit');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId.'/edit');
         $this->assertResponseIsSuccessful();
     }
 
@@ -105,7 +107,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $equipmentId = $this->createTestEquipment($client);
 
-        $crawler = $client->request('GET', self::URL_EQUIPMENT.$equipmentId.'/edit');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId.'/edit');
         $this->assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Enregistrer')->form();
@@ -122,7 +124,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $equipmentId = $this->createTestEquipment($client);
 
-        $client->request('POST', self::URL_EQUIPMENT.$equipmentId.'/delete');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_EQUIPMENT.$equipmentId.'/delete');
         $this->assertResponseRedirects(self::URL_INDEX);
     }
 
@@ -131,7 +133,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $equipmentId = $this->createTestEquipment($client);
 
-        $client->request('GET', self::URL_EQUIPMENT.$equipmentId.'/delete');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId.'/delete');
         $this->assertResponseStatusCodeSame(405);
     }
 
@@ -142,7 +144,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $equipmentId = $this->createTestEquipment($client);
 
-        $client->request('GET', self::URL_EQUIPMENT.$equipmentId.'/loan');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId.'/loan');
         $this->assertResponseIsSuccessful();
     }
 
@@ -153,7 +155,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $equipmentId = $this->createTestEquipment($client);
 
-        $client->request('POST', self::URL_EQUIPMENT.$equipmentId.'/return');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_EQUIPMENT.$equipmentId.'/return');
 
         // Should redirect since equipment is not currently loaned
         $this->assertResponseRedirects(self::URL_EQUIPMENT.$equipmentId);
@@ -164,7 +166,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $equipmentId = $this->createTestEquipment($client);
 
-        $client->request('GET', self::URL_EQUIPMENT.$equipmentId.'/return');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId.'/return');
         $this->assertResponseStatusCodeSame(405);
     }
 
@@ -173,12 +175,12 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
     public function testLoansListRendersForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_LOANS);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LOANS);
 
         // Note: The loans.html.twig template may not exist yet
         $response = $client->getResponse();
         $this->assertTrue(
-            $response->isSuccessful() || 500 === $response->getStatusCode(),
+            $response->isSuccessful() || \Symfony\Component\HttpFoundation\Response::HTTP_INTERNAL_SERVER_ERROR === $response->getStatusCode(),
             'Expected success or 500 (template not yet created)'
         );
     }
@@ -186,7 +188,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
     public function testLoansListDeniedForRegularUser(): void
     {
         $client = self::createLoggedInAsUserClient();
-        $client->request('GET', self::URL_LOANS);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LOANS);
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -198,7 +200,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
      */
     private function createTestEquipment(\Symfony\Bundle\FrameworkBundle\KernelBrowser $client): int
     {
-        $crawler = $client->request('GET', self::URL_NEW);
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_NEW);
         $this->assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Enregistrer')->form();
@@ -209,7 +211,7 @@ class ClubEquipmentControllerTest extends LoggedInTestCase
         $this->assertResponseRedirects(self::URL_INDEX);
 
         // Find the created equipment
-        $equipmentRepo = static::getContainer()->get(ClubEquipmentRepository::class);
+        $equipmentRepo = self::getContainer()->get(ClubEquipmentRepository::class);
         $allEquipment = $equipmentRepo->findAll();
         $lastEquipment = end($allEquipment);
 

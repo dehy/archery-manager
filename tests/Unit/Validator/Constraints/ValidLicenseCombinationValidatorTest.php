@@ -17,7 +17,7 @@ use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 /**
  * @extends ConstraintValidatorTestCase<ValidLicenseCombinationValidator>
  */
-class ValidLicenseCombinationValidatorTest extends ConstraintValidatorTestCase
+final class ValidLicenseCombinationValidatorTest extends ConstraintValidatorTestCase
 {
     protected function createValidator(): ValidLicenseCombinationValidator
     {

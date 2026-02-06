@@ -116,11 +116,10 @@ final class EventHelperTest extends TestCase
 
     public function testCanLicenseeParticipateInEventReturnsTrueWhenNoAssignedGroups(): void
     {
-        $licensee = $this->createMock(Licensee::class);
         $event = $this->createMock(TrainingEvent::class);
         $event->method('getAssignedGroups')->willReturn(new ArrayCollection());
 
-        $result = $this->eventHelper->canLicenseeParticipateInEvent($licensee, $event);
+        $result = $this->eventHelper->canLicenseeParticipateInEvent($this->createMock(Licensee::class), $event);
 
         $this->assertTrue($result);
     }

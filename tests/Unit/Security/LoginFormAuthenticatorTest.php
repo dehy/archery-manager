@@ -17,17 +17,17 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 
-class LoginFormAuthenticatorTest extends TestCase
+final class LoginFormAuthenticatorTest extends TestCase
 {
-    private UrlGeneratorInterface $urlGenerator;
-    private EntityManagerInterface $entityManager;
+    private \PHPUnit\Framework\MockObject\MockObject $entityManager;
+
     private LoginFormAuthenticator $authenticator;
 
     protected function setUp(): void
     {
-        $this->urlGenerator = $this->createMock(UrlGeneratorInterface::class);
-        $this->urlGenerator->method('generate')->willReturnCallback(
-            static fn (string $route) => match ($route) {
+        $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
+        $urlGenerator->method('generate')->willReturnCallback(
+            static fn (string $route): string => match ($route) {
                 'app_login' => '/login',
                 'app_homepage' => '/',
                 default => '/'.$route,
@@ -35,7 +35,7 @@ class LoginFormAuthenticatorTest extends TestCase
         );
 
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->authenticator = new LoginFormAuthenticator($this->urlGenerator, $this->entityManager);
+        $this->authenticator = new LoginFormAuthenticator($urlGenerator, $this->entityManager);
     }
 
     public function testAuthenticateWithEmptyPasswordThrowsException(): void
@@ -89,7 +89,7 @@ class LoginFormAuthenticatorTest extends TestCase
         $passport = $this->authenticator->authenticate($request);
 
         $this->expectException(CustomUserMessageAuthenticationException::class);
-        $this->expectExceptionMessage('Votre compte n\'a pas encore de mot de passe');
+        $this->expectExceptionMessage("Votre compte n'a pas encore de mot de passe");
 
         $passport->getUser();
     }
@@ -106,7 +106,7 @@ class LoginFormAuthenticatorTest extends TestCase
         $passport = $this->authenticator->authenticate($request);
 
         $this->expectException(CustomUserMessageAuthenticationException::class);
-        $this->expectExceptionMessage('Votre compte n\'a pas encore de mot de passe');
+        $this->expectExceptionMessage("Votre compte n'a pas encore de mot de passe");
 
         $passport->getUser();
     }
