@@ -2,5 +2,11 @@
     "sonarlint.connectedMode.project": {
         "connectionId": "sonarcloud",
         "projectKey": "dehy_archery-manager"
+    },
+    "chat.tools.terminal.autoApprove": {
+        "/^make qa$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }

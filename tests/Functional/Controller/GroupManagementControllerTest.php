@@ -6,7 +6,6 @@ namespace App\Tests\Functional\Controller;
 
 use App\Entity\Group;
 use App\Repository\GroupRepository;
-use App\Repository\LicenseeRepository;
 use App\Tests\application\LoggedInTestCase;
 
 final class GroupManagementControllerTest extends LoggedInTestCase
@@ -20,7 +19,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsUserClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request('GET', "/admin/groups/{$groupId}/manage");
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, \sprintf('/admin/groups/%d/manage', $groupId));
         $this->assertResponseStatusCodeSame(403);
     }
 
@@ -29,7 +28,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request('GET', "/admin/groups/{$groupId}/manage");
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, \sprintf('/admin/groups/%d/manage', $groupId));
         $this->assertResponseIsSuccessful();
     }
 
@@ -38,7 +37,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $groupId = $this->getFirstGroupId();
 
-        $crawler = $client->request('GET', "/admin/groups/{$groupId}/manage");
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, \sprintf('/admin/groups/%d/manage', $groupId));
         $this->assertResponseIsSuccessful();
         // Should display some content
         $this->assertGreaterThan(0, $crawler->filter('body')->count());
@@ -51,7 +50,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsUserClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request('POST', "/admin/groups/{$groupId}/add-member", [
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, \sprintf('/admin/groups/%d/add-member', $groupId), [
             'licenseeId' => 1,
         ]);
 
@@ -63,7 +62,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request('GET', "/admin/groups/{$groupId}/add-member");
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, \sprintf('/admin/groups/%d/add-member', $groupId));
         $this->assertResponseStatusCodeSame(405);
     }
 
@@ -72,7 +71,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request('POST', "/admin/groups/{$groupId}/add-member", [
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, \sprintf('/admin/groups/%d/add-member', $groupId), [
             'licenseeId' => 99999, // Non-existent
         ]);
 
@@ -88,7 +87,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsUserClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request('POST', "/admin/groups/{$groupId}/remove-member", [
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, \sprintf('/admin/groups/%d/remove-member', $groupId), [
             'licenseeId' => 1,
         ]);
 
@@ -100,7 +99,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request('GET', "/admin/groups/{$groupId}/remove-member");
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, \sprintf('/admin/groups/%d/remove-member', $groupId));
         $this->assertResponseStatusCodeSame(405);
     }
 
@@ -109,7 +108,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request('POST', "/admin/groups/{$groupId}/remove-member", [
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, \sprintf('/admin/groups/%d/remove-member', $groupId), [
             'licenseeId' => 99999,
         ]);
 
@@ -123,7 +122,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
     public function testCreateRequiresAdmin(): void
     {
         $client = self::createLoggedInAsUserClient();
-        $client->request('GET', self::URL_CREATE);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_CREATE);
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -131,7 +130,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
     public function testCreateRendersFormForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_CREATE);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_CREATE);
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
@@ -140,7 +139,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
     public function testCreateSubmitCreatesGroup(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $crawler = $client->request('GET', self::URL_CREATE);
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_CREATE);
 
         $this->assertResponseIsSuccessful();
 
@@ -150,7 +149,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
 
         // Should redirect to manage page
         $this->assertResponseRedirects();
-        $this->assertStringContainsString('/admin/groups/', $client->getResponse()->headers->get('Location'));
+        $this->assertStringContainsString('/admin/groups/', (string) $client->getResponse()->headers->get('Location'));
     }
 
     // ── Helper ─────────────────────────────────────────────────────────
@@ -158,22 +157,23 @@ final class GroupManagementControllerTest extends LoggedInTestCase
     private function getFirstGroupId(): int
     {
         $groupRepo = self::getContainer()->get(GroupRepository::class);
-        
+
         // Get the group named 'group_ladb_competiteurs_adultes' which the admin belongs to
         $group = $groupRepo->findOneBy(['name' => 'Compétiteurs Adultes']);
-        
+
         if (!$group) {
             // Fallback: get any group from club_ladb
             $allGroups = $groupRepo->findAll();
             foreach ($allGroups as $g) {
-                if ($g->getClub()->getName() === 'Les Archers du Bosquet') {
+                if ('Les Archers du Bosquet' === $g->getClub()->getName()) {
                     $group = $g;
                     break;
                 }
             }
         }
-        
-        $this->assertInstanceOf(Group::class, $group, 'Could not find admin\'s group');
+
+        $this->assertInstanceOf(Group::class, $group, "Could not find admin's group");
+
         return $group->getId();
     }
 }

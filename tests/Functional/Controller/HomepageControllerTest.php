@@ -15,16 +15,16 @@ final class HomepageControllerTest extends LoggedInTestCase
     public function testIndexRequiresAuthentication(): void
     {
         $client = self::createClient();
-        $client->request('GET', self::URL_HOMEPAGE);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_HOMEPAGE);
 
         $this->assertResponseRedirects();
-        $this->assertStringContainsString('/login', $client->getResponse()->headers->get('Location'));
+        $this->assertStringContainsString('/login', (string) $client->getResponse()->headers->get('Location'));
     }
 
     public function testIndexRendersForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_HOMEPAGE);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_HOMEPAGE);
 
         $this->assertResponseIsSuccessful();
     }
@@ -32,7 +32,7 @@ final class HomepageControllerTest extends LoggedInTestCase
     public function testIndexRendersForUser(): void
     {
         $client = self::createLoggedInAsUserClient();
-        $client->request('GET', self::URL_HOMEPAGE);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_HOMEPAGE);
 
         $this->assertResponseIsSuccessful();
     }
@@ -40,7 +40,7 @@ final class HomepageControllerTest extends LoggedInTestCase
     public function testIndexDisplaysUpcomingEvents(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $crawler = $client->request('GET', self::URL_HOMEPAGE);
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_HOMEPAGE);
 
         $this->assertResponseIsSuccessful();
         // Page should contain content
@@ -50,7 +50,7 @@ final class HomepageControllerTest extends LoggedInTestCase
     public function testIndexDisplaysRecentResults(): void
     {
         $client = self::createLoggedInAsUserClient();
-        $crawler = $client->request('GET', self::URL_HOMEPAGE);
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_HOMEPAGE);
 
         $this->assertResponseIsSuccessful();
         // Page should render successfully with content

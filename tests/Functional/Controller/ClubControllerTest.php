@@ -15,16 +15,16 @@ final class ClubControllerTest extends LoggedInTestCase
     public function testShowRequiresAuthentication(): void
     {
         $client = self::createClient();
-        $client->request('GET', self::URL_MY_CLUB);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_CLUB);
 
         $this->assertResponseRedirects();
-        $this->assertStringContainsString('/login', $client->getResponse()->headers->get('Location'));
+        $this->assertStringContainsString('/login', (string) $client->getResponse()->headers->get('Location'));
     }
 
     public function testShowRendersForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_MY_CLUB);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_CLUB);
 
         $this->assertResponseIsSuccessful();
         // Should have an h1 with club name or page title
@@ -34,7 +34,7 @@ final class ClubControllerTest extends LoggedInTestCase
     public function testShowRendersForUser(): void
     {
         $client = self::createLoggedInAsUserClient();
-        $client->request('GET', self::URL_MY_CLUB);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_CLUB);
 
         $this->assertResponseIsSuccessful();
     }
@@ -42,7 +42,7 @@ final class ClubControllerTest extends LoggedInTestCase
     public function testShowDisplaysClubInformation(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $crawler = $client->request('GET', self::URL_MY_CLUB);
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_CLUB);
 
         $this->assertResponseIsSuccessful();
 
@@ -53,7 +53,7 @@ final class ClubControllerTest extends LoggedInTestCase
     public function testShowDisplaysGroups(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_MY_CLUB);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_CLUB);
 
         $this->assertResponseIsSuccessful();
         // Groups section should be present
@@ -63,7 +63,7 @@ final class ClubControllerTest extends LoggedInTestCase
     public function testShowDisplaysLicensees(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request('GET', self::URL_MY_CLUB);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_CLUB);
 
         $this->assertResponseIsSuccessful();
         // Licensees should be displayed somewhere on the page
