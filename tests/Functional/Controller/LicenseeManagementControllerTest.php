@@ -210,4 +210,182 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
 
         $this->assertResponseStatusCodeSame(403);
     }
+
+    // ── Full Wizard Flow ──────────────────────────────────────────────
+
+    public function testFullWizardFlowWithNewUser(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+
+        // Step 0: Manual choice
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MANUAL);
+        $this->assertResponseRedirects(self::URL_STEP1);
+
+        // Step 1: Fill licensee info
+        $crawler = $client->followRedirect();
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Suivant')->form([
+            'licensee_form[firstname]' => 'Pierre',
+            'licensee_form[lastname]' => 'Martin',
+            'licensee_form[gender]' => 'M',
+            'licensee_form[birthdate]' => '1985-03-20',
+        ]);
+        $client->submit($form);
+        $this->assertResponseRedirects(self::URL_STEP2);
+
+        // Step 2: Fill license info
+        $crawler = $client->followRedirect();
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Suivant')->form([
+            'license_form[type]' => 'A',
+            'license_form[category]' => 'A',
+            'license_form[ageCategory]' => 'S1',
+        ]);
+        $activityCheckboxes = $crawler->filter('input[name="license_form[activities][]"]');
+        if ($activityCheckboxes->count() > 0) {
+            $form['license_form[activities]'] = [$activityCheckboxes->first()->attr('value')];
+        }
+
+        $client->submit($form);
+        $this->assertResponseRedirects(self::URL_STEP3);
+
+        // Step 3: Select groups (at least one required to proceed)
+        $crawler = $client->followRedirect();
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Suivant')->form();
+        $groupCheckboxes = $crawler->filter('input[name="licensee_group_selection[groups][]"]');
+        if ($groupCheckboxes->count() > 0) {
+            $form['licensee_group_selection[groups]'] = [$groupCheckboxes->first()->attr('value')];
+        }
+
+        $client->submit($form);
+        $this->assertResponseRedirects(self::URL_STEP4);
+
+        // Step 4: User link page renders
+        $client->followRedirect();
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testStep4SubmitWithNewUserCreatesLicensee(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $uniqueId = uniqid();
+
+        // Walk through all steps
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MANUAL);
+        $crawler = $client->followRedirect();
+
+        $form = $crawler->selectButton('Suivant')->form([
+            'licensee_form[firstname]' => 'Test'.$uniqueId,
+            'licensee_form[lastname]' => 'Wizard',
+            'licensee_form[gender]' => 'F',
+            'licensee_form[birthdate]' => '2000-06-15',
+        ]);
+        $client->submit($form);
+
+        $crawler = $client->followRedirect();
+        $form = $crawler->selectButton('Suivant')->form([
+            'license_form[type]' => 'A',
+            'license_form[category]' => 'A',
+            'license_form[ageCategory]' => 'S1',
+        ]);
+        $activityCheckboxes = $crawler->filter('input[name="license_form[activities][]"]');
+        if ($activityCheckboxes->count() > 0) {
+            $form['license_form[activities]'] = [$activityCheckboxes->first()->attr('value')];
+        }
+
+        $client->submit($form);
+
+        $crawler = $client->followRedirect();
+        $form = $crawler->selectButton('Suivant')->form();
+        $groupCheckboxes = $crawler->filter('input[name="licensee_group_selection[groups][]"]');
+        if ($groupCheckboxes->count() > 0) {
+            $form['licensee_group_selection[groups]'] = [$groupCheckboxes->first()->attr('value')];
+        }
+
+        $client->submit($form);
+
+        $crawler = $client->followRedirect();
+
+        // Step 4: Submit with new user
+        $form = $crawler->selectButton('Créer le licencié')->form([
+            'licensee_user_link[user_choice]' => 'new',
+            'licensee_user_link[email]' => 'wizard-test-'.$uniqueId.'@example.com',
+        ]);
+        $client->submit($form);
+
+        // Should redirect to the created licensee's profile
+        $response = $client->getResponse();
+        $this->assertTrue(
+            $response->isRedirection(),
+            'Expected redirect after successful creation'
+        );
+    }
+
+    // ── Access Control ────────────────────────────────────────────────
+
+    public function testUserRoleCannotAccessStep1(): void
+    {
+        $client = self::createLoggedInAsUserClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_STEP1);
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testUserRoleCannotAccessStep2(): void
+    {
+        $client = self::createLoggedInAsUserClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_STEP2);
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testUserRoleCannotAccessStep3(): void
+    {
+        $client = self::createLoggedInAsUserClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_STEP3);
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testUserRoleCannotAccessStep4(): void
+    {
+        $client = self::createLoggedInAsUserClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_STEP4);
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testUserRoleCannotAccessCancel(): void
+    {
+        $client = self::createLoggedInAsUserClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_CANCEL);
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testUserRoleCannotAccessManual(): void
+    {
+        $client = self::createLoggedInAsUserClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MANUAL);
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    // ── Choice Form POST ──────────────────────────────────────────────
+
+    public function testNewChoicePostWithMissingCodeRedirectsToManual(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
+            'choice' => 'sync',
+            // Missing ffta_member_code
+        ]);
+
+        $this->assertResponseRedirects(self::URL_MANUAL);
+    }
 }

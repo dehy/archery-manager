@@ -6,7 +6,9 @@ namespace App\Tests\Functional\Controller;
 
 use App\DBAL\Types\ClubEquipmentType as ClubEquipmentTypeEnum;
 use App\Entity\ClubEquipment;
+use App\Entity\Licensee;
 use App\Repository\ClubEquipmentRepository;
+use App\Repository\LicenseeRepository;
 use App\Tests\application\LoggedInTestCase;
 
 final class ClubEquipmentControllerTest extends LoggedInTestCase
@@ -218,5 +220,98 @@ final class ClubEquipmentControllerTest extends LoggedInTestCase
         $this->assertInstanceOf(ClubEquipment::class, $lastEquipment);
 
         return $lastEquipment->getId();
+    }
+
+    // ── Full Loan & Return Flow ───────────────────────────────────────
+
+    public function testLoanSubmitAndReturnFlow(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $equipmentId = $this->createTestEquipment($client);
+
+        // Get a licensee to loan to
+        $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
+        $allLicensees = $licenseeRepo->findAll();
+        $this->assertNotEmpty($allLicensees);
+        $licensee = $allLicensees[0];
+
+        // Submit loan form
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId.'/loan');
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Confirmer le prêt')->form();
+        $form['equipment_loan[borrower]'] = $licensee->getId();
+        $client->submit($form);
+
+        $this->assertResponseRedirects(self::URL_EQUIPMENT.$equipmentId);
+
+        // Equipment is now loaned - loaning again should redirect with error
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId.'/loan');
+        $this->assertResponseRedirects(self::URL_EQUIPMENT.$equipmentId);
+
+        // Return the equipment
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_EQUIPMENT.$equipmentId.'/return');
+        $this->assertResponseRedirects(self::URL_EQUIPMENT.$equipmentId);
+    }
+
+    public function testDeleteLoanedEquipmentShowsError(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $equipmentId = $this->createTestEquipment($client);
+
+        // Loan the equipment
+        $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
+        $allLicensees = $licenseeRepo->findAll();
+        $licensee = $allLicensees[0];
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId.'/loan');
+        $form = $crawler->selectButton('Confirmer le prêt')->form();
+        $form['equipment_loan[borrower]'] = $licensee->getId();
+        $client->submit($form);
+
+        // Try to delete - should redirect with error
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_EQUIPMENT.$equipmentId.'/delete');
+        $this->assertResponseRedirects(self::URL_EQUIPMENT.$equipmentId);
+
+        // Return it so it can be cleaned up
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_EQUIPMENT.$equipmentId.'/return');
+    }
+
+    // ── New Equipment with Bow Type ───────────────────────────────────
+
+    public function testNewEquipmentSubmitBowType(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_NEW);
+
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Enregistrer')->form();
+        $form['club_equipment[type]'] = ClubEquipmentTypeEnum::BOW;
+        $form['club_equipment[name]'] = 'Test Bow '.uniqid();
+        $form['club_equipment[count]'] = '3';
+        $client->submit($form);
+
+        $this->assertResponseRedirects(self::URL_INDEX);
+    }
+
+    // ── Show non-existent equipment ───────────────────────────────────
+
+    public function testShowNonExistentEquipmentReturns404(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.'99999');
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    // ── Edit non-existent equipment ───────────────────────────────────
+
+    public function testEditNonExistentEquipmentReturns404(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.'99999/edit');
+
+        $this->assertResponseStatusCodeSame(404);
     }
 }

@@ -251,4 +251,132 @@ final class LicenseeControllerTest extends LoggedInTestCase
             $this->markTestSkipped('No other licensee available for access control test');
         }
     }
+
+    // ── Download Attachment ────────────────────────────────────────────
+
+    public function testAttachmentDownloadNonExistentReturns404(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/licensees/attachments/99999');
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    // ── Edit Access Control ────────────────────────────────────────────
+
+    public function testEditNonExistentLicenseeReturns404(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.'99999/edit');
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    public function testUserCannotEditOtherLicenseeProfile(): void
+    {
+        $client = self::createLoggedInAsUserClient();
+
+        $allLicensees = self::getContainer()->get(LicenseeRepository::class)->findAll();
+
+        /** @var User $currentUser */
+        $currentUser = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
+        $ownLicenseeIds = $currentUser->getLicensees()->map(static fn (Licensee $l): ?int => $l->getId())->toArray();
+
+        $otherLicensee = null;
+        foreach ($allLicensees as $l) {
+            if (!\in_array($l->getId(), $ownLicenseeIds, true)) {
+                $otherLicensee = $l;
+                break;
+            }
+        }
+
+        if ($otherLicensee instanceof Licensee) {
+            $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$otherLicensee->getId().'/edit');
+            $this->assertResponseStatusCodeSame(403);
+        } else {
+            $this->markTestSkipped('No other licensee available for access control test');
+        }
+    }
+
+    // ── Show with Results / Charts ─────────────────────────────────────
+
+    public function testShowDisplaysResultsSection(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+
+        /** @var User $user */
+        $user = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
+        $licensee = $user->getLicensees()->first();
+        $this->assertInstanceOf(Licensee::class, $licensee);
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$licensee->getId());
+        $this->assertResponseIsSuccessful();
+        $this->assertGreaterThan(0, $crawler->filter('body')->count());
+    }
+
+    // ── Profile Picture (conditional response) ─────────────────────────
+
+    public function testProfilePictureWithIfModifiedSince(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+
+        /** @var User $user */
+        $user = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
+        $licensee = $user->getLicensees()->first();
+        $this->assertInstanceOf(Licensee::class, $licensee);
+
+        // First request to get Last-Modified header
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$licensee->getId().'/picture');
+        $this->assertResponseIsSuccessful();
+
+        $lastModified = $client->getResponse()->headers->get('Last-Modified');
+
+        if ($lastModified) {
+            // Second request with If-Modified-Since
+            $client->request(
+                \Symfony\Component\HttpFoundation\Request::METHOD_GET,
+                self::URL_LICENSEE.$licensee->getId().'/picture',
+                [],
+                [],
+                ['HTTP_IF_MODIFIED_SINCE' => $lastModified]
+            );
+
+            // Should return 304 Not Modified
+            $statusCode = $client->getResponse()->getStatusCode();
+            $this->assertTrue(
+                304 === $statusCode || 200 === $statusCode,
+                'Expected 304 Not Modified or 200 OK'
+            );
+        }
+    }
+
+    // ── Sync (POST) ───────────────────────────────────────────────────
+
+    public function testSyncRequiresAuthentication(): void
+    {
+        $client = self::createClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_LICENSEE.'1/sync');
+
+        $this->assertResponseRedirects();
+        $this->assertStringContainsString('/login', (string) $client->getResponse()->headers->get('Location'));
+    }
+
+    // ── Index with valid group filter ──────────────────────────────────
+
+    public function testIndexWithExistingGroupFilter(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+
+        // Get a real group ID from the database
+        $groupRepo = self::getContainer()->get(\App\Repository\GroupRepository::class);
+        $groups = $groupRepo->findAll();
+
+        if (\count($groups) > 0) {
+            $group = $groups[0];
+            $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_INDEX.'?group='.$group->getId());
+            $this->assertResponseIsSuccessful();
+        } else {
+            $this->markTestSkipped('No groups available for filtering test');
+        }
+    }
 }

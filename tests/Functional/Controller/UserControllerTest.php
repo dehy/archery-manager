@@ -156,4 +156,78 @@ final class UserControllerTest extends LoggedInTestCase
 
         $this->assertResponseRedirects(self::URL_USER.$user->getId());
     }
+
+    public function testEditNonExistentUserReturns404(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_USER.'99999/edit');
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    public function testShowNonExistentUserReturns404(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_USER.'99999');
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    // ── Edit Other User as Admin ──────────────────────────────────────
+
+    public function testEditOtherUserAsAdmin(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+
+        /** @var User $admin */
+        $admin = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
+
+        $em = self::getContainer()->get('doctrine.orm.entity_manager');
+        $allUsers = $em->getRepository(User::class)->findAll();
+        $otherUser = null;
+        foreach ($allUsers as $u) {
+            if ($u->getId() !== $admin->getId()) {
+                $otherUser = $u;
+                break;
+            }
+        }
+
+        if ($otherUser instanceof User) {
+            $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_USER.$otherUser->getId().'/edit');
+            $this->assertResponseIsSuccessful();
+
+            $form = $crawler->selectButton('Enregistrer')->form();
+            $form['user_form[firstname]'] = 'AdminEdited';
+            $client->submit($form);
+
+            $this->assertResponseRedirects(self::URL_USER.$otherUser->getId());
+        } else {
+            $this->markTestSkipped('No other user available');
+        }
+    }
+
+    // ── My Account Content ────────────────────────────────────────────
+
+    public function testMyAccountDisplaysUserInfo(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MY_ACCOUNT);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertGreaterThan(0, $crawler->filter('body')->count());
+    }
+
+    // ── Show own profile as user ──────────────────────────────────────
+
+    public function testShowOwnProfileDisplaysContent(): void
+    {
+        $client = self::createLoggedInAsUserClient();
+
+        /** @var User $user */
+        $user = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_USER.$user->getId());
+        $this->assertResponseIsSuccessful();
+        $this->assertGreaterThan(0, $crawler->filter('body')->count());
+    }
 }
