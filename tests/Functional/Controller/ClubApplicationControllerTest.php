@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller;
 
-use App\DBAL\Types\LicenseApplicationStatusType;
+use App\DBAL\Types\ClubApplicationStatusType;
 use App\Entity\Club;
-use App\Entity\LicenseApplication;
+use App\Entity\ClubApplication;
 use App\Entity\Licensee;
 use App\Entity\User;
-use App\Repository\LicenseApplicationRepository;
+use App\Repository\ClubApplicationRepository;
 use App\Tests\application\LoggedInTestCase;
 
-final class LicenseApplicationControllerTest extends LoggedInTestCase
+final class ClubApplicationControllerTest extends LoggedInTestCase
 {
-    private const string URL_NEW = '/license-application/new';
+    private const string URL_NEW = '/club-application/new';
 
-    private const string URL_STATUS = '/license-application/status';
+    private const string URL_STATUS = '/club-application/status';
 
-    private const string URL_MANAGE = '/license-application/manage';
+    private const string URL_MANAGE = '/club-application/manage';
 
     // ── New Application ────────────────────────────────────────────────
 
@@ -130,14 +130,14 @@ final class LicenseApplicationControllerTest extends LoggedInTestCase
     {
         $client = self::createLoggedInAsAdminClient();
         // GET should not be allowed for validate action
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/license-application/99999/validate');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/99999/validate');
         $this->assertResponseStatusCodeSame(405);
     }
 
     public function testValidateNonExistentApplicationReturns404(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/license-application/99999/validate');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/99999/validate');
         $this->assertResponseStatusCodeSame(404);
     }
 
@@ -146,13 +146,13 @@ final class LicenseApplicationControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $applicationId = $this->createTestApplication($client);
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/license-application/'.$applicationId.'/validate');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/'.$applicationId.'/validate');
 
         $this->assertResponseRedirects(self::URL_MANAGE);
 
         // Verify status changed
-        $application = self::getContainer()->get(LicenseApplicationRepository::class)->find($applicationId);
-        $this->assertSame(LicenseApplicationStatusType::VALIDATED, $application->getStatus());
+        $application = self::getContainer()->get(ClubApplicationRepository::class)->find($applicationId);
+        $this->assertSame(ClubApplicationStatusType::VALIDATED, $application->getStatus());
     }
 
     public function testValidateAlreadyProcessedShowsWarning(): void
@@ -161,11 +161,11 @@ final class LicenseApplicationControllerTest extends LoggedInTestCase
         $applicationId = $this->createTestApplication($client);
 
         // Validate once
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/license-application/'.$applicationId.'/validate');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/'.$applicationId.'/validate');
         $this->assertResponseRedirects(self::URL_MANAGE);
 
         // Try to validate again
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/license-application/'.$applicationId.'/validate');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/'.$applicationId.'/validate');
         $this->assertResponseRedirects(self::URL_MANAGE);
     }
 
@@ -174,14 +174,14 @@ final class LicenseApplicationControllerTest extends LoggedInTestCase
     public function testWaitingListRequiresPostMethod(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/license-application/99999/waiting-list');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/99999/waiting-list');
         $this->assertResponseStatusCodeSame(405);
     }
 
     public function testWaitingListNonExistentApplicationReturns404(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/license-application/99999/waiting-list');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/99999/waiting-list');
         $this->assertResponseStatusCodeSame(404);
     }
 
@@ -190,13 +190,13 @@ final class LicenseApplicationControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $applicationId = $this->createTestApplication($client);
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/license-application/'.$applicationId.'/waiting-list');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/'.$applicationId.'/waiting-list');
 
         $this->assertResponseRedirects(self::URL_MANAGE);
 
         // Verify status changed
-        $application = self::getContainer()->get(LicenseApplicationRepository::class)->find($applicationId);
-        $this->assertSame(LicenseApplicationStatusType::WAITING_LIST, $application->getStatus());
+        $application = self::getContainer()->get(ClubApplicationRepository::class)->find($applicationId);
+        $this->assertSame(ClubApplicationStatusType::WAITING_LIST, $application->getStatus());
     }
 
     // ── Reject ─────────────────────────────────────────────────────────
@@ -204,7 +204,7 @@ final class LicenseApplicationControllerTest extends LoggedInTestCase
     public function testRejectNonExistentApplicationReturns404(): void
     {
         $client = self::createLoggedInAsUserClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/license-application/99999/reject');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/99999/reject');
         // Entity resolver returns 404 before authorization check
         $this->assertResponseStatusCodeSame(404);
     }
@@ -214,7 +214,7 @@ final class LicenseApplicationControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $applicationId = $this->createTestApplication($client);
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/license-application/'.$applicationId.'/reject');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/reject');
 
         $this->assertResponseIsSuccessful();
     }
@@ -224,19 +224,19 @@ final class LicenseApplicationControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $applicationId = $this->createTestApplication($client);
 
-        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/license-application/'.$applicationId.'/reject');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/reject');
         $this->assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Refuser')->form([
-            'license_application_reject[rejectionReason]' => 'Le club a atteint sa capacité maximale pour cette saison.',
+            'club_application_reject[rejectionReason]' => 'Le club a atteint sa capacité maximale pour cette saison.',
         ]);
         $client->submit($form);
 
         $this->assertResponseRedirects(self::URL_MANAGE);
 
         // Verify status changed
-        $application = self::getContainer()->get(LicenseApplicationRepository::class)->find($applicationId);
-        $this->assertSame(LicenseApplicationStatusType::REJECTED, $application->getStatus());
+        $application = self::getContainer()->get(ClubApplicationRepository::class)->find($applicationId);
+        $this->assertSame(ClubApplicationStatusType::REJECTED, $application->getStatus());
         $this->assertNotNull($application->getRejectionReason());
     }
 
@@ -246,11 +246,11 @@ final class LicenseApplicationControllerTest extends LoggedInTestCase
         $applicationId = $this->createTestApplication($client);
 
         // First validate it
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/license-application/'.$applicationId.'/validate');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/'.$applicationId.'/validate');
         $this->assertResponseRedirects(self::URL_MANAGE);
 
         // Then try to reject it
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/license-application/'.$applicationId.'/reject');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/reject');
         $this->assertResponseRedirects(self::URL_MANAGE);
     }
 
@@ -271,14 +271,14 @@ final class LicenseApplicationControllerTest extends LoggedInTestCase
         ]);
         $client->submit($form);
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/license-application/'.$applicationId.'/validate');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/'.$applicationId.'/validate');
         $this->assertResponseStatusCodeSame(403);
     }
 
     // ── Helper ─────────────────────────────────────────────────────────
 
     /**
-     * Create a test LicenseApplication and return its ID.
+     * Create a test ClubApplication and return its ID.
      */
     private function createTestApplication(\Symfony\Bundle\FrameworkBundle\KernelBrowser $client): int
     {
@@ -295,11 +295,11 @@ final class LicenseApplicationControllerTest extends LoggedInTestCase
         $club = $clubs[0];
 
         // Create a test application with a different (future) season to avoid conflicts
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $application->setLicensee($licensee);
         $application->setClub($club);
         $application->setSeason(2099);
-        $application->setStatus(LicenseApplicationStatusType::PENDING);
+        $application->setStatus(ClubApplicationStatusType::PENDING);
         $application->setCreatedAt(new \DateTimeImmutable());
 
         $em->persist($application);

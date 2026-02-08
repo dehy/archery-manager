@@ -48,6 +48,7 @@ final class RegistrationControllerTest extends WebTestCase
         $form['registration_form[firstname]'] = 'John';
         $form['registration_form[lastname]'] = 'Doe';
         $form['registration_form[gender]'] = 'M';
+        $form['registration_form[birthdate]'] = '1995-06-15';
         $form['registration_form[agreeTerms]'] = '1';
 
         $client->submit($form);
@@ -74,6 +75,7 @@ final class RegistrationControllerTest extends WebTestCase
         $form['registration_form[firstname]'] = 'John';
         $form['registration_form[lastname]'] = 'Doe';
         $form['registration_form[gender]'] = 'M';
+        $form['registration_form[birthdate]'] = '1995-06-15';
         $form['registration_form[agreeTerms]'] = '1';
 
         $client->submit($form);

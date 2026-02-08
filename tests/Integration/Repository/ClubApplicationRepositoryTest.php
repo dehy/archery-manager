@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Repository;
 
-use App\DBAL\Types\LicenseApplicationStatusType;
+use App\DBAL\Types\ClubApplicationStatusType;
 use App\Entity\Club;
-use App\Entity\LicenseApplication;
+use App\Entity\ClubApplication;
 use App\Entity\Licensee;
+use App\Repository\ClubApplicationRepository;
 use App\Repository\ClubRepository;
-use App\Repository\LicenseApplicationRepository;
 use App\Repository\LicenseeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-#[CoversClass(LicenseApplicationRepository::class)]
-final class LicenseApplicationRepositoryTest extends KernelTestCase
+#[CoversClass(ClubApplicationRepository::class)]
+final class ClubApplicationRepositoryTest extends KernelTestCase
 {
     private const string CLUB_NAME_LADG = 'Les Archers de Guyenne';
 
@@ -24,7 +24,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private LicenseApplicationRepository $repository;
+    private ClubApplicationRepository $repository;
 
     private Club $club;
 
@@ -39,8 +39,8 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
             ->get('doctrine')
             ->getManager();
 
-        /** @var LicenseApplicationRepository $repository */
-        $repository = $this->entityManager->getRepository(LicenseApplication::class);
+        /** @var ClubApplicationRepository $repository */
+        $repository = $this->entityManager->getRepository(ClubApplication::class);
         $this->repository = $repository;
 
         /** @var ClubRepository $clubRepository */
@@ -58,7 +58,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
 
     public function testAdd(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $application->setLicensee($this->licensee);
         $application->setClub($this->club);
         $application->setSeason(self::TEST_SEASON);
@@ -70,7 +70,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
 
     public function testAddWithoutFlush(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $application->setLicensee($this->licensee);
         $application->setClub($this->club);
         $application->setSeason(self::TEST_SEASON);
@@ -83,7 +83,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
 
     public function testRemove(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $application->setLicensee($this->licensee);
         $application->setClub($this->club);
         $application->setSeason(self::TEST_SEASON);
@@ -95,12 +95,12 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $this->repository->remove($application, true);
 
         $removed = $this->repository->find($id);
-        $this->assertNotInstanceOf(LicenseApplication::class, $removed);
+        $this->assertNotInstanceOf(ClubApplication::class, $removed);
     }
 
     public function testRemoveWithoutFlush(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $application->setLicensee($this->licensee);
         $application->setClub($this->club);
         $application->setSeason(self::TEST_SEASON);
@@ -112,26 +112,26 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $this->entityManager->flush();
 
         $removed = $this->repository->find($id);
-        $this->assertNotInstanceOf(LicenseApplication::class, $removed);
+        $this->assertNotInstanceOf(ClubApplication::class, $removed);
     }
 
     public function testFindPendingByClubAndSeasonReturnsOnlyPendingApplications(): void
     {
         // Create pending application
-        $pendingApp = new LicenseApplication();
+        $pendingApp = new ClubApplication();
         $pendingApp->setLicensee($this->licensee);
         $pendingApp->setClub($this->club);
         $pendingApp->setSeason(self::TEST_SEASON);
-        $pendingApp->setStatus(LicenseApplicationStatusType::PENDING);
+        $pendingApp->setStatus(ClubApplicationStatusType::PENDING);
 
         $this->repository->add($pendingApp, false);
 
         // Create validated application
-        $validatedApp = new LicenseApplication();
+        $validatedApp = new ClubApplication();
         $validatedApp->setLicensee($this->licensee);
         $validatedApp->setClub($this->club);
         $validatedApp->setSeason(self::TEST_SEASON);
-        $validatedApp->setStatus(LicenseApplicationStatusType::VALIDATED);
+        $validatedApp->setStatus(ClubApplicationStatusType::VALIDATED);
 
         $this->repository->add($validatedApp, false);
 
@@ -141,7 +141,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
 
         $this->assertNotEmpty($result);
         foreach ($result as $application) {
-            $this->assertSame(LicenseApplicationStatusType::PENDING, $application->getStatus());
+            $this->assertSame(ClubApplicationStatusType::PENDING, $application->getStatus());
             $this->assertSame($this->club, $application->getClub());
             $this->assertSame(self::TEST_SEASON, $application->getSeason());
         }
@@ -153,7 +153,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
     public function testFindPendingByClubAndSeasonOrdersByCreatedAtAscending(): void
     {
         // Create older application
-        $olderApp = new LicenseApplication();
+        $olderApp = new ClubApplication();
         $olderApp->setLicensee($this->licensee);
         $olderApp->setClub($this->club);
         $olderApp->setSeason(self::TEST_SEASON);
@@ -162,7 +162,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $this->repository->add($olderApp, false);
 
         // Create newer application
-        $newerApp = new LicenseApplication();
+        $newerApp = new ClubApplication();
         $newerApp->setLicensee($this->licensee);
         $newerApp->setClub($this->club);
         $newerApp->setSeason(self::TEST_SEASON);
@@ -183,27 +183,27 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
     public function testFindByClubAndSeasonReturnsAllApplications(): void
     {
         // Create applications with different statuses
-        $pendingApp = new LicenseApplication();
+        $pendingApp = new ClubApplication();
         $pendingApp->setLicensee($this->licensee);
         $pendingApp->setClub($this->club);
         $pendingApp->setSeason(self::TEST_SEASON);
-        $pendingApp->setStatus(LicenseApplicationStatusType::PENDING);
+        $pendingApp->setStatus(ClubApplicationStatusType::PENDING);
 
         $this->repository->add($pendingApp, false);
 
-        $validatedApp = new LicenseApplication();
+        $validatedApp = new ClubApplication();
         $validatedApp->setLicensee($this->licensee);
         $validatedApp->setClub($this->club);
         $validatedApp->setSeason(self::TEST_SEASON);
-        $validatedApp->setStatus(LicenseApplicationStatusType::VALIDATED);
+        $validatedApp->setStatus(ClubApplicationStatusType::VALIDATED);
 
         $this->repository->add($validatedApp, false);
 
-        $rejectedApp = new LicenseApplication();
+        $rejectedApp = new ClubApplication();
         $rejectedApp->setLicensee($this->licensee);
         $rejectedApp->setClub($this->club);
         $rejectedApp->setSeason(self::TEST_SEASON);
-        $rejectedApp->setStatus(LicenseApplicationStatusType::REJECTED);
+        $rejectedApp->setStatus(ClubApplicationStatusType::REJECTED);
 
         $this->repository->add($rejectedApp, false);
 
@@ -225,7 +225,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
     public function testFindByClubAndSeasonOrdersByCreatedAtDescending(): void
     {
         // Create older application
-        $olderApp = new LicenseApplication();
+        $olderApp = new ClubApplication();
         $olderApp->setLicensee($this->licensee);
         $olderApp->setClub($this->club);
         $olderApp->setSeason(self::TEST_SEASON);
@@ -234,7 +234,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $this->repository->add($olderApp, false);
 
         // Create newer application
-        $newerApp = new LicenseApplication();
+        $newerApp = new ClubApplication();
         $newerApp->setLicensee($this->licensee);
         $newerApp->setClub($this->club);
         $newerApp->setSeason(self::TEST_SEASON);
@@ -255,7 +255,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
     public function testFindByLicenseeAndSeasonReturnsAllApplicationsForLicensee(): void
     {
         // Create application
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $application->setLicensee($this->licensee);
         $application->setClub($this->club);
         $application->setSeason(self::TEST_SEASON);
@@ -276,7 +276,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
     public function testFindByLicenseeAndSeasonOrdersByCreatedAtDescending(): void
     {
         // Create older application
-        $olderApp = new LicenseApplication();
+        $olderApp = new ClubApplication();
         $olderApp->setLicensee($this->licensee);
         $olderApp->setClub($this->club);
         $olderApp->setSeason(self::TEST_SEASON);
@@ -285,7 +285,7 @@ final class LicenseApplicationRepositoryTest extends KernelTestCase
         $this->repository->add($olderApp, false);
 
         // Create newer application
-        $newerApp = new LicenseApplication();
+        $newerApp = new ClubApplication();
         $newerApp->setLicensee($this->licensee);
         $newerApp->setClub($this->club);
         $newerApp->setSeason(self::TEST_SEASON);

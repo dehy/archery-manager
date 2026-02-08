@@ -4,31 +4,31 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Security\Voter;
 
+use App\Entity\ClubApplication;
 use App\Entity\License;
-use App\Entity\LicenseApplication;
 use App\Entity\Licensee;
 use App\Entity\User;
 use App\Helper\SeasonHelper;
-use App\Security\Voter\LicenseApplicationVoter;
+use App\Security\Voter\ClubApplicationVoter;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 
-final class LicenseApplicationVoterTest extends TestCase
+final class ClubApplicationVoterTest extends TestCase
 {
-    private LicenseApplicationVoter $voter;
+    private ClubApplicationVoter $voter;
 
     protected function setUp(): void
     {
         $seasonHelper = $this->createMock(SeasonHelper::class);
         $seasonHelper->method('getSelectedSeason')->willReturn(2026);
 
-        $this->voter = new LicenseApplicationVoter($seasonHelper);
+        $this->voter = new ClubApplicationVoter($seasonHelper);
     }
 
-    public function testSupportsManageAttributeWithLicenseApplication(): void
+    public function testSupportsManageAttributeWithClubApplication(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $token = $this->createToken($this->createUser());
 
         $result = $this->voter->vote($token, $application, ['manage']);
@@ -37,7 +37,7 @@ final class LicenseApplicationVoterTest extends TestCase
 
     public function testDoesNotSupportOtherAttributes(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $token = $this->createToken($this->createUser());
 
         $result = $this->voter->vote($token, $application, ['view']);
@@ -57,7 +57,7 @@ final class LicenseApplicationVoterTest extends TestCase
         $token = $this->createMock(\Symfony\Component\Security\Core\Authentication\Token\TokenInterface::class);
         $token->method('getUser')->willReturn(null);
 
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $result = $this->voter->vote($token, $application, ['manage']);
         $this->assertSame(VoterInterface::ACCESS_DENIED, $result);
     }
@@ -67,7 +67,7 @@ final class LicenseApplicationVoterTest extends TestCase
         $user = $this->createUser(['ROLE_ADMIN']);
         $token = $this->createToken($user);
 
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $result = $this->voter->vote($token, $application, ['manage']);
         $this->assertSame(VoterInterface::ACCESS_GRANTED, $result);
     }
@@ -77,7 +77,7 @@ final class LicenseApplicationVoterTest extends TestCase
         $user = $this->createUser(['ROLE_USER']);
         $token = $this->createToken($user);
 
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $result = $this->voter->vote($token, $application, ['manage']);
         $this->assertSame(VoterInterface::ACCESS_DENIED, $result);
     }
@@ -87,7 +87,7 @@ final class LicenseApplicationVoterTest extends TestCase
         $club = $this->createMock(\App\Entity\Club::class);
 
         // Application for the club
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $application->setClub($club);
 
         // User with ROLE_CLUB_ADMIN who has a license in the same club
@@ -107,7 +107,7 @@ final class LicenseApplicationVoterTest extends TestCase
 
     public function testClubAdminCannotManageApplicationForDifferentClub(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $application->setClub($this->createMock(\App\Entity\Club::class));
 
         $license = $this->createMock(License::class);
@@ -126,7 +126,7 @@ final class LicenseApplicationVoterTest extends TestCase
 
     public function testClubAdminWithNoLicenseCannotManage(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $application->setClub($this->createMock(\App\Entity\Club::class));
 
         $licensee = $this->createMock(Licensee::class);

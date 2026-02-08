@@ -4,35 +4,35 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Entity;
 
-use App\DBAL\Types\LicenseApplicationStatusType;
+use App\DBAL\Types\ClubApplicationStatusType;
 use App\Entity\Club;
-use App\Entity\LicenseApplication;
+use App\Entity\ClubApplication;
 use App\Entity\Licensee;
 use App\Entity\User;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(LicenseApplication::class)]
-final class LicenseApplicationTest extends TestCase
+#[CoversClass(ClubApplication::class)]
+final class ClubApplicationTest extends TestCase
 {
     public function testConstructorInitializesCreatedAtAndDefaultStatus(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
 
         $this->assertInstanceOf(\DateTimeImmutable::class, $application->getCreatedAt());
-        $this->assertSame(LicenseApplicationStatusType::PENDING, $application->getStatus());
+        $this->assertSame(ClubApplicationStatusType::PENDING, $application->getStatus());
     }
 
     public function testGetId(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
 
         $this->assertNull($application->getId());
     }
 
     public function testGetAndSetLicensee(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $licensee = $this->createMock(Licensee::class);
 
         $result = $application->setLicensee($licensee);
@@ -43,7 +43,7 @@ final class LicenseApplicationTest extends TestCase
 
     public function testLicenseeCanBeNull(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $licensee = $this->createMock(Licensee::class);
 
         $application->setLicensee($licensee);
@@ -55,7 +55,7 @@ final class LicenseApplicationTest extends TestCase
 
     public function testGetAndSetClub(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $club = $this->createMock(Club::class);
 
         $result = $application->setClub($club);
@@ -66,7 +66,7 @@ final class LicenseApplicationTest extends TestCase
 
     public function testClubCanBeNull(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $club = $this->createMock(Club::class);
 
         $application->setClub($club);
@@ -78,7 +78,7 @@ final class LicenseApplicationTest extends TestCase
 
     public function testGetAndSetSeason(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $season = 2025;
 
         $result = $application->setSeason($season);
@@ -89,15 +89,15 @@ final class LicenseApplicationTest extends TestCase
 
     public function testSeasonInitiallyNull(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
 
         $this->assertNull($application->getSeason());
     }
 
     public function testGetAndSetStatus(): void
     {
-        $application = new LicenseApplication();
-        $status = LicenseApplicationStatusType::VALIDATED;
+        $application = new ClubApplication();
+        $status = ClubApplicationStatusType::VALIDATED;
 
         $result = $application->setStatus($status);
 
@@ -107,17 +107,17 @@ final class LicenseApplicationTest extends TestCase
 
     public function testSetStatusUpdatesUpdatedAt(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $this->assertNotInstanceOf(\DateTimeImmutable::class, $application->getUpdatedAt());
 
-        $application->setStatus(LicenseApplicationStatusType::VALIDATED);
+        $application->setStatus(ClubApplicationStatusType::VALIDATED);
 
         $this->assertInstanceOf(\DateTimeImmutable::class, $application->getUpdatedAt());
     }
 
     public function testGetAndSetRejectionReason(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $reason = 'Incomplete documentation';
 
         $result = $application->setRejectionReason($reason);
@@ -128,7 +128,7 @@ final class LicenseApplicationTest extends TestCase
 
     public function testRejectionReasonCanBeNull(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
 
         $this->assertNull($application->getRejectionReason());
 
@@ -141,7 +141,7 @@ final class LicenseApplicationTest extends TestCase
 
     public function testGetAndSetCreatedAt(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $createdAt = new \DateTimeImmutable('2025-01-01');
 
         $result = $application->setCreatedAt($createdAt);
@@ -152,7 +152,7 @@ final class LicenseApplicationTest extends TestCase
 
     public function testGetAndSetUpdatedAt(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $updatedAt = new \DateTimeImmutable('2025-02-01');
 
         $result = $application->setUpdatedAt($updatedAt);
@@ -163,7 +163,7 @@ final class LicenseApplicationTest extends TestCase
 
     public function testUpdatedAtCanBeNull(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
 
         $this->assertNotInstanceOf(\DateTimeImmutable::class, $application->getUpdatedAt());
 
@@ -177,7 +177,7 @@ final class LicenseApplicationTest extends TestCase
 
     public function testGetAndSetProcessedBy(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
         $user = $this->createMock(User::class);
 
         $result = $application->setProcessedBy($user);
@@ -188,7 +188,7 @@ final class LicenseApplicationTest extends TestCase
 
     public function testProcessedByCanBeNull(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
 
         $this->assertNotInstanceOf(User::class, $application->getProcessedBy());
 
@@ -202,8 +202,8 @@ final class LicenseApplicationTest extends TestCase
 
     public function testIsPendingReturnsTrueForPendingStatus(): void
     {
-        $application = new LicenseApplication();
-        $application->setStatus(LicenseApplicationStatusType::PENDING);
+        $application = new ClubApplication();
+        $application->setStatus(ClubApplicationStatusType::PENDING);
 
         $this->assertTrue($application->isPending());
         $this->assertFalse($application->isValidated());
@@ -213,8 +213,8 @@ final class LicenseApplicationTest extends TestCase
 
     public function testIsValidatedReturnsTrueForValidatedStatus(): void
     {
-        $application = new LicenseApplication();
-        $application->setStatus(LicenseApplicationStatusType::VALIDATED);
+        $application = new ClubApplication();
+        $application->setStatus(ClubApplicationStatusType::VALIDATED);
 
         $this->assertFalse($application->isPending());
         $this->assertTrue($application->isValidated());
@@ -224,8 +224,8 @@ final class LicenseApplicationTest extends TestCase
 
     public function testIsOnWaitingListReturnsTrueForWaitingListStatus(): void
     {
-        $application = new LicenseApplication();
-        $application->setStatus(LicenseApplicationStatusType::WAITING_LIST);
+        $application = new ClubApplication();
+        $application->setStatus(ClubApplicationStatusType::WAITING_LIST);
 
         $this->assertFalse($application->isPending());
         $this->assertFalse($application->isValidated());
@@ -235,8 +235,8 @@ final class LicenseApplicationTest extends TestCase
 
     public function testIsRejectedReturnsTrueForRejectedStatus(): void
     {
-        $application = new LicenseApplication();
-        $application->setStatus(LicenseApplicationStatusType::REJECTED);
+        $application = new ClubApplication();
+        $application->setStatus(ClubApplicationStatusType::REJECTED);
 
         $this->assertFalse($application->isPending());
         $this->assertFalse($application->isValidated());
@@ -246,7 +246,7 @@ final class LicenseApplicationTest extends TestCase
 
     public function testDefaultStatusIsPending(): void
     {
-        $application = new LicenseApplication();
+        $application = new ClubApplication();
 
         $this->assertTrue($application->isPending());
     }
