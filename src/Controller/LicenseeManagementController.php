@@ -413,6 +413,7 @@ class LicenseeManagementController extends BaseController
             $user->setFirstname($creationData['licensee']['firstname']);
             $user->setLastname($creationData['licensee']['lastname']);
             $user->setGender($creationData['licensee']['gender']);
+            $user->setBirthdate(new \DateTimeImmutable($creationData['licensee']['birthdate']));
             $user->setRoles(['ROLE_USER']);
             $entityManager->persist($user);
         }

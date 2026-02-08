@@ -8,8 +8,8 @@ use App\Entity\Event;
 use App\Entity\Result;
 use App\Helper\LicenseeHelper;
 use App\Helper\SeasonHelper;
+use App\Repository\ClubApplicationRepository;
 use App\Repository\EventRepository;
-use App\Repository\LicenseApplicationRepository;
 use App\Repository\ResultRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,7 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class HomepageController extends AbstractController
 {
-    public function __construct(private readonly LicenseeHelper $licenseeHelper, private readonly SeasonHelper $seasonHelper, private readonly LicenseApplicationRepository $applicationRepository)
+    public function __construct(private readonly LicenseeHelper $licenseeHelper, private readonly SeasonHelper $seasonHelper, private readonly ClubApplicationRepository $applicationRepository)
     {
     }
 

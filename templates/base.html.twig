@@ -72,7 +72,7 @@
         </li>
         {% else %}
         <li class="nav-item">
-            <a href="{{ path('app_license_application_status') }}" class="nav-link {{ _self.isActive('app_license_application') }}">
+            <a href="{{ path('app_club_application_status') }}" class="nav-link {{ _self.isActive('app_club_application') }}">
                 <div class="icon">
                     <em class="fa-solid fa-id-badge"></em>
                 </div>
@@ -144,13 +144,13 @@
                 </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link {{ _self.isActive('app_license_application') }}" href="{{ path('app_license_application_new') }}">
+                        <a class="nav-link {{ _self.isActive('app_club_application') }}" href="{{ path('app_club_application_new') }}">
                             <em class="fa-solid fa-id-badge"></em>
                             Demande de licence
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ _self.isActive('app_license_application') }}" href="{{ path('app_license_application_status') }}">
+                        <a class="nav-link {{ _self.isActive('app_club_application') }}" href="{{ path('app_club_application_status') }}">
                             <em class="fa-solid fa-list-check"></em>
                             Mes demandes
                         </a>
@@ -184,7 +184,7 @@
                         {% endif %}
                         {% if (is_granted("ROLE_CLUB_ADMIN")) %}
                             <li>
-                                <a class="dropdown-item" href="{{ path('app_license_application_manage') }}">
+                                <a class="dropdown-item" href="{{ path('app_club_application_manage') }}">
                                     <em class="fa-solid fa-clipboard-check"></em>
                                     Demandes de licence
                                 </a>
