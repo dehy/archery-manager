@@ -1,0 +1,104 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes demandes d'adhésion{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-list me-2"></em>
+                            Mes demandes d'adhésion - Saison {{ currentSeason }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if applications is empty %}
+                            <div class="text-center text-muted py-4">
+                                <em class="fa-solid fa-inbox fa-3x mb-3"></em>
+                                <p class="mb-0">Vous n'avez aucune demande d'adhésion pour cette saison.</p>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="{{ path('app_club_application_new') }}" class="btn btn-primary">
+                                    <em class="fa-solid fa-plus me-2"></em>
+                                    Faire une nouvelle demande
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Club</th>
+                                            <th>Date de demande</th>
+                                            <th>Statut</th>
+                                            <th>Mise à jour</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for application in applications %}
+                                            <tr>
+                                                <td>{{ application.club.name }}</td>
+                                                <td>{{ application.createdAt|date('d/m/Y H:i') }}</td>
+                                                <td>
+                                                    {% if application.isPending %}
+                                                        <span class="badge bg-warning text-dark">
+                                                            <em class="fa-solid fa-clock me-1"></em>
+                                                            En attente
+                                                        </span>
+                                                    {% elseif application.isValidated %}
+                                                        <span class="badge bg-success">
+                                                            <em class="fa-solid fa-check me-1"></em>
+                                                            Validée
+                                                        </span>
+                                                    {% elseif application.isOnWaitingList %}
+                                                        <span class="badge bg-info">
+                                                            <em class="fa-solid fa-hourglass-half me-1"></em>
+                                                            Liste d'attente
+                                                        </span>
+                                                    {% elseif application.isRejected %}
+                                                        <span class="badge bg-danger">
+                                                            <em class="fa-solid fa-times me-1"></em>
+                                                            Refusée
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if application.updatedAt %}
+                                                        {{ application.updatedAt|date('d/m/Y H:i') }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% if application.isRejected and application.rejectionReason %}
+                                                <tr>
+                                                    <td colspan="4" class="bg-light">
+                                                        <div class="alert alert-danger mb-0">
+                                                            <strong>Motif du refus :</strong> {{ application.rejectionReason }}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            {% set hasPending = applications|filter(app => app.isPending)|length > 0 %}
+                            {% if not hasPending %}
+                                <div class="text-center mt-3">
+                                    <a href="{{ path('app_club_application_new') }}" class="btn btn-primary">
+                                        <em class="fa-solid fa-plus me-2"></em>
+                                        Faire une nouvelle demande
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
