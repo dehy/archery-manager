@@ -15,8 +15,15 @@
             </h5>
         </div>
         <div class="card-body">
+            <div class="alert alert-warning">
+                <em class="fa-solid fa-exclamation-triangle me-2"></em>
+                <strong>Important :</strong> Vous devez avoir au moins 15 ans pour créer un compte. 
+                Les mineurs de moins de 15 ans doivent être inscrits par un parent ou tuteur légal. 
+                Les informations du mineur seront demandées ultérieurement lors de la demande d'adhésion au club.
+            </div>
+
             <p class="text-muted mb-4">
-                Créez votre compte pour pouvoir faire une demande de licence et rejoindre un club de tir à l'arc.
+                Créez votre compte pour pouvoir faire une demande d'adhésion et rejoindre un club de tir à l'arc.
             </p>
 
             {% form_theme registrationForm 'bootstrap_5_layout.html.twig' %}
@@ -32,6 +39,7 @@
                     </div>
                 </div>
                 
+                {{ form_row(registrationForm.birthdate) }}
                 {{ form_row(registrationForm.email) }}
                 {{ form_row(registrationForm.phoneNumber) }}
                 {{ form_row(registrationForm.plainPassword, {

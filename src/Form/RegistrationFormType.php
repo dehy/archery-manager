@@ -7,9 +7,11 @@ namespace App\Form;
 use App\DBAL\Types\GenderType;
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\BirthdayType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\IsTrue;
@@ -32,9 +34,9 @@ class RegistrationFormType extends AbstractType
                 ],
                 'required' => true,
                 'expanded' => true,  // Radio buttons
-                'label_attr' => ['class' => 'btn-check'],
-                'choice_attr' => static fn (): array => ['class' => 'btn-check'],
-                'attr' => ['class' => 'btn-group'],
+                'attr' => [
+                    'class' => 'd-flex gap-3',
+                ],
             ])
             ->add('firstname', null, [
                 'label' => 'Prénom *',
@@ -44,11 +46,20 @@ class RegistrationFormType extends AbstractType
                 'label' => 'Nom *',
                 'required' => true,
             ])
+            ->add('birthdate', BirthdayType::class, [
+                'label' => 'Date de naissance *',
+                'required' => true,
+                'widget' => 'single_text',
+                'help' => 'Vous devez avoir au moins 15 ans pour créer un compte. Si vous souhaitez inscrire un mineur de moins de 15 ans, vous devez d\'abord créer votre propre compte.',
+                'attr' => [
+                    'max' => new \DateTime('-15 years')->format('Y-m-d'),
+                ],
+            ])
             ->add('email', null, [
                 'label' => 'Email *',
                 'required' => true,
             ])
-            ->add('phoneNumber', null, [
+            ->add('phoneNumber', TelType::class, [
                 'label' => 'Téléphone',
                 'required' => false,
                 'attr' => [
