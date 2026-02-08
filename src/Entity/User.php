@@ -51,6 +51,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 12, nullable: true)]
     private ?string $phoneNumber = null;
 
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATE_IMMUTABLE)]
+    #[Assert\NotBlank(message: 'La date de naissance est obligatoire.')]
+    #[Assert\LessThan(
+        value: '-15 years',
+        message: 'Vous devez avoir au moins 15 ans pour vous inscrire. Les mineurs de moins de 15 ans doivent être inscrits par un parent ou tuteur légal.',
+    )]
+    private \DateTimeImmutable $birthdate;
+
     /**
      * @var Collection<int, Licensee>
      */
@@ -221,6 +229,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         $this->phoneNumber = $phoneNumber;
 
         return $this;
+    }
+
+    public function getBirthdate(): \DateTimeImmutable
+    {
+        return $this->birthdate;
+    }
+
+    public function setBirthdate(\DateTimeImmutable $birthdate): self
+    {
+        $this->birthdate = $birthdate;
+
+        return $this;
+    }
+
+    public function getAge(): int
+    {
+        $now = new \DateTimeImmutable();
+        $diff = $this->birthdate->diff($now);
+
+        return (int) $diff->y;
     }
 
     /**
