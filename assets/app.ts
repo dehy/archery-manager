@@ -24,10 +24,12 @@ import {
   faArrowLeft,
   faArrowRight,
   faArrowRightFromBracket,
+  faArrowsAlt,
   faArrowsRotate,
   faArrowUpRightFromSquare,
   faBolt,
   faBowArrow,
+  faBox,
   faBoxes,
   faBuilding,
   faBullhorn,
@@ -39,6 +41,7 @@ import {
   faCalendarWeek,
   faCalendarXmark,
   faChartBar,
+  faChartLine,
   faCheck,
   faCheckCircle,
   faChevronLeft,
@@ -68,6 +71,7 @@ import {
   faFileContract,
   faFloppyDisk,
   faGaugeHigh,
+  faGenderless,
   faHandHolding,
   faHeart,
   faHistory,
@@ -92,6 +96,7 @@ import {
   faPaperclip,
   faPaperPlane,
   faPencil,
+  faPenToSquare,
   faPeopleGroup,
   faPhone,
   faPlus,
@@ -102,6 +107,7 @@ import {
   faSave,
   faScrewdriverWrench,
   faShare,
+  faSpinner,
   faSquarePollVertical,
   faStar,
   faTag,
@@ -113,8 +119,10 @@ import {
   faUpload,
   faUser,
   faUserCheck,
+  faUserCircle,
   faUserGear,
   faUserGroup,
+  faUserPen,
   faUserPlus,
   faUsers,
   faUsersGear,
@@ -142,10 +150,12 @@ library.add(
     faArrowLeft,
     faArrowRight,
     faArrowRightFromBracket,
+    faArrowsAlt,
     faArrowUpRightFromSquare,
     faArrowsRotate,
     faBolt,
     faBowArrow,
+    faBox,
     faBoxes,
     faBuilding,
     faBullhorn,
@@ -157,6 +167,7 @@ library.add(
     faCalendarWeek,
     faCalendarXmark,
     faChartBar,
+    faChartLine,
     faCheck,
     faCheckCircle,
     faChevronLeft,
@@ -188,6 +199,7 @@ library.add(
     faFileContract,
     faFloppyDisk,
     faGaugeHigh,
+    faGenderless,
     faGoogle,
     faHandHolding,
     faHeart,
@@ -213,6 +225,7 @@ library.add(
     faPaperclip,
     faPaperPlane,
     faPencil,
+    faPenToSquare,
     faPeopleGroup,
     faPhone,
     faPlus,
@@ -223,6 +236,7 @@ library.add(
     faSave,
     faScrewdriverWrench,
     faShare,
+    faSpinner,
     faSquarePollVertical,
     faStar,
     faTag,
@@ -234,8 +248,10 @@ library.add(
     faUpload,
     faUser,
     faUserCheck,
+    faUserCircle,
     faUserGear,
     faUserGroup,
+    faUserPen,
     faUserPlus,
     faUserSecret,
     faUserSlash,
@@ -247,9 +263,14 @@ library.add(
     faXmark,
     faWaze
 );
-dom.watch();
 
-(() => {
+// Initialize Font Awesome after DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    dom.watch();
+});
+
+// Initialize Bootstrap components after DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
     const tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll(
         '[data-bs-toggle="tooltip"]'
     ));
@@ -259,4 +280,4 @@ dom.watch();
 
     const collections = [...document.querySelectorAll('.collection')];
     //formCollection(collections);
-})();
+});
