@@ -1,0 +1,47 @@
+<h1 style="color: #28a745;">Compte déverrouillé</h1>
+
+<p>Bonjour {{ user.firstname }} {{ user.lastname }},</p>
+
+<p>
+    Votre compte a été <strong>déverrouillé avec succès</strong>.
+</p>
+
+<div style="background-color: #d4edda; padding: 15px; border-left: 4px solid #28a745; margin: 20px 0;">
+    <strong>Vous pouvez maintenant vous reconnecter normalement.</strong>
+</div>
+
+<h3>Que s'est-il passé ?</h3>
+
+<p>
+    Votre compte avait été temporairement verrouillé suite à plusieurs tentatives de connexion échouées.
+    Le délai de verrouillage est maintenant expiré et votre compte est à nouveau accessible.
+</p>
+
+<p>
+    Les compteurs de tentatives ont été réinitialisés.
+</p>
+
+<h3>Conseils de sécurité</h3>
+
+<ul>
+    <li>Assurez-vous d'utiliser un <strong>mot de passe fort et unique</strong></li>
+    <li>Ne partagez jamais votre mot de passe avec qui que ce soit</li>
+    <li>Si vous pensez que votre compte a été compromis, changez immédiatement votre mot de passe</li>
+    <li>Activez la double authentification si disponible</li>
+</ul>
+
+<p style="text-align: center; margin: 30px 0;">
+    <a href="{{ url('app_login') }}" 
+       style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+        Se connecter
+    </a>
+</p>
+
+<p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 15px;">
+    <strong>Vous recevez cet email car vous avez reçu</strong> une notification de verrouillage de compte précédemment.
+    Si vous n'êtes pas à l'origine de ces tentatives de connexion, contactez immédiatement un administrateur.
+</p>
+
+<p style="color: #666; font-size: 12px;">
+    Cet email a été envoyé automatiquement par le système de sécurité des Archers de Bordeaux Guyenne.
+</p>

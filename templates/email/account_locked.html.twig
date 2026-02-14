@@ -1,0 +1,56 @@
+<h1 style="color: #dc3545;">Compte temporairement verrouillé</h1>
+
+<p>Bonjour {{ user.firstname }} {{ user.lastname }},</p>
+
+<p>
+    Votre compte a été <strong>temporairement verrouillé</strong> suite à plusieurs tentatives de connexion échouées.
+</p>
+
+<div style="background-color: #f8d7da; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0;">
+    <strong>Votre compte est verrouillé jusqu'à {{ lockedUntil|date('d/m/Y à H:i') }}</strong>
+    <br>
+    <span style="font-size: 14px;">Soit pendant environ {{ lockDurationMinutes }} minutes</span>
+</div>
+
+<h3>Que s'est-il passé ?</h3>
+
+<p>
+    Par mesure de sécurité, nous avons détecté 10 tentatives de connexion échouées consécutives sur votre compte.
+    Le verrouillage temporaire empêche toute tentative d'accès non autorisé.
+</p>
+
+<h3>Que dois-je faire ?</h3>
+
+<p>
+    <strong>Si vous êtes à l'origine de ces tentatives :</strong>
+</p>
+<ul>
+    <li>Attendez {{ lockDurationMinutes }} minutes avant de réessayer de vous connecter</li>
+    <li>Vérifiez que vous utilisez le bon mot de passe</li>
+    <li>Si vous avez oublié votre mot de passe, utilisez la fonction "Mot de passe oublié" après le délai</li>
+</ul>
+
+<p>
+    <strong>Si vous n'êtes PAS à l'origine de ces tentatives :</strong>
+</p>
+<ul>
+    <li><strong>Changez immédiatement votre mot de passe</strong> après le déverrouillage</li>
+    <li>Vérifiez la sécurité de votre adresse email</li>
+    <li>Contactez un administrateur si vous pensez que votre compte a été compromis</li>
+</ul>
+
+<p style="text-align: center; margin: 30px 0;">
+    <a href="{{ url('app_login') }}" 
+       style="background-color: #6c757d; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+        Aller à la page de connexion
+    </a>
+</p>
+
+<p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 15px;">
+    <strong>Note de sécurité :</strong> Votre compte sera automatiquement déverrouillé après {{ lockDurationMinutes }} minutes.
+    Vous n'avez rien à faire. Si le problème persiste, contactez l'administrateur du club.
+</p>
+
+<p style="color: #666; font-size: 12px;">
+    Cet email a été envoyé automatiquement par le système de sécurité des Archers de Bordeaux Guyenne.
+</p>
