@@ -13,6 +13,7 @@
         "ext-mbstring": "*",
         "api-platform/core": "^3.0",
         "async-aws/simple-s3": "^2.0",
+        "bjeavons/zxcvbn-php": "^1.4",
         "cocur/slugify": "^4.2",
         "damienharper/auditor-bundle": "^6.0",
         "doctrine/doctrine-bundle": "^2.5",
