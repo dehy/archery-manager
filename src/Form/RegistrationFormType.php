@@ -6,6 +6,7 @@ namespace App\Form;
 
 use App\DBAL\Types\GenderType;
 use App\Entity\User;
+use App\Validator\Constraints\StrongPassword;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\BirthdayType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -15,7 +16,6 @@ use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\IsTrue;
-use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 class RegistrationFormType extends AbstractType
@@ -81,7 +81,7 @@ class RegistrationFormType extends AbstractType
                 'attr' => ['autocomplete' => 'new-password'],
                 'constraints' => [
                     new NotBlank(message: 'Veuillez entrer un mot de passe'),
-                    new Length(min: 8, max: 4096, minMessage: "Votre mot de passe doit être d'au moins {{ limit }} caractères"),
+                    new StrongPassword(minScore: 2),
                 ],
             ]);
     }
