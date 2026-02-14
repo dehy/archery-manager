@@ -32,19 +32,18 @@ class RegistrationController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
     ): Response {
-        // Rate limiting check
-        $limiter = $this->registrationLimiter->create($request->getClientIp() ?? 'unknown');
-        if (false === $limiter->consume(1)->isAccepted()) {
-            $this->addFlash('danger', 'Trop de tentatives d\'inscription. Veuillez réessayer dans quelques minutes.');
-
-            return $this->redirectToRoute('app_register');
-        }
-
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Rate limiting check (only on form submission)
+            $limiter = $this->registrationLimiter->create($request->getClientIp() ?? 'unknown');
+            if (false === $limiter->consume(1)->isAccepted()) {
+                $this->addFlash('danger', 'Trop de tentatives d\'inscription. Veuillez réessayer dans quelques minutes.');
+
+                return $this->redirectToRoute('app_register');
+            }
             // encode the plain password
             $user->setPassword(
                 $this->userPasswordHasher->hashPassword(
