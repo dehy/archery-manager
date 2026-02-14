@@ -1,0 +1,19 @@
+framework:
+    rate_limiter:
+        # Login attempts limiter - 10 attempts per 15 minutes
+        login:
+            policy: 'sliding_window'
+            limit: 10
+            interval: '15 minutes'
+
+        # Registration limiter - 5 attempts per hour (stricter)
+        registration:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '1 hour'
+
+        # Password reset limiter - 3 attempts per hour (most strict)
+        password_reset:
+            policy: 'sliding_window'
+            limit: 3
+            interval: '1 hour'

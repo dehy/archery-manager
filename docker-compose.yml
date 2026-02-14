@@ -45,7 +45,18 @@ services:
     ports:
       - "8081:80"
 
+###> symfony/rate-limiter ###
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+###< symfony/rate-limiter ###
+
 volumes:
 ###> doctrine/doctrine-bundle ###
   db-data:
 ###< doctrine/doctrine-bundle ###
+###> symfony/rate-limiter ###
+  redis-data:
+###< symfony/rate-limiter ###
