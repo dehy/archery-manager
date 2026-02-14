@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
+use App\EventListener\AuthenticationSuccessListener;
 use App\Form\RegistrationFormType;
 use App\Repository\UserRepository;
 use App\Security\EmailVerifier;
@@ -15,13 +16,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use SymfonyCasts\Bundle\VerifyEmail\Exception\VerifyEmailExceptionInterface;
 
 class RegistrationController extends AbstractController
 {
-    public function __construct(private readonly EmailVerifier $emailVerifier, private readonly UserPasswordHasherInterface $userPasswordHasher, private readonly TranslatorInterface $translator, private readonly UserRepository $userRepository)
+    public function __construct(private readonly EmailVerifier $emailVerifier, private readonly UserPasswordHasherInterface $userPasswordHasher, private readonly TranslatorInterface $translator, private readonly UserRepository $userRepository, private readonly AuthenticationSuccessListener $successListener, private readonly RateLimiterFactory $registrationLimiter)
     {
     }
 
@@ -30,6 +32,14 @@ class RegistrationController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
     ): Response {
+        // Rate limiting check
+        $limiter = $this->registrationLimiter->create($request->getClientIp() ?? 'unknown');
+        if (false === $limiter->consume(1)->isAccepted()) {
+            $this->addFlash('danger', 'Trop de tentatives d\'inscription. Veuillez réessayer dans quelques minutes.');
+
+            return $this->redirectToRoute('app_register');
+        }
+
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
@@ -45,6 +55,13 @@ class RegistrationController extends AbstractController
 
             $entityManager->persist($user);
             $entityManager->flush();
+
+            // Log successful registration
+            $this->successListener->logSuccessfulRegistration(
+                $user,
+                $request->getClientIp() ?? 'unknown',
+                $request->headers->get('User-Agent', '')
+            );
 
             // generate a signed url and email it to the user
             $this->emailVerifier->sendEmailConfirmation(

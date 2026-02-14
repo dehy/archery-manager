@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
+use App\EventListener\AuthenticationSuccessListener;
 use App\Form\ChangePasswordFormType;
 use App\Form\ResetPasswordRequestFormType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use SymfonyCasts\Bundle\ResetPassword\Controller\ResetPasswordControllerTrait;
@@ -32,6 +34,8 @@ class ResetPasswordController extends AbstractController
         private readonly MailerInterface $mailer,
         private readonly TranslatorInterface $translator,
         private readonly UserPasswordHasherInterface $userPasswordHasher,
+        private readonly AuthenticationSuccessListener $successListener,
+        private readonly RateLimiterFactory $passwordResetLimiter,
     ) {
     }
 
@@ -42,6 +46,14 @@ class ResetPasswordController extends AbstractController
     public function request(
         Request $request,
     ): Response {
+        // Rate limiting check
+        $limiter = $this->passwordResetLimiter->create($request->getClientIp() ?? 'unknown');
+        if (false === $limiter->consume(1)->isAccepted()) {
+            $this->addFlash('danger', 'Trop de demandes de réinitialisation de mot de passe. Veuillez réessayer dans quelques minutes.');
+
+            return $this->redirectToRoute('app_forgot_password_request');
+        }
+
         $form = $this->createForm(ResetPasswordRequestFormType::class);
         $form->handleRequest($request);
 
@@ -49,6 +61,7 @@ class ResetPasswordController extends AbstractController
             return $this->processSendingPasswordResetEmail(
                 $form->get('email')->getData(),
                 $this->mailer,
+                $request,
             );
         }
 
@@ -137,6 +150,13 @@ class ResetPasswordController extends AbstractController
             $user->setPassword($encodedPassword);
             $this->entityManager->flush();
 
+            // Log successful password reset
+            $this->successListener->logSuccessfulPasswordReset(
+                $user,
+                $request->getClientIp() ?? 'unknown',
+                $request->headers->get('User-Agent', '')
+            );
+
             // The session is cleaned up after the password has been changed.
             $this->cleanSessionAfterReset();
 
@@ -151,10 +171,17 @@ class ResetPasswordController extends AbstractController
     private function processSendingPasswordResetEmail(
         string $emailFormData,
         MailerInterface $mailer,
+        Request $request,
     ): RedirectResponse {
         $user = $this->entityManager->getRepository(User::class)->findOneBy([
             'email' => $emailFormData,
         ]);
+
+        $ipAddress = $request->getClientIp() ?? 'unknown';
+        $userAgent = $request->headers->get('User-Agent', '');
+
+        // Log password reset request (even if user doesn't exist, for security monitoring)
+        $this->successListener->logPasswordResetRequested($user, $emailFormData, $ipAddress, $userAgent);
 
         // Do not reveal whether a user account was found or not.
         if (null === $user) {

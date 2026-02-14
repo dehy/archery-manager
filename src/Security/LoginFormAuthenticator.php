@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Security;
 
+use App\Entity\SecurityLog;
 use App\Entity\User;
+use App\Service\FriendlyCaptchaService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
@@ -30,6 +33,8 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
     public function __construct(
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly EntityManagerInterface $entityManager,
+        private readonly RateLimiterFactory $loginLimiter,
+        private readonly FriendlyCaptchaService $captchaService,
     ) {
     }
 
@@ -40,6 +45,35 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         $password = $request->request->get('_password', '');
 
         $request->getSession()->set(SecurityRequestAttributes::LAST_USERNAME, $email);
+
+        // Rate limiting check
+        $limiter = $this->loginLimiter->create($request->getClientIp() ?? 'unknown');
+        if (false === $limiter->consume(1)->isAccepted()) {
+            throw new CustomUserMessageAuthenticationException('Trop de tentatives de connexion. Veuillez réessayer dans quelques minutes.');
+        }
+
+        // CAPTCHA validation after 3 failed attempts
+        $session = $request->getSession();
+        $failedLoginCount = $session->get('failed_login_count', 0);
+
+        if ($failedLoginCount >= 3) {
+            $captchaSolution = $request->request->get('_captcha_solution', '');
+
+            if (empty($captchaSolution) || !$this->captchaService->verify($captchaSolution)) {
+                // Log CAPTCHA failure
+                $securityLog = new SecurityLog();
+                $securityLog->setEmail($email);
+                $securityLog->setIpAddress($request->getClientIp() ?? 'unknown');
+                $securityLog->setEventType(SecurityLog::EVENT_CAPTCHA_FAILED);
+                $securityLog->setUserAgent($request->headers->get('User-Agent', ''));
+                $securityLog->setDetails('CAPTCHA verification failed during login attempt');
+
+                $this->entityManager->persist($securityLog);
+                $this->entityManager->flush();
+
+                throw new CustomUserMessageAuthenticationException('La vérification de sécurité a échoué. Veuillez réessayer.');
+            }
+        }
 
         // Check if password is empty in the form
         if (empty($password)) {
@@ -59,6 +93,13 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
                     throw new CustomUserMessageAuthenticationException('Votre compte n\'a pas encore de mot de passe. Veuillez utiliser la fonction "Mot de passe oublié" pour en créer un.');
                 }
 
+                // Check if account is locked
+                if ($user->isAccountLocked()) {
+                    $lockedUntil = $user->getAccountLockedUntil();
+                    $remainingMinutes = (int) (($lockedUntil->getTimestamp() - time()) / 60);
+                    throw new CustomUserMessageAuthenticationException(\sprintf('Votre compte est temporairement verrouillé suite à plusieurs tentatives de connexion échouées. Veuillez réessayer dans %d minutes.', $remainingMinutes));
+                }
+
                 return $user;
             }),
             new PasswordCredentials($password),
@@ -72,6 +113,17 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
     #[\Override]
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        // Reset failed login attempts and session counter on successful login
+        /** @var User $user */
+        $user = $token->getUser();
+        if ($user instanceof User) {
+            $user->resetFailedAttempts();
+            $this->entityManager->flush();
+        }
+
+        // Reset session failed login count
+        $request->getSession()->remove('failed_login_count');
+
         if (!\in_array($targetPath = $this->getTargetPath($request->getSession(), $firewallName), [null, '', '0'], true)) {
             return new RedirectResponse($targetPath);
         }
