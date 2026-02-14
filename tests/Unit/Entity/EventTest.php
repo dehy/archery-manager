@@ -38,7 +38,7 @@ final class EventTest extends TestCase
     public function testSetAndGetClub(): void
     {
         $event = new Event();
-        $club = $this->createMock(Club::class);
+        $club = $this->createStub(Club::class);
 
         $event->setClub($club);
 
@@ -141,7 +141,7 @@ final class EventTest extends TestCase
     public function testAddAndRemoveParticipation(): void
     {
         $event = new Event();
-        $participation = $this->createMock(EventParticipation::class);
+        $participation = $this->createStub(EventParticipation::class);
 
         $event->addParticipation($participation);
         $this->assertCount(1, $event->getParticipations());
@@ -168,7 +168,7 @@ final class EventTest extends TestCase
     public function testAddAndRemoveAttachment(): void
     {
         $event = new Event();
-        $attachment = $this->createMock(EventAttachment::class);
+        $attachment = $this->createStub(EventAttachment::class);
 
         $event->addAttachment($attachment);
         $this->assertCount(1, $event->getAttachments());
@@ -195,7 +195,7 @@ final class EventTest extends TestCase
     public function testAddAndRemoveAssignedGroup(): void
     {
         $event = new Event();
-        $group = $this->createMock(Group::class);
+        $group = $this->createStub(Group::class);
 
         $event->addAssignedGroup($group);
         $this->assertCount(1, $event->getAssignedGroups());
@@ -209,7 +209,7 @@ final class EventTest extends TestCase
     public function testAddAssignedGroupDoesNotDuplicateGroups(): void
     {
         $event = new Event();
-        $group = $this->createMock(Group::class);
+        $group = $this->createStub(Group::class);
 
         $event->addAssignedGroup($group);
         $event->addAssignedGroup($group);
@@ -223,7 +223,7 @@ final class EventTest extends TestCase
         $date = new \DateTimeImmutable();
 
         $result = $event
-            ->setClub($this->createMock(Club::class))
+            ->setClub($this->createStub(Club::class))
             ->setName(self::TEST_EVENT_NAME)
             ->setDiscipline(DisciplineType::INDOOR)
             ->setAllDay(false)

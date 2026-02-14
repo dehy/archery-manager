@@ -341,7 +341,7 @@ final class ClubEquipmentTest extends TestCase
 
     public function testRemoveLoanThatDoesNotExist(): void
     {
-        $result = $this->clubEquipment->removeLoan($this->createMock(EquipmentLoan::class));
+        $result = $this->clubEquipment->removeLoan($this->createStub(EquipmentLoan::class));
 
         $this->assertSame($this->clubEquipment, $result);
         $this->assertCount(0, $this->clubEquipment->getLoans());

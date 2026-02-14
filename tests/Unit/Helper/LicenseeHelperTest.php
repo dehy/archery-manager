@@ -67,7 +67,7 @@ final class LicenseeHelperTest extends TestCase
         $this->requestStack->method('getSession')->willReturn($this->session);
         $this->session->method('get')->with('selectedLicensee')->willReturn(null);
 
-        $licensee = $this->createMock(Licensee::class);
+        $licensee = $this->createStub(Licensee::class);
 
         $user = $this->createMock(User::class);
         $user->method('getLicensees')->willReturn(new ArrayCollection([$licensee]));

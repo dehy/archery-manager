@@ -35,7 +35,15 @@ final class LoginFormAuthenticatorTest extends TestCase
         );
 
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->authenticator = new LoginFormAuthenticator($urlGenerator, $this->entityManager);
+        $rateLimiterFactory = $this->createMock(\Symfony\Component\RateLimiter\RateLimiterFactory::class);
+        $captchaService = $this->createMock(\App\Service\FriendlyCaptchaService::class);
+
+        $this->authenticator = new LoginFormAuthenticator(
+            $urlGenerator,
+            $this->entityManager,
+            $rateLimiterFactory,
+            $captchaService
+        );
     }
 
     public function testAuthenticateWithEmptyPasswordThrowsException(): void
@@ -119,7 +127,7 @@ final class LoginFormAuthenticatorTest extends TestCase
         $request = new Request();
         $request->setSession($session);
 
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
 
         $response = $this->authenticator->onAuthenticationSuccess($request, $token, 'main');
 
@@ -135,7 +143,7 @@ final class LoginFormAuthenticatorTest extends TestCase
         $request = new Request();
         $request->setSession($session);
 
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
 
         $response = $this->authenticator->onAuthenticationSuccess($request, $token, 'main');
 

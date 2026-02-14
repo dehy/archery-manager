@@ -84,7 +84,7 @@ final class ClubApplicationVoterTest extends TestCase
 
     public function testClubAdminCanManageApplicationForSameClub(): void
     {
-        $club = $this->createMock(\App\Entity\Club::class);
+        $club = $this->createStub(\App\Entity\Club::class);
 
         // Application for the club
         $application = new ClubApplication();
@@ -108,10 +108,10 @@ final class ClubApplicationVoterTest extends TestCase
     public function testClubAdminCannotManageApplicationForDifferentClub(): void
     {
         $application = new ClubApplication();
-        $application->setClub($this->createMock(\App\Entity\Club::class));
+        $application->setClub($this->createStub(\App\Entity\Club::class));
 
         $license = $this->createMock(License::class);
-        $license->method('getClub')->willReturn($this->createMock(\App\Entity\Club::class));
+        $license->method('getClub')->willReturn($this->createStub(\App\Entity\Club::class));
 
         $licensee = $this->createMock(Licensee::class);
         $licensee->method('getLicenseForSeason')->with(2026)->willReturn($license);
@@ -127,7 +127,7 @@ final class ClubApplicationVoterTest extends TestCase
     public function testClubAdminWithNoLicenseCannotManage(): void
     {
         $application = new ClubApplication();
-        $application->setClub($this->createMock(\App\Entity\Club::class));
+        $application->setClub($this->createStub(\App\Entity\Club::class));
 
         $licensee = $this->createMock(Licensee::class);
         $licensee->method('getLicenseForSeason')->with(2026)->willReturn(null);

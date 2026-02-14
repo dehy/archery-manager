@@ -23,7 +23,7 @@ final class LicenseHelperTest extends TestCase
     protected function setUp(): void
     {
         $this->seasonHelper = $this->createMock(SeasonHelper::class);
-        $this->licenseHelper = new LicenseHelper($this->createMock(LicenseeHelper::class), $this->seasonHelper);
+        $this->licenseHelper = new LicenseHelper($this->createStub(LicenseeHelper::class), $this->seasonHelper);
     }
 
     public function testGetSeasonForDateInSeptember(): void

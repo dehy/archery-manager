@@ -37,7 +37,7 @@ final class EquipmentLoanTest extends TestCase
     public function testGetAndSetEquipment(): void
     {
         $loan = new EquipmentLoan();
-        $equipment = $this->createMock(ClubEquipment::class);
+        $equipment = $this->createStub(ClubEquipment::class);
 
         $result = $loan->setEquipment($equipment);
 
@@ -48,7 +48,7 @@ final class EquipmentLoanTest extends TestCase
     public function testGetAndSetBorrower(): void
     {
         $loan = new EquipmentLoan();
-        $borrower = $this->createMock(Licensee::class);
+        $borrower = $this->createStub(Licensee::class);
 
         $result = $loan->setBorrower($borrower);
 
@@ -115,7 +115,7 @@ final class EquipmentLoanTest extends TestCase
     public function testGetAndSetCreatedBy(): void
     {
         $loan = new EquipmentLoan();
-        $user = $this->createMock(User::class);
+        $user = $this->createStub(User::class);
 
         $result = $loan->setCreatedBy($user);
 
@@ -129,7 +129,7 @@ final class EquipmentLoanTest extends TestCase
 
         $this->assertNotInstanceOf(User::class, $loan->getCreatedBy());
 
-        $user = $this->createMock(User::class);
+        $user = $this->createStub(User::class);
         $loan->setCreatedBy($user);
         $this->assertSame($user, $loan->getCreatedBy());
 

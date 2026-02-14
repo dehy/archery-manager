@@ -36,9 +36,9 @@ final class EventHelperTest extends TestCase
 
     public function testLicenseeParticipationToEventReturnsExistingParticipation(): void
     {
-        $licensee = $this->createMock(Licensee::class);
-        $event = $this->createMock(Event::class);
-        $existingParticipation = $this->createMock(EventParticipation::class);
+        $licensee = $this->createStub(Licensee::class);
+        $event = $this->createStub(Event::class);
+        $existingParticipation = $this->createStub(EventParticipation::class);
 
         $this->eventParticipationRepository
             ->expects($this->once())
@@ -56,7 +56,7 @@ final class EventHelperTest extends TestCase
 
     public function testLicenseeParticipationToEventCreatesNewParticipation(): void
     {
-        $licensee = $this->createMock(Licensee::class);
+        $licensee = $this->createStub(Licensee::class);
         $event = $this->createMock(Event::class);
         $event->method('getStartsAt')->willReturn(new \DateTimeImmutable('2025-01-15'));
 
@@ -79,7 +79,7 @@ final class EventHelperTest extends TestCase
 
     public function testLicenseeParticipationToEventSetsCorrectEventAndParticipant(): void
     {
-        $licensee = $this->createMock(Licensee::class);
+        $licensee = $this->createStub(Licensee::class);
         $event = $this->createMock(Event::class);
         $event->method('getStartsAt')->willReturn(new \DateTimeImmutable('2025-01-15'));
 
@@ -99,7 +99,7 @@ final class EventHelperTest extends TestCase
 
     public function testRepositoryIsCalledWithCorrectParameters(): void
     {
-        $licensee = $this->createMock(Licensee::class);
+        $licensee = $this->createStub(Licensee::class);
         $event = $this->createMock(Event::class);
         $event->method('getStartsAt')->willReturn(new \DateTimeImmutable('2025-01-15'));
 
@@ -119,14 +119,14 @@ final class EventHelperTest extends TestCase
         $event = $this->createMock(TrainingEvent::class);
         $event->method('getAssignedGroups')->willReturn(new ArrayCollection());
 
-        $result = $this->eventHelper->canLicenseeParticipateInEvent($this->createMock(Licensee::class), $event);
+        $result = $this->eventHelper->canLicenseeParticipateInEvent($this->createStub(Licensee::class), $event);
 
         $this->assertTrue($result);
     }
 
     public function testCanLicenseeParticipateInEventReturnsTrueWhenLicenseeInAssignedGroup(): void
     {
-        $group = $this->createMock(Group::class);
+        $group = $this->createStub(Group::class);
         $licensee = $this->createMock(Licensee::class);
         $licensee->method('getGroups')->willReturn(new ArrayCollection([$group]));
 
@@ -140,8 +140,8 @@ final class EventHelperTest extends TestCase
 
     public function testCanLicenseeParticipateInEventReturnsFalseWhenLicenseeNotInAssignedGroup(): void
     {
-        $group1 = $this->createMock(Group::class);
-        $group2 = $this->createMock(Group::class);
+        $group1 = $this->createStub(Group::class);
+        $group2 = $this->createStub(Group::class);
 
         $licensee = $this->createMock(Licensee::class);
         $licensee->method('getGroups')->willReturn(new ArrayCollection([$group1]));
@@ -177,7 +177,7 @@ final class EventHelperTest extends TestCase
 
     public function testLicenseeParticipationToEventSetsRegisteredStateForTrainingEventWithGroupAccess(): void
     {
-        $group = $this->createMock(Group::class);
+        $group = $this->createStub(Group::class);
 
         $license = $this->createMock(License::class);
         $license->method('getActivities')->willReturn([LicenseActivityType::AC]);
@@ -243,8 +243,8 @@ final class EventHelperTest extends TestCase
 
     public function testGetAllParticipantsForEventReturnsExistingParticipationsForContestEvent(): void
     {
-        $participation1 = $this->createMock(EventParticipation::class);
-        $participation2 = $this->createMock(EventParticipation::class);
+        $participation1 = $this->createStub(EventParticipation::class);
+        $participation2 = $this->createStub(EventParticipation::class);
 
         $event = $this->createMock(ContestEvent::class);
         $event->method('getAssignedGroups')->willReturn(new ArrayCollection());

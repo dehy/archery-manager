@@ -85,7 +85,7 @@ final class LicenseTest extends TestCase
     public function testSetAndGetClub(): void
     {
         $license = new License();
-        $club = $this->createMock(Club::class);
+        $club = $this->createStub(Club::class);
 
         $license->setClub($club);
 
@@ -152,7 +152,7 @@ final class LicenseTest extends TestCase
             ->setAgeCategory(LicenseAgeCategoryType::SENIOR_1)
             ->setActivities([LicenseActivityType::CL])
             ->setLicensee($licensee)
-            ->setClub($this->createMock(Club::class));
+            ->setClub($this->createStub(Club::class));
 
         $this->assertSame($license, $result);
     }

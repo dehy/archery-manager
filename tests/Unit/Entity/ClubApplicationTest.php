@@ -33,7 +33,7 @@ final class ClubApplicationTest extends TestCase
     public function testGetAndSetLicensee(): void
     {
         $application = new ClubApplication();
-        $licensee = $this->createMock(Licensee::class);
+        $licensee = $this->createStub(Licensee::class);
 
         $result = $application->setLicensee($licensee);
 
@@ -44,7 +44,7 @@ final class ClubApplicationTest extends TestCase
     public function testLicenseeCanBeNull(): void
     {
         $application = new ClubApplication();
-        $licensee = $this->createMock(Licensee::class);
+        $licensee = $this->createStub(Licensee::class);
 
         $application->setLicensee($licensee);
         $this->assertSame($licensee, $application->getLicensee());
@@ -56,7 +56,7 @@ final class ClubApplicationTest extends TestCase
     public function testGetAndSetClub(): void
     {
         $application = new ClubApplication();
-        $club = $this->createMock(Club::class);
+        $club = $this->createStub(Club::class);
 
         $result = $application->setClub($club);
 
@@ -67,7 +67,7 @@ final class ClubApplicationTest extends TestCase
     public function testClubCanBeNull(): void
     {
         $application = new ClubApplication();
-        $club = $this->createMock(Club::class);
+        $club = $this->createStub(Club::class);
 
         $application->setClub($club);
         $this->assertSame($club, $application->getClub());
@@ -178,7 +178,7 @@ final class ClubApplicationTest extends TestCase
     public function testGetAndSetProcessedBy(): void
     {
         $application = new ClubApplication();
-        $user = $this->createMock(User::class);
+        $user = $this->createStub(User::class);
 
         $result = $application->setProcessedBy($user);
 
@@ -192,7 +192,7 @@ final class ClubApplicationTest extends TestCase
 
         $this->assertNotInstanceOf(User::class, $application->getProcessedBy());
 
-        $user = $this->createMock(User::class);
+        $user = $this->createStub(User::class);
         $application->setProcessedBy($user);
         $this->assertSame($user, $application->getProcessedBy());
 

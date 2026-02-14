@@ -28,7 +28,7 @@ final class ClubHelperTest extends TestCase
 
     public function testActiveClubReturnsClubFromCurrentLicense(): void
     {
-        $club = $this->createMock(Club::class);
+        $club = $this->createStub(Club::class);
         $license = $this->createMock(License::class);
         $license->method('getClub')->willReturn($club);
 
@@ -63,7 +63,7 @@ final class ClubHelperTest extends TestCase
 
     public function testGetClubForUserReturnsClubFromUserLicensee(): void
     {
-        $club = $this->createMock(Club::class);
+        $club = $this->createStub(Club::class);
         $license = $this->createMock(License::class);
         $license->method('getClub')->willReturn($club);
 
@@ -108,7 +108,7 @@ final class ClubHelperTest extends TestCase
 
     public function testActiveClubForReturnsClubForLicensee(): void
     {
-        $club = $this->createMock(Club::class);
+        $club = $this->createStub(Club::class);
         $license = $this->createMock(License::class);
         $license->method('getClub')->willReturn($club);
 

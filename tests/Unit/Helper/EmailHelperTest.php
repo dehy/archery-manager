@@ -88,9 +88,9 @@ final class EmailHelperTest extends TestCase
         ];
 
         // Mock licensees
-        $addedLicensee1 = $this->createMock(Licensee::class);
-        $addedLicensee2 = $this->createMock(Licensee::class);
-        $updatedLicensee = $this->createMock(Licensee::class);
+        $addedLicensee1 = $this->createStub(Licensee::class);
+        $addedLicensee2 = $this->createStub(Licensee::class);
+        $updatedLicensee = $this->createStub(Licensee::class);
 
         $invocationCount = 0;
 
@@ -200,7 +200,7 @@ final class EmailHelperTest extends TestCase
             SyncReturnValues::REMOVED->value => [],
         ];
 
-        $addedLicensee = $this->createMock(Licensee::class);
+        $addedLicensee = $this->createStub(Licensee::class);
 
         $this->licenseeRepository
             ->method('findBy')

@@ -35,7 +35,7 @@ final class GroupTest extends TestCase
     public function testSetAndGetClub(): void
     {
         $group = new Group();
-        $club = $this->createMock(Club::class);
+        $club = $this->createStub(Club::class);
 
         $group->setClub($club);
 
@@ -69,7 +69,7 @@ final class GroupTest extends TestCase
     public function testAddAndRemoveLicensee(): void
     {
         $group = new Group();
-        $licensee = $this->createMock(Licensee::class);
+        $licensee = $this->createStub(Licensee::class);
 
         $group->addLicensee($licensee);
         $this->assertCount(1, $group->getLicensees());
@@ -83,7 +83,7 @@ final class GroupTest extends TestCase
     public function testAddLicenseeDoesNotDuplicateLicensees(): void
     {
         $group = new Group();
-        $licensee = $this->createMock(Licensee::class);
+        $licensee = $this->createStub(Licensee::class);
 
         $group->addLicensee($licensee);
         $group->addLicensee($licensee);
@@ -145,7 +145,7 @@ final class GroupTest extends TestCase
         $group = new Group();
 
         $result = $group
-            ->setClub($this->createMock(Club::class))
+            ->setClub($this->createStub(Club::class))
             ->setName('Test Group')
             ->setDescription('Test description');
 

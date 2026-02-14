@@ -32,6 +32,7 @@ final class UserRepositoryTest extends KernelTestCase
 
         /** @var UserRepository $userRepository */
         $userRepository = $this->entityManager->getRepository(User::class);
+        $this->assertInstanceOf(Club::class, $club);
         $users = $userRepository->findByClubAndRole($club, 'ROLE_USER');
 
         $this->assertCount(11, $users);

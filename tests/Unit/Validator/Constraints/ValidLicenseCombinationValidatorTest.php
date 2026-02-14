@@ -125,7 +125,7 @@ final class ValidLicenseCombinationValidatorTest extends ConstraintValidatorTest
     public function testRejectsInvalidConstraint(): void
     {
         $this->expectException(UnexpectedTypeException::class);
-        $this->validator->validate(new License(), $this->createMock(\Symfony\Component\Validator\Constraint::class));
+        $this->validator->validate(new License(), $this->createStub(\Symfony\Component\Validator\Constraint::class));
     }
 
     public function testPartialFieldsSkipValidation(): void
