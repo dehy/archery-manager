@@ -3645,6 +3645,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"core-js@npm:^3.41.0":
+  version: 3.48.0
+  resolution: "core-js@npm:3.48.0"
+  checksum: 10/08bb3cc9b3225b905e72370c18257a14bb5563946d9eb7496799e0ee4f13231768b980ffe98434df7dbd0f8209bd2c19519938a2fa94846b2c82c2d5aa804037
+  languageName: node
+  linkType: hard
+
 "core-util-is@npm:~1.0.0":
   version: 1.0.3
   resolution: "core-util-is@npm:1.0.3"
@@ -4577,6 +4584,27 @@ __metadata:
   version: 0.5.2
   resolution: "fresh@npm:0.5.2"
   checksum: 10/64c88e489b5d08e2f29664eb3c79c705ff9a8eb15d3e597198ef76546d4ade295897a44abb0abd2700e7ef784b2e3cbf1161e4fbf16f59129193fd1030d16da1
+  languageName: node
+  linkType: hard
+
+"friendly-challenge@npm:^0.9.18":
+  version: 0.9.19
+  resolution: "friendly-challenge@npm:0.9.19"
+  dependencies:
+    core-js: "npm:^3.41.0"
+    friendly-pow: "npm:0.2.2"
+    object-assign-polyfill: "npm:^0.1.0"
+    promis: "npm:^1.1.4"
+    url-polyfill: "npm:^1.1.10"
+    whatwg-fetch: "npm:^3.4.1"
+  checksum: 10/b280a4836d79e14b21aadd1085e27725086fec2c0532d396a83561fb3e64aa083c408a1832b84256d67a9ad8ae51cf4e92f050500d4af371cb194d94b9360821
+  languageName: node
+  linkType: hard
+
+"friendly-pow@npm:0.2.2":
+  version: 0.2.2
+  resolution: "friendly-pow@npm:0.2.2"
+  checksum: 10/6d1e5b8a3a23db97d2123251b112341793bc6e11d1233abc4506a2f56553f24f598c08372e9a2e2c4d8815006f2bad6d75064c2829e1801946ca7fbae41f536d
   languageName: node
   linkType: hard
 
@@ -6219,6 +6247,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"object-assign-polyfill@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "object-assign-polyfill@npm:0.1.0"
+  checksum: 10/136f9f3d3dcff4c053d5298ea9c23a782fc24fc22cf3eadf4482a60ec5c45055313d648cceb025599e37d25db909cbcb21c1f1610d73003df59d627008845dfb
+  languageName: node
+  linkType: hard
+
 "object-assign@npm:^4.0.1, object-assign@npm:^4.1.1":
   version: 4.1.1
   resolution: "object-assign@npm:4.1.1"
@@ -6973,6 +7008,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"promis@npm:^1.1.4":
+  version: 1.1.4
+  resolution: "promis@npm:1.1.4"
+  checksum: 10/599d3ea3a13f8468fecdff0998623b35ab739d1473aed609235392467c26a0b502fbd96238d246d1b39b0fc04c027682b7a90b8533c13e92df47add70bf1f64c
+  languageName: node
+  linkType: hard
+
 "promise-inflight@npm:^1.0.1":
   version: 1.0.1
   resolution: "promise-inflight@npm:1.0.1"
@@ -7412,6 +7454,7 @@ __metadata:
     chartjs-plugin-datalabels: "npm:^2.2.0"
     core-js: "npm:^3.33.3"
     file-loader: "npm:^6.2.0"
+    friendly-challenge: "npm:^0.9.18"
     leaflet: "npm:^1.9.4"
     pdfjs-dist: "npm:^4.3.136"
     regenerator-runtime: "npm:^0.13.11"
@@ -8299,6 +8342,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"url-polyfill@npm:^1.1.10":
+  version: 1.1.14
+  resolution: "url-polyfill@npm:1.1.14"
+  checksum: 10/871b6fb0337e34793aedae36d7e92f0f198a94f631f9ecaa4c748e5e7cff788cd9bfc43f4e4409e4a9180eeaa607c42170e82cdf9ec2d103f9912d4567a9572e
+  languageName: node
+  linkType: hard
+
 "util-deprecate@npm:^1.0.1, util-deprecate@npm:^1.0.2, util-deprecate@npm:~1.0.1":
   version: 1.0.2
   resolution: "util-deprecate@npm:1.0.2"
@@ -8545,6 +8595,13 @@ __metadata:
   version: 0.1.4
   resolution: "websocket-extensions@npm:0.1.4"
   checksum: 10/b5399b487d277c78cdd2aef63764b67764aa9899431e3a2fa272c6ad7236a0fb4549b411d89afa76d5afd664c39d62fc19118582dc937e5bb17deb694f42a0d1
+  languageName: node
+  linkType: hard
+
+"whatwg-fetch@npm:^3.4.1":
+  version: 3.6.20
+  resolution: "whatwg-fetch@npm:3.6.20"
+  checksum: 10/2b4ed92acd6a7ad4f626a6cb18b14ec982bbcaf1093e6fe903b131a9c6decd14d7f9c9ca3532663c2759d1bdf01d004c77a0adfb2716a5105465c20755a8c57c
   languageName: node
   linkType: hard
 

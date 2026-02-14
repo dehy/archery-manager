@@ -28,6 +28,7 @@
     "chartjs-plugin-datalabels": "^2.2.0",
     "core-js": "^3.33.3",
     "file-loader": "^6.2.0",
+    "friendly-challenge": "^0.9.18",
     "leaflet": "^1.9.4",
     "pdfjs-dist": "^4.3.136",
     "regenerator-runtime": "^0.13.11",
