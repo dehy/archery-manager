@@ -75,6 +75,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, nullable: true)]
     private ?string $discordAccessToken = null;
 
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, options: ['default' => 0])]
+    private int $failedLoginAttempts = 0;
+
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $lastFailedLoginAt = null;
+
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $accountLockedUntil = null;
+
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $suspiciousActivityNotifiedAt = null;
+
     public function __construct()
     {
         $this->licensees = new ArrayCollection();
@@ -327,6 +339,94 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     public function setDiscordAccessToken(?string $discordAccessToken): self
     {
         $this->discordAccessToken = $discordAccessToken;
+
+        return $this;
+    }
+
+    public function getFailedLoginAttempts(): int
+    {
+        return $this->failedLoginAttempts;
+    }
+
+    public function setFailedLoginAttempts(int $failedLoginAttempts): self
+    {
+        $this->failedLoginAttempts = $failedLoginAttempts;
+
+        return $this;
+    }
+
+    public function incrementFailedAttempts(): self
+    {
+        ++$this->failedLoginAttempts;
+        $this->lastFailedLoginAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
+    public function resetFailedAttempts(): self
+    {
+        $this->failedLoginAttempts = 0;
+        $this->lastFailedLoginAt = null;
+
+        return $this;
+    }
+
+    public function getLastFailedLoginAt(): ?\DateTimeImmutable
+    {
+        return $this->lastFailedLoginAt;
+    }
+
+    public function setLastFailedLoginAt(?\DateTimeImmutable $lastFailedLoginAt): self
+    {
+        $this->lastFailedLoginAt = $lastFailedLoginAt;
+
+        return $this;
+    }
+
+    public function getAccountLockedUntil(): ?\DateTimeImmutable
+    {
+        return $this->accountLockedUntil;
+    }
+
+    public function setAccountLockedUntil(?\DateTimeImmutable $accountLockedUntil): self
+    {
+        $this->accountLockedUntil = $accountLockedUntil;
+
+        return $this;
+    }
+
+    public function isAccountLocked(): bool
+    {
+        if (!$this->accountLockedUntil instanceof \DateTimeImmutable) {
+            return false;
+        }
+
+        $now = new \DateTimeImmutable();
+        if ($now > $this->accountLockedUntil) {
+            // Account was locked but lock has expired
+            $this->accountLockedUntil = null;
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public function lockAccount(int $minutes = 30): self
+    {
+        $this->accountLockedUntil = new \DateTimeImmutable()->modify(\sprintf('+%d minutes', $minutes));
+
+        return $this;
+    }
+
+    public function getSuspiciousActivityNotifiedAt(): ?\DateTimeImmutable
+    {
+        return $this->suspiciousActivityNotifiedAt;
+    }
+
+    public function setSuspiciousActivityNotifiedAt(?\DateTimeImmutable $suspiciousActivityNotifiedAt): self
+    {
+        $this->suspiciousActivityNotifiedAt = $suspiciousActivityNotifiedAt;
 
         return $this;
     }
