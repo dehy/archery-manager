@@ -14,8 +14,10 @@ use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\PracticeAdvice;
 use App\Entity\Result;
+use App\Entity\SecurityLog;
 use App\Entity\TrainingEvent;
 use App\Entity\User;
+use App\Repository\SecurityLogRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -34,7 +36,22 @@ class AdminDashboardController extends AbstractDashboardController
     #[\Override]
     public function index(): Response
     {
-        return $this->render('admin/dashboard.html.twig');
+        /** @var SecurityLogRepository $securityLogRepo */
+        $securityLogRepo = $this->entityManager->getRepository(SecurityLog::class);
+        $this->entityManager->getRepository(User::class);
+
+        // Security statistics
+        $failedLoginsLast24h = $securityLogRepo->getFailedLoginCountLast24Hours();
+        $lockedAccountsCount = $securityLogRepo->getCurrentlyLockedAccountsCount();
+        $mostTargetedAccounts = $securityLogRepo->getMostTargetedAccounts(5);
+        $recentSecurityLogs = $securityLogRepo->findRecent(10);
+
+        return $this->render('admin/dashboard.html.twig', [
+            'failedLoginsLast24h' => $failedLoginsLast24h,
+            'lockedAccountsCount' => $lockedAccountsCount,
+            'mostTargetedAccounts' => $mostTargetedAccounts,
+            'recentSecurityLogs' => $recentSecurityLogs,
+        ]);
     }
 
     #[\Override]
@@ -127,6 +144,12 @@ class AdminDashboardController extends AbstractDashboardController
         );
 
         yield MenuItem::section('Technique');
+
+        yield MenuItem::linkToCrud(
+            'Journal de sécurité',
+            'fa-solid fa-shield-halved',
+            SecurityLog::class,
+        );
 
         yield MenuItem::linkToUrl(
             'Audit',
