@@ -15,10 +15,17 @@ This document contains improvement opportunities, technical debt items, and enha
   - Verify AJAX requests include CSRF tokens
   - Test CSRF protection in all POST/PUT/DELETE endpoints
 
-- [ ] **Implement rate limiting**
-  - Add rate limiting for login attempts
-  - Rate limit FFTA sync operations
-  - Protect public pre-registration form from spam
+- [x] **Implement rate limiting** ✅ (2026-02-14)
+  - ✅ Rate limiting for login attempts (10/15min per IP + account lockout after 10 failures)
+  - ✅ Rate limiting for registration (5/hour per IP)
+  - ✅ Rate limiting for password reset (3/hour per IP)
+  - ✅ Redis-based storage with sliding window algorithm
+  - ✅ SecurityLog entity for audit trail (9 event types)
+  - ✅ Email notifications (suspicious activity, account locked, account unlocked)
+  - ✅ Admin dashboard with security statistics and SecurityLog CRUD
+  - ✅ Console command: `security:unlock-account <email>`
+  - ✅ CAPTCHA integration (Friendly Captcha - shows after 3 failed login attempts)
+  - [ ] Rate limit FFTA sync operations
 
 - [ ] **Security audit of file uploads**
   - Review VichUploader configuration
