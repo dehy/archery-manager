@@ -2,6 +2,25 @@
 
 {% block title %}Identification{% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
+    {% if failed_login_count >= 3 %}
+        {{ encore_entry_script_tags('friendly_captcha') }}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const captchaWidget = document.querySelector('.frc-captcha');
+                const solutionInput = document.getElementById('captcha-solution');
+                
+                if (captchaWidget && solutionInput) {
+                    captchaWidget.addEventListener('frc:captcha.solved', function(event) {
+                        solutionInput.value = event.detail.solution;
+                    });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock %}
+
 {% block page_layout %}
 <div class="container">
     <div class="row justify-content-center align-content-center" style="min-height: 88vh">
@@ -29,6 +48,21 @@
 
                 {% if error %}
                     <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                {% endif %}
+
+                {% if failed_login_count >= 3 %}
+                    <div class="mb-3">
+                        <div class="alert alert-warning" role="alert">
+                            <em class="fa-solid fa-shield-halved me-2"></em>
+                            <strong>Vérification de sécurité requise</strong>
+                            <small class="d-block mt-1">Suite à plusieurs tentatives échouées, veuillez compléter la vérification ci-dessous.</small>
+                        </div>
+                        <div class="frc-captcha" 
+                             data-sitekey="{{ captcha_site_key }}"
+                             data-lang="fr"
+                             data-start="auto"></div>
+                        <input type="hidden" name="_captcha_solution" id="captcha-solution">
+                    </div>
                 {% endif %}
 
                 <button type="submit" class="btn btn-primary">
