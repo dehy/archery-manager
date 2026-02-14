@@ -42,9 +42,27 @@
                 {{ form_row(registrationForm.birthdate) }}
                 {{ form_row(registrationForm.email) }}
                 {{ form_row(registrationForm.phoneNumber) }}
-                {{ form_row(registrationForm.plainPassword, {
-                    help: 'Au moins 8 caractères'
-                }) }}
+                
+                <div data-controller="password-strength" data-password-strength-min-score-value="2">
+                    {{ form_label(registrationForm.plainPassword) }}
+                    {{ form_widget(registrationForm.plainPassword, {
+                        attr: {
+                            'data-password-strength-target': 'input',
+                            'data-action': 'input->password-strength#checkStrength'
+                        }
+                    }) }}
+                    
+                    <div data-password-strength-target="meter" class="mt-2" style="display: none;">
+                        <div class="progress" style="height: 10px;">
+                            <div data-password-strength-target="bar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <small data-password-strength-target="text" class="form-text text-muted"></small>
+                    </div>
+                    
+                    <small class="form-text text-muted">Choisissez un mot de passe fort. L'indicateur ci-dessus vous aide à évaluer sa robustesse.</small>
+                    {{ form_errors(registrationForm.plainPassword) }}
+                </div>
+                
                 {{ form_row(registrationForm.agreeTerms, {
                     label: 'J\'accepte les <a href="' ~ path('app_legal_cgu') ~ '" target="_blank">conditions générales d\'utilisation</a> *'|raw
                 }) }}
