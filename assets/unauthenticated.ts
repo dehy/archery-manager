@@ -1,5 +1,8 @@
 import "./styles/unauthenticated.scss";
 
+// start the Stimulus application
+import "./bootstrap";
+
 // Bootstrap Javascript - import only what we need
 import { Tooltip } from "bootstrap";
 
