@@ -186,7 +186,7 @@
                             <li>
                                 <a class="dropdown-item" href="{{ path('app_club_application_manage') }}">
                                     <em class="fa-solid fa-clipboard-check"></em>
-                                    Demandes de licence
+                                    Demandes d'adhésion
                                 </a>
                             </li>
                         {% endif %}
@@ -254,6 +254,22 @@
                 </div>
             </div>
         </div>
+    {% endif %}
+    {% if is_granted('ROLE_CLUB_ADMIN') %}
+        {% set pendingCount = pending_club_applications_count() %}
+        {% if pendingCount > 0 %}
+            <div class="alert alert-warning d-flex align-items-center justify-content-between mb-3">
+                <span>
+                    <em class="fa-solid fa-bell me-2"></em>
+                    <strong>{{ pendingCount }} demande{{ pendingCount > 1 ? 's' : '' }} d'adhésion</strong>
+                    en attente de traitement.
+                </span>
+                <a href="{{ path('app_club_application_manage') }}" class="btn btn-warning btn-sm ms-3">
+                    <em class="fa-solid fa-list me-2"></em>
+                    Gérer les demandes
+                </a>
+            </div>
+        {% endif %}
     {% endif %}
     {% for label, messages in app.flashes(['success', 'warning', 'danger']) %}
         {% for message in messages %}
