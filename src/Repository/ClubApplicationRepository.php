@@ -81,6 +81,25 @@ class ClubApplicationRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find active (pending or waiting_list) applications for a licensee in a specific season.
+     *
+     * @return ClubApplication[]
+     */
+    public function findActiveByLicensee(Licensee $licensee, int $season): array
+    {
+        return $this->createQueryBuilder('la')
+            ->andWhere('la.licensee = :licensee')
+            ->andWhere(self::FILTER_SEASON)
+            ->andWhere('la.status IN (:statuses)')
+            ->setParameter('licensee', $licensee)
+            ->setParameter('season', $season)
+            ->setParameter('statuses', [ClubApplicationStatusType::PENDING, ClubApplicationStatusType::WAITING_LIST])
+            ->orderBy('la.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Find applications for a licensee in a specific season.
      *
      * @return ClubApplication[]
