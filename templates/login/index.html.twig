@@ -6,18 +6,6 @@
     {{ parent() }}
     {% if failed_login_count >= 3 %}
         {{ encore_entry_script_tags('friendly_captcha') }}
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const captchaWidget = document.querySelector('.frc-captcha');
-                const solutionInput = document.getElementById('captcha-solution');
-                
-                if (captchaWidget && solutionInput) {
-                    captchaWidget.addEventListener('frc:captcha.solved', function(event) {
-                        solutionInput.value = event.detail.solution;
-                    });
-                }
-            });
-        </script>
     {% endif %}
 {% endblock %}
 
@@ -55,18 +43,18 @@
                         <div class="alert alert-warning" role="alert">
                             <em class="fa-solid fa-shield-halved me-2"></em>
                             <strong>Vérification de sécurité requise</strong>
-                            <small class="d-block mt-1">Suite à plusieurs tentatives échouées, veuillez compléter la vérification ci-dessous.</small>
+                            <small class="d-block mt-1">Suite à plusieurs tentatives échouées, une vérification de sécurité automatique est en cours.</small>
                         </div>
-                        <div class="frc-captcha" 
+                        <div 
+                            id="frc-captcha"
+                            class="frc-captcha" 
                              data-sitekey="{{ captcha_site_key }}"
-                             data-lang="fr"
-                             data-start="auto"></div>
-                        <input type="hidden" name="_captcha_solution" id="captcha-solution">
+                             data-lang="fr"></div>
                     </div>
                 {% endif %}
 
-                <button type="submit" class="btn btn-primary">
-                    <em class="fa-solid fa-arrow-right-to-bracket"></em>
+                <button type="submit" id="login-submit-button" class="btn btn-primary">
+                    <em class="fa-solid fa-arrow-right-to-bracket me-2"></em>
                     Se connecter
                 </button>
             </form>

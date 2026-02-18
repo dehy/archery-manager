@@ -57,7 +57,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         $failedLoginCount = $session->get('failed_login_count', 0);
 
         if ($failedLoginCount >= 3) {
-            $captchaSolution = $request->request->get('_captcha_solution', '');
+            $captchaSolution = $request->request->get('frc-captcha-response', '');
 
             if (empty($captchaSolution) || !$this->captchaService->verify($captchaSolution)) {
                 // Log CAPTCHA failure
