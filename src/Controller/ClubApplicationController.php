@@ -6,8 +6,9 @@ namespace App\Controller;
 
 use App\DBAL\Types\ClubApplicationStatusType;
 use App\Entity\ClubApplication;
-use App\Form\ClubApplicationRejectType;
+use App\Form\ClubApplicationProcessType;
 use App\Form\ClubApplicationType;
+use App\Helper\EmailHelper;
 use App\Helper\LicenseeHelper;
 use App\Helper\SeasonHelper;
 use App\Repository\ClubApplicationRepository;
@@ -15,6 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -27,6 +29,7 @@ class ClubApplicationController extends AbstractController
         private readonly SeasonHelper $seasonHelper,
         private readonly EntityManagerInterface $entityManager,
         private readonly ClubApplicationRepository $applicationRepository,
+        private readonly EmailHelper $emailHelper,
     ) {
     }
 
@@ -42,27 +45,61 @@ class ClubApplicationController extends AbstractController
         }
 
         $currentSeason = $this->seasonHelper->getSelectedSeason();
+        $userLicensees = $this->getUser()->getLicensees();
+        $showLicenseeSelector = \count($userLicensees) > 1;
 
         $validationResponse = $this->validateClubApplication($licensee, $currentSeason);
         if ($validationResponse instanceof Response) {
             return $validationResponse;
         }
 
-        return $this->handleApplicationForm($request, $licensee, $currentSeason);
+        return $this->handleApplicationForm($request, $licensee, $currentSeason, $showLicenseeSelector, $userLicensees);
     }
 
-    private function handleApplicationForm(Request $request, \App\Entity\Licensee $licensee, int $currentSeason): Response
-    {
+    /**
+     * @param iterable<\App\Entity\Licensee> $userLicensees
+     */
+    private function handleApplicationForm(
+        Request $request,
+        \App\Entity\Licensee $licensee,
+        int $currentSeason,
+        bool $showLicenseeSelector,
+        iterable $userLicensees,
+    ): Response {
         $application = new ClubApplication();
         $application->setLicensee($licensee);
         $application->setSeason($currentSeason);
 
-        $form = $this->createForm(ClubApplicationType::class, $application);
+        $form = $this->createForm(ClubApplicationType::class, $application, [
+            'show_licensee_selector' => $showLicenseeSelector,
+            'user_licensees' => $userLicensees,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $chosenLicensee = $application->getLicensee();
+
+            if ($showLicenseeSelector && $chosenLicensee !== $licensee) {
+                $activeApplications = $this->applicationRepository->findActiveByLicensee($chosenLicensee, $currentSeason);
+                if ([] !== $activeApplications) {
+                    $this->addFlash('warning', \sprintf(
+                        '%s %s a déjà une demande d\'adhésion en cours. Veuillez d\'abord annuler la demande existante.',
+                        $chosenLicensee->getFirstname(),
+                        $chosenLicensee->getLastname(),
+                    ));
+
+                    return $this->redirectToRoute('app_club_application_status');
+                }
+            }
+
             $this->entityManager->persist($application);
             $this->entityManager->flush();
+
+            try {
+                $this->emailHelper->sendClubApplicationNewEmail($application);
+            } catch (TransportExceptionInterface) {
+                // Non-blocking: email failure should not prevent the application from being saved
+            }
 
             $this->addFlash('success', 'Votre demande d\'adhésion a été envoyée avec succès.');
 
@@ -72,6 +109,7 @@ class ClubApplicationController extends AbstractController
         return $this->render('club_application/new.html.twig', [
             'form' => $form,
             'application' => $application,
+            'showLicenseeSelector' => $showLicenseeSelector,
         ]);
     }
 
@@ -85,15 +123,10 @@ class ClubApplicationController extends AbstractController
             return $this->redirectToRoute('app_homepage');
         }
 
-        // Check if already has a pending application for current season
-        $existingApplications = $this->applicationRepository->findByLicenseeAndSeason($licensee, $currentSeason);
-        $pendingApplications = array_filter(
-            $existingApplications,
-            static fn (ClubApplication $app): bool => $app->isPending(),
-        );
-
-        if ([] !== $pendingApplications) {
-            $this->addFlash('info', 'Vous avez déjà une demande d\'adhésion en attente.');
+        // Check if already has an active (pending or waiting_list) application for current season
+        $activeApplications = $this->applicationRepository->findActiveByLicensee($licensee, $currentSeason);
+        if ([] !== $activeApplications) {
+            $this->addFlash('info', 'Vous avez déjà une demande d\'adhésion en cours. Vous pouvez annuler celle-ci pour en soumettre une nouvelle.');
 
             return $this->redirectToRoute('app_club_application_status');
         }
@@ -147,9 +180,9 @@ class ClubApplicationController extends AbstractController
         ]);
     }
 
-    #[Route('/club-application/{id}/validate', name: 'app_club_application_validate', methods: ['POST'])]
+    #[Route('/club-application/{id}/validate', name: 'app_club_application_validate', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_CLUB_ADMIN')]
-    public function validate(ClubApplication $application): Response
+    public function validate(Request $request, ClubApplication $application): Response
     {
         $this->denyAccessUnlessGranted('manage', $application);
 
@@ -159,22 +192,40 @@ class ClubApplicationController extends AbstractController
             return $this->redirectToRoute('app_club_application_manage');
         }
 
-        $application->setStatus(ClubApplicationStatusType::VALIDATED);
-        $application->setProcessedBy($this->getUser());
+        $form = $this->createForm(ClubApplicationProcessType::class);
+        $form->handleRequest($request);
 
-        $this->entityManager->flush();
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+            $application->setStatus(ClubApplicationStatusType::VALIDATED);
+            $application->setAdminMessage($data['adminMessage'] ?? null);
+            $application->setProcessedBy($this->getUser());
 
-        $this->addFlash('success', \sprintf(
-            'La demande de %s a été validée.',
-            $application->getLicensee()->getFirstname().' '.$application->getLicensee()->getLastname(),
-        ));
+            $this->entityManager->flush();
 
-        return $this->redirectToRoute('app_club_application_manage');
+            try {
+                $this->emailHelper->sendClubApplicationValidatedEmail($application);
+            } catch (TransportExceptionInterface) {
+                // Non-blocking
+            }
+
+            $this->addFlash('success', \sprintf(
+                'La demande de %s a été validée.',
+                $application->getLicensee()->getFirstname().' '.$application->getLicensee()->getLastname(),
+            ));
+
+            return $this->redirectToRoute('app_club_application_manage');
+        }
+
+        return $this->render('club_application/validate.html.twig', [
+            'form' => $form,
+            'application' => $application,
+        ]);
     }
 
-    #[Route('/club-application/{id}/waiting-list', name: 'app_club_application_waiting_list', methods: ['POST'])]
+    #[Route('/club-application/{id}/waiting-list', name: 'app_club_application_waiting_list', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_CLUB_ADMIN')]
-    public function waitingList(ClubApplication $application): Response
+    public function waitingList(Request $request, ClubApplication $application): Response
     {
         $this->denyAccessUnlessGranted('manage', $application);
 
@@ -184,17 +235,35 @@ class ClubApplicationController extends AbstractController
             return $this->redirectToRoute('app_club_application_manage');
         }
 
-        $application->setStatus(ClubApplicationStatusType::WAITING_LIST);
-        $application->setProcessedBy($this->getUser());
+        $form = $this->createForm(ClubApplicationProcessType::class);
+        $form->handleRequest($request);
 
-        $this->entityManager->flush();
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+            $application->setStatus(ClubApplicationStatusType::WAITING_LIST);
+            $application->setAdminMessage($data['adminMessage'] ?? null);
+            $application->setProcessedBy($this->getUser());
 
-        $this->addFlash('success', \sprintf(
-            'La demande de %s a été mise sur liste d\'attente.',
-            $application->getLicensee()->getFirstname().' '.$application->getLicensee()->getLastname(),
-        ));
+            $this->entityManager->flush();
 
-        return $this->redirectToRoute('app_club_application_manage');
+            try {
+                $this->emailHelper->sendClubApplicationWaitingListEmail($application);
+            } catch (TransportExceptionInterface) {
+                // Non-blocking
+            }
+
+            $this->addFlash('success', \sprintf(
+                'La demande de %s a été mise sur liste d\'attente.',
+                $application->getLicensee()->getFirstname().' '.$application->getLicensee()->getLastname(),
+            ));
+
+            return $this->redirectToRoute('app_club_application_manage');
+        }
+
+        return $this->render('club_application/waiting_list.html.twig', [
+            'form' => $form,
+            'application' => $application,
+        ]);
     }
 
     #[Route('/club-application/{id}/reject', name: 'app_club_application_reject', methods: ['GET', 'POST'])]
@@ -209,15 +278,21 @@ class ClubApplicationController extends AbstractController
             return $this->redirectToRoute('app_club_application_manage');
         }
 
-        $form = $this->createForm(ClubApplicationRejectType::class);
+        $form = $this->createForm(ClubApplicationProcessType::class);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
             $application->setStatus(ClubApplicationStatusType::REJECTED);
-            $application->setRejectionReason($data['rejectionReason']);
+            $application->setAdminMessage($data['adminMessage'] ?? null);
             $application->setProcessedBy($this->getUser());
             $this->entityManager->flush();
+
+            try {
+                $this->emailHelper->sendClubApplicationRejectedEmail($application);
+            } catch (TransportExceptionInterface) {
+                // Non-blocking
+            }
 
             $this->addFlash('success', \sprintf(
                 'La demande de %s a été refusée.',
@@ -231,5 +306,44 @@ class ClubApplicationController extends AbstractController
             'form' => $form,
             'application' => $application,
         ]);
+    }
+
+    #[Route('/club-application/{id}/cancel', name: 'app_club_application_cancel', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function cancel(Request $request, ClubApplication $application): Response
+    {
+        $belongsToUser = false;
+        foreach ($this->getUser()->getLicensees() as $userLicensee) {
+            if ($userLicensee->getId() === $application->getLicensee()->getId()) {
+                $belongsToUser = true;
+                break;
+            }
+        }
+
+        if (!$belongsToUser) {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas annuler cette demande.');
+        }
+
+        if (!$this->isCsrfTokenValid('cancel_application_'.$application->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Token CSRF invalide.');
+
+            return $this->redirectToRoute('app_club_application_status');
+        }
+
+        if (!$application->isPending()) {
+            $this->addFlash('warning', 'Seule une demande en attente peut être annulée.');
+
+            return $this->redirectToRoute('app_club_application_status');
+        }
+
+        $application->setStatus(ClubApplicationStatusType::CANCELLED);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', \sprintf(
+            'Votre demande d\'adhésion au club %s a été annulée.',
+            $application->getClub()->getName(),
+        ));
+
+        return $this->redirectToRoute('app_club_application_status');
     }
 }
