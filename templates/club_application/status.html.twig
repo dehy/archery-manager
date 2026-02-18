@@ -4,6 +4,14 @@
 
 {% block body %}
     <div class="container mt-4">
+        <div class="row mb-3">
+            <div class="col-12">
+                <a href="{{ path('app_homepage') }}" class="btn btn-outline-secondary btn-sm">
+                    <em class="fa-solid fa-arrow-left me-2"></em>
+                    Retour à l'accueil
+                </a>
+            </div>
+        </div>
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -34,6 +42,7 @@
                                             <th>Date de demande</th>
                                             <th>Statut</th>
                                             <th>Mise à jour</th>
+                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -62,6 +71,11 @@
                                                             <em class="fa-solid fa-times me-1"></em>
                                                             Refusée
                                                         </span>
+                                                    {% elseif application.isCancelled %}
+                                                        <span class="badge bg-secondary">
+                                                            <em class="fa-solid fa-ban me-1"></em>
+                                                            Annulée
+                                                        </span>
                                                     {% endif %}
                                                 </td>
                                                 <td>
@@ -71,13 +85,35 @@
                                                         -
                                                     {% endif %}
                                                 </td>
+                                                <td>
+                                                    {% if application.isPending %}
+                                                        <form method="post" action="{{ path('app_club_application_cancel', { id: application.id }) }}"
+                                                              onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette demande ?')">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('cancel_application_' ~ application.id) }}">
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                                <em class="fa-solid fa-ban me-1"></em>
+                                                                Annuler
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                </td>
                                             </tr>
-                                            {% if application.isRejected and application.rejectionReason %}
+                                            {% if application.adminMessage %}
                                                 <tr>
-                                                    <td colspan="4" class="bg-light">
-                                                        <div class="alert alert-danger mb-0">
-                                                            <strong>Motif du refus :</strong> {{ application.rejectionReason }}
-                                                        </div>
+                                                    <td colspan="5" class="bg-light">
+                                                        {% if application.isRejected %}
+                                                            <div class="alert alert-danger mb-0">
+                                                                <strong>Message du club :</strong> {{ application.adminMessage }}
+                                                            </div>
+                                                        {% elseif application.isOnWaitingList %}
+                                                            <div class="alert alert-info mb-0">
+                                                                <strong>Message du club :</strong> {{ application.adminMessage }}
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="alert alert-success mb-0">
+                                                                <strong>Message du club :</strong> {{ application.adminMessage }}
+                                                            </div>
+                                                        {% endif %}
                                                     </td>
                                                 </tr>
                                             {% endif %}
@@ -86,7 +122,7 @@
                                 </table>
                             </div>
                             
-                            {% set hasPending = applications|filter(app => app.isPending)|length > 0 %}
+                            {% set hasPending = applications|filter(app => app.isPending or app.isOnWaitingList)|length > 0 %}
                             {% if not hasPending %}
                                 <div class="text-center mt-3">
                                     <a href="{{ path('app_club_application_new') }}" class="btn btn-primary">

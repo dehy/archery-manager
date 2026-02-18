@@ -30,11 +30,11 @@
                             <em class="fa-solid fa-bow-arrow fa-4x text-primary mb-3"></em>
                             <h4>Prêt à nous rejoindre ?</h4>
                             <p class="text-muted mb-4">
-                                Faites une demande de licence pour rejoindre un club et commencer à pratiquer le tir à l'arc.
+                                Faites une demande d'adhésion pour rejoindre un club et commencer à pratiquer le tir à l'arc.
                             </p>
                             <a href="{{ path('app_club_application_new') }}" class="btn btn-primary btn-lg">
                                 <em class="fa-solid fa-paper-plane me-2"></em>
-                                Faire une demande de licence
+                                Faire une demande d'adhésion
                             </a>
                         </div>
                     </div>
@@ -44,7 +44,7 @@
                         <div class="card-header bg-info text-white">
                             <h5 class="mb-0">
                                 <em class="fa-solid fa-clipboard-check me-2"></em>
-                                État de vos demandes de licence
+                                État de vos demandes d'adhésion
                             </h5>
                         </div>
                         <div class="card-body">
@@ -85,15 +85,30 @@
                                                             <em class="fa-solid fa-times me-1"></em>
                                                             Refusée
                                                         </span>
+                                                    {% elseif application.isCancelled %}
+                                                        <span class="badge bg-secondary">
+                                                            <em class="fa-solid fa-ban me-1"></em>
+                                                            Annulée
+                                                        </span>
                                                     {% endif %}
                                                 </td>
                                             </tr>
-                                            {% if application.isRejected and application.rejectionReason %}
+                                            {% if application.adminMessage %}
                                                 <tr class="table-light">
                                                     <td colspan="3">
-                                                        <div class="alert alert-danger mb-0">
-                                                            <strong>Motif du refus :</strong> {{ application.rejectionReason }}
-                                                        </div>
+                                                        {% if application.isRejected %}
+                                                            <div class="alert alert-danger mb-0">
+                                                                <strong>Message du club :</strong> {{ application.adminMessage }}
+                                                            </div>
+                                                        {% elseif application.isOnWaitingList %}
+                                                            <div class="alert alert-info mb-0">
+                                                                <strong>Message du club :</strong> {{ application.adminMessage }}
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="alert alert-success mb-0">
+                                                                <strong>Message du club :</strong> {{ application.adminMessage }}
+                                                            </div>
+                                                        {% endif %}
                                                     </td>
                                                 </tr>
                                             {% elseif application.isValidated %}
@@ -122,7 +137,7 @@
                                 </table>
                             </div>
 
-                            {% set hasPending = applications|filter(app => app.isPending)|length > 0 %}
+                            {% set hasPending = applications|filter(app => app.isPending or app.isOnWaitingList)|length > 0 %}
                             {% set hasValidated = applications|filter(app => app.isValidated)|length > 0 %}
                             {% set canApplyAgain = not hasPending and not hasValidated %}
                             
@@ -170,7 +185,11 @@
                             <strong>Vous avez des questions ?</strong><br>
                             N'hésitez pas à contacter directement le club qui vous intéresse.
                         </p>
-                        <div class="mt-3">
+                        <div class="mt-3 d-flex gap-2 flex-wrap">
+                            <a href="{{ path('app_homepage') }}" class="btn btn-outline-secondary btn-sm">
+                                <em class="fa-solid fa-house me-2"></em>
+                                Retour à l'accueil
+                            </a>
                             <a href="{{ path('app_club_application_status') }}" class="btn btn-outline-primary btn-sm">
                                 <em class="fa-solid fa-list me-2"></em>
                                 Voir toutes mes demandes

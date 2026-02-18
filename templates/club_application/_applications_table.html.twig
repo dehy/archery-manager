@@ -43,6 +43,11 @@
                                 <em class="fa-solid fa-times me-1"></em>
                                 Refusée
                             </span>
+                        {% elseif application.isCancelled %}
+                            <span class="badge bg-secondary">
+                                <em class="fa-solid fa-ban me-1"></em>
+                                Annulée
+                            </span>
                         {% endif %}
                     </td>
                     <td>
@@ -57,18 +62,14 @@
                     {% if showActions is defined and showActions %}
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">
-                                <form method="post" action="{{ path('app_club_application_validate', { id: application.id }) }}" class="d-inline">
-                                    <button type="submit" class="btn btn-success" title="Valider" data-bs-toggle="tooltip"
-                                            onclick="return confirm('Êtes-vous sûr de vouloir valider cette demande ?')">
-                                        <em class="fa-solid fa-check"></em>
-                                    </button>
-                                </form>
-                                <form method="post" action="{{ path('app_club_application_waiting_list', { id: application.id }) }}" class="d-inline">
-                                    <button type="submit" class="btn btn-info" title="Mettre en liste d'attente" data-bs-toggle="tooltip"
-                                            onclick="return confirm('Êtes-vous sûr de vouloir mettre cette demande en liste d\'attente ?')">
-                                        <em class="fa-solid fa-hourglass-half"></em>
-                                    </button>
-                                </form>
+                                <a href="{{ path('app_club_application_validate', { id: application.id }) }}"
+                                   class="btn btn-success" title="Valider" data-bs-toggle="tooltip">
+                                    <em class="fa-solid fa-check"></em>
+                                </a>
+                                <a href="{{ path('app_club_application_waiting_list', { id: application.id }) }}"
+                                   class="btn btn-info" title="Mettre en liste d'attente" data-bs-toggle="tooltip">
+                                    <em class="fa-solid fa-hourglass-half"></em>
+                                </a>
                                 <a href="{{ path('app_club_application_reject', { id: application.id }) }}" 
                                    class="btn btn-danger" title="Refuser" data-bs-toggle="tooltip">
                                     <em class="fa-solid fa-times"></em>
@@ -77,11 +78,11 @@
                         </td>
                     {% endif %}
                 </tr>
-                {% if application.isRejected and application.rejectionReason %}
+                {% if application.adminMessage %}
                     <tr>
                         <td colspan="{{ showActions ? 5 : 4 }}" class="bg-light">
-                            <div class="alert alert-danger mb-0">
-                                <strong>Motif du refus :</strong> {{ application.rejectionReason }}
+                            <div class="alert alert-secondary mb-0">
+                                <strong>Message :</strong> {{ application.adminMessage }}
                             </div>
                         </td>
                     </tr>
