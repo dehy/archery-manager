@@ -41,7 +41,7 @@ class ClubApplication
     private string $status = ClubApplicationStatusType::PENDING;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $rejectionReason = null;
+    private ?string $adminMessage = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
@@ -112,14 +112,14 @@ class ClubApplication
         return $this;
     }
 
-    public function getRejectionReason(): ?string
+    public function getAdminMessage(): ?string
     {
-        return $this->rejectionReason;
+        return $this->adminMessage;
     }
 
-    public function setRejectionReason(?string $rejectionReason): self
+    public function setAdminMessage(?string $adminMessage): self
     {
-        $this->rejectionReason = $rejectionReason;
+        $this->adminMessage = $adminMessage;
 
         return $this;
     }
@@ -178,5 +178,10 @@ class ClubApplication
     public function isRejected(): bool
     {
         return ClubApplicationStatusType::REJECTED === $this->status;
+    }
+
+    public function isCancelled(): bool
+    {
+        return ClubApplicationStatusType::CANCELLED === $this->status;
     }
 }

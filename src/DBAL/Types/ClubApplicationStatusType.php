@@ -19,10 +19,13 @@ final class ClubApplicationStatusType extends AbstractEnumType
 
     public const string REJECTED = 'rejected';
 
+    public const string CANCELLED = 'cancelled';
+
     protected static array $choices = [
         self::PENDING => 'En attente',
         self::VALIDATED => 'Validée',
         self::WAITING_LIST => "Liste d'attente",
         self::REJECTED => 'Refusée',
+        self::CANCELLED => 'Annulée',
     ];
 }
