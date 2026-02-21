@@ -18,7 +18,11 @@
         </div>
 
         <div class="row mb-4">
-            <div class="col-md-4 mb-3">
+            {% set totalUnits = equipment|reduce((acc, e) => acc + e.quantity, 0) %}
+            {% set totalAvailableUnits = equipment|reduce((acc, e) => acc + e.availableQuantity, 0) %}
+            {% set totalLoanedUnits = totalUnits - totalAvailableUnits %}
+            {% set totalValue = equipment|reduce((acc, e) => acc + (e.totalValue ?? 0), 0) %}
+            <div class="col-md-3 mb-3">
                 <div class="card h-100">
                     <div class="card-header bg-success text-white">
                         <h5 class="mb-0">
@@ -27,12 +31,12 @@
                         </h5>
                     </div>
                     <div class="card-body text-center">
-                        <div class="display-4">{{ availableEquipment|length }}</div>
-                        <p class="text-muted mb-0">équipement(s) disponible(s)</p>
+                        <div class="display-4">{{ totalAvailableUnits }}</div>
+                        <p class="text-muted mb-0">unité(s) disponible(s)</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
                 <div class="card h-100">
                     <div class="card-header bg-warning text-dark">
                         <h5 class="mb-0">
@@ -41,12 +45,12 @@
                         </h5>
                     </div>
                     <div class="card-body text-center">
-                        <div class="display-4">{{ loanedEquipment|length }}</div>
-                        <p class="text-muted mb-0">équipement(s) prêté(s)</p>
+                        <div class="display-4">{{ totalLoanedUnits }}</div>
+                        <p class="text-muted mb-0">unité(s) prêtée(s)</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
                 <div class="card h-100">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
@@ -55,8 +59,22 @@
                         </h5>
                     </div>
                     <div class="card-body text-center">
-                        <div class="display-4">{{ equipment|length }}</div>
-                        <p class="text-muted mb-0">équipement(s) au total</p>
+                        <div class="display-4">{{ totalUnits }}</div>
+                        <p class="text-muted mb-0">unité(s) au total</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-euro-sign me-2"></em>
+                            Valeur
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="display-4">{{ totalValue|number_format(2, ',', ' ') }} €</div>
+                        <p class="text-muted mb-0">valeur totale TTC</p>
                     </div>
                 </div>
             </div>
@@ -83,9 +101,9 @@
                                     <th>Type</th>
                                     <th>Nom</th>
                                     <th>N° de série</th>
-                                    <th>Quantité</th>
-                                    <th>Statut</th>
-                                    <th>Prêté à</th>
+                                    <th>Stock</th>
+                                    <th>Disponible</th>
+                                    <th>Prix unit. TTC</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -99,26 +117,22 @@
                                         </td>
                                         <td>{{ item.name }}</td>
                                         <td>{{ item.serialNumber ?? '-' }}</td>
-                                        <td>{{ item.count ?? '-' }}</td>
+                                        <td>{{ item.quantity }}</td>
                                         <td>
-                                            {% if item.isAvailable %}
+                                            {% if item.availableQuantity > 0 %}
                                                 <span class="badge bg-success">
-                                                    <em class="fa-solid fa-check me-1"></em>
-                                                    Disponible
+                                                    {{ item.availableQuantity }}/{{ item.quantity }}
                                                 </span>
                                             {% else %}
                                                 <span class="badge bg-warning text-dark">
                                                     <em class="fa-solid fa-clock me-1"></em>
-                                                    Prêté
+                                                    Tout prêté
                                                 </span>
                                             {% endif %}
                                         </td>
                                         <td>
-                                            {% set currentLoan = item.currentLoan %}
-                                            {% if currentLoan %}
-                                                <a href="{{ path('app_licensee_profile', {id: currentLoan.borrower.id}) }}">
-                                                    {{ currentLoan.borrower.firstname }} {{ currentLoan.borrower.lastname }}
-                                                </a>
+                                            {% if item.purchasePrice %}
+                                                {{ item.purchasePrice|number_format(2, ',', ' ') }} €
                                             {% else %}
                                                 -
                                             {% endif %}
@@ -136,7 +150,7 @@
                                                        title="Modifier">
                                                         <em class="fa-solid fa-edit"></em>
                                                     </a>
-                                                    {% if item.isAvailable %}
+                                                    {% if not item.isFullyLoaned %}
                                                         <a href="{{ path('app_club_equipment_loan', {id: item.id}) }}" 
                                                            class="btn btn-outline-warning"
                                                            title="Prêter">
@@ -170,6 +184,7 @@
                                 <tr>
                                     <th>Équipement</th>
                                     <th>Emprunteur</th>
+                                    <th>Qté</th>
                                     <th>Date de prêt</th>
                                     <th>Durée</th>
                                     <th>Actions</th>
@@ -177,8 +192,7 @@
                             </thead>
                             <tbody>
                                 {% for item in loanedEquipment %}
-                                    {% set loan = item.currentLoan %}
-                                    {% if loan %}
+                                    {% for loan in item.activeLoans %}
                                     <tr>
                                         <td>
                                             <a href="{{ path('app_club_equipment_show', {id: item.id}) }}">
@@ -190,11 +204,12 @@
                                                 {{ loan.borrower.firstname }} {{ loan.borrower.lastname }}
                                             </a>
                                         </td>
+                                        <td>{{ loan.quantity }}</td>
                                         <td>{{ loan.startDate|date('d/m/Y') }}</td>
                                         <td>{{ loan.loanDurationInDays }} jour(s)</td>
                                         <td>
                                             <form method="post" 
-                                                  action="{{ path('app_club_equipment_return', {id: item.id}) }}"
+                                                  action="{{ path('app_club_equipment_return_loan', {loanId: loan.id}) }}"
                                                   onsubmit="return confirm('Confirmer le retour de cet équipement ?');"
                                                   class="d-inline">
                                                 <button type="submit" class="btn btn-sm btn-success">
@@ -204,7 +219,7 @@
                                             </form>
                                         </td>
                                     </tr>
-                                    {% endif %}
+                                    {% endfor %}
                                 {% endfor %}
                             </tbody>
                         </table>

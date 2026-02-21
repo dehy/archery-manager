@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Prêts en cours - Matériel du club{% endblock %}
+
+{% block body %}
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <em class="fa-solid fa-hand-holding me-2"></em>
+                Prêts en cours
+            </h1>
+            <a href="{{ path('app_club_equipment_index') }}" class="btn btn-outline-secondary">
+                <em class="fa-solid fa-arrow-left me-2"></em>
+                Retour au matériel
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <em class="fa-solid fa-list me-2"></em>
+                    Tous les prêts actifs — {{ club.name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if activeLoans is empty %}
+                    <div class="text-center text-muted py-4">
+                        <em class="fa-solid fa-check-circle fa-3x mb-3"></em>
+                        <p class="mb-0">Aucun prêt en cours</p>
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Équipement</th>
+                                    <th>Type</th>
+                                    <th>Emprunteur</th>
+                                    <th>Qté prêtée</th>
+                                    <th>Date de prêt</th>
+                                    <th>Durée</th>
+                                    <th>Notes</th>
+                                    {% if is_granted('ROLE_ADMIN') %}<th>Actions</th>{% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for loan in activeLoans %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ path('app_club_equipment_show', {id: loan.equipment.id}) }}">
+                                                {{ loan.equipment.name }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                {{ loan.equipment.type|club_equipment_type_readable }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ path('app_licensee_profile', {id: loan.borrower.id}) }}">
+                                                {{ loan.borrower.firstname }} {{ loan.borrower.lastname }}
+                                            </a>
+                                        </td>
+                                        <td>{{ loan.quantity }}</td>
+                                        <td>{{ loan.startDate|date('d/m/Y') }}</td>
+                                        <td>
+                                            {% set days = loan.loanDurationInDays %}
+                                            {% if days >= 30 %}
+                                                <span class="badge bg-danger">{{ days }} j.</span>
+                                            {% elseif days >= 14 %}
+                                                <span class="badge bg-warning text-dark">{{ days }} j.</span>
+                                            {% else %}
+                                                {{ days }} j.
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ loan.notes ?? '-' }}</td>
+                                        {% if is_granted('ROLE_ADMIN') %}
+                                            <td>
+                                                <form method="post"
+                                                      action="{{ path('app_club_equipment_return_loan', {loanId: loan.id}) }}"
+                                                      onsubmit="return confirm('Confirmer le retour de cet équipement ?');"
+                                                      class="d-inline">
+                                                    <button type="submit" class="btn btn-sm btn-success">
+                                                        <em class="fa-solid fa-check me-1"></em>
+                                                        Retourné
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

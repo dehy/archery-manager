@@ -44,28 +44,42 @@
                                     <td><code>{{ equipment.serialNumber }}</code></td>
                                 </tr>
                             {% endif %}
-                            {% if equipment.count %}
-                                <tr>
-                                    <th>Quantité :</th>
-                                    <td>{{ equipment.count }}</td>
-                                </tr>
-                            {% endif %}
                             <tr>
-                                <th>Statut :</th>
+                                <th>Stock total :</th>
+                                <td>{{ equipment.quantity }} unité(s)</td>
+                            </tr>
+                            <tr>
+                                <th>Disponible :</th>
                                 <td>
-                                    {% if equipment.isAvailable %}
+                                    {% if equipment.availableQuantity > 0 %}
                                         <span class="badge bg-success">
                                             <em class="fa-solid fa-check me-1"></em>
-                                            Disponible
+                                            {{ equipment.availableQuantity }}/{{ equipment.quantity }}
                                         </span>
                                     {% else %}
                                         <span class="badge bg-warning text-dark">
                                             <em class="fa-solid fa-clock me-1"></em>
-                                            Prêté
+                                            Tout prêté
                                         </span>
                                     {% endif %}
                                 </td>
                             </tr>
+                            {% if equipment.purchasePrice %}
+                                <tr>
+                                    <th>Prix unitaire TTC :</th>
+                                    <td>{{ equipment.purchasePrice|number_format(2, ',', ' ') }} €</td>
+                                </tr>
+                                <tr>
+                                    <th>Valeur totale :</th>
+                                    <td>{{ equipment.totalValue|number_format(2, ',', ' ') }} €</td>
+                                </tr>
+                            {% endif %}
+                            {% if equipment.purchaseDate %}
+                                <tr>
+                                    <th>Date d'achat :</th>
+                                    <td>{{ equipment.purchaseDate|date('d/m/Y') }}</td>
+                                </tr>
+                            {% endif %}
                             <tr>
                                 <th>Ajouté le :</th>
                                 <td>{{ equipment.createdAt|date('d/m/Y à H:i') }}</td>
@@ -165,50 +179,59 @@
                     </div>
                 {% endif %}
 
-                {% if currentLoan %}
+                {% if equipment.activeLoans is not empty %}
                     <div class="card mt-4">
                         <div class="card-header bg-warning text-dark">
                             <h5 class="mb-0">
                                 <em class="fa-solid fa-hand-holding me-2"></em>
-                                Prêt en cours
+                                Prêts en cours ({{ equipment.activeLoans|length }})
                             </h5>
                         </div>
-                        <div class="card-body">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <th width="40%">Emprunteur :</th>
-                                    <td>
-                                        <a href="{{ path('app_licensee_profile', {id: currentLoan.borrower.id}) }}">
-                                            {{ currentLoan.borrower.firstname }} {{ currentLoan.borrower.lastname }}
-                                        </a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Date de prêt :</th>
-                                    <td>{{ currentLoan.startDate|date('d/m/Y') }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Durée :</th>
-                                    <td>{{ currentLoan.loanDurationInDays }} jour(s)</td>
-                                </tr>
-                                {% if currentLoan.notes %}
+                        <div class="card-body p-0">
+                            <table class="table table-borderless mb-0">
+                                <thead class="table-light">
                                     <tr>
-                                        <th>Notes :</th>
-                                        <td>{{ currentLoan.notes|nl2br }}</td>
+                                        <th>Emprunteur</th>
+                                        <th>Qté</th>
+                                        <th>Date</th>
+                                        <th>Durée</th>
+                                        {% if is_granted('ROLE_ADMIN') %}<th></th>{% endif %}
                                     </tr>
-                                {% endif %}
+                                </thead>
+                                <tbody>
+                                    {% for loan in equipment.activeLoans %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ path('app_licensee_profile', {id: loan.borrower.id}) }}">
+                                                    {{ loan.borrower.firstname }} {{ loan.borrower.lastname }}
+                                                </a>
+                                            </td>
+                                            <td>{{ loan.quantity }}</td>
+                                            <td>{{ loan.startDate|date('d/m/Y') }}</td>
+                                            <td>{{ loan.loanDurationInDays }} j.</td>
+                                            {% if is_granted('ROLE_ADMIN') %}
+                                                <td>
+                                                    <form method="post"
+                                                          action="{{ path('app_club_equipment_return_loan', {loanId: loan.id}) }}"
+                                                          onsubmit="return confirm('Confirmer le retour ?');">
+                                                        <button type="submit" class="btn btn-sm btn-success">
+                                                            <em class="fa-solid fa-check me-1"></em>
+                                                            Retourné
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            {% endif %}
+                                        </tr>
+                                        {% if loan.notes %}
+                                            <tr class="table-light">
+                                                <td colspan="{{ is_granted('ROLE_ADMIN') ? 5 : 4 }}" class="text-muted small ps-4">
+                                                    <em class="fa-solid fa-note-sticky me-1"></em>{{ loan.notes }}
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
                             </table>
-
-                            {% if is_granted('ROLE_ADMIN') %}
-                                <form method="post" 
-                                      action="{{ path('app_club_equipment_return', {id: equipment.id}) }}"
-                                      onsubmit="return confirm('Confirmer le retour de cet équipement ?');">
-                                    <button type="submit" class="btn btn-success w-100">
-                                        <em class="fa-solid fa-check me-2"></em>
-                                        Marquer comme retourné
-                                    </button>
-                                </form>
-                            {% endif %}
                         </div>
                     </div>
                 {% endif %}
@@ -229,7 +252,7 @@
                             <em class="fa-solid fa-edit me-2"></em>
                             Modifier
                         </a>
-                        {% if equipment.isAvailable %}
+                        {% if not equipment.isFullyLoaned %}
                             <a href="{{ path('app_club_equipment_loan', {id: equipment.id}) }}" class="btn btn-warning">
                                 <em class="fa-solid fa-hand-holding me-2"></em>
                                 Prêter
@@ -239,13 +262,13 @@
                               action="{{ path('app_club_equipment_delete', {id: equipment.id}) }}"
                               onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet équipement ?');"
                               class="d-inline">
-                            <button type="submit" class="btn btn-danger" {{ not equipment.isAvailable ? 'disabled' : '' }}>
+                            <button type="submit" class="btn btn-danger" {{ equipment.isCurrentlyLoaned ? 'disabled' : '' }}>
                                 <em class="fa-solid fa-trash me-2"></em>
                                 Supprimer
                             </button>
                         </form>
                     </div>
-                    {% if not equipment.isAvailable %}
+                    {% if equipment.isCurrentlyLoaned %}
                         <small class="text-muted d-block mt-2">
                             <em class="fa-solid fa-info-circle me-1"></em>
                             Vous ne pouvez pas supprimer un équipement actuellement prêté
@@ -274,6 +297,7 @@
                             <thead>
                                 <tr>
                                     <th>Emprunteur</th>
+                                    <th>Qté</th>
                                     <th>Date de prêt</th>
                                     <th>Date de retour</th>
                                     <th>Durée</th>
@@ -288,6 +312,7 @@
                                                 {{ loan.borrower.firstname }} {{ loan.borrower.lastname }}
                                             </a>
                                         </td>
+                                        <td>{{ loan.quantity }}</td>
                                         <td>{{ loan.startDate|date('d/m/Y') }}</td>
                                         <td>
                                             {% if loan.returnDate %}
