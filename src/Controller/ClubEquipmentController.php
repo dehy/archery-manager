@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\DBAL\Types\ClubEquipmentType as ClubEquipmentTypeEnum;
 use App\Entity\ClubEquipment;
 use App\Entity\EquipmentLoan;
 use App\Form\ClubEquipmentType;
@@ -282,7 +283,7 @@ class ClubEquipmentController extends BaseController
     }
 
     #[Route('/club-equipment/loans', name: 'app_club_equipment_loans')]
-    public function loans(): Response
+    public function loans(Request $request): Response
     {
         $this->assertHasValidLicense();
         $club = $this->clubHelper->activeClub();
@@ -290,11 +291,30 @@ class ClubEquipmentController extends BaseController
             throw $this->createNotFoundException(self::NO_ACTIVE_CLUB_ERROR);
         }
 
-        $activeLoans = $this->loanRepository->findActiveLoans();
+        $filterType = $request->query->getString('type', '');
+        $sort = $request->query->getString('sort', 'startDate');
+        $dir = $request->query->getString('dir', 'DESC');
+
+        // Validate sort & dir
+        $validSorts = array_keys(EquipmentLoanRepository::SORTABLE_COLUMNS);
+        if (!\in_array($sort, $validSorts, true)) {
+            $sort = 'startDate';
+        }
+        $dir = 'ASC' === strtoupper($dir) ? 'ASC' : 'DESC';
+
+        $activeLoans = $this->loanRepository->findActiveLoans(
+            '' !== $filterType ? $filterType : null,
+            $sort,
+            $dir,
+        );
 
         return $this->render('club_equipment/loans.html.twig', [
             'activeLoans' => $activeLoans,
             'club' => $club,
+            'equipmentTypes' => ClubEquipmentTypeEnum::getChoices(),
+            'filterType' => $filterType,
+            'sort' => $sort,
+            'dir' => $dir,
         ]);
     }
 }
