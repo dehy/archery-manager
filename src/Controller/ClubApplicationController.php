@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\DBAL\Types\ClubApplicationStatusType;
 use App\Entity\ClubApplication;
+use App\Entity\User;
 use App\Form\ClubApplicationProcessType;
 use App\Form\ClubApplicationType;
 use App\Helper\EmailHelper;
@@ -45,7 +46,9 @@ class ClubApplicationController extends AbstractController
         }
 
         $currentSeason = $this->seasonHelper->getSelectedSeason();
-        $userLicensees = $this->getUser()->getLicensees();
+        $user = $this->getUser();
+        \assert($user instanceof User);
+        $userLicensees = $user->getLicensees();
         $showLicenseeSelector = \count($userLicensees) > 1;
 
         $validationResponse = $this->validateClubApplication($licensee, $currentSeason);
@@ -313,7 +316,9 @@ class ClubApplicationController extends AbstractController
     public function cancel(Request $request, ClubApplication $application): Response
     {
         $belongsToUser = false;
-        foreach ($this->getUser()->getLicensees() as $userLicensee) {
+        $user = $this->getUser();
+        \assert($user instanceof User);
+        foreach ($user->getLicensees() as $userLicensee) {
             if ($userLicensee->getId() === $application->getLicensee()->getId()) {
                 $belongsToUser = true;
                 break;

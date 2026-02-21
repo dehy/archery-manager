@@ -44,6 +44,7 @@ class RegistrationController extends AbstractController
 
                 return $this->redirectToRoute('app_register');
             }
+
             // encode the plain password
             $user->setPassword(
                 $this->userPasswordHasher->hashPassword(

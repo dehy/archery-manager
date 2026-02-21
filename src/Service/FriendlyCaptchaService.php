@@ -55,7 +55,7 @@ class FriendlyCaptchaService
         } catch (\Exception $exception) {
             $this->logger->error('CAPTCHA verification exception', [
                 'message' => $exception->getMessage(),
-                'exception_class' => get_class($exception),
+                'exception_class' => $exception::class,
                 'trace' => $exception->getTraceAsString(),
             ]);
         }

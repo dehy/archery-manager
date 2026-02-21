@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Twig;
 
 use App\Entity\Licensee;
-use App\Repository\ClubApplicationRepository;
 use App\Helper\LicenseeHelper;
 use App\Helper\SeasonHelper;
+use App\Repository\ClubApplicationRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 
 class PendingClubApplicationsExtension
@@ -34,7 +34,7 @@ class PendingClubApplicationsExtension
 
         $currentSeason = $this->seasonHelper->getSelectedSeason();
         $license = $licensee->getLicenseForSeason($currentSeason);
-        if (null === $license) {
+        if (!$license instanceof \App\Entity\License) {
             return 0;
         }
 
