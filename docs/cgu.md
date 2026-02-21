@@ -70,7 +70,7 @@ L'Utilisateur est responsable de :
 
 La Plateforme propose actuellement les services suivants sans frais :
 - Création et gestion de compte utilisateur
-- Demande de licence auprès d'un club
+- Demande d'adhésion auprès d'un club
 - Consultation des événements et entraînements
 - Gestion de la participation aux événements
 - Consultation des résultats de compétition

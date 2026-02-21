@@ -79,9 +79,9 @@ Si vous renseignez vos équipements :
 - Horaire de départ (pour les compétitions)
 - Résultats de compétition (scores, classements)
 
-### 3.5 Données de demande de licence
+### 3.5 Données de demande d'adhésion
 
-Lors d'une demande de licence :
+Lors d'une demande d'adhésion :
 - Club demandé
 - Saison concernée
 - Statut de la demande (en attente, validée, liste d'attente, rejetée)
