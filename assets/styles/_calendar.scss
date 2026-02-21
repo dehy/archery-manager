@@ -37,6 +37,10 @@
   padding: 0.25rem !important;
   width: 100%;
   min-width: 0; // Allow flex items to shrink below content size
+
+  &:has(.all-day-event) {
+    overflow: visible; // Allow all-day events to overflow the case
+  }
 }
 
 .calendar-case.previous-month,
@@ -102,18 +106,25 @@
   margin: 0 0.25rem 0.125rem 0.25rem;
   padding: 0.125rem 0.5rem !important;
   display: block !important;
+  min-height: 0.8rem;
+  z-index: 10;
 }
 
 .multi-day-event-start {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
-  margin-right: 0 !important;
+  margin-right: -0.5rem !important;
 }
+
+// .calendar-case .multi-day-event-start .event-name {
+//   overflow: visible;
+//   text-overflow: initial;
+// }
 
 .multi-day-event-end {
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
-  margin-left: 0 !important;
+  margin-left: -0.5rem !important;
 }
 
 .event-pill {
