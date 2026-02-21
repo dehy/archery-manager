@@ -46,13 +46,9 @@ class ClubEquipmentController extends BaseController
         }
 
         $equipment = $this->equipmentRepository->findByClub($club);
-        $availableEquipment = $this->equipmentRepository->findAvailableByClub($club);
-        $loanedEquipment = $this->equipmentRepository->findCurrentlyLoanedByClub($club);
 
         return $this->render('club_equipment/index.html.twig', [
             'equipment' => $equipment,
-            'availableEquipment' => $availableEquipment,
-            'loanedEquipment' => $loanedEquipment,
             'club' => $club,
         ]);
     }

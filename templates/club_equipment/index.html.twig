@@ -9,12 +9,18 @@
                 <em class="fa-solid fa-bow-arrow me-2"></em>
                 Matériel du club
             </h1>
-            {% if is_granted('ROLE_ADMIN') %}
-                <a href="{{ path('app_club_equipment_new') }}" class="btn btn-primary">
-                    <em class="fa-solid fa-plus me-2"></em>
-                    Ajouter du matériel
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_club_equipment_loans') }}" class="btn btn-outline-warning">
+                    <em class="fa-solid fa-hand-holding me-2"></em>
+                    Prêts en cours
                 </a>
-            {% endif %}
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('app_club_equipment_new') }}" class="btn btn-primary">
+                        <em class="fa-solid fa-plus me-2"></em>
+                        Ajouter du matériel
+                    </a>
+                {% endif %}
+            </div>
         </div>
 
         <div class="row mb-4">
@@ -46,7 +52,11 @@
                     </div>
                     <div class="card-body text-center">
                         <div class="display-4">{{ totalLoanedUnits }}</div>
-                        <p class="text-muted mb-0">unité(s) prêtée(s)</p>
+                        <p class="text-muted mb-2">unité(s) prêtée(s)</p>
+                        <a href="{{ path('app_club_equipment_loans') }}" class="btn btn-sm btn-outline-warning">
+                            <em class="fa-solid fa-arrow-right me-1"></em>
+                            Voir les prêts
+                        </a>
                     </div>
                 </div>
             </div>
@@ -169,63 +179,5 @@
             </div>
         </div>
 
-        {% if is_granted('ROLE_ADMIN') and loanedEquipment is not empty %}
-            <div class="card mt-4">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0">
-                        <em class="fa-solid fa-hand-holding me-2"></em>
-                        Prêts en cours
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Équipement</th>
-                                    <th>Emprunteur</th>
-                                    <th>Qté</th>
-                                    <th>Date de prêt</th>
-                                    <th>Durée</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in loanedEquipment %}
-                                    {% for loan in item.activeLoans %}
-                                    <tr>
-                                        <td>
-                                            <a href="{{ path('app_club_equipment_show', {id: item.id}) }}">
-                                                {{ item.name }}
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <a href="{{ path('app_licensee_profile', {id: loan.borrower.id}) }}">
-                                                {{ loan.borrower.firstname }} {{ loan.borrower.lastname }}
-                                            </a>
-                                        </td>
-                                        <td>{{ loan.quantity }}</td>
-                                        <td>{{ loan.startDate|date('d/m/Y') }}</td>
-                                        <td>{{ loan.loanDurationInDays }} jour(s)</td>
-                                        <td>
-                                            <form method="post" 
-                                                  action="{{ path('app_club_equipment_return_loan', {loanId: loan.id}) }}"
-                                                  onsubmit="return confirm('Confirmer le retour de cet équipement ?');"
-                                                  class="d-inline">
-                                                <button type="submit" class="btn btn-sm btn-success">
-                                                    <em class="fa-solid fa-check me-1"></em>
-                                                    Retourné
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
     </div>
 {% endblock %}
