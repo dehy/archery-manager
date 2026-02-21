@@ -30,6 +30,9 @@ class EquipmentLoan
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $returnDate = null;
 
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
+    private int $quantity = 1;
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $notes = null;
 
@@ -71,6 +74,18 @@ class EquipmentLoan
     public function setBorrower(Licensee $borrower): self
     {
         $this->borrower = $borrower;
+
+        return $this;
+    }
+
+    public function getQuantity(): int
+    {
+        return $this->quantity;
+    }
+
+    public function setQuantity(int $quantity): self
+    {
+        $this->quantity = $quantity;
 
         return $this;
     }

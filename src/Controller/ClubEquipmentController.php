@@ -14,6 +14,7 @@ use App\Helper\SeasonHelper;
 use App\Repository\ClubEquipmentRepository;
 use App\Repository\EquipmentLoanRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -103,7 +104,6 @@ class ClubEquipmentController extends BaseController
         return $this->render('club_equipment/show.html.twig', [
             'equipment' => $equipment,
             'loanHistory' => $loanHistory,
-            'currentLoan' => $equipment->getCurrentLoan(),
         ]);
     }
 
@@ -175,9 +175,9 @@ class ClubEquipmentController extends BaseController
             throw $this->createAccessDeniedException();
         }
 
-        // Check if equipment is already loaned
-        if ($equipment->isCurrentlyLoaned()) {
-            $this->addFlash('danger', 'Cet équipement est déjà prêté');
+        // Check if all units are already loaned out
+        if ($equipment->isFullyLoaned()) {
+            $this->addFlash('danger', 'Tout le stock de cet équipement est actuellement prêté');
 
             return $this->redirectToRoute('app_club_equipment_show', ['id' => $equipment->getId()]);
         }
@@ -191,7 +191,22 @@ class ClubEquipmentController extends BaseController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $equipment->setIsAvailable(false);
+            $requestedQty = $loan->getQuantity();
+            if ($requestedQty > $equipment->getAvailableQuantity()) {
+                $this->addFlash(
+                    'danger',
+                    \sprintf(
+                        'Quantité demandée (%d) supérieure au stock disponible (%d)',
+                        $requestedQty,
+                        $equipment->getAvailableQuantity(),
+                    ),
+                );
+
+                return $this->render('club_equipment/loan.html.twig', [
+                    'form' => $form,
+                    'equipment' => $equipment,
+                ]);
+            }
 
             $em->persist($loan);
             $em->flush();
@@ -219,19 +234,49 @@ class ClubEquipmentController extends BaseController
             throw $this->createAccessDeniedException();
         }
 
-        $currentLoan = $equipment->getCurrentLoan();
-        if (!$currentLoan instanceof EquipmentLoan) {
+        $activeLoans = $equipment->getActiveLoans();
+        if ($activeLoans->isEmpty()) {
             $this->addFlash('danger', 'Cet équipement n\'est pas actuellement prêté');
 
             return $this->redirectToRoute('app_club_equipment_show', ['id' => $equipment->getId()]);
         }
 
-        $currentLoan->setReturnDate(new \DateTimeImmutable());
-        $equipment->setIsAvailable(true);
-
+        // Return the first active loan (legacy single-loan behaviour)
+        $activeLoans->first()->setReturnDate(new \DateTimeImmutable());
         $em->flush();
 
-        $this->addFlash('success', 'Équipement retourné avec succès');
+        $this->addFlash('success', 'Prêt clôturé avec succès');
+
+        return $this->redirectToRoute('app_club_equipment_show', ['id' => $equipment->getId()]);
+    }
+
+    #[Route('/club-equipment/loan/{loanId}/return', name: 'app_club_equipment_return_loan', requirements: ['loanId' => '\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function returnLoan(
+        #[MapEntity(id: 'loanId')]
+        EquipmentLoan $loan,
+        EntityManagerInterface $em,
+    ): Response {
+        $this->assertHasValidLicense();
+
+        $equipment = $loan->getEquipment();
+
+        // Verify equipment belongs to user's club
+        $club = $this->clubHelper->activeClub();
+        if (!$club instanceof \App\Entity\Club || $equipment->getClub() !== $club) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if (!$loan->isActive()) {
+            $this->addFlash('danger', 'Ce prêt est déjà clôturé');
+
+            return $this->redirectToRoute('app_club_equipment_show', ['id' => $equipment->getId()]);
+        }
+
+        $loan->setReturnDate(new \DateTimeImmutable());
+        $em->flush();
+
+        $this->addFlash('success', 'Prêt clôturé avec succès');
 
         return $this->redirectToRoute('app_club_equipment_show', ['id' => $equipment->getId()]);
     }

@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -49,6 +50,14 @@ class EquipmentLoanType extends AbstractType
                 'label' => 'Date de début',
                 'widget' => 'single_text',
                 'data' => new \DateTimeImmutable(),
+            ])
+            ->add('quantity', IntegerType::class, [
+                'label' => 'Quantité à prêter',
+                'data' => 1,
+                'attr' => [
+                    'min' => 1,
+                ],
+                'help' => 'Nombre d\'unités à prêter',
             ])
             ->add('notes', TextareaType::class, [
                 'label' => 'Notes',

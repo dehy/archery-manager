@@ -11,7 +11,9 @@ use App\DBAL\Types\FletchingType;
 use App\Entity\ClubEquipment;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -45,13 +47,30 @@ class ClubEquipmentType extends AbstractType
                 'required' => false,
                 'help' => 'Pour les arcs principalement',
             ])
-            ->add('count', IntegerType::class, [
-                'label' => 'Quantité',
-                'required' => false,
-                'help' => 'Pour les flèches, protections, etc.',
+            ->add('quantity', IntegerType::class, [
+                'label' => 'Quantité en stock',
+                'required' => true,
+                'help' => 'Nombre d\'unités disponibles (ex: 6 arcs, 10 lots de 8 flèches)',
                 'attr' => [
                     'min' => 1,
                 ],
+            ])
+            ->add('purchasePrice', NumberType::class, [
+                'label' => 'Prix d\'achat TTC (€)',
+                'required' => false,
+                'scale' => 2,
+                'html5' => true,
+                'help' => 'Prix unitaire TTC en euros',
+                'attr' => [
+                    'min' => 0,
+                    'step' => '0.01',
+                    'placeholder' => '0.00',
+                ],
+            ])
+            ->add('purchaseDate', DateType::class, [
+                'label' => "Date d'achat",
+                'widget' => 'single_text',
+                'required' => false,
             ])
             ->add('notes', TextareaType::class, [
                 'label' => 'Notes',
@@ -62,14 +81,15 @@ class ClubEquipmentType extends AbstractType
             ])
         ;
 
-        // Add bow-specific fields conditionally
+        // Add type-specific fields conditionally
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
             $equipment = $event->getData();
             $form = $event->getForm();
 
-            // Add bow-specific fields if equipment is a bow
             if ($equipment instanceof ClubEquipment && ClubEquipmentTypeEnum::BOW === $equipment->getType()) {
                 $this->addBowFields($form);
+            } elseif ($equipment instanceof ClubEquipment && ClubEquipmentTypeEnum::ARROWS === $equipment->getType()) {
+                $this->addArrowFields($form);
             }
         });
 

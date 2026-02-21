@@ -62,14 +62,14 @@ class EquipmentLoanRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findCurrentLoanForEquipment(ClubEquipment $equipment): ?EquipmentLoan
+    public function findActiveLoansForEquipment(ClubEquipment $equipment): array
     {
         return $this->createQueryBuilder('el')
             ->where('el.equipment = :equipment')
             ->andWhere(self::FILTER_RETURN_DATE_NULL)
             ->setParameter('equipment', $equipment)
-            ->setMaxResults(1)
+            ->orderBy('el.startDate', 'DESC')
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getResult();
     }
 }

@@ -31,8 +31,14 @@ class ClubEquipment
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $serialNumber = null;
 
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $count = null;
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
+    private int $quantity = 1;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
+    private ?string $purchasePrice = null;
+
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $purchaseDate = null;
 
     #[ORM\Column(type: 'BowType', nullable: true)]
     private ?string $bowType = null;
@@ -63,9 +69,6 @@ class ClubEquipment
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $notes = null;
-
-    #[ORM\Column(type: Types::BOOLEAN)]
-    private bool $isAvailable = true;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
@@ -136,14 +139,38 @@ class ClubEquipment
         return $this;
     }
 
-    public function getCount(): ?int
+    public function getQuantity(): int
     {
-        return $this->count;
+        return $this->quantity;
     }
 
-    public function setCount(?int $count): self
+    public function setQuantity(int $quantity): self
     {
-        $this->count = $count;
+        $this->quantity = $quantity;
+
+        return $this;
+    }
+
+    public function getPurchasePrice(): ?string
+    {
+        return $this->purchasePrice;
+    }
+
+    public function setPurchasePrice(?string $purchasePrice): self
+    {
+        $this->purchasePrice = $purchasePrice;
+
+        return $this;
+    }
+
+    public function getPurchaseDate(): ?\DateTimeImmutable
+    {
+        return $this->purchaseDate;
+    }
+
+    public function setPurchaseDate(?\DateTimeImmutable $purchaseDate): self
+    {
+        $this->purchaseDate = $purchaseDate;
 
         return $this;
     }
@@ -270,14 +297,7 @@ class ClubEquipment
 
     public function isAvailable(): bool
     {
-        return $this->isAvailable;
-    }
-
-    public function setIsAvailable(bool $isAvailable): self
-    {
-        $this->isAvailable = $isAvailable;
-
-        return $this;
+        return $this->getAvailableQuantity() > 0;
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable
@@ -310,19 +330,47 @@ class ClubEquipment
         return $this;
     }
 
-    public function getCurrentLoan(): ?EquipmentLoan
+    /**
+     * @return Collection<int, EquipmentLoan>
+     */
+    public function getActiveLoans(): Collection
     {
-        foreach ($this->loans as $loan) {
-            if (null === $loan->getReturnDate()) {
-                return $loan;
-            }
+        return $this->loans->filter(
+            static fn (EquipmentLoan $loan): bool => !$loan->getReturnDate() instanceof \DateTimeImmutable,
+        );
+    }
+
+    public function getActiveLoanedQuantity(): int
+    {
+        $total = 0;
+        foreach ($this->getActiveLoans() as $loan) {
+            $total += $loan->getQuantity();
         }
 
-        return null;
+        return $total;
+    }
+
+    public function getAvailableQuantity(): int
+    {
+        return max(0, $this->quantity - $this->getActiveLoanedQuantity());
+    }
+
+    public function isFullyLoaned(): bool
+    {
+        return $this->getAvailableQuantity() <= 0;
+    }
+
+    public function getTotalValue(): ?float
+    {
+        if (null === $this->purchasePrice) {
+            return null;
+        }
+
+        return (float) $this->purchasePrice * $this->quantity;
     }
 
     public function isCurrentlyLoaned(): bool
     {
-        return $this->getCurrentLoan() instanceof EquipmentLoan;
+        return !$this->getActiveLoans()->isEmpty();
     }
 }

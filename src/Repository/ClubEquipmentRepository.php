@@ -34,9 +34,11 @@ class ClubEquipmentRepository extends ServiceEntityRepository
     public function findAvailableByClub(Club $club): array
     {
         return $this->createQueryBuilder('ce')
+            ->leftJoin('ce.loans', 'l', \Doctrine\ORM\Query\Expr\Join::WITH, 'l.returnDate IS NULL')
             ->where(self::FILTER_CLUB)
-            ->andWhere('ce.isAvailable = true')
             ->setParameter('club', $club)
+            ->groupBy('ce.id')
+            ->having('ce.quantity > COALESCE(SUM(l.quantity), 0)')
             ->orderBy('ce.type', 'ASC')
             ->addOrderBy('ce.name', 'ASC')
             ->getQuery()
