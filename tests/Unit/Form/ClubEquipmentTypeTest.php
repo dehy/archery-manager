@@ -17,7 +17,7 @@ final class ClubEquipmentTypeTest extends TypeTestCase
             'type' => ClubEquipmentTypeEnum::QUIVER,
             'name' => 'Test Quiver',
             'serialNumber' => 'SN-001',
-            'count' => 5,
+            'quantity' => 5,
             'notes' => 'Some notes',
         ];
 
@@ -31,7 +31,7 @@ final class ClubEquipmentTypeTest extends TypeTestCase
         $this->assertSame(ClubEquipmentTypeEnum::QUIVER, $equipment->getType());
         $this->assertSame('Test Quiver', $equipment->getName());
         $this->assertSame('SN-001', $equipment->getSerialNumber());
-        $this->assertSame(5, $equipment->getCount());
+        $this->assertSame(5, $equipment->getQuantity());
         $this->assertSame('Some notes', $equipment->getNotes());
     }
 

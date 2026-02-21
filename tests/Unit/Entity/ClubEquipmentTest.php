@@ -79,21 +79,19 @@ final class ClubEquipmentTest extends TestCase
         $this->assertNull($this->clubEquipment->getSerialNumber());
     }
 
-    public function testCountGetterSetter(): void
+    public function testQuantityGetterSetter(): void
     {
-        $result = $this->clubEquipment->setCount(5);
+        $result = $this->clubEquipment->setQuantity(5);
 
         $this->assertSame($this->clubEquipment, $result);
-        $this->assertSame(5, $this->clubEquipment->getCount());
+        $this->assertSame(5, $this->clubEquipment->getQuantity());
     }
 
-    public function testCountCanBeNull(): void
+    public function testQuantityDefaultsToOne(): void
     {
-        $this->clubEquipment->setCount(3);
-        $result = $this->clubEquipment->setCount(null);
+        $equipment = new ClubEquipment();
 
-        $this->assertSame($this->clubEquipment, $result);
-        $this->assertNull($this->clubEquipment->getCount());
+        $this->assertSame(1, $equipment->getQuantity());
     }
 
     public function testBowTypeGetterSetter(): void
@@ -273,20 +271,31 @@ final class ClubEquipmentTest extends TestCase
         $this->assertTrue($equipment->isAvailable());
     }
 
-    public function testIsAvailableGetterSetter(): void
+    public function testIsAvailableReturnsFalseWhenFullyLoaned(): void
     {
-        $result = $this->clubEquipment->setIsAvailable(false);
+        $this->clubEquipment->setQuantity(1);
 
-        $this->assertSame($this->clubEquipment, $result);
+        $activeLoan = $this->createMock(EquipmentLoan::class);
+        $activeLoan->method('getReturnDate')->willReturn(null);
+        $activeLoan->method('getQuantity')->willReturn(1);
+        $activeLoan->method('setEquipment');
+
+        $this->clubEquipment->addLoan($activeLoan);
+
         $this->assertFalse($this->clubEquipment->isAvailable());
     }
 
-    public function testIsAvailableCanBeSetBackToTrue(): void
+    public function testIsAvailableReturnsTrueWhenPartiallyLoaned(): void
     {
-        $this->clubEquipment->setIsAvailable(false);
-        $result = $this->clubEquipment->setIsAvailable(true);
+        $this->clubEquipment->setQuantity(3);
 
-        $this->assertSame($this->clubEquipment, $result);
+        $activeLoan = $this->createMock(EquipmentLoan::class);
+        $activeLoan->method('getReturnDate')->willReturn(null);
+        $activeLoan->method('getQuantity')->willReturn(1);
+        $activeLoan->method('setEquipment');
+
+        $this->clubEquipment->addLoan($activeLoan);
+
         $this->assertTrue($this->clubEquipment->isAvailable());
     }
 
@@ -347,12 +356,12 @@ final class ClubEquipmentTest extends TestCase
         $this->assertCount(0, $this->clubEquipment->getLoans());
     }
 
-    public function testGetCurrentLoanReturnsNullWhenNoLoans(): void
+    public function testGetActiveLoansReturnsEmptyWhenNoLoans(): void
     {
-        $this->assertNotInstanceOf(EquipmentLoan::class, $this->clubEquipment->getCurrentLoan());
+        $this->assertCount(0, $this->clubEquipment->getActiveLoans());
     }
 
-    public function testGetCurrentLoanReturnsActiveLoan(): void
+    public function testGetActiveLoansReturnsActiveLoan(): void
     {
         $activeLoan = $this->createMock(EquipmentLoan::class);
         $activeLoan->method('getReturnDate')->willReturn(null);
@@ -365,10 +374,12 @@ final class ClubEquipmentTest extends TestCase
         $this->clubEquipment->addLoan($returnedLoan);
         $this->clubEquipment->addLoan($activeLoan);
 
-        $this->assertSame($activeLoan, $this->clubEquipment->getCurrentLoan());
+        $activeLoans = $this->clubEquipment->getActiveLoans();
+        $this->assertCount(1, $activeLoans);
+        $this->assertTrue($activeLoans->contains($activeLoan));
     }
 
-    public function testGetCurrentLoanReturnsNullWhenAllLoansReturned(): void
+    public function testGetActiveLoansReturnsEmptyWhenAllLoansReturned(): void
     {
         $returnedLoan = $this->createMock(EquipmentLoan::class);
         $returnedLoan->method('getReturnDate')->willReturn(new \DateTimeImmutable());
@@ -376,7 +387,7 @@ final class ClubEquipmentTest extends TestCase
 
         $this->clubEquipment->addLoan($returnedLoan);
 
-        $this->assertNotInstanceOf(EquipmentLoan::class, $this->clubEquipment->getCurrentLoan());
+        $this->assertCount(0, $this->clubEquipment->getActiveLoans());
     }
 
     public function testIsCurrentlyLoanedReturnsTrueWhenActiveLoanExists(): void

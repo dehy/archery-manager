@@ -78,16 +78,28 @@ final class ClubEquipmentRepositoryTest extends KernelTestCase
         $available->setClub($club);
         $available->setType(ClubEquipmentType::BOW);
         $available->setName('Available Bow');
-        $available->setIsAvailable(true);
+        $available->setQuantity(1);
 
         $unavailable = new ClubEquipment();
         $unavailable->setClub($club);
         $unavailable->setType(ClubEquipmentType::BOW);
         $unavailable->setName('Unavailable Bow');
-        $unavailable->setIsAvailable(false);
+        $unavailable->setQuantity(1);
 
         $this->entityManager->persist($available);
         $this->entityManager->persist($unavailable);
+        $this->entityManager->flush();
+
+        // Make $unavailable fully loaned out
+        $borrower = $this->entityManager->getRepository(Licensee::class)->findOneBy([]);
+        $this->assertInstanceOf(Licensee::class, $borrower);
+        $loan = new EquipmentLoan();
+        $loan->setEquipment($unavailable);
+        $loan->setBorrower($borrower);
+        $loan->setStartDate(new \DateTimeImmutable());
+        $loan->setQuantity(1);
+
+        $this->entityManager->persist($loan);
         $this->entityManager->flush();
 
         $equipment = $this->repository->findAvailableByClub($club);

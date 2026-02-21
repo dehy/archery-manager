@@ -59,7 +59,6 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $this->equipment->setClub($club);
         $this->equipment->setType(ClubEquipmentType::BOW);
         $this->equipment->setName('Test Bow');
-        $this->equipment->setIsAvailable(true);
 
         $this->entityManager->persist($this->equipment);
         $this->entityManager->flush();
@@ -211,7 +210,7 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $this->assertNotContains($returnedLoan, $result);
     }
 
-    public function testFindCurrentLoanForEquipmentReturnsActiveLoan(): void
+    public function testFindActiveLoansForEquipmentReturnsActiveLoan(): void
     {
         // Create active loan
         $activeLoan = new EquipmentLoan();
@@ -223,14 +222,17 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
 
         $this->entityManager->flush();
 
-        $result = $this->repository->findCurrentLoanForEquipment($this->equipment);
+        $result = $this->repository->findActiveLoansForEquipment($this->equipment);
 
-        $this->assertInstanceOf(EquipmentLoan::class, $result);
-        $this->assertSame($this->equipment, $result->getEquipment());
-        $this->assertNotInstanceOf(\DateTimeImmutable::class, $result->getReturnDate());
+        $this->assertIsArray($result);
+        $this->assertNotEmpty($result);
+        $this->assertContains($activeLoan, $result);
+        foreach ($result as $loan) {
+            $this->assertNull($loan->getReturnDate());
+        }
     }
 
-    public function testFindCurrentLoanForEquipmentReturnsNullWhenNoActiveLoan(): void
+    public function testFindActiveLoansForEquipmentReturnsEmptyWhenNoActiveLoan(): void
     {
         // Create returned loan
         $returnedLoan = new EquipmentLoan();
@@ -243,8 +245,9 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
 
         $this->entityManager->flush();
 
-        $result = $this->repository->findCurrentLoanForEquipment($this->equipment);
+        $result = $this->repository->findActiveLoansForEquipment($this->equipment);
 
-        $this->assertNotInstanceOf(EquipmentLoan::class, $result);
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
     }
 }

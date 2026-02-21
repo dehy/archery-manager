@@ -115,28 +115,28 @@ final class ClubApplicationTest extends TestCase
         $this->assertInstanceOf(\DateTimeImmutable::class, $application->getUpdatedAt());
     }
 
-    public function testGetAndSetRejectionReason(): void
+    public function testGetAndSetAdminMessage(): void
     {
         $application = new ClubApplication();
         $reason = 'Incomplete documentation';
 
-        $result = $application->setRejectionReason($reason);
+        $result = $application->setAdminMessage($reason);
 
         $this->assertSame($application, $result);
-        $this->assertSame($reason, $application->getRejectionReason());
+        $this->assertSame($reason, $application->getAdminMessage());
     }
 
-    public function testRejectionReasonCanBeNull(): void
+    public function testAdminMessageCanBeNull(): void
     {
         $application = new ClubApplication();
 
-        $this->assertNull($application->getRejectionReason());
+        $this->assertNull($application->getAdminMessage());
 
-        $application->setRejectionReason('Some reason');
-        $this->assertSame('Some reason', $application->getRejectionReason());
+        $application->setAdminMessage('Some reason');
+        $this->assertSame('Some reason', $application->getAdminMessage());
 
-        $application->setRejectionReason(null);
-        $this->assertNull($application->getRejectionReason());
+        $application->setAdminMessage(null);
+        $this->assertNull($application->getAdminMessage());
     }
 
     public function testGetAndSetCreatedAt(): void

@@ -68,7 +68,7 @@ final class ClubEquipmentControllerTest extends LoggedInTestCase
         $form = $crawler->selectButton('Enregistrer')->form();
         $form['club_equipment[type]'] = ClubEquipmentTypeEnum::OTHER;
         $form['club_equipment[name]'] = 'Test Quiver #1';
-        $form['club_equipment[count]'] = '5';
+        $form['club_equipment[quantity]'] = '5';
         $client->submit($form);
 
         $this->assertResponseRedirects(self::URL_INDEX);
@@ -179,12 +179,7 @@ final class ClubEquipmentControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LOANS);
 
-        // Note: The loans.html.twig template may not exist yet
-        $response = $client->getResponse();
-        $this->assertTrue(
-            $response->isSuccessful() || \Symfony\Component\HttpFoundation\Response::HTTP_INTERNAL_SERVER_ERROR === $response->getStatusCode(),
-            'Expected success or 500 (template not yet created)'
-        );
+        $this->assertResponseIsSuccessful();
     }
 
     public function testLoansListDeniedForRegularUser(): void
@@ -289,7 +284,7 @@ final class ClubEquipmentControllerTest extends LoggedInTestCase
         $form = $crawler->selectButton('Enregistrer')->form();
         $form['club_equipment[type]'] = ClubEquipmentTypeEnum::BOW;
         $form['club_equipment[name]'] = 'Test Bow '.uniqid();
-        $form['club_equipment[count]'] = '3';
+        $form['club_equipment[quantity]'] = '3';
         $client->submit($form);
 
         $this->assertResponseRedirects(self::URL_INDEX);
