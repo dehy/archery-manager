@@ -69,3 +69,10 @@ when@test:
             arguments:
                 $storage: '@security.untracked_token_storage'
                 $container: '@service_container'
+
+        App\Service\FriendlyCaptchaService:
+            arguments:
+                $siteKey: 'test-site-key'
+                $secret: 'test-secret'
+                $logger: '@logger'
+                $enabled: false

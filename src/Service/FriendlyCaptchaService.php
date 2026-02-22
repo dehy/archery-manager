@@ -10,18 +10,23 @@ use Psr\Log\LoggerInterface;
 
 class FriendlyCaptchaService
 {
-    private readonly Client $client;
+    private readonly ?Client $client;
 
     public function __construct(
         private readonly string $siteKey,
         private readonly string $secret,
         private readonly LoggerInterface $logger,
+        private readonly bool $enabled = true,
     ) {
-        $config = new ClientConfig();
-        $config->setAPIKey($this->secret);
-        $config->setSitekey($this->siteKey);
+        if ($this->enabled) {
+            $config = new ClientConfig();
+            $config->setAPIKey($this->secret);
+            $config->setSitekey($this->siteKey);
 
-        $this->client = new Client($config);
+            $this->client = new Client($config);
+        } else {
+            $this->client = null;
+        }
     }
 
     /**
@@ -33,6 +38,10 @@ class FriendlyCaptchaService
      */
     public function verify(string $solution): bool
     {
+        if (!$this->enabled) {
+            return true;
+        }
+
         if ('' === $solution || '0' === $solution) {
             $this->logger->warning('Empty CAPTCHA solution provided');
 
