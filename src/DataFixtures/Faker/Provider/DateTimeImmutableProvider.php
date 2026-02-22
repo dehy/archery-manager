@@ -26,4 +26,21 @@ final class DateTimeImmutableProvider extends Base
 
         return \DateTimeImmutable::createFromMutable($datetimeMutable);
     }
+
+    /**
+     * Get a DateTimeImmutable object based on a date between two given dates.
+     *
+     * @param \DateTime|string $startDate Defaults to 30 years ago
+     * @param \DateTime|string $endDate   Defaults to "now"
+     * @param string|null      $timezone  Time zone, defaults to date_default_timezone_get()
+     */
+    public static function dateTimeImmutableBetween(
+        \DateTime|string $startDate = '-30 years',
+        \DateTime|string $endDate = 'now',
+        ?string $timezone = null,
+    ): \DateTimeImmutable {
+        $datetimeMutable = DateTime::dateTimeBetween($startDate, $endDate, $timezone);
+
+        return \DateTimeImmutable::createFromMutable($datetimeMutable);
+    }
 }
