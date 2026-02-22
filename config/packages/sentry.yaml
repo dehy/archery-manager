@@ -3,6 +3,9 @@ when@prod:
         dsn: '%env(SENTRY_DSN)%'
         options:
             release: '%env(string:APP_REVISION)%'
+            ignore_exceptions:
+                - Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+                - Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException
 
 #        If you are using Monolog, you also need this additional configuration to log the errors correctly:
 #        https://docs.sentry.io/platforms/php/guides/symfony/#monolog-integration

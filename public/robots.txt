@@ -7,10 +7,10 @@ User-agent: *
 Allow: /login
 Allow: /register
 Allow: /reset-password
+Allow: /cgu
+Allow: /politique-de-confidentialite
 
-# Disallow authenticated areas
-Disallow: /admin/
-Disallow: /audit/
+# Disallow everything else (requires authentication)
 Disallow: /
 
 # Sitemap location
