@@ -17,12 +17,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[
-    AsCommand(
-        name: 'app:result-arc:import',
-        description: 'Add a short description for your command',
-    ),
-]
+#[AsCommand(
+    name: 'app:result-arc:import',
+    description: 'Add a short description for your command',
+),]
 class ResultArcImportCommand extends Command
 {
     public function __construct(
@@ -52,7 +50,7 @@ class ResultArcImportCommand extends Command
         $contestEventRepository = $this->entityManager->getRepository(ContestEvent::class);
         $contestEvent = $contestEventRepository->find($eventId);
 
-        if (!$contestEvent) {
+        if (null === $contestEvent) {
             $io->error(\sprintf('Event #%s not found', $eventId));
 
             return Command::INVALID;
@@ -92,10 +90,10 @@ class ResultArcImportCommand extends Command
                 'licensee' => $licensee->getId(),
                 'event' => $contestEvent->getId(),
             ]);
-            if ($existingResult) {
+            if (null !== $existingResult) {
                 $result = $existingResult;
             } else {
-                $result = (new Result())
+                $result = new Result()
                     ->setEvent($contestEvent)
                     ->setLicensee($licensee);
             }

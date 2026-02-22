@@ -31,7 +31,7 @@ class EventAttachmentCrudController extends AbstractCrudController
         $downloadAction = Action::new('downloadFile', 'Voir', 'fa-solid fa-eye')
             ->linkToRoute(
                 'events_attachments_download',
-                fn (EventAttachment $attachment): array => [
+                static fn (EventAttachment $attachment): array => [
                     'attachment' => $attachment->getId(),
                 ]
             );
@@ -44,7 +44,7 @@ class EventAttachmentCrudController extends AbstractCrudController
     {
         return [
             AssociationField::new('event', 'Évènement'),
-            ChoiceField::new('type', 'Type')->setChoices(fn (): array => EventAttachmentType::getChoices()),
+            ChoiceField::new('type', 'Type')->setChoices(static fn (): array => EventAttachmentType::getChoices()),
             TextField::new('uploadedFile', 'Fichier')->setFormType(VichImageType::class),
         ];
     }

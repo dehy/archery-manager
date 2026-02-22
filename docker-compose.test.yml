@@ -10,10 +10,11 @@ services:
       - GITHUB_REF
       - GITHUB_BASE_REF
       - GITHUB_HEAD_REF
+      - FONTAWESOME_NPM_AUTH_TOKEN
     command: sut
 
   database:
-    image: mariadb:${MARIADB_VERSION:-10.11.5}
+    image: mariadb:${MARIADB_VERSION:-12.1}
     environment:
       MARIADB_RANDOM_ROOT_PASSWORD: "yes"
       MARIADB_DATABASE: app_test

@@ -1,0 +1,32 @@
+<p>Bonjour {{ application.licensee.firstname }},</p>
+
+<p>
+    Ta demande d'adhésion au club <strong>{{ application.club.name }}</strong> pour la saison <strong>{{ application.season }}</strong> n'a malheureusement pas pu être acceptée.
+</p>
+
+{% if application.adminMessage %}
+<div style="background-color: #f8d7da; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0;">
+    {{ application.adminMessage|nl2br }}
+</div>
+{% endif %}
+
+<p>
+    Tu peux soumettre une nouvelle demande auprès d'un autre club si tu le souhaites.
+</p>
+
+<p style="text-align: center; margin: 30px 0;">
+    <a href="{{ url('app_club_application_new') }}"
+       style="background-color: #0d6efd; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+        Faire une nouvelle demande
+    </a>
+</p>
+
+<p>
+    Cordialement,<br>
+    <strong>{{ application.processedBy.firstname }}</strong><br>
+    {{ application.club.name }}
+</p>
+
+<p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 15px;">
+    Cet email a été envoyé automatiquement suite au traitement de votre demande d'adhésion.
+</p>

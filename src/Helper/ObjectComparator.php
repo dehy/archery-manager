@@ -29,7 +29,7 @@ class ObjectComparator
     {
         $diff = [];
         if ($o1::class === $o2::class) {
-            $o1Properties = (new \ReflectionObject($o1))->getProperties();
+            $o1Properties = new \ReflectionObject($o1)->getProperties();
             $o2Reflected = new \ReflectionObject($o2);
 
             foreach ($o1Properties as $o1Property) {

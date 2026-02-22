@@ -79,7 +79,7 @@ class FftaHelper
      */
     public function syncLicensees(Club $club, int $season): array
     {
-        $syncResults = array_fill_keys(array_map(fn ($enum) => $enum->value, SyncReturnValues::cases()), []);
+        $syncResults = array_fill_keys(array_map(static fn (SyncReturnValues $enum) => $enum->value, SyncReturnValues::cases()), []);
         $scrapper = $this->getScrapper($club);
         $fftaIds = $scrapper->fetchLicenseeIdList($season);
         $this->logger->notice(
@@ -171,7 +171,6 @@ class FftaHelper
                 ),
             );
             $syncResult = $licensee->mergeWith($fftaLicensee);
-            // TODO check image date (with its filename) instead of downloading files and calculating checksums
             $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
             $fftaProfilePictureContent = $fftaProfilePicture?->getUploadedFile()?->getContent();
             $fftaProfilePictureChecksum = $fftaProfilePicture instanceof LicenseeAttachment ? sha1((string) $fftaProfilePictureContent) : null;

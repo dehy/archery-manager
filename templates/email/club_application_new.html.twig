@@ -1,0 +1,26 @@
+<p>Bonjour,</p>
+
+<p>
+    Une nouvelle demande d'adhésion vient d'être soumise pour la saison <strong>{{ application.season }}</strong>.
+</p>
+
+<div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #0d6efd; margin: 20px 0;">
+    <p class="mb-1">
+        <strong>Candidat :</strong> {{ application.licensee.firstname }} {{ application.licensee.lastname }}<br>
+        <strong>Email :</strong> {{ application.licensee.user.email }}<br>
+        <strong>Club :</strong> {{ application.club.name }}<br>
+        <strong>Saison :</strong> {{ application.season }}<br>
+        <strong>Date de la demande :</strong> {{ application.createdAt|date('d/m/Y à H:i') }}
+    </p>
+</div>
+
+<p style="text-align: center; margin: 30px 0;">
+    <a href="{{ url('app_club_application_manage') }}"
+       style="background-color: #0d6efd; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+        Gérer les demandes d'adhésion
+    </a>
+</p>
+
+<p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 15px;">
+    Cet email a été envoyé automatiquement suite à la soumission d'une demande d'adhésion.
+</p>

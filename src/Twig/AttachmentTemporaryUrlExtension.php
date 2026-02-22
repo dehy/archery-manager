@@ -10,11 +10,9 @@ use League\Flysystem\FilesystemOperator;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFilter;
-use Vich\UploaderBundle\Mapping\Annotation\UploadableField;
+use Vich\UploaderBundle\Mapping\Attribute\UploadableField;
 
-class AttachmentTemporaryUrlExtension extends AbstractExtension
+class AttachmentTemporaryUrlExtension
 {
     public function __construct(
         private readonly CacheInterface $cache,
@@ -24,14 +22,7 @@ class AttachmentTemporaryUrlExtension extends AbstractExtension
     ) {
     }
 
-    #[\Override]
-    public function getFilters(): array
-    {
-        return [
-            new TwigFilter('temporary_url', $this->temporaryUrl(...)),
-        ];
-    }
-
+    #[\Twig\Attribute\AsTwigFilter(name: 'temporary_url')]
     public function temporaryUrl(Attachment $attachment): string
     {
         /** @var User $user */

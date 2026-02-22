@@ -33,16 +33,21 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\RouterInterface;
 
 class EventController extends BaseController
 {
+    public function __construct(LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly EventRepository $eventRepository, private readonly FilesystemOperator $eventsStorage, private readonly RouterInterface $router, private readonly EventHelper $eventHelper)
+    {
+        parent::__construct($licenseeHelper, $seasonHelper);
+    }
+
     /**
      * @throws \Exception
      */
     #[Route('/events', name: 'app_event_index')]
-    public function index(Request $request, EventRepository $eventRepository): Response
+    public function index(Request $request): Response
     {
         $this->assertHasValidLicense();
 
@@ -51,7 +56,7 @@ class EventController extends BaseController
         $year = $request->query->getInt('y', (int) $now->format('Y'));
 
         /** @var Event[] $events */
-        $events = $eventRepository
+        $events = $this->eventRepository
             ->findForLicenseeByMonthAndYear($this->licenseeHelper->getLicenseeFromSession(), $month, $year);
 
         $firstDate = (new \DateTime(\sprintf('%s-%s-01 midnight', $year, $month)));
@@ -70,11 +75,11 @@ class EventController extends BaseController
             $endOfDay = \DateTimeImmutable::createFromMutable($currentDate->setTime(23, 59, 59));
             $eventsForThisDay = array_filter(
                 $events,
-                fn (Event $event): bool => ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
+                static fn (Event $event): bool => ($event->getStartsAt() >= $startOfDay && $event->getStartsAt() <= $endOfDay)
                     || ($event->getEndsAt() >= $startOfDay && $event->getEndsAt() <= $endOfDay)
             );
             // Sort events: multi-day all-day events, single-day all-day events, then other events
-            usort($eventsForThisDay, function (Event $a, Event $b): int {
+            usort($eventsForThisDay, static function (Event $a, Event $b): int {
                 if ($a->spanMultipleDays() !== $b->spanMultipleDays()) {
                     return $b->spanMultipleDays() <=> $a->spanMultipleDays();
                 }
@@ -99,11 +104,11 @@ class EventController extends BaseController
      * @throws NonUniqueResultException
      */
     #[Route('/events/{slug}.ics', name: 'app_event_ics')]
-    public function ics(string $slug, EventRepository $eventRepository): Response
+    public function ics(string $slug): Response
     {
         $this->assertHasValidLicense();
 
-        $event = $eventRepository->findBySlug($slug);
+        $event = $this->eventRepository->findBySlug($slug);
 
         if (!$event instanceof Event) {
             throw $this->createNotFoundException();
@@ -125,8 +130,7 @@ class EventController extends BaseController
     #[Route('/events/attachments/{attachment}', name: 'events_attachments_download')]
     public function attachmentDownload(
         Request $request,
-        EventAttachment $attachment,
-        FilesystemOperator $eventsStorage
+        EventAttachment $attachment
     ): Response {
         $this->assertHasValidLicense();
 
@@ -137,13 +141,13 @@ class EventController extends BaseController
             $attachment->getFile()->getName()
         );
 
-        if (!$eventsStorage->fileExists($attachment->getFile()->getName())) {
+        if (!$this->eventsStorage->fileExists($attachment->getFile()->getName())) {
             throw $this->createNotFoundException();
         }
 
-        $response = new StreamedResponse(function () use ($eventsStorage, $attachment): void {
+        $response = new StreamedResponse(function () use ($attachment): void {
             $outputStream = fopen('php://output', 'w');
-            $fileStream = $eventsStorage->readStream($attachment->getFile()->getName());
+            $fileStream = $this->eventsStorage->readStream($attachment->getFile()->getName());
 
             stream_copy_to_stream($fileStream, $outputStream);
         }, Response::HTTP_OK, [
@@ -161,18 +165,16 @@ class EventController extends BaseController
         string $slug,
         string $attachmentType,
         Request $request,
-        EntityManagerInterface $entityManager,
-        RouterInterface $router
+        EntityManagerInterface $entityManager
     ): Response {
         $this->assertHasValidLicense();
 
         EventAttachmentType::assertValidChoice($attachmentType);
 
-        /** @var EventRepository $eventRepository */
-        $eventRepository = $entityManager->getRepository(Event::class);
-        $event = $eventRepository->findBySlug($slug);
+        $entityManager->getRepository(Event::class);
+        $event = $this->eventRepository->findBySlug($slug);
 
-        if (!$event) {
+        if (!$event instanceof Event) {
             throw $this->createNotFoundException();
         }
 
@@ -188,7 +190,7 @@ class EventController extends BaseController
         }
 
         $form = $this->createForm(EventMandateType::class, $attachment, [
-            'action' => $router->generate('events_attachment_edit', [
+            'action' => $this->router->generate('events_attachment_edit', [
                 'slug' => $event->getSlug(),
                 'attachmentType' => $attachmentType,
             ]),
@@ -220,31 +222,43 @@ class EventController extends BaseController
         string $slug,
         EntityManagerInterface $entityManager,
         Request $request,
-        EventHelper $eventHelper,
-        LicenseeHelper $licenseeHelper,
     ): Response {
         $this->assertHasValidLicense();
 
-        /** @var EventRepository $eventRepository */
-        $eventRepository = $entityManager->getRepository(Event::class);
-        $event = $eventRepository->findBySlug($slug);
+        $entityManager->getRepository(Event::class);
+        $event = $this->eventRepository->findBySlug($slug);
 
-        if (!$event) {
+        if (!$event instanceof Event) {
             throw $this->createNotFoundException();
         }
 
-        $eventParticipation = $eventHelper->licenseeParticipationToEvent(
-            $licenseeHelper->getLicenseeFromSession(),
+        $licensee = $this->licenseeHelper->getLicenseeFromSession();
+
+        // Check if licensee can participate in this event
+        $canParticipate = $this->eventHelper->canLicenseeParticipateInEvent($licensee, $event);
+
+        $eventParticipation = $this->eventHelper->licenseeParticipationToEvent(
+            $licensee,
             $event
         );
+
+        $isContest = $event instanceof ContestEvent || $event instanceof HobbyContestEvent;
+
         $eventParticipationForm = $this->createForm(EventParticipationType::class, $eventParticipation, [
-            'license_context' => $licenseeHelper
-                ->getLicenseeFromSession()
+            'license_context' => $licensee
                 ->getLicenseForSeason(Season::seasonForDate($event->getStartsAt())),
+            'is_contest' => $isContest,
         ]);
 
         $eventParticipationForm->handleRequest($request);
         if ($eventParticipationForm->isSubmitted() && $eventParticipationForm->isValid()) {
+            // Verify authorization before saving
+            if (!$canParticipate) {
+                $this->addFlash('error', "Vous n'êtes pas autorisé à participer à cet événement. Il est réservé à d'autres groupes.");
+
+                return $this->redirectToRoute('app_event_show', ['slug' => $event->getSlug()]);
+            }
+
             if (null === $eventParticipation->getId() || 0 === $eventParticipation->getId()) {
                 $entityManager->persist($eventParticipation);
             }
@@ -265,6 +279,8 @@ class EventController extends BaseController
         return $this->render($template, [
             'event' => $event,
             'event_participation_form' => $eventParticipationForm,
+            'can_participate' => $canParticipate,
+            'all_participants' => $this->eventHelper->getAllParticipantsForEvent($event),
         ]);
     }
 
@@ -273,7 +289,6 @@ class EventController extends BaseController
         string $slug,
         Request $request,
         EntityManagerInterface $entityManager,
-        RouterInterface $router,
     ): Response {
         $this->assertHasValidLicense();
 
@@ -327,7 +342,7 @@ class EventController extends BaseController
             }
         }
 
-        usort($results, function (Result $a, Result $b): int {
+        usort($results, static function (Result $a, Result $b): int {
             if ($a->getAgeCategory() === $b->getAgeCategory()) {
                 return $a->getLicensee()->getFullname() <=> $b->getLicensee()->getFullname();
             }
@@ -340,7 +355,7 @@ class EventController extends BaseController
         $resultsForm = $this->createForm(
             EventResultsType::class,
             ['licensees_results' => $results],
-            ['action' => $router->generate('app_event_resultsedit', ['slug' => $event->getSlug()])],
+            ['action' => $this->router->generate('app_event_resultsedit', ['slug' => $event->getSlug()])],
         );
         $resultsForm->handleRequest($request);
 

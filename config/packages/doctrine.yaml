@@ -11,6 +11,7 @@ doctrine:
         types:
             ArrowType: App\DBAL\Types\ArrowType
             BowType: App\DBAL\Types\BowType
+            ClubEquipmentType: App\DBAL\Types\ClubEquipmentType
             ContestType: App\DBAL\Types\ContestType
             DisciplineType: App\DBAL\Types\DisciplineType
             EventAttachmentType: App\DBAL\Types\EventAttachmentType
@@ -20,6 +21,7 @@ doctrine:
             GenderType: App\DBAL\Types\GenderType
             LicenseActivityType: App\DBAL\Types\LicenseActivityType
             LicenseAgeCategoryType: App\DBAL\Types\LicenseAgeCategoryType
+            ClubApplicationStatusType: App\DBAL\Types\ClubApplicationStatusType
             LicenseeAttachmentType: App\DBAL\Types\LicenseeAttachmentType
             LicenseCategoryType: App\DBAL\Types\LicenseCategoryType
             LicenseType: App\DBAL\Types\LicenseType

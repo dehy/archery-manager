@@ -52,12 +52,31 @@
                 Mon Club
             </a>
         </li>
+        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_CLUB_ADMIN') %}
+        <li class="nav-item">
+            <a href="{{ path('app_club_equipment_index') }}" class="nav-link {{ _self.isActive('app_club_equipment_') }}">
+                <div class="icon">
+                    <em class="fa-solid fa-bow-arrow"></em>
+                </div>
+                Matériel
+            </a>
+        </li>
+        {% endif %}
         <li class="nav-item">
             <a href="{{ path('app_event_index') }}" class="nav-link {{ _self.isActive('app_event_') }}">
                 <div class="icon">
                     <em class="fa-solid fa-calendar"></em>
                 </div>
                 Calendrier
+            </a>
+        </li>
+        {% else %}
+        <li class="nav-item">
+            <a href="{{ path('app_club_application_status') }}" class="nav-link {{ _self.isActive('app_club_application') }}">
+                <div class="icon">
+                    <em class="fa-solid fa-id-badge"></em>
+                </div>
+                Demandes
             </a>
         </li>
         {% endif %}
@@ -108,6 +127,15 @@
                         Mon Club
                     </a>
                 </li>
+                {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_CLUB_ADMIN') %}
+                <li class="nav-item">
+                    <a class="nav-link {{ _self.isActive('app_club_equipment_') }}"
+                       href="{{ path('app_club_equipment_index') }}">
+                        <em class="fa-solid fa-bow-arrow"></em>
+                        Matériel
+                    </a>
+                </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link {{ _self.isActive('app_event_') }}" href="{{ path('app_event_index') }}">
                         <em class="fa-solid fa-calendar"></em>
@@ -116,9 +144,15 @@
                 </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link {{ _self.isActive('app_license_application') }}" href="{{ path('app_license_application') }}">
+                        <a class="nav-link {{ _self.isActive('app_club_application') }}" href="{{ path('app_club_application_new') }}">
                             <em class="fa-solid fa-id-badge"></em>
-                            Demande de licence
+                            Demande d'adhésion
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ _self.isActive('app_club_application') }}" href="{{ path('app_club_application_status') }}">
+                            <em class="fa-solid fa-list-check"></em>
+                            Mes demandes
                         </a>
                     </li>
                 {% endif %}
@@ -137,16 +171,26 @@
                         {% if (is_granted("ROLE_ADMIN")) %}
                             <li>
                                 <a class="dropdown-item" href="{{ path('admin') }}">
-                                    <em class="fa-solid fa-screwdriver-wrench fa-fw"></em>
+                                    <em class="fa-solid fa-screwdriver-wrench"></em>
                                     Administration
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{{ path('app_admin_events_index') }}">
-                                    <em class="fa-solid fa-calendar fa-fw"></em>
+                                    <em class="fa-solid fa-calendar"></em>
                                     Gestion des évènements
                                 </a>
                             </li>
+                        {% endif %}
+                        {% if (is_granted("ROLE_CLUB_ADMIN")) %}
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_club_application_manage') }}">
+                                    <em class="fa-solid fa-clipboard-check"></em>
+                                    Demandes d'adhésion
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if (is_granted("ROLE_ADMIN") or is_granted("ROLE_CLUB_ADMIN")) %}
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
@@ -155,7 +199,7 @@
                             <li>
                                 <a class="dropdown-item {{ _self.isActive('app_licensee_my_profile') }}"
                                    href="{{ path('app_licensee_my_profile') }}">
-                                    <em class="fa-solid fa-address-card fa-fw"></em>
+                                    <em class="fa-solid fa-address-card"></em>
                                     Mon profil
                                 </a>
                             </li>
@@ -167,8 +211,8 @@
                             {% for licensee in app.user.licensees|filter(l => l.id is not same as(licenseeHelper.licenseeFromSession.id)) %}
                                 <li>
                                     <a class="dropdown-item"
-                                       href="{{ path(app.request.get('_route'), app.request.get('_route_params')|merge({'_switch_licensee': licensee.fftaMemberCode })) }}">
-                                        <em class="fa-solid fa-arrows-rotate fa-fw"></em>
+                                       href="{{ path(app.request.get('_route'), app.request.get('_route_params')|merge({'_switch_licensee': licensee.id })) }}">
+                                        <em class="fa-solid fa-arrows-rotate"></em>
                                         {{ licensee_display_name(licensee) }}
                                     </a>
                                 </li>
@@ -180,7 +224,7 @@
                         <li>
                             <a class="dropdown-item {{ _self.isActive('app_user_account') }}"
                                href="{{ path('app_user_account') }}">
-                                <em class="fa-solid fa-user-gear fa-fw"></em>
+                                <em class="fa-solid fa-user-gear"></em>
                                 Mon compte
                             </a>
                         </li>
@@ -189,7 +233,7 @@
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ path('app_logout') }}">
-                                <em class="fa-solid fa-arrow-right-from-bracket fa-fw"></em>
+                                <em class="fa-solid fa-arrow-right-from-bracket"></em>
                                 Se déconnecter
                             </a>
                         </li>
@@ -210,6 +254,22 @@
                 </div>
             </div>
         </div>
+    {% endif %}
+    {% if is_granted('ROLE_CLUB_ADMIN') %}
+        {% set pendingCount = pending_club_applications_count() %}
+        {% if pendingCount > 0 %}
+            <div class="alert alert-warning d-flex align-items-center justify-content-between mb-3">
+                <span>
+                    <em class="fa-solid fa-bell me-2"></em>
+                    <strong>{{ pendingCount }} demande{{ pendingCount > 1 ? 's' : '' }} d'adhésion</strong>
+                    en attente de traitement.
+                </span>
+                <a href="{{ path('app_club_application_manage') }}" class="btn btn-warning btn-sm ms-3">
+                    <em class="fa-solid fa-list me-2"></em>
+                    Gérer les demandes
+                </a>
+            </div>
+        {% endif %}
     {% endif %}
     {% for label, messages in app.flashes(['success', 'warning', 'danger']) %}
         {% for message in messages %}

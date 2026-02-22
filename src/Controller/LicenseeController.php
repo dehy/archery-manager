@@ -12,15 +12,18 @@ use App\Entity\LicenseeAttachment;
 use App\Entity\Result;
 use App\Entity\Season;
 use App\Entity\User;
+use App\Form\Type\LicenseeFormType;
 use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
 use App\Helper\LicenseHelper;
 use App\Helper\ResultHelper;
+use App\Repository\EquipmentLoanRepository;
 use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
 use App\Repository\ResultRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
@@ -31,42 +34,50 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 
 class LicenseeController extends BaseController
 {
+    public function __construct(\App\Helper\LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly FilesystemOperator $licenseesStorage)
+    {
+        parent::__construct($licenseeHelper, $seasonHelper);
+    }
+
     #[Route('/licensees', name: 'app_licensee_index')]
     public function index(
-        LicenseeRepository $licenseeRepository,
-        LicenseHelper $licenseHelper,
-        GroupRepository $groupRepository,
         Request $request,
     ): Response {
         $this->assertHasValidLicense();
 
         $season = $this->seasonHelper->getSelectedSeason();
-        $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
+        $club = $this->licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
 
         // Récupérer le filtre de groupe depuis la query string
         $groupId = $request->query->get('group');
         $selectedGroup = null;
 
         if ($groupId) {
-            $selectedGroup = $groupRepository->find($groupId);
+            $selectedGroup = $this->groupRepository->find($groupId);
         }
 
         $licensees = new ArrayCollection(
-            $licenseeRepository->findByLicenseYear($club, $season),
+            $this->licenseeRepository->findByLicenseYear($club, $season),
         );
 
         // Compter le nombre total de licenciés avant filtrage
         $totalLicensees = $licensees->count();
 
+        // Compter les licenciés sans groupe avant filtrage
+        $noGroupLicenseesCount = $licensees->filter(static fn ($licensee) => $licensee->getGroups()->isEmpty())->count();
+
         // Filtrer par groupe si un groupe est sélectionné
         if ($selectedGroup) {
-            $licensees = $licensees->filter(fn ($licensee) => $licensee->getGroups()->contains($selectedGroup));
+            $licensees = $licensees->filter(static fn ($licensee) => $licensee->getGroups()->contains($selectedGroup));
+        } elseif ('no-group' === $groupId) {
+            // Filtrer les licenciés sans groupe
+            $licensees = $licensees->filter(static fn ($licensee) => $licensee->getGroups()->isEmpty());
         }
 
         /** @var ArrayCollection<int, Licensee> $orderedLicensees */
@@ -78,7 +89,7 @@ class LicenseeController extends BaseController
         );
 
         // Récupérer tous les groupes pour l'affichage des filtres
-        $allGroups = $groupRepository->findBy(['club' => $club], ['name' => 'ASC']);
+        $allGroups = $this->groupRepository->findBy(['club' => $club], ['name' => 'ASC']);
 
         return $this->render('licensee/index.html.twig', [
             'licensees' => $orderedLicensees,
@@ -86,166 +97,35 @@ class LicenseeController extends BaseController
             'selectedGroup' => $selectedGroup,
             'allGroups' => $allGroups,
             'totalLicensees' => $totalLicensees,
+            'noGroupLicenseesCount' => $noGroupLicenseesCount,
+            'isNoGroupFilter' => 'no-group' === $groupId,
         ]);
     }
 
     #[Route('/my-profile', name: 'app_licensee_my_profile', methods: ['GET'])]
     #[
-        Route(
-            '/licensee/{fftaCode}',
-            name: 'app_licensee_profile',
-            methods: ['GET'],
-        ),
+        Route('/licensee/{id}', name: 'app_licensee_profile', requirements: ['id' => '\d+'], methods: ['GET']),
     ]
     public function show(
-        LicenseeRepository $licenseeRepository,
-        ResultRepository $resultRepository,
-        ChartBuilderInterface $chartBuilder,
-        ?string $fftaCode,
+        ?int $id = null,
     ): Response {
         $this->assertHasValidLicense();
 
         /** @var User $user */
         $user = $this->getUser();
 
-        $licensee = null !== $fftaCode && '' !== $fftaCode && '0' !== $fftaCode ? $licenseeRepository->findOneByCode($fftaCode) : $this->licenseeHelper->getLicenseeFromSession();
+        $licensee = null !== $id ? $this->licenseeRepository->find($id) : $this->licenseeHelper->getLicenseeFromSession();
 
-        if (
-            !$licensee instanceof Licensee
-            || (!$user->getLicensees()->contains($licensee)
-                && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_COACH'))
-        ) {
+        if (!$licensee instanceof Licensee) {
             throw $this->createNotFoundException();
         }
 
-        $resultsBySeason = [];
-        $seasons = [];
-        /** @var Result[] $licenseeResults */
-        $licenseeResults = $resultRepository->findForLicensee(
-            $licensee
-        );
-        foreach ($licenseeResults as $result) {
-            $season = Season::seasonForDate($result->getEvent()->getStartsAt());
-            $seasons[\sprintf('Saison %s', $season)] = $season;
-            $groupName = \sprintf(
-                '%s %s %sm',
-                DisciplineType::getReadableValue($result->getDiscipline()),
-                LicenseActivityType::getReadableValue($result->getActivity()),
-                $result->getDistance()
-            );
-            $resultsBySeason[$season][$groupName]['max'] = $result->getMaxTotal();
-            $resultsBySeason[$season][$groupName]['results'][] = $result;
-        }
+        $this->checkLicenseeAccess($user, $licensee);
 
-        krsort($seasons);
+        [$seasons, $resultsCharts] = $this->buildResultsData($licensee);
 
-        $resultsCharts = [];
-
-        foreach ($resultsBySeason as $season => $resultsByCategory) {
-            foreach ($resultsByCategory as $category => $categoryResults) {
-                $results = $categoryResults['results'];
-                $resultsTotals = array_map(fn (Result $result): ?int => $result->getTotal(), $results);
-
-                $lowestScore = min($resultsTotals);
-                $bestScore = max($resultsTotals);
-                $highest3Scores = $resultsTotals;
-                sort($highest3Scores);
-                $highest3Scores = \array_slice($highest3Scores, -3, 3);
-                $averageScore = floor(array_sum($highest3Scores) / \count($highest3Scores));
-
-                $scoreDiff = $bestScore - $lowestScore;
-
-                $resultsChart = $chartBuilder->createChart(Chart::TYPE_BAR);
-                $resultsChart->setData([
-                    'labels' => array_map(fn (Result $result): ?string => $result->getEvent()->getName(), $results),
-                    'datasets' => [
-                        [
-                            'label' => 'Score Total',
-                            'data' => array_map(fn (Result $result): ?int => $result->getTotal(), $results),
-                            'backgroundColor' => array_map(
-                                function (Result $result) use ($lowestScore, $scoreDiff): string {
-                                    if (0 === $scoreDiff) {
-                                        return ResultHelper::colorRatio(1);
-                                    }
-
-                                    return ResultHelper::colorRatio(
-                                        ($result->getTotal() - $lowestScore) / $scoreDiff
-                                    );
-                                },
-                                $results
-                            ),
-                            'datalabels' => [
-                                'color' => 'white',
-                                'font' => [
-                                    'weight' => 'bold',
-                                ],
-                                'align' => 'end',
-                            ],
-                        ],
-                    ],
-                ]);
-
-                $resultsChart->setOptions([
-                    'aspectRatio' => 5 / 3,
-                    'scales' => [
-                        'y' => [
-                            'min' => floor($lowestScore * 0.98),
-                            'max' => floor($bestScore * 1.02),
-                        ],
-                    ],
-                    'plugins' => [
-                        'legend' => [
-                            'display' => false,
-                        ],
-                        'annotation' => [
-                            'annotations' => [
-                                'lineBest' => [
-                                    'type' => 'line',
-                                    'yMin' => $bestScore,
-                                    'yMax' => $bestScore,
-                                    'borderColor' => 'rgba(227, 29, 2, 0.8)',
-                                    'borderWidth' => 2,
-                                    'label' => [
-                                        'display' => true,
-                                        'backgroundColor' => 'rgba(227, 29, 2, 0.6)',
-                                        'borderRadius' => 7,
-                                        'color' => 'white',
-                                        'font' => [
-                                            'weight' => 'bold',
-                                        ],
-                                        'content' => \sprintf('Meilleur : %s', $bestScore),
-                                        'xAdjust' => -100,
-                                    ],
-                                ],
-                                'lineAverage' => [
-                                    'type' => 'line',
-                                    'yMin' => $averageScore,
-                                    'yMax' => $averageScore,
-                                    'borderColor' => 'rgba(18, 95, 155, 0.8)',
-                                    'borderWidth' => 1,
-                                    'borderDash' => [15, 10],
-                                    'label' => [
-                                        'display' => true,
-                                        'backgroundColor' => 'rgba(18, 95, 155, 0.6)',
-                                        'borderRadius' => 7,
-                                        'color' => 'white',
-                                        'font' => [
-                                            'weight' => 'bold',
-                                        ],
-                                        'content' => \sprintf('Moyenne : %s', $averageScore),
-                                        'xAdjust' => 0,
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ]);
-
-                $resultsCharts[$season][$category] = $resultsChart;
-            }
-        }
-
-        ksort($resultsCharts);
+        // Fetch active equipment loans for this licensee
+        $activeLoans = $this->loanRepository->findActiveLoansByBorrower($licensee);
 
         $licenseeSyncForm = null;
         if ($this->isGranted('ROLE_ADMIN')) {
@@ -257,6 +137,7 @@ class LicenseeController extends BaseController
             'seasons' => $seasons,
             'results_charts' => $resultsCharts,
             'licensee_sync_form' => $licenseeSyncForm?->createView(),
+            'activeLoans' => $activeLoans,
         ]);
     }
 
@@ -264,18 +145,15 @@ class LicenseeController extends BaseController
      * @throws NonUniqueResultException
      * @throws TransportExceptionInterface
      */
-    #[Route('/licensee/{fftaCode}/sync', methods: ['POST'])]
+    #[Route('/licensee/{id}/sync', name: 'app_licensee_sync', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function sync(
-        string $fftaCode,
-        LicenseeRepository $licenseeRepository,
-        FftaHelper $fftaHelper,
-        ClubHelper $clubHelper,
+        int $id,
         Request $request,
     ): RedirectResponse {
         $this->assertHasValidLicense();
         $this->isGranted(UserRoleType::ADMIN);
 
-        $licensee = $licenseeRepository->findOneByCode($fftaCode);
+        $licensee = $this->licenseeRepository->find($id);
         if (!$licensee instanceof Licensee) {
             throw $this->createNotFoundException();
         }
@@ -285,8 +163,8 @@ class LicenseeController extends BaseController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $fftaHelper->syncLicenseeWithId(
-                    $clubHelper->activeClub(),
+                $this->fftaHelper->syncLicenseeWithId(
+                    $this->clubHelper->activeClub(),
                     $licensee->getFftaId(),
                     $this->seasonHelper->getSelectedSeason(),
                 );
@@ -306,13 +184,13 @@ class LicenseeController extends BaseController
             }
         }
 
-        return $this->redirectToRoute('app_licensee_profile', ['fftaCode' => $fftaCode]);
+        return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
     }
 
     private function createSyncForm(Licensee $licensee): FormInterface
     {
         return $this->createFormBuilder(null, [
-            'action' => $this->generateUrl('app_licensee_sync', ['fftaCode' => $licensee->getFftaMemberCode()]),
+            'action' => $this->generateUrl('app_licensee_sync', ['id' => $licensee->getId()]),
             'method' => 'POST',
         ])->getForm();
     }
@@ -320,20 +198,12 @@ class LicenseeController extends BaseController
     /**
      * @throws NonUniqueResultException|FilesystemException
      */
-    #[
-        Route(
-            '/licensee/{fftaCode}/picture',
-            name: 'app_licensee_picture',
-            methods: ['GET'],
-        ),
-    ]
+    #[Route('/licensee/{id}/picture', name: 'app_licensee_picture', requirements: ['id' => '\d+'], methods: ['GET']),]
     public function profilePicture(
-        string $fftaCode,
-        LicenseeRepository $licenseeRepository,
-        FilesystemOperator $licenseesStorage,
+        int $id,
         Request $request,
     ): Response {
-        $licensee = $licenseeRepository->findOneByCode($fftaCode);
+        $licensee = $this->licenseeRepository->find($id);
         if (!$licensee instanceof Licensee) {
             throw $this->createNotFoundException();
         }
@@ -345,9 +215,9 @@ class LicenseeController extends BaseController
             return $response;
         }
 
-        $imagePath = \sprintf('%s.jpg', $fftaCode);
+        $imagePath = \sprintf('%s.jpg', $licensee->getFftaMemberCode());
 
-        if (!$licenseesStorage->fileExists($imagePath)) {
+        if (!$this->licenseesStorage->fileExists($imagePath)) {
             return new Response(
                 '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg width="100%" height="100%" viewBox="0 0 175 275"
@@ -374,9 +244,9 @@ class LicenseeController extends BaseController
             );
         }
 
-        $response = new StreamedResponse(function () use ($licenseesStorage, $imagePath): void {
+        $response = new StreamedResponse(function () use ($imagePath): void {
             $outputStream = fopen('php://output', 'w');
-            $fileStream = $licenseesStorage->readStream($imagePath);
+            $fileStream = $this->licenseesStorage->readStream($imagePath);
 
             stream_copy_to_stream($fileStream, $outputStream);
         }, Response::HTTP_OK, [
@@ -390,8 +260,7 @@ class LicenseeController extends BaseController
     #[Route('/licensees/attachments/{attachment}', name: 'licensees_attachements_download')]
     public function downloadAttachement(
         Request $request,
-        LicenseeAttachment $attachment,
-        FilesystemOperator $licenseesStorage
+        LicenseeAttachment $attachment
     ): Response {
         $forceDownload = $request->query->get('forceDownload');
         $contentDisposition = \sprintf(
@@ -400,9 +269,9 @@ class LicenseeController extends BaseController
             $attachment->getFile()->getName()
         );
 
-        $response = new StreamedResponse(function () use ($licenseesStorage, $attachment): void {
+        $response = new StreamedResponse(function () use ($attachment): void {
             $outputStream = fopen('php://output', 'w');
-            $fileStream = $licenseesStorage->readStream($attachment->getFile()->getName());
+            $fileStream = $this->licenseesStorage->readStream($attachment->getFile()->getName());
 
             stream_copy_to_stream($fileStream, $outputStream);
         }, Response::HTTP_OK, [
@@ -413,5 +282,222 @@ class LicenseeController extends BaseController
         $response->setLastModified($attachment->getUpdatedAt());
 
         return $response;
+    }
+
+    #[Route('/licensee/{id}/edit', name: 'app_licensee_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function edit(Licensee $licensee, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->assertHasValidLicense();
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $this->checkLicenseeAccess($user, $licensee);
+
+        $form = $this->createForm(LicenseeFormType::class, $licensee);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Licencié modifié avec succès.');
+
+            return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
+        }
+
+        return $this->render('licensee/edit.html.twig', [
+            'licensee' => $licensee,
+            'form' => $form,
+        ]);
+    }
+
+    /**
+     * Check if current user has access to view/edit a licensee.
+     */
+    private function checkLicenseeAccess(User $user, Licensee $licensee): void
+    {
+        $hasAccess = $user->getLicensees()->contains($licensee)
+            || $this->isGranted('ROLE_ADMIN')
+            || $this->isGranted('ROLE_COACH');
+
+        if (!$hasAccess && $this->isGranted('ROLE_CLUB_ADMIN')) {
+            $hasAccess = $this->checkClubAdminAccess($user, $licensee);
+        }
+
+        if (!$hasAccess) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas accès à ce profil.');
+        }
+    }
+
+    /**
+     * Check if club admin has access to licensee in same club.
+     */
+    private function checkClubAdminAccess(User $user, Licensee $licensee): bool
+    {
+        $currentSeason = $this->seasonHelper->getSelectedSeason();
+        $userLicensees = $user->getLicensees();
+        foreach ($userLicensees as $userLicensee) {
+            if (!($userLicense = $userLicensee->getLicenseForSeason($currentSeason))) {
+                continue;
+            }
+
+            if (!($targetLicense = $licensee->getLicenseForSeason($currentSeason)) instanceof \App\Entity\License) {
+                continue;
+            }
+
+            if ($userLicense->getClub() === $targetLicense->getClub()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Build results data grouped by season and category with charts.
+     *
+     * @return array{0: array<string, int>, 1: array<int, array<string, Chart>>}
+     */
+    private function buildResultsData(Licensee $licensee): array
+    {
+        $licenseeResults = $this->resultRepository->findForLicensee($licensee);
+        [$resultsBySeason, $seasons] = $this->groupResultsBySeason($licenseeResults);
+        krsort($seasons);
+
+        $resultsCharts = [];
+        foreach ($resultsBySeason as $season => $resultsByCategory) {
+            foreach ($resultsByCategory as $category => $categoryResults) {
+                $resultsCharts[$season][$category] = $this->buildResultChart($categoryResults['results']);
+            }
+        }
+
+        ksort($resultsCharts);
+
+        return [$seasons, $resultsCharts];
+    }
+
+    /**
+     * Group results by season and category.
+     *
+     * @param Result[] $results
+     *
+     * @return array{0: array<int, array<string, array{max: int, results: Result[]}>>, 1: array<string, int>}
+     */
+    private function groupResultsBySeason(array $results): array
+    {
+        $resultsBySeason = [];
+        $seasons = [];
+
+        foreach ($results as $result) {
+            $season = Season::seasonForDate($result->getEvent()->getStartsAt());
+            $seasons[\sprintf('Saison %s', $season)] = $season;
+            $groupName = \sprintf(
+                '%s %s %sm',
+                DisciplineType::getReadableValue($result->getDiscipline()),
+                LicenseActivityType::getReadableValue($result->getActivity()),
+                $result->getDistance()
+            );
+            $resultsBySeason[$season][$groupName]['max'] = $result->getMaxTotal();
+            $resultsBySeason[$season][$groupName]['results'][] = $result;
+        }
+
+        return [$resultsBySeason, $seasons];
+    }
+
+    /**
+     * Build chart for a category's results.
+     *
+     * @param Result[] $results
+     */
+    private function buildResultChart(array $results): Chart
+    {
+        $resultsTotals = array_map(static fn (Result $result): ?int => $result->getTotal(), $results);
+        $lowestScore = min($resultsTotals);
+        $bestScore = max($resultsTotals);
+        $highest3Scores = $resultsTotals;
+        sort($highest3Scores);
+        $highest3Scores = \array_slice($highest3Scores, -3, 3);
+        $averageScore = floor(array_sum($highest3Scores) / \count($highest3Scores));
+        $scoreDiff = $bestScore - $lowestScore;
+
+        $chart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
+        $chart->setData([
+            'labels' => array_map(static fn (Result $result): ?string => $result->getEvent()->getName(), $results),
+            'datasets' => [
+                [
+                    'label' => 'Score Total',
+                    'data' => array_map(static fn (Result $result): ?int => $result->getTotal(), $results),
+                    'backgroundColor' => array_map(
+                        static function (Result $result) use ($lowestScore, $scoreDiff): string {
+                            if (0 === $scoreDiff) {
+                                return ResultHelper::colorRatio(1);
+                            }
+
+                            return ResultHelper::colorRatio(
+                                ($result->getTotal() - $lowestScore) / $scoreDiff
+                            );
+                        },
+                        $results
+                    ),
+                    'datalabels' => [
+                        'color' => 'white',
+                        'font' => ['weight' => 'bold'],
+                        'align' => 'end',
+                    ],
+                ],
+            ],
+        ]);
+
+        $chart->setOptions([
+            'aspectRatio' => 5 / 3,
+            'scales' => [
+                'y' => [
+                    'min' => floor($lowestScore * 0.98),
+                    'max' => floor($bestScore * 1.02),
+                ],
+            ],
+            'plugins' => [
+                'legend' => ['display' => false],
+                'annotation' => [
+                    'annotations' => [
+                        'lineBest' => [
+                            'type' => 'line',
+                            'yMin' => $bestScore,
+                            'yMax' => $bestScore,
+                            'borderColor' => 'rgba(227, 29, 2, 0.8)',
+                            'borderWidth' => 2,
+                            'label' => [
+                                'display' => true,
+                                'backgroundColor' => 'rgba(227, 29, 2, 0.6)',
+                                'borderRadius' => 7,
+                                'color' => 'white',
+                                'font' => ['weight' => 'bold'],
+                                'content' => \sprintf('Meilleur : %s', $bestScore),
+                                'xAdjust' => -100,
+                            ],
+                        ],
+                        'lineAverage' => [
+                            'type' => 'line',
+                            'yMin' => $averageScore,
+                            'yMax' => $averageScore,
+                            'borderColor' => 'rgba(18, 95, 155, 0.8)',
+                            'borderWidth' => 1,
+                            'borderDash' => [15, 10],
+                            'label' => [
+                                'display' => true,
+                                'backgroundColor' => 'rgba(18, 95, 155, 0.6)',
+                                'borderRadius' => 7,
+                                'color' => 'white',
+                                'font' => ['weight' => 'bold'],
+                                'content' => \sprintf('Moyenne : %s', $averageScore),
+                                'xAdjust' => 0,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        return $chart;
     }
 }

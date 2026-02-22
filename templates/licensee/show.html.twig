@@ -19,122 +19,240 @@
 {% block title %}{{ licenseeHelper.licenseeFromSession.id is same as licensee.id ? licensee.fullname : licensee_display_name(licensee) }}{% endblock %}
 
 {% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <em class="fa-solid fa-user me-2"></em>
+            {{ licenseeHelper.licenseeFromSession.id is same as licensee.id ? licensee.fullname : licensee_display_name(licensee) }}
+        </h1>
+        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_COACH') or is_granted('ROLE_CLUB_ADMIN') %}
+            <div>
+                <a href="{{ path('app_licensee_edit', {'id': licensee.id}) }}" class="btn btn-warning">
+                    <em class="fa-solid fa-pen-to-square me-2"></em>
+                    Modifier
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
     <div class="row">
-        <div class="col-md-3 col-12 mb-3">
-            <div class="border border-1 rounded-3">
-                <div class="bg-ffta text-light text-center pt-3 rounded-0 rounded-top d-flex flex-column">
-                    <div class="mb-1 d-flex justify-content-center">
-                        <div class="bg-white rounded-3" style="width: 60px; height:15px"></div>
+        <div class="col-lg-4 col-12 mb-4">
+            <!-- Profile Card -->
+            <div class="card h-100">
+                <div class="card-header bg-ffta text-white text-center">
+                    <div class="mb-2 d-flex justify-content-center">
+                        <div class="bg-white rounded-3" style="width: 60px; height: 15px"></div>
                     </div>
-                    <img src="{{ asset('build/logo-ffta.svg') }}" alt="" class="mb-2" style="height: 40px">
-                    <h2>{{ licenseeHelper.licenseeFromSession.id is same as licensee.id ? licensee.fullname : licensee_display_name(licensee) }}</h2>
+                    <img src="{{ asset('build/logo-ffta.svg') }}" alt="FFTA" class="mb-3" style="height: 40px">
                     <div class="mb-3">
-                        <span class="badge bg-light text-bg-light fs-5">{{ licensee.fftaMemberCode }}</span>
+                        <span class="badge bg-light text-dark fs-6">{{ licensee.fftaMemberCode }}</span>
                     </div>
-                    <div class="mb-3 d-block position-relative">
+                    <div class="mb-3">
                         <img src="{{ licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}"
-                             alt="Photo de profil" class="img-thumbnail badge-profile-picture" />
+                             alt="Photo de profil" 
+                             class="img-thumbnail bg-white" 
+                             style="width: 150px; height: 150px; object-fit: cover;" />
                     </div>
                 </div>
 
-                <div class="px-3 pt-3">
-                    <h4>
-                        Licence {{ licenseHelper.seasonForDate(date()) }}
-                        <a href="https://monespace.ffta.fr/licences" class="btn btn-sm btn-secondary" target="_blank">
-                            <em class="fa-solid fa-share"></em>
-                            FFTA
-                        </a>
-                    </h4>
-                    {% set license = licensee.licenseForSeason(licenseHelper.seasonForDate(date())) %}
-                    {% if not licensee.licenseForSeason(licenseHelper.seasonForDate(date())) %}
-                        <em>Aucune license</em>
-                    {% else %}
-                        <ul class="list-unstyled mb-0">
-                            <li>
-                                <em class="fa-solid fa-building fa-fw"></em>
-                                {{ license.club.name }}
-                            </li>
-                            <li>
-                                <em class="fa-solid fa-people-group fa-fw"></em>
-                                {{ license.ageCategory|readable_enum }}
-                            </li>
-                            <li>
-                                <em class="fa-solid fa-venus-mars fa-fw"></em>
-                                {{ licensee.gender|readable_enum('GenderType') }}
-                            </li>
-                            <li>
-                                <em class="fa-solid fa-screwdriver-wrench fa-fw"></em>
-                                {{ license.activities|map(a => a|readable_enum('LicenseActivityType'))|join(', ') }}
-                            </li>
-                        </ul>
+                <div class="card-body">
+                    <!-- Current License -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0">
+                                <em class="fa-solid fa-id-card me-2"></em>
+                                Licence {{ licenseHelper.seasonForDate(date()) }}
+                            </h5>
+                            <a href="https://monespace.ffta.fr/licences" 
+                               class="btn btn-sm btn-outline-primary" 
+                               target="_blank"
+                               data-bs-toggle="tooltip"
+                               title="Voir sur FFTA">
+                                <em class="fa-solid fa-arrow-up-right-from-square"></em>
+                            </a>
+                        </div>
+                        
+                        {% set license = licensee.licenseForSeason(licenseHelper.seasonForDate(date())) %}
+                        {% if not license %}
+                            <div class="alert alert-warning mb-0">
+                                <em class="fa-solid fa-exclamation-triangle me-2"></em>
+                                Aucune licence active
+                            </div>
+                        {% else %}
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <em class="fa-solid fa-building text-primary me-2" style="width: 20px;"></em>
+                                        <span>{{ license.club.name }}</span>
+                                    </div>
+                                </li>
+                                <li class="mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <em class="fa-solid fa-people-group text-primary me-2" style="width: 20px;"></em>
+                                        <span>{{ license.ageCategory|readable_enum }}</span>
+                                    </div>
+                                </li>
+                                <li class="mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <em class="fa-solid fa-venus-mars text-primary me-2" style="width: 20px;"></em>
+                                        <span>{{ licensee.gender|readable_enum('GenderType') }}</span>
+                                    </div>
+                                </li>
+                                <li class="mb-0">
+                                    <div class="d-flex align-items-start">
+                                        <em class="fa-solid fa-screwdriver-wrench text-primary me-2 mt-1" style="width: 20px;"></em>
+                                        <span>{{ license.activities|map(a => a|readable_enum('LicenseActivityType'))|join(', ') }}</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        {% endif %}
+                    </div>
+
+                    <!-- Groups -->
+                    <div class="mb-4">
+                        <h5 class="mb-2">
+                            <em class="fa-solid fa-users-gear me-2"></em>
+                            Groupes
+                        </h5>
+                        {% if licensee.groups is empty %}
+                            <em class="text-muted">Aucun groupe</em>
+                        {% else %}
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for group in licensee.groups %}
+                                    <span class="badge bg-secondary">{{ group.name }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Borrowed Equipment -->
+                    <div class="mb-4">
+                        <h5 class="mb-2">
+                            <em class="fa-solid fa-bow-arrow me-2"></em>
+                            Matériel emprunté
+                        </h5>
+                        {% if activeLoans is empty %}
+                            <em class="text-muted">Aucun matériel emprunté</em>
+                        {% else %}
+                            <div class="list-group">
+                                {% for loan in activeLoans %}
+                                    <a href="{{ path('app_club_equipment_show', {id: loan.equipment.id}) }}" 
+                                       class="list-group-item list-group-item-action">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">{{ loan.equipment.name }}</h6>
+                                                <small class="text-muted">
+                                                    <span class="badge bg-secondary me-1">{{ loan.equipment.type|club_equipment_type_readable }}</span>
+                                                    Depuis le {{ loan.startDate|date('d/m/Y') }} ({{ loan.loanDurationInDays }} jour(s))
+                                                </small>
+                                            </div>
+                                            <em class="fa-solid fa-arrow-right text-muted"></em>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- User Account Link -->
+                    {% if is_granted('ROLE_ADMIN') or (app.user and app.user.id == licensee.user.id) %}
+                        <div class="border-top pt-3">
+                            <h5 class="mb-2">
+                                <em class="fa-solid fa-user-gear me-2"></em>
+                                Compte utilisateur
+                            </h5>
+                            <a href="{{ path('app_user_show', {'id': licensee.user.id}) }}" 
+                            class="btn btn-outline-primary btn-sm w-100">
+                                <em class="fa-solid fa-arrow-right me-2"></em>
+                                {% if app.user and app.user.id == licensee.user.id %}Voir mon compte{% else %}
+                                Voir le compte de {{ licensee.user.firstname }} {{ licensee.user.lastname }}
+                                {% endif %}
+                            </a>
+                        </div>
                     {% endif %}
-                </div>
-                <div class="p-3">
-                    {% for group in licensee.groups %}
-                        <span class="badge bg-secondary">{{ group.name }}</span>
-                    {% else %}
-                        <em>Dans aucun groupe</em>
-                    {% endfor %}
                 </div>
             </div>
         </div>
-        <div class="col-md-9">
+
+        <div class="col-lg-8">
             {% if is_granted('ROLE_ADMIN') %}
-                <div class="row">
-                    <div class="col-12">
-                        <div class="alert alert-warning">
-                            <h4 class="alert-heading">Administration</h4>
-                            {% if is_granted('ROLE_ADMIN') %}
-                                <a href="{{
-                                adminUrlGenerator
-                                    .setController('App\\Controller\\Admin\\LicenseeCrudController')
-                                    .setAction('edit')
-                                    .setEntityId(licensee.id)
-                                .generateUrl
-                                }}" class="btn btn-secondary mb-1">
-                                    <em class="fa-solid fa-pencil"></em>
-                                    Éditer
-                                </a>
-                                <a href="{{
-                                adminUrlGenerator
-                                    .setController('App\\Controller\\Admin\\ResultCrudController')
-                                    .setAction('index')
-                                    .set('filters[licensee][comparison]', '=')
-                                    .set('filters[licensee][value]', licensee.id)
-                                .generateUrl
-                                }}" class="btn btn-secondary mb-1">
-                                    <em class="fa-solid fa-square-poll-vertical"></em>
-                                    Résultats
-                                </a>
-                                <a href="{{ path('app_homepage', {'_switch_user': licensee.user.email, '_switch_licensee': licensee.fftaMemberCode}) }}"
-                                   class="btn btn-warning mb-1">
-                                    <em class="fa-solid fa-user-secret"></em> Usurper l'identité
-                                </a>
-                                {{ form_start(licensee_sync_form, {'attr': {'class': 'd-inline', 'onclick': 'return confirm("Synchroniser avec la FFTA ? Cela prendra une dizaine de secondes.")'}}) }}
-                                    <button type="submit" class="btn btn-warning mb-1" data-bs-toggle="tooltip" title="Synchroniser avec la FFTA. En cas de changements (photo, licence, ...) sur le site de la FFTA, cette action permet de les récupérer dans l'application.">
-                                        <em class="fa-solid fa-arrows-rotate"></em> Synchroniser
-                                    </button>
-                                {{ form_end(licensee_sync_form) }}
-                            {% endif %}
+                <!-- Admin Actions -->
+                <div class="card border-warning mb-4">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-screwdriver-wrench me-2"></em>
+                            Administration
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{
+                            adminUrlGenerator
+                                .setController('App\\Controller\\Admin\\LicenseeCrudController')
+                                .setAction('edit')
+                                .setEntityId(licensee.id)
+                            .generateUrl
+                            }}" class="btn btn-secondary">
+                                <em class="fa-solid fa-pencil me-2"></em>
+                                Éditer
+                            </a>
+                            <a href="{{
+                            adminUrlGenerator
+                                .setController('App\\Controller\\Admin\\ResultCrudController')
+                                .setAction('index')
+                                .set('filters[licensee][comparison]', '=')
+                                .set('filters[licensee][value]', licensee.id)
+                            .generateUrl
+                            }}" class="btn btn-secondary">
+                                <em class="fa-solid fa-square-poll-vertical me-2"></em>
+                                Résultats
+                            </a>
+                            <a href="{{ path('app_homepage', {'_switch_user': licensee.user.email, '_switch_licensee': licensee.id}) }}"
+                               class="btn btn-warning">
+                                <em class="fa-solid fa-user-secret me-2"></em>
+                                Usurper l'identité
+                            </a>
+                            {# FFTA sync temporarily disabled #}
+                            <button type="button" 
+                                    class="btn btn-secondary" 
+                                    disabled
+                                    data-bs-toggle="tooltip" 
+                                    title="Synchronisation FFTA temporairement désactivée (fonctionnalité en maintenance)">
+                                <em class="fa-solid fa-arrows-rotate me-2"></em>
+                                Synchroniser
+                            </button>
                         </div>
                     </div>
                 </div>
             {% endif %}
+
             <div class="row">
-                <div class="col-md-4 col-12 mb-3">
-                    <div class="card">
+                <!-- Equipment Card -->
+                <div class="col-md-6 col-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <em class="fa-solid fa-crosshairs me-2"></em>
+                                Équipement
+                            </h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Équipement</h5>
-                            <p class="card-text">Fonctionnalité en cours de développement.</p>
+                            <div class="text-center text-muted py-4">
+                                <em class="fa-solid fa-dumbbell fa-3x mb-3"></em>
+                                <p class="mb-0">Fonctionnalité en cours de développement</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-8 col-12 mb-3">
+                <!-- Results Card -->
+                <div class="col-md-12 col-12 mb-4">
                     <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex flex-row mb-3">
-                                <h5 class="card-title me-3 mt-2">Résultats</h5>
+                        <div class="card-header bg-success text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <em class="fa-solid fa-trophy me-2"></em>
+                                    Résultats
+                                </h5>
                                 {% if results_charts|length > 0 %}
                                 <select class="form-select form-select-sm w-auto" id="results-season-selector">
                                     {% for season_label, season in seasons %}
@@ -143,51 +261,45 @@
                                 </select>
                                 {% endif %}
                             </div>
-                            {% for season, charts_by_category in results_charts %}
-                                <div class="season-pane d-none results-season-pane" data-season="{{ season }}">
-                                    <ul class="nav nav-tabs" id="resultsTab" role="tablist">
-                                        {% for category, chart in charts_by_category %}
-                                            <li class="nav-item">
-                                                <button class="nav-link {{ loop.first ? "active" }}" data-bs-toggle="tab" data-bs-target="#{{ category|slug|lower }}-tab-pane" >{{ category }}</button>
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                    <div class="tab-content" id="result-charts-tab-content">
-                                        {% for category, chart in charts_by_category %}
-                                            <div class="tab-pane fade {{ loop.first ? "show active" }}" id="{{ category|slug|lower }}-tab-pane" role="tabpanel" aria-labelledby="{{ category }}-tab" tabindex="0">
-                                                {{ render_chart(chart, {'data-controller': 'results-chart'}) }}
-                                                {#<table class="table mt-3 text-center align-middle">
-                                                    <tr>
-                                                        {% set color_lowest = '#FCE4D6' %}
-                                                        {% set color_best = '#C6E0B4' %}
-                                                        {% set score_diff = score_best - score_lowest %}
-                                                        {% for result in results_by_season[season][category].results %}
-                                                            {% set ratio = (result.total - score_lowest) / score_diff %}
-                                                            <td style="background-color: {{ color_ratio(ratio) }}">
-                                                                <small>
-                                                                    {{ result.score1 }}
-                                                                    {% if result.score1 and result.score2 %}/{% endif %}
-                                                                    {{ result.score2 }}
-                                                                </small>
-                                                                {% if result.score1 and result.score2 %}<br>{% endif %}
-                                                                {{ result.total }}
-                                                            </td>
-                                                        {% endfor %}
-                                                    </tr>
-                                                </table>#}
-                                            </div>
-                                        {% endfor %}
+                        </div>
+                        <div class="card-body">
+                            {% if results_charts|length > 0 %}
+                                {% for season, charts_by_category in results_charts %}
+                                    <div class="season-pane d-none results-season-pane" data-season="{{ season }}">
+                                        <ul class="nav nav-tabs mb-3" id="resultsTab" role="tablist">
+                                            {% for category, chart in charts_by_category %}
+                                                <li class="nav-item">
+                                                    <button class="nav-link {{ loop.first ? "active" }}" 
+                                                            data-bs-toggle="tab" 
+                                                            data-bs-target="#{{ category|slug|lower }}-tab-pane">
+                                                        {{ category }}
+                                                    </button>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                        <div class="tab-content" id="result-charts-tab-content">
+                                            {% for category, chart in charts_by_category %}
+                                                <div class="tab-pane fade {{ loop.first ? "show active" }}" 
+                                                     id="{{ category|slug|lower }}-tab-pane" 
+                                                     role="tabpanel" 
+                                                     tabindex="0">
+                                                    {{ render_chart(chart, {'data-controller': 'results-chart'}) }}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
                                     </div>
-                                </div>
+                                {% endfor %}
                             {% else %}
-                                <div>Aucun résultat enregistré</div>
-                            {% endfor %}
+                                <div class="text-center text-muted py-4">
+                                    <em class="fa-solid fa-chart-bar fa-3x mb-3"></em>
+                                    <p class="mb-0">Aucun résultat enregistré</p>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 {% endblock %}
 

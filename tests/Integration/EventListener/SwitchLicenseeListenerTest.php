@@ -46,17 +46,16 @@ final class SwitchLicenseeListenerTest extends KernelTestCase
         $request = new Request();
         $request->setSession($session);
 
-        $requestStack = new RequestStack();
-        $requestStack->push($request);
+        $requestStack = new RequestStack([$request]);
 
         $licenseeHelper = new LicenseeHelper($requestStack, $security, $mailer);
 
         $user = new User();
-        $licensee = (new Licensee())
+        $licensee = new Licensee()
             ->setFftaMemberCode('1234567A')
             ->setUser($user);
 
-        $licensee2 = (new Licensee())
+        $licensee2 = new Licensee()
             ->setFftaMemberCode('1234567B')
             ->setUser($user);
 

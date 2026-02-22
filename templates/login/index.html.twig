@@ -2,7 +2,22 @@
 
 {% block title %}Identification{% endblock %}
 
-{% block body %}
+{% block javascripts %}
+    {{ parent() }}
+    {% if failed_login_count >= 3 %}
+        {{ encore_entry_script_tags('friendly_captcha') }}
+    {% endif %}
+{% endblock %}
+
+{% block page_layout %}
+<div class="container">
+    <div class="row justify-content-center align-content-center" style="min-height: 88vh">
+        <div class="col-lg-4 col-sm-10">
+            <img src="{{ asset('build/logo.svg') }}"
+                 alt="Les Archers de Bordeaux Guyenne"
+                 class="mx-auto d-block"/>
+        </div>
+        <div class="col-lg-6 col-sm-10">
     <div class="card">
         <div class="card-body">
             <h5 class="card-title mb-3">Connexion</h5>
@@ -23,12 +38,46 @@
                     <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
                 {% endif %}
 
-                <button type="submit" class="btn btn-primary">
-                    <em class="fa-solid fa-arrow-right-to-bracket"></em>
+                {% if failed_login_count >= 3 %}
+                    <div class="mb-3">
+                        <div class="alert alert-warning" role="alert">
+                            <em class="fa-solid fa-shield-halved me-2"></em>
+                            <strong>Vérification de sécurité requise</strong>
+                            <small class="d-block mt-1">Suite à plusieurs tentatives échouées, une vérification de sécurité automatique est en cours.</small>
+                        </div>
+                        <div 
+                            id="frc-captcha"
+                            class="frc-captcha" 
+                             data-sitekey="{{ captcha_site_key }}"
+                             data-lang="fr"></div>
+                    </div>
+                {% endif %}
+
+                <button type="submit" id="login-submit-button" class="btn btn-primary">
+                    <em class="fa-solid fa-arrow-right-to-bracket me-2"></em>
                     Se connecter
                 </button>
             </form>
+            
+            <hr class="my-4">
+            
+            <div class="text-center">
+                <h6 class="mb-3">Nouveau membre ?</h6>
+                <div class="alert alert-info mb-3" role="alert">
+                    <small>
+                        <em class="fa-solid fa-circle-info me-1"></em>
+                        Pour adhérer à un club, créez d'abord votre compte. Vous pourrez ensuite déposer une demande d'adhésion.
+                    </small>
+                </div>
+                <a href="{{ path('app_register') }}" class="btn btn-outline-primary w-100">
+                    <em class="fa-solid fa-user-plus me-2"></em>
+                    Créer mon compte
+                </a>
+            </div>
         </div>
     </div>
-    <a href="{{ path('app_forgot_password_request') }}" class="btn btn-link fst-italic mx-auto d-block">Première connexion ?</a>
+    <a href="{{ path('app_forgot_password_request') }}" class="btn btn-link fst-italic mx-auto d-block mt-2">Mot de passe oublié ?</a>
+        </div>
+    </div>
+</div>
 {% endblock %}

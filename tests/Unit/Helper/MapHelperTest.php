@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 final class MapHelperTest extends TestCase
 {
-    private Provider $mapboxGeocoder;
+    private \PHPUnit\Framework\MockObject\MockObject $mapboxGeocoder;
 
     private MapHelper $mapHelper;
 
@@ -94,8 +94,11 @@ final class MapHelperTest extends TestCase
         $this->mapboxGeocoder
             ->expects($this->once())
             ->method('geocodeQuery')
-            ->with($this->callback(fn (GeocodeQuery $query): bool => $query->getText() === $address))
-            ->willReturn($collection);
+            ->willReturnCallback(function (GeocodeQuery $query) use ($address, $collection): Collection&\PHPUnit\Framework\MockObject\MockObject {
+                $this->assertSame($address, $query->getText());
+
+                return $collection;
+            });
 
         $this->mapHelper->urlForAddress($address);
     }

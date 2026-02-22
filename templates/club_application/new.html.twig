@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Demande d'adhésion{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-id-card me-2"></em>
+                            Nouvelle demande d'adhésion
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <em class="fa-solid fa-circle-info me-2"></em>
+                            Pour la saison {{ application.season }}, veuillez sélectionner le club auquel vous souhaitez adhérer.
+                            La prise de licence sera effectuée par le club après validation de votre demande.
+                        </div>
+
+                        {% form_theme form 'bootstrap_5_layout.html.twig' %}
+                        {{ form_start(form) }}
+                            {% if showLicenseeSelector is defined and showLicenseeSelector %}
+                                {{ form_row(form.licensee) }}
+                            {% endif %}
+                            {{ form_row(form.club) }}
+                            
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <em class="fa-solid fa-paper-plane me-2"></em>
+                                    Envoyer la demande
+                                </button>
+                                <a href="{{ path('app_homepage') }}" class="btn btn-secondary">
+                                    <em class="fa-solid fa-xmark me-2"></em>
+                                    Annuler
+                                </a>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

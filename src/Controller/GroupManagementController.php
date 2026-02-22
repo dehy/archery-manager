@@ -12,22 +12,25 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_ADMIN')]
 class GroupManagementController extends BaseController
 {
+    public function __construct(\App\Helper\LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper)
+    {
+        parent::__construct($licenseeHelper, $seasonHelper);
+    }
+
     #[Route('/admin/groups/{id}/manage', name: 'app_group_manage', requirements: ['id' => '\d+'])]
     public function manage(
         Group $group,
-        LicenseeRepository $licenseeRepository,
-        LicenseHelper $licenseHelper,
     ): Response {
         $this->assertHasValidLicense();
 
         $season = $this->seasonHelper->getSelectedSeason();
-        $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
+        $club = $this->licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
 
         // Vérifier que le groupe appartient au club de l'utilisateur
         if ($group->getClub() !== $club) {
@@ -35,7 +38,7 @@ class GroupManagementController extends BaseController
         }
 
         // Récupérer tous les licenciés du club pour la saison courante
-        $allLicensees = $licenseeRepository->findByLicenseYear($club, $season);
+        $allLicensees = $this->licenseeRepository->findByLicenseYear($club, $season);
 
         // Séparer les licenciés membres et non-membres du groupe
         $groupMembers = [];
@@ -61,13 +64,11 @@ class GroupManagementController extends BaseController
     public function addMember(
         Group $group,
         Request $request,
-        LicenseeRepository $licenseeRepository,
         EntityManagerInterface $entityManager,
-        LicenseHelper $licenseHelper,
     ): JsonResponse {
         $this->assertHasValidLicense();
 
-        $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
+        $club = $this->licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
 
         // Vérifier que le groupe appartient au club de l'utilisateur
         if ($group->getClub() !== $club) {
@@ -75,7 +76,7 @@ class GroupManagementController extends BaseController
         }
 
         $licenseeId = $request->request->get('licenseeId');
-        $licensee = $licenseeRepository->find($licenseeId);
+        $licensee = $this->licenseeRepository->find($licenseeId);
 
         if (!$licensee) {
             return new JsonResponse(['error' => 'Licencié non trouvé'], Response::HTTP_NOT_FOUND);
@@ -104,13 +105,11 @@ class GroupManagementController extends BaseController
     public function removeMember(
         Group $group,
         Request $request,
-        LicenseeRepository $licenseeRepository,
         EntityManagerInterface $entityManager,
-        LicenseHelper $licenseHelper,
     ): JsonResponse {
         $this->assertHasValidLicense();
 
-        $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
+        $club = $this->licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
 
         // Vérifier que le groupe appartient au club de l'utilisateur
         if ($group->getClub() !== $club) {
@@ -118,7 +117,7 @@ class GroupManagementController extends BaseController
         }
 
         $licenseeId = $request->request->get('licenseeId');
-        $licensee = $licenseeRepository->find($licenseeId);
+        $licensee = $this->licenseeRepository->find($licenseeId);
 
         if (!$licensee) {
             return new JsonResponse(['error' => 'Licencié non trouvé'], Response::HTTP_NOT_FOUND);
@@ -142,11 +141,10 @@ class GroupManagementController extends BaseController
     public function create(
         Request $request,
         EntityManagerInterface $entityManager,
-        LicenseHelper $licenseHelper,
     ): Response {
         $this->assertHasValidLicense();
 
-        $club = $licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
+        $club = $this->licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
 
         $group = new Group();
         $group->setClub($club);

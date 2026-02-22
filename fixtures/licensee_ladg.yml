@@ -7,6 +7,7 @@ App\Entity\User:
         lastname: <lastname()>
         firstname: <firstname()>
         phoneNumber: <e164PhoneNumber()>
+        birthdate: '<dateTimeImmutableBetween("-75 years", "-22 years")>'
     user_ladg_{1..10}:
         email: 'user<current()>\@ladg.com'
         roles: ['ROLE_USER']
@@ -15,6 +16,7 @@ App\Entity\User:
         lastname: <lastname()>
         firstname: <firstname()>
         phoneNumber: <e164PhoneNumber()>
+        birthdate: '<dateTimeImmutableBetween("-75 years", "-22 years")>'
     user_ladb_{1..10}:
         email: 'user<current()>\@ladb.com'
         roles: [ 'ROLE_USER' ]
@@ -23,6 +25,7 @@ App\Entity\User:
         lastname: <lastname()>
         firstname: <firstname()>
         phoneNumber: <e164PhoneNumber()>
+        birthdate: '<dateTimeImmutableBetween("-75 years", "-22 years")>'
 
 App\Entity\Licensee:
     licensee_ladg_club_admin_1:

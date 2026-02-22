@@ -8,13 +8,23 @@
             Trombinoscope {{ year }}
             {% if selectedGroup %}
                 - {{ selectedGroup.name }}
+            {% elseif isNoGroupFilter %}
+                - Sans groupe
             {% endif %}
         </h2>
-        {% if is_granted('ROLE_ADMIN') %}
-            <button class="btn btn-warning disabled">
-                <em class="fa-solid fa-arrows-rotate"></em> Sync
-            </button>
-        {% endif %}
+        <div>
+            {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_CLUB_ADMIN') %}
+                <a href="{{ path('app_licensee_new_choice') }}" class="btn btn-success me-2">
+                    <em class="fa-solid fa-user-plus me-2"></em>
+                    Nouveau licencié
+                </a>
+            {% endif %}
+            {% if is_granted('ROLE_ADMIN') %}
+                <button class="btn btn-warning disabled">
+                    <em class="fa-solid fa-arrows-rotate"></em> Sync
+                </button>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Filtres par groupe -->
@@ -25,7 +35,7 @@
                     <h5>Filtrer par groupe :</h5>
                     <div class="btn-group flex-wrap" role="group">
                         <a href="{{ path('app_licensee_index') }}" 
-                           class="btn {{ selectedGroup is null ? 'btn-primary' : 'btn-outline-primary' }}">
+                           class="btn {{ selectedGroup is null and not isNoGroupFilter ? 'btn-primary' : 'btn-outline-primary' }}">
                             <em class="fa-solid fa-users"></em>
                             Tous ({{ totalLicensees }})
                         </a>
@@ -36,6 +46,11 @@
                                 {{ group.name }} ({{ group.licensees|length }})
                             </a>
                         {% endfor %}
+                        <a href="{{ path('app_licensee_index', {'group': 'no-group'}) }}" 
+                           class="btn {{ isNoGroupFilter ? 'btn-primary' : 'btn-outline-primary' }}">
+                            <em class="fa-solid fa-user-slash"></em>
+                            Sans groupe ({{ noGroupLicenseesCount }})
+                        </a>
                     </div>
                 </div>
                 <div>
@@ -53,6 +68,8 @@
             <em class="fa-solid fa-info-circle"></em>
             {% if selectedGroup %}
                 Aucun licencié dans le groupe "{{ selectedGroup.name }}".
+            {% elseif isNoGroupFilter %}
+                Aucun licencié sans groupe.
             {% else %}
                 Aucun licencié trouvé.
             {% endif %}
@@ -62,9 +79,9 @@
     <div class="row">
         {% for licensee in licensees %}
             <div class="col-xxl-3 col-lg-4 col-md-6 col-12 mb-3">
-                {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_COACH') %}
+                {% if (is_granted('ROLE_ADMIN') or is_granted('ROLE_COACH')) %}
                     <a class="text-reset text-decoration-none"
-                       href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}"
+                       href="{{ path('app_licensee_profile', {'id': licensee.id}) }}"
                     >
                         {{ _self.card(licensee, year) }}
                     </a>
@@ -94,13 +111,13 @@
                         {{ licensee_display_name(licensee) }}
                     </h5>
                     <p class="card-text">
-                        <em class="fa-solid fa-people-group fa-fw"></em>
+                        <em class="fa-solid fa-people-group"></em>
                         {% for group in licensee.groups %}
                             {{ group.name }}{{ not loop.last ? ', ' }}
                         {% else  %}
                             <em>Dans aucun groupe</em>
                         {% endfor %}<br>
-                        <em class="fa-solid fa-bow-arrow fa-fw"></em>
+                        <em class="fa-solid fa-bow-arrow"></em>
                         {{ license.activities|map(a => a|readable_enum('LicenseActivityType'))|join(', ') }}
                     </p>
                 </div>

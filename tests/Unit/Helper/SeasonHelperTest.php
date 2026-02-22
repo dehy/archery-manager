@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 final class SeasonHelperTest extends TestCase
 {
-    private SessionInterface $session;
+    private \PHPUnit\Framework\MockObject\MockObject $session;
 
     private SeasonHelper $seasonHelper;
 

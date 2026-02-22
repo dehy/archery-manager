@@ -22,9 +22,9 @@ final class FftaLicenseesProviderTest extends TestCase
      */
     public function testSchedule(): void
     {
-        $club1 = (new Club())->setFftaCode('41');
+        $club1 = new Club()->setFftaCode('41');
         $this->set($club1, 1);
-        $club2 = (new Club())->setFftaCode('42');
+        $club2 = new Club()->setFftaCode('42');
         $this->set($club2, 2);
 
         $clubRepository = $this->createMock(ClubRepository::class);

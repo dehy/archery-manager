@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Étape 3 : Groupes{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_licensee_index') }}">Licenciés</a></li>
+                    <li class="breadcrumb-item active">Création</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <em class="fa-solid fa-users me-2"></em>
+                        Étape 3/4 : Groupes
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Sélectionnez les groupes auxquels appartient le licencié (optionnel)</p>
+
+                    {{ form_start(form) }}
+                        <div class="mb-3">
+                            {{ form_label(form.groups) }}
+                            <div class="border rounded p-3">
+                                {{ form_widget(form.groups) }}
+                            </div>
+                            {{ form_errors(form.groups) }}
+                        </div>
+
+                        <div class="progress mb-3" style="height: 30px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+                                Étape 3/4
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('app_licensee_new_step2') }}" class="btn btn-secondary">
+                                <em class="fa-solid fa-arrow-left me-2"></em>
+                                Retour
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                Suivant
+                                <em class="fa-solid fa-arrow-right ms-2"></em>
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

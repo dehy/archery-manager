@@ -17,12 +17,10 @@ class PracticeAdvice
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
     private ?int $id = null;
 
-    #[
-        ORM\ManyToOne(
-            targetEntity: Licensee::class,
-            inversedBy: 'practiceAdvices',
-        ),
-    ]
+    #[ORM\ManyToOne(
+        targetEntity: Licensee::class,
+        inversedBy: 'practiceAdvices',
+    ),]
     #[ORM\JoinColumn(nullable: false)]
     private Licensee $licensee;
 
@@ -32,12 +30,10 @@ class PracticeAdvice
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::TEXT)]
     private string $advice;
 
-    #[
-        ORM\ManyToOne(
-            targetEntity: Licensee::class,
-            inversedBy: 'givenPracticeAdvices',
-        ),
-    ]
+    #[ORM\ManyToOne(
+        targetEntity: Licensee::class,
+        inversedBy: 'givenPracticeAdvices',
+    ),]
     #[ORM\JoinColumn(nullable: false)]
     private Licensee $author;
 

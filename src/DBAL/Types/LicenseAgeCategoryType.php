@@ -53,14 +53,14 @@ final class LicenseAgeCategoryType extends AbstractEnumType
         self::SENIOR_1 => 'Senior 1',
         self::SENIOR_2 => 'Senior 2',
         self::SENIOR_3 => 'Senior 3',
-        self::POUSSIN => 'Poussin',
-        self::BENJAMIN => 'Benjamin',
-        self::MINIME => 'Minime',
-        self::CADET => 'Cadet',
-        self::JUNIOR => 'Junior',
-        self::SENIOR => 'Senior',
-        self::VETERAN => 'Vétéran',
-        self::SUPER_VETERAN => 'Super Vétéran',
+        self::POUSSIN => 'Poussin (déprécié)',
+        self::BENJAMIN => 'Benjamin (déprécié)',
+        self::MINIME => 'Minime (déprécié)',
+        self::CADET => 'Cadet (déprécié)',
+        self::JUNIOR => 'Junior (déprécié)',
+        self::SENIOR => 'Senior (déprécié)',
+        self::VETERAN => 'Vétéran (déprécié)',
+        self::SUPER_VETERAN => 'Super Vétéran (déprécié)',
     ];
 
     public static function getOrderedChoices(): array

@@ -6,4 +6,123 @@
 {% endblock %}
 
 {% block main %}
+<div class="row">
+    {# Security Statistics #}
+    <div class="col-md-4 mb-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fa fa-exclamation-triangle me-2"></i>
+                    Connexions échouées (24h)
+                </h5>
+                <h2 class="mb-0">{{ failedLoginsLast24h }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fa fa-lock me-2"></i>
+                    Comptes verrouillés
+                </h5>
+                <h2 class="mb-0">{{ lockedAccountsCount }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fa fa-shield-halved me-2"></i>
+                    Protection active
+                </h5>
+                <p class="mb-0">Rate limiting et CAPTCHA configurés</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {# Most Targeted Accounts #}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fa fa-bullseye me-2"></i>
+                    Comptes les plus ciblés
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if mostTargetedAccounts is not empty %}
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th class="text-end">Tentatives</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in mostTargetedAccounts %}
+                                <tr>
+                                    <td>{{ account.email }}</td>
+                                    <td class="text-end">
+                                        <span class="badge bg-danger">{{ account.attempts }}</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted mb-0">Aucune tentative d'attaque détectée</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Recent Security Logs #}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fa fa-clock me-2"></i>
+                    Événements récents
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recentSecurityLogs is not empty %}
+                    <div class="list-group list-group-flush">
+                        {% for log in recentSecurityLogs %}
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <strong>{{ log.email }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ log.eventType }}</small>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fa fa-network-wired me-1"></i>{{ log.ipAddress }}
+                                        </small>
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ log.occurredAt|date('d/m H:i') }}
+                                    </small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Aucun événement récent</p>
+                {% endif %}
+            </div>
+            <div class="card-footer text-center">
+                <a href="{{ ea_url().setController('App\\Controller\\Admin\\SecurityLogCrudController').setAction('index') }}" class="btn btn-sm btn-primary">
+                    Voir tous les logs →
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

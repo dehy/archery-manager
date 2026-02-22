@@ -11,88 +11,168 @@
 {% block title %}Mon compte{% endblock title %}
 
 {% block body %}
-    <h2 class="mb-3">Mon compte</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <em class="fa-solid fa-user-gear me-2"></em>
+            Mon compte
+        </h1>
+    </div>
 
     <div class="row">
-        <div class="col-md-6">
-            <dl>
-                <dt>Identifiant</dt>
-                <dd>{{ user.email }}</dd>
+        <!-- Informations personnelles -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <em class="fa-solid fa-id-card me-2"></em>
+                        Informations personnelles
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label class="text-muted small mb-1">Identifiant</label>
+                        <div class="d-flex align-items-center">
+                            <em class="fa-solid fa-envelope text-primary me-2"></em>
+                            <strong>{{ user.email }}</strong>
+                        </div>
+                    </div>
 
-                <dt>Mot de passe <a href="{{ path('app_forgot_password_request') }}" class="fw-normal">Changer de mot de
-                        passe</a></dt>
-                <dd>••••••••••••</dd>
+                    <div class="mb-4">
+                        <label class="text-muted small mb-1">Nom complet</label>
+                        <div class="d-flex align-items-center">
+                            <em class="fa-solid fa-user text-primary me-2"></em>
+                            <strong>{{ user.firstname }} {{ user.lastname }}</strong>
+                        </div>
+                    </div>
 
-                <dt>Prénom</dt>
-                <dd>{{ user.firstname }}</dd>
+                    <div class="mb-4">
+                        <label class="text-muted small mb-1">Numéro de téléphone</label>
+                        <div class="d-flex align-items-center">
+                            <em class="fa-solid fa-phone text-primary me-2"></em>
+                            {% if user.phoneNumber %}
+                                <a href="tel:{{ user.phoneNumber }}">{{ user.phoneNumber }}</a>
+                            {% else %}
+                                <em class="text-muted">Non renseigné</em>
+                            {% endif %}
+                        </div>
+                    </div>
 
-                <dt>Nom</dt>
-                <dd>{{ user.lastname }}</dd>
+                    <div class="mb-4">
+                        <label class="text-muted small mb-1">Mot de passe</label>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <em class="fa-solid fa-lock text-primary me-2"></em>
+                                <span>••••••••••••</span>
+                            </div>
+                            <a href="{{ path('app_forgot_password_request') }}" class="btn btn-sm btn-outline-primary">
+                                <em class="fa-solid fa-key me-1"></em>
+                                Changer
+                            </a>
+                        </div>
+                    </div>
 
-                <dt>Numéro de téléphone</dt>
-                <dd>{% if user.phoneNumber %}{{ user.phoneNumber }}{% else %}<em>Non défini</em>{% endif %}</dd>
-
-                <dt>Discord</dt>
-                <dd>
-                    {% if user.discordId %}
-                        <a href="{{ path('connect_discord_logout') }}"
-                           class="btn btn-danger"
-                        >
-                            <em class="fa-brands fa-discord fa-fw"></em>
-                            Se déconnecter de Discord
-                        </a>
-                    {% else %}
-                        <a href="{{ path('connect_discord_start') }}"
-                           class="btn btn-discord"
-                        >
-                            <em class="fa-brands fa-discord fa-fw"></em>
-                            Se connecter avec Discord
-                        </a>
-                    {% endif %}
-                </dd>
-            </dl>
+                    <div class="mb-0">
+                        <label class="text-muted small mb-2">Compte Discord</label>
+                        <div>
+                            {% if user.discordId %}
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <em class="fa-brands fa-discord text-primary fa-lg me-2"></em>
+                                        <span class="badge bg-success">Connecté</span>
+                                    </div>
+                                    <a href="{{ path('connect_discord_logout') }}" class="btn btn-sm btn-outline-danger">
+                                        <em class="fa-solid fa-right-from-bracket me-1"></em>
+                                        Déconnecter
+                                    </a>
+                                </div>
+                            {% else %}
+                                <a href="{{ path('connect_discord_start') }}" class="btn btn-discord w-100">
+                                    <em class="fa-brands fa-discord me-2"></em>
+                                    Se connecter avec Discord
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="col-md-6">
-            <p>Ce compte gère {{ user.licensees|length }} licencié{{ user.licensees|length > 1 ? 's' }}:</p>
-            <div class="list-group">
-                {% for licensee in user.licensees %}
-                <a href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}" class="list-group-item list-group-item-action">
-                    <div class="d-flex justify-content-between">
-                        <img class="rounded-circle me-3" style="height:60px;width:60px;object-fit: cover" src="{{ licenseeHelper.licenseeFromSession and licenseeHelper.licenseeFromSession.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}">
-                        <div class="d-flex flex-column flex-grow-1">
-                            <h5 class="mb-1">{{ licensee_display_name(licensee) }}</h5>
-                            <small>
-                                {{ licensee.licenseForSeason(seasonHelper.selectedSeason).club.name ?? "Aucune license en seasonHelper.selectedSeason" }}
-                            </small>
-
+        <!-- Licenciés gérés -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <em class="fa-solid fa-users me-2"></em>
+                        Mes licenciés
+                        <span class="badge bg-white text-success ms-2">{{ user.licensees|length }}</span>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if user.licensees is empty %}
+                        <div class="text-center text-muted py-5">
+                            <em class="fa-solid fa-user-slash fa-3x mb-3"></em>
+                            <p class="mb-0">Aucun licencié associé</p>
                         </div>
-                        <button class="btn btn-secondary {{ licensee == licenseeHelper.licenseeFromSession ? "disabled" }}">
-                            {% if licensee == licenseeHelper.licenseeFromSession %}
-                                Sélectionné
-                            {% endif %}
-                        </button>
-                    </div>
-                </a>
-                {% endfor %}
+                    {% else %}
+                        <div class="list-group list-group-flush">
+                            {% for licensee in user.licensees %}
+                                <a href="{{ path('app_licensee_profile', {'id': licensee.id}) }}" 
+                                   class="list-group-item list-group-item-action border-0 px-0">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}"
+                                             class="rounded-circle me-3" 
+                                             style="width: 60px; height: 60px; object-fit: cover;" 
+                                             alt="{{ licensee_display_name(licensee) }}">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <h5 class="mb-0 me-2">{{ licensee_display_name(licensee) }}</h5>
+                                                {% if licensee == licenseeHelper.licenseeFromSession %}
+                                                    <span class="badge bg-primary">
+                                                        <em class="fa-solid fa-check me-1"></em>
+                                                        Sélectionné
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                            <small class="text-muted">
+                                                <em class="fa-solid fa-building me-1"></em>
+                                                {{ licensee.licenseForSeason(seasonHelper.selectedSeason).club.name ?? "Aucune licence cette saison" }}
+                                            </small>
+                                        </div>
+                                        <em class="fa-solid fa-chevron-right text-muted"></em>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Aide et contact -->
     <div class="row">
-        <div class="col-md-6">
-            <p>
-                Une erreur ? Un changement ?
-                {% if licenseHelper.currentLicenseeCurrentLicense %}
-                    Contacter le club à
-                    <a href="mailto:{{ licenseHelper.currentLicenseeCurrentLicense.club.contactEmail }}">
-                        {{ licenseHelper.currentLicenseeCurrentLicense.club.contactEmail }}
-                    </a>
-                {% else %}
-                    Tu n'as actuellement aucune licence dans un club FFTA. Contacte le support à
-                    <a href="mailto:arnaud@flyingpingu.com">arnaud@flyingpingu.com</a>
-                {% endif %}
-            </p>
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <em class="fa-solid fa-circle-info text-info fa-2x me-3"></em>
+                        <div>
+                            <h5 class="card-title mb-2">Besoin d'aide ?</h5>
+                            <p class="card-text mb-0">
+                                {% if licenseHelper.currentLicenseeCurrentLicense %}
+                                    Pour toute question ou modification, contactez votre club à 
+                                    <a href="mailto:{{ licenseHelper.currentLicenseeCurrentLicense.club.contactEmail }}" class="fw-bold">
+                                        {{ licenseHelper.currentLicenseeCurrentLicense.club.contactEmail }}
+                                    </a>
+                                {% else %}
+                                    Vous n'avez actuellement aucune licence active. Pour toute question, contactez le support à 
+                                    <a href="mailto:arnaud@flyingpingu.com" class="fw-bold">arnaud@flyingpingu.com</a>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock body %}

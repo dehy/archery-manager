@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Form;
 
+use App\DBAL\Types\EventParticipationStateType;
 use App\DBAL\Types\LicenseActivityType;
 use App\Entity\EventParticipation;
 use App\Entity\License;
@@ -21,6 +22,8 @@ class EventParticipationType extends AbstractType
     ): void {
         /** @var License|null $license */
         $license = $options['license_context'];
+        $isContest = $options['is_contest'];
+
         $activityChoices = [];
         if ($license) {
             foreach ($license->getActivities() as $activity) {
@@ -30,24 +33,47 @@ class EventParticipationType extends AbstractType
             $activityChoices = LicenseActivityType::getChoices();
         }
 
+        // Define participation state choices based on event type
+        if ($isContest) {
+            // For contests: 3 options
+            $participationChoices = [
+                "N'y va pas" => EventParticipationStateType::NOT_GOING,
+                "Intéressé (je vais m'inscrire)" => EventParticipationStateType::INTERESTED,
+                'Inscrit' => EventParticipationStateType::REGISTERED,
+            ];
+        } else {
+            // For trainings: 2 options
+            $participationChoices = [
+                'Absent' => EventParticipationStateType::NOT_GOING,
+                'Présent' => EventParticipationStateType::REGISTERED,
+            ];
+        }
+
         $builder
-            ->add('participationState', null, [
+            ->add('participationState', ChoiceType::class, [
                 'expanded' => true,
+                'choices' => $participationChoices,
             ])
             ->add('activity', null, [
                 'choices' => $activityChoices,
-            ])
-            ->add('targetType')
-            ->add('departure', ChoiceType::class, [
-                'choices' => [
-                    'n°1' => 1,
-                    'n°2' => 2,
-                    'n°3' => 3,
-                    'n°4' => 4,
-                ],
-                'required' => false,
-                'placeholder' => 'Unspecified',
+                'required' => true,
             ]);
+
+        // Only add contest-specific fields for contest events
+        if ($isContest) {
+            $builder
+                ->add('targetType')
+                ->add('departure', ChoiceType::class, [
+                    'choices' => [
+                        'n°1' => 1,
+                        'n°2' => 2,
+                        'n°3' => 3,
+                        'n°4' => 4,
+                    ],
+                    'required' => false,
+                    'placeholder' => 'Unspecified',
+                ]);
+        }
     }
 
     #[\Override]
@@ -56,6 +82,9 @@ class EventParticipationType extends AbstractType
         $resolver->setDefaults([
             'data_class' => EventParticipation::class,
             'license_context' => null,
+            'is_contest' => false,
         ]);
+
+        $resolver->setAllowedTypes('is_contest', 'bool');
     }
 }

@@ -1,0 +1,17 @@
+# robots.txt for archery-manager
+# Most content requires authentication and should not be indexed
+
+User-agent: *
+
+# Allow public pages
+Allow: /login
+Allow: /register
+Allow: /reset-password
+Allow: /cgu
+Allow: /politique-de-confidentialite
+
+# Disallow everything else (requires authentication)
+Disallow: /
+
+# Sitemap location
+Sitemap: /sitemap.xml

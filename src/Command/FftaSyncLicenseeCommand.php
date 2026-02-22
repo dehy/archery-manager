@@ -18,12 +18,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 
-#[
-    AsCommand(
-        name: 'app:ffta:sync-licensee',
-        description: 'Sync licensee from the FFTA website',
-    ),
-]
+#[AsCommand(
+    name: 'app:ffta:sync-licensee',
+    description: 'Sync licensee from the FFTA website',
+),]
 class FftaSyncLicenseeCommand extends Command
 {
     public function __construct(

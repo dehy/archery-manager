@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mettre en liste d'attente{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-hourglass-half me-2"></em>
+                            Mettre en liste d'attente
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <h6>Demande de :</h6>
+                            <p class="mb-0">
+                                <strong>{{ application.licensee.firstname }} {{ application.licensee.lastname }}</strong>
+                                {% if application.licensee.user %}
+                                    <br>{{ application.licensee.user.email }}
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        {% form_theme form 'bootstrap_5_layout.html.twig' %}
+                        {{ form_start(form) }}
+                            {{ form_row(form.adminMessage) }}
+
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="submit" class="btn btn-info">
+                                    <em class="fa-solid fa-hourglass-half me-2"></em>
+                                    Mettre en liste d'attente
+                                </button>
+                                <a href="{{ path('app_club_application_manage') }}" class="btn btn-secondary">
+                                    <em class="fa-solid fa-arrow-left me-2"></em>
+                                    Retour
+                                </a>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

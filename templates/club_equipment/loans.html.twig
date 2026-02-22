@@ -1,0 +1,155 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Prêts en cours - Matériel du club{% endblock %}
+
+{% block body %}
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <em class="fa-solid fa-hand-holding me-2"></em>
+                Prêts en cours
+            </h1>
+            <a href="{{ path('app_club_equipment_index') }}" class="btn btn-outline-secondary">
+                <em class="fa-solid fa-arrow-left me-2"></em>
+                Retour au matériel
+            </a>
+        </div>
+
+        {# Filter bar #}
+        <div class="card mb-3">
+            <div class="card-body py-2">
+                <form method="get" class="row g-2 align-items-end">
+                    <input type="hidden" name="sort" value="{{ sort }}">
+                    <input type="hidden" name="dir" value="{{ dir }}">
+
+                    <div class="col-auto">
+                        <label class="form-label small mb-1" for="filter-type">Type d'équipement</label>
+                        <select id="filter-type" name="type" class="form-select form-select-sm">
+                            <option value="">Tous les types</option>
+                            {% for value, label in equipmentTypes %}
+                                <option value="{{ value }}" {{ filterType == value ? 'selected' : '' }}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <em class="fa-solid fa-filter me-1"></em>
+                            Filtrer
+                        </button>
+                        {% if filterType is not empty %}
+                            <a href="{{ path('app_club_equipment_loans', {sort: sort, dir: dir}) }}" class="btn btn-sm btn-outline-secondary ms-1">
+                                <em class="fa-solid fa-xmark me-1"></em>
+                                Effacer
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-auto ms-auto text-muted small d-flex align-items-end pb-1">
+                        {{ activeLoans|length }} prêt{{ activeLoans|length != 1 ? 's' : '' }} en cours
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% macro sort_link(column, label, currentSort, currentDir, filterType) %}
+            {% set nextDir = (currentSort == column and currentDir == 'ASC') ? 'DESC' : 'ASC' %}
+            {% set params = {sort: column, dir: nextDir} %}
+            {% if filterType is not empty %}
+                {% set params = params|merge({type: filterType}) %}
+            {% endif %}
+            <a href="{{ path('app_club_equipment_loans', params) }}" class="text-decoration-none text-reset d-flex align-items-center gap-1">
+                {{- label -}}
+                {% if currentSort == column %}
+                    <em class="fa-solid fa-sort-{{ currentDir == 'ASC' ? 'up' : 'down' }} text-primary fa-xs"></em>
+                {% else %}
+                    <em class="fa-solid fa-sort text-muted fa-xs"></em>
+                {% endif %}
+            </a>
+        {% endmacro %}
+
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <em class="fa-solid fa-list me-2"></em>
+                    Tous les prêts actifs — {{ club.name }}
+                    {% if filterType is not empty %}
+                        <span class="badge bg-dark ms-2 fw-normal fs-6">{{ equipmentTypes[filterType] ?? filterType }}</span>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if activeLoans is empty %}
+                    <div class="text-center text-muted py-4">
+                        <em class="fa-solid fa-check-circle fa-3x mb-3"></em>
+                        <p class="mb-0">Aucun prêt en cours{% if filterType is not empty %} pour ce type{% endif %}</p>
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ _self.sort_link('equipment', 'Équipement', sort, dir, filterType) }}</th>
+                                    <th>{{ _self.sort_link('type', 'Type', sort, dir, filterType) }}</th>
+                                    <th>{{ _self.sort_link('borrower', 'Emprunteur', sort, dir, filterType) }}</th>
+                                    <th>{{ _self.sort_link('quantity', 'Qté', sort, dir, filterType) }}</th>
+                                    <th>{{ _self.sort_link('startDate', 'Date de prêt', sort, dir, filterType) }}</th>
+                                    <th>Durée</th>
+                                    <th>Notes</th>
+                                    {% if is_granted('ROLE_ADMIN') %}<th>Actions</th>{% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for loan in activeLoans %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ path('app_club_equipment_show', {id: loan.equipment.id}) }}">
+                                                {{ loan.equipment.name }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                {{ loan.equipment.type|club_equipment_type_readable }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ path('app_licensee_profile', {id: loan.borrower.id}) }}">
+                                                {{ loan.borrower.firstname }} {{ loan.borrower.lastname }}
+                                            </a>
+                                        </td>
+                                        <td>{{ loan.quantity }}</td>
+                                        <td>{{ loan.startDate|date('d/m/Y') }}</td>
+                                        <td>
+                                            {% set days = loan.loanDurationInDays %}
+                                            {% if days >= 30 %}
+                                                <span class="badge bg-danger">{{ days }} j.</span>
+                                            {% elseif days >= 14 %}
+                                                <span class="badge bg-warning text-dark">{{ days }} j.</span>
+                                            {% else %}
+                                                {{ days }} j.
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ loan.notes ?? '-' }}</td>
+                                        {% if is_granted('ROLE_ADMIN') %}
+                                            <td>
+                                                <form method="post"
+                                                      action="{{ path('app_club_equipment_return_loan', {loanId: loan.id}) }}"
+                                                      onsubmit="return confirm('Confirmer le retour de cet équipement ?');"
+                                                      class="d-inline">
+                                                    <button type="submit" class="btn btn-sm btn-success">
+                                                        <em class="fa-solid fa-check me-1"></em>
+                                                        Retourné
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

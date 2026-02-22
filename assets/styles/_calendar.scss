@@ -1,6 +1,10 @@
 .calendar-header {
   display: grid;
   grid-template: 2em / repeat(7, 1fr);
+  position: sticky;
+  top: 70px; // Below the navbar (adjust based on your navbar height)
+  background-color: white;
+  z-index: 10;
 }
 
 .calendar {
@@ -9,6 +13,12 @@
   grid-gap: 1px;
   background-color: #CCCCCC;
   border: 1px solid #CCCCCC;
+  width: 100%;
+  position: sticky;
+  top: calc(70px + 2em); // Below navbar + header height
+  z-index: 9;
+  max-height: calc(100vh - 150px); // Prevent calendar from being too tall
+  overflow-y: auto;
 }
 
 .calendar-row-6 {
@@ -23,9 +33,14 @@
   min-height: 110px;
   font-size: 0.8em;
   background: white;
-  overflow-x: hidden;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+  overflow: hidden;
+  padding: 0.25rem !important;
+  width: 100%;
+  min-width: 0; // Allow flex items to shrink below content size
+
+  &:has(.all-day-event) {
+    overflow: visible; // Allow all-day events to overflow the case
+  }
 }
 
 .calendar-case.previous-month,
@@ -61,28 +76,50 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  flex: 1;
+  min-width: 0; // Allow text to shrink and trigger ellipsis
 }
 
 .calendar-case .event-time {
-  margin-left: 0.5em;
+  margin-left: 0.25rem;
+  flex-shrink: 0; // Prevent time from being cut off
+}
+
+.calendar-case .event-link {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0.125rem 0.25rem;
+  min-height: 1.2rem;
+  transition: all 0.2s ease;
+  
+  &.highlight {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+    z-index: 100;
+    position: relative;
+  }
 }
 
 .all-day-event {
   border-radius: var(--bs-border-radius-pill) !important;
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
+  margin: 0 0.25rem 0.125rem 0.25rem;
+  padding: 0.125rem 0.5rem !important;
+  display: block !important;
+  min-height: 0.8rem;
+  z-index: 10;
 }
 
 .multi-day-event-start {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
-  margin-right: 0;
+  margin-right: -0.5rem !important;
 }
 
 .multi-day-event-end {
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
-  margin-left: 0;
+  margin-left: -0.5rem !important;
 }
 
 .event-pill {
@@ -95,10 +132,16 @@
 
 .event-list-event {
   border-radius: 10px;
+  transition: background-color 0.2s ease;
 }
 
 .event-list-event:hover {
   background-color: #EEEEEE;
+}
+
+.calendar-case .all-day-event.highlight {
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
 }
 
 .event-list-event .time {

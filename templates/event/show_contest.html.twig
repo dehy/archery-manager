@@ -64,11 +64,32 @@
                     {% set participationButtonColor = 'warning' %}
                     {% set participationIcon = 'user-plus' %}
                 {% endif %}
-                <button type="button" class="btn btn-{{ participationButtonColor }} {{ not canAttend ? 'disabled' }}"
-                        data-bs-toggle="modal" data-bs-target="#participationModal">
+                
+                {% set isDisabled = not canAttend or not can_participate %}
+                {% set wrapperAttrs = {} %}
+                {% set buttonAttrs = {'type': 'button', 'class': 'btn btn-' ~ participationButtonColor} %}
+                
+                {% if isDisabled %}
+                    {% set buttonAttrs = buttonAttrs|merge({'class': buttonAttrs.class ~ ' disabled', 'style': 'pointer-events: none;'}) %}
+                    {% if not can_participate %}
+                        {% set wrapperAttrs = {'class': 'd-inline-block', 'data-bs-toggle': 'tooltip', 'data-bs-placement': 'top', 'title': "Cet événement est réservé à d'autres groupes"} %}
+                    {% elseif not canAttend %}
+                        {% set wrapperAttrs = {'class': 'd-inline-block', 'data-bs-toggle': 'tooltip', 'data-bs-placement': 'top', 'title': 'Les inscriptions sont fermées'} %}
+                    {% endif %}
+                {% else %}
+                    {% set buttonAttrs = buttonAttrs|merge({'data-bs-toggle': 'modal', 'data-bs-target': '#participationModal'}) %}
+                {% endif %}
+                
+                {% if wrapperAttrs %}
+                <span {{ wrapperAttrs|map((value, key) => key ~ '="' ~ value|e('html_attr') ~ '"')|join(' ')|raw }}>
+                {% endif %}
+                <button {{ buttonAttrs|map((value, key) => key ~ '="' ~ value|e('html_attr') ~ '"')|join(' ')|raw }}>
                     <i class="fa-solid fa-{{ participationIcon }} me-1"></i>
                     {{ participationButtonLabel }}
                 </button>
+                {% if wrapperAttrs %}
+                </span>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -202,6 +223,21 @@
                                 </div>
                             </div>
                         </div>
+                        {% if event.assignedGroups is not empty %}
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="icon-box bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="fa-solid fa-users text-white"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-semibold mb-1">Groupes autorisés</h6>
+                                    {% for group in event.assignedGroups %}
+                                        <span class="badge bg-primary me-1 mb-1">{{ group.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                         {% if event.address %}
                         <div class="col-12">
                             <div class="d-flex align-items-start">
@@ -260,7 +296,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    {% set participants = event.participations|filter(p => p.participationState is not same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
+                    {% set participants = all_participants|filter(p => p.participationState is not same as constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING')) %}
                     
                     <div class="mb-4">
                         <h6 class="fw-semibold text-success mb-2">
@@ -440,71 +476,11 @@
         </div>
     </div>
 
-    <!-- Modal de participation moderne -->
-    <div class="modal fade" id="participationModal" tabindex="-1" aria-labelledby="participationModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content border-0 shadow">
-                {% form_theme event_participation_form 'bootstrap_5_layout.html.twig' %}
-                {{ form_start(event_participation_form) }}
-                <div class="modal-header bg-primary bg-gradient text-white">
-                    <h5 class="modal-title" id="participationModalLabel">
-                        <i class="fa-solid fa-user-check me-2"></i>
-                        Ma participation
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="alert alert-info border-0 bg-light">
-                        <i class="fa-solid fa-info-circle me-2"></i>
-                        <strong>{{ event.title }}</strong>
-                    </div>
-                    
-                    <div class="row g-4">
-                        <div class="col-12">
-                            <label class="form-label fw-bold">État de ma participation</label>
-                            {{ form_widget(event_participation_form.participationState, {
-                                'attr': {'class': 'form-check-input-lg'}
-                            }) }}
-                        </div>
-                        
-                        <div class="col-md-6">
-                            {{ form_row(event_participation_form.activity) }}
-                        </div>
-                        
-                        <div class="col-md-6">
-                            {{ form_row(event_participation_form.targetType) }}
-                        </div>
-                        
-                        <div class="col-12">
-                            {{ form_row(event_participation_form.departure) }}
-                        </div>
-                    </div>
-                    
-                    <div class="alert alert-warning border-0 bg-warning bg-opacity-10 mt-4">
-                        <div class="d-flex">
-                            <i class="fa-solid fa-exclamation-triangle text-warning me-3 mt-1"></i>
-                            <div>
-                                <strong>Important !</strong><br>
-                                C'est à vous de vous inscrire personnellement au concours selon les modalités inscrites
-                                dans le mandat. Cet outil est seulement là pour se tenir au courant entre archers du club !
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 bg-light">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fa-solid fa-times me-1"></i>
-                        Annuler
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-save me-1"></i>
-                        Enregistrer ma participation
-                    </button>
-                </div>
-                {{ form_end(event_participation_form) }}
-            </div>
-        </div>
-    </div>
+    <!-- Participation Modal -->
+    {% include 'event/_participation_modal.html.twig' with {
+        'event': event,
+        'event_participation_form': event_participation_form
+    } %}
 {% endblock %}
 
 {% block javascripts %}

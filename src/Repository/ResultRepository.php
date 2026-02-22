@@ -15,6 +15,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Result|null findOneBy(array $criteria, array $orderBy = null)
  * @method Result[]    findAll()
  * @method Result[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends \Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository<\App\Entity\Result>
  */
 class ResultRepository extends ServiceEntityRepository
 {
@@ -25,17 +27,17 @@ class ResultRepository extends ServiceEntityRepository
 
     public function add(Result $entity, bool $flush = true): void
     {
-        $this->_em->persist($entity);
+        $this->getEntityManager()->persist($entity);
         if ($flush) {
-            $this->_em->flush();
+            $this->getEntityManager()->flush();
         }
     }
 
     public function remove(Result $entity, bool $flush = true): void
     {
-        $this->_em->remove($entity);
+        $this->getEntityManager()->remove($entity);
         if ($flush) {
-            $this->_em->flush();
+            $this->getEntityManager()->flush();
         }
     }
 

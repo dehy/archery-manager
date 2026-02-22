@@ -12,6 +12,12 @@ services:
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+            $loginLimiter: '@limiter.login'
+            $registrationLimiter: '@limiter.registration'
+            $passwordResetLimiter: '@limiter.password_reset'
+            string $siteKey: '%env(FRIENDLY_CAPTCHA_SITE_KEY)%'
+            string $secret: '%env(FRIENDLY_CAPTCHA_SECRET)%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -63,3 +69,10 @@ when@test:
             arguments:
                 $storage: '@security.untracked_token_storage'
                 $container: '@service_container'
+
+        App\Service\FriendlyCaptchaService:
+            arguments:
+                $siteKey: 'test-site-key'
+                $secret: 'test-secret'
+                $logger: '@logger'
+                $enabled: false

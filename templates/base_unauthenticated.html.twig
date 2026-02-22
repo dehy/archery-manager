@@ -22,18 +22,23 @@
     <title>{% block title %}Archerie{% endblock %}</title>
 </head>
 <body>
-<div class="container">
-    <div class="row justify-content-center align-content-center" style="min-height: 88vh">
-        <div class="col-lg-3 col-sm-8">
-            <img src="{{ asset('build/logo.svg') }}"
-                 alt="Les Archers de Bordeaux Guyenne"
-                 class="mx-auto d-block"/>
+{% block page_layout %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 text-center mb-4">
+            <a href="{{ path('app_login') }}">
+                <img src="{{ asset('build/logo.svg') }}"
+                     alt="Les Archers de Bordeaux Guyenne"
+                     style="max-width: 200px;"
+                     class="mx-auto d-block"/>
+            </a>
         </div>
-        <div class="col-lg-3 col-sm-8">
+        <div class="col-lg-8 col-md-10 col-12">
             {% block body %}{% endblock %}
         </div>
     </div>
 </div>
+{% endblock %}
 {% include '_footer.html.twig' %}
 </body>
 </html>

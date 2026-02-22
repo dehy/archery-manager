@@ -5,19 +5,10 @@ declare(strict_types=1);
 namespace App\Twig;
 
 use App\DBAL\Types\EventAttachmentType;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFilter;
 
-class EventAttachmentTypeExtension extends AbstractExtension
+class EventAttachmentTypeExtension
 {
-    #[\Override]
-    public function getFilters(): array
-    {
-        return [
-            new TwigFilter('icon', $this->icon(...)),
-        ];
-    }
-
+    #[\Twig\Attribute\AsTwigFilter(name: 'icon')]
     public function icon(string $eventAttachmentType): string
     {
         return EventAttachmentType::icon($eventAttachmentType);

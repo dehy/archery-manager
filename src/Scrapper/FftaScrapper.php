@@ -14,12 +14,16 @@ use App\Entity\Club;
 use App\Entity\ContestEvent;
 use App\Entity\License;
 use App\Entity\Result;
+use App\Exception\FftaAccountSuspendedException;
+use App\Exception\FftaAuthenticationException;
+use App\Exception\FftaCredentialsNotSetException;
+use App\Exception\FftaRateLimitException;
+use App\Exception\FftaUnknownDataException;
 use Symfony\Component\BrowserKit\HttpBrowser;
 use Symfony\Component\BrowserKit\Response;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -52,13 +56,47 @@ class FftaScrapper
         ?HttpClientInterface $httpClient = null
     ) {
         if (null === $this->club->getFftaUsername() || '' === $this->club->getFftaUsername() || '0' === $this->club->getFftaUsername() || (null === $this->club->getFftaPassword() || '' === $this->club->getFftaPassword() || '0' === $this->club->getFftaPassword())) {
-            throw new \Exception('FFTA Credentials not set');
+            throw new FftaCredentialsNotSetException('FFTA Credentials not set');
         }
 
-        $this->managerSpaceHttpClient = $httpClient instanceof HttpClientInterface ? clone $httpClient : HttpClient::create();
-        $this->myFftaSpaceHttpClient = $httpClient instanceof HttpClientInterface ? clone $httpClient : HttpClient::create();
+        $this->initializeHttpClients($httpClient);
+        $this->defaultParameters = $this->buildDefaultParameters();
+    }
 
-        $this->defaultParameters = [
+    /**
+     * Initialize HTTP clients with realistic browser headers.
+     */
+    private function initializeHttpClients(?HttpClientInterface $httpClient): void
+    {
+        $defaultOptions = [
+            'headers' => [
+                'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language' => 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+                'Accept-Encoding' => 'gzip, deflate, br',
+                'Connection' => 'keep-alive',
+                'Upgrade-Insecure-Requests' => '1',
+                'Sec-Fetch-Dest' => 'document',
+                'Sec-Fetch-Mode' => 'navigate',
+                'Sec-Fetch-Site' => 'none',
+            ],
+        ];
+
+        if ($httpClient instanceof HttpClientInterface) {
+            $this->managerSpaceHttpClient = clone $httpClient;
+            $this->myFftaSpaceHttpClient = clone $httpClient;
+        } else {
+            $this->managerSpaceHttpClient = HttpClient::create($defaultOptions);
+            $this->myFftaSpaceHttpClient = HttpClient::create($defaultOptions);
+        }
+    }
+
+    /**
+     * Build default DataTables parameters for AJAX requests.
+     */
+    private function buildDefaultParameters(): array
+    {
+        return [
             'draw' => '1',
             'columns[0][data]' => 'code_adherent',
             'columns[0][name]' => 'personnes.code_adherent',
@@ -219,8 +257,36 @@ class FftaScrapper
                 ],
             );
 
+            $ajaxResponse = $this->managerSpaceBrowser->getResponse();
+            $ajaxStatusCode = $ajaxResponse->getStatusCode();
+            $ajaxContent = (string) $ajaxResponse->getContent();
+
+            // Check for rate limiting
+            if (429 === $ajaxStatusCode) {
+                throw new FftaRateLimitException('CRITICAL: HTTP 429 Too Many Requests on AJAX call. FFTA rate limit reached. STOPPING execution immediately.');
+            }
+
+            // Check for authentication failure
+            if (401 === $ajaxStatusCode) {
+                // Check if account is suspended
+                if (str_contains($ajaxContent, 'Unauthenticated') || str_contains($ajaxContent, 'suspendu')) {
+                    throw new FftaAccountSuspendedException('CRITICAL: Authentication failed (401) - account may be suspended or session expired. STOPPING execution to prevent further issues.');
+                }
+
+                throw new FftaAuthenticationException('CRITICAL: 401 Unauthorized on AJAX request. Session expired or authentication failed. STOPPING execution.');
+            }
+
+            // Check for forbidden
+            if (403 === $ajaxStatusCode) {
+                throw new FftaAuthenticationException('CRITICAL: HTTP 403 Forbidden. Access denied by FFTA. STOPPING execution.');
+            }
+
+            if (200 !== $ajaxStatusCode) {
+                throw new FftaAuthenticationException(\sprintf('CRITICAL: AJAX request failed with HTTP %d. STOPPING execution to prevent issues.', $ajaxStatusCode));
+            }
+
             $this->cachedResponse = json_decode(
-                (string) $this->managerSpaceBrowser->getResponse()->getContent(),
+                $ajaxContent,
                 true,
                 512,
                 \JSON_THROW_ON_ERROR,
@@ -350,10 +416,20 @@ class FftaScrapper
 
         /** @var Response $response */
         $response = $this->managerSpaceBrowser->getResponse();
+        $statusCode = $response->getStatusCode();
         $content = $response->getContent();
 
-        if (200 !== $response->getStatusCode()) {
-            throw new NotFoundHttpException(\sprintf('Cannot fetch image at url %s', $profilePictureUrl));
+        // Check for rate limiting or auth issues
+        if (429 === $statusCode) {
+            throw new FftaRateLimitException('CRITICAL: HTTP 429 when fetching profile picture. Rate limit reached. STOPPING execution.');
+        }
+
+        if (401 === $statusCode || 403 === $statusCode) {
+            throw new FftaAuthenticationException(\sprintf('CRITICAL: HTTP %d when fetching profile picture. Authentication issue. STOPPING execution.', $statusCode));
+        }
+
+        if (200 !== $statusCode) {
+            throw new NotFoundHttpException(\sprintf('Cannot fetch image at url %s (HTTP %d)', $profilePictureUrl, $statusCode));
         }
 
         $contentType = strtolower($response->getHeader('content-type'));
@@ -397,125 +473,56 @@ class FftaScrapper
         $license->setSeason($season);
         $license->setActivities([LicenseActivityType::CL]);
 
-        match ($selectedLicenseeData['type_libelle']) {
+        $this->setLicenseType($license, $selectedLicenseeData['type_libelle']);
+        $this->setAgeCategoryAndCategory($license, $selectedLicenseeData['categorie_age']);
+
+        return $license;
+    }
+
+    private function setLicenseType(License $license, string $typeLibelle): void
+    {
+        match ($typeLibelle) {
             'Adulte pratique en compétition' => $license->setType(LicenseType::ADULTES_COMPETITION),
             'Adulte pratique en club' => $license->setType(LicenseType::ADULTES_CLUB),
             'Jeune' => $license->setType(LicenseType::JEUNES),
             'U11' => $license->setType(LicenseType::POUSSINS),
             'Découverte' => $license->setType(LicenseType::DECOUVERTE),
             'Convention FFSU' => $license->setType(LicenseType::CONVENTION_FFSU),
-            default => throw new \Exception(\sprintf("Unknown licence type '%s'", $selectedLicenseeData['type_libelle'])),
+            default => throw new FftaUnknownDataException(\sprintf("Unknown licence type '%s'", $typeLibelle)),
         };
+    }
 
-        switch ($selectedLicenseeData['categorie_age']) {
-            case 'Poussin':
-                $license->setCategory(LicenseCategoryType::POUSSINS);
-                $license->setAgeCategory(
-                    LicenseAgeCategoryType::POUSSIN,
-                );
+    private function setAgeCategoryAndCategory(License $license, string $categorieAge): void
+    {
+        $mapping = [
+            'Poussin' => [LicenseCategoryType::POUSSINS, LicenseAgeCategoryType::POUSSIN],
+            'Benjamin' => [LicenseCategoryType::JEUNES, LicenseAgeCategoryType::BENJAMIN],
+            'Minime' => [LicenseCategoryType::JEUNES, LicenseAgeCategoryType::MINIME],
+            'Cadet' => [LicenseCategoryType::JEUNES, LicenseAgeCategoryType::CADET],
+            'Junior' => [LicenseCategoryType::JEUNES, LicenseAgeCategoryType::JUNIOR],
+            'Sénior 1' => [LicenseCategoryType::ADULTES, LicenseAgeCategoryType::SENIOR_1],
+            'Sénior 2' => [LicenseCategoryType::ADULTES, LicenseAgeCategoryType::SENIOR_2],
+            'Sénior 3' => [LicenseCategoryType::ADULTES, LicenseAgeCategoryType::SENIOR_3],
+            'Sénior' => [LicenseCategoryType::ADULTES, LicenseAgeCategoryType::SENIOR],
+            'Senior' => [LicenseCategoryType::ADULTES, LicenseAgeCategoryType::SENIOR],
+            'U11' => [LicenseCategoryType::POUSSINS, LicenseAgeCategoryType::U11],
+            'U13' => [LicenseCategoryType::JEUNES, LicenseAgeCategoryType::U13],
+            'U15' => [LicenseCategoryType::JEUNES, LicenseAgeCategoryType::U15],
+            'U18' => [LicenseCategoryType::JEUNES, LicenseAgeCategoryType::U18],
+            'U21' => [LicenseCategoryType::JEUNES, LicenseAgeCategoryType::U21],
+            'Vétéran' => [LicenseCategoryType::ADULTES, LicenseAgeCategoryType::VETERAN],
+            'Veteran' => [LicenseCategoryType::ADULTES, LicenseAgeCategoryType::VETERAN],
+            'Super Vétéran' => [LicenseCategoryType::ADULTES, LicenseAgeCategoryType::SUPER_VETERAN],
+            'Super Veteran' => [LicenseCategoryType::ADULTES, LicenseAgeCategoryType::SUPER_VETERAN],
+        ];
 
-                break;
-            case 'Benjamin':
-                $license->setCategory(LicenseCategoryType::JEUNES);
-                $license->setAgeCategory(
-                    LicenseAgeCategoryType::BENJAMIN,
-                );
-
-                break;
-            case 'Minime':
-                $license->setCategory(LicenseCategoryType::JEUNES);
-                $license->setAgeCategory(
-                    LicenseAgeCategoryType::MINIME,
-                );
-
-                break;
-            case 'Cadet':
-                $license->setCategory(LicenseCategoryType::JEUNES);
-                $license->setAgeCategory(LicenseAgeCategoryType::CADET);
-
-                break;
-            case 'Junior':
-                $license->setCategory(LicenseCategoryType::JEUNES);
-                $license->setAgeCategory(
-                    LicenseAgeCategoryType::JUNIOR,
-                );
-
-                break;
-            case 'Sénior 1':
-                $license->setCategory(LicenseCategoryType::ADULTES);
-                $license->setAgeCategory(
-                    LicenseAgeCategoryType::SENIOR_1,
-                );
-
-                break;
-            case 'Sénior 2':
-                $license->setCategory(LicenseCategoryType::ADULTES);
-                $license->setAgeCategory(
-                    LicenseAgeCategoryType::SENIOR_2,
-                );
-
-                break;
-            case 'Sénior 3':
-                $license->setCategory(LicenseCategoryType::ADULTES);
-                $license->setAgeCategory(
-                    LicenseAgeCategoryType::SENIOR_3,
-                );
-
-                break;
-            case 'Sénior':
-            case 'Senior':
-                $license->setCategory(LicenseCategoryType::ADULTES);
-                $license->setAgeCategory(
-                    LicenseAgeCategoryType::SENIOR,
-                );
-
-                break;
-            case 'U11':
-                $license->setCategory(LicenseCategoryType::POUSSINS);
-                $license->setAgeCategory(LicenseAgeCategoryType::U11);
-
-                break;
-            case 'U13':
-                $license->setCategory(LicenseCategoryType::JEUNES);
-                $license->setAgeCategory(LicenseAgeCategoryType::U13);
-
-                break;
-            case 'U15':
-                $license->setCategory(LicenseCategoryType::JEUNES);
-                $license->setAgeCategory(LicenseAgeCategoryType::U15);
-
-                break;
-            case 'U18':
-                $license->setCategory(LicenseCategoryType::JEUNES);
-                $license->setAgeCategory(LicenseAgeCategoryType::U18);
-
-                break;
-            case 'U21':
-                $license->setCategory(LicenseCategoryType::JEUNES);
-                $license->setAgeCategory(LicenseAgeCategoryType::U21);
-
-                break;
-            case 'Vétéran':
-            case 'Veteran':
-                $license->setCategory(LicenseCategoryType::ADULTES);
-                $license->setAgeCategory(
-                    LicenseAgeCategoryType::VETERAN,
-                );
-
-                break;
-            case 'Super Vétéran':
-            case 'Super Veteran':
-                $license->setCategory(LicenseCategoryType::ADULTES);
-                $license->setAgeCategory(
-                    LicenseAgeCategoryType::SUPER_VETERAN,
-                );
-
-                break;
-            default:
-                throw new \Exception(\sprintf("Unknown Age Category '%s'", $selectedLicenseeData['categorie_age']));
+        if (!isset($mapping[$categorieAge])) {
+            throw new FftaUnknownDataException(\sprintf("Unknown Age Category '%s'", $categorieAge));
         }
 
-        return $license;
+        [$category, $ageCategory] = $mapping[$categorieAge];
+        $license->setCategory($category);
+        $license->setAgeCategory($ageCategory);
     }
 
     /**
@@ -542,7 +549,7 @@ class FftaScrapper
         );
         $tableCrawler = $crawler->filter('table.orbe3');
         $eventLinesCrawler = $tableCrawler->filter('tbody tr');
-        $eventLinesCrawler->each(function (Crawler $row) use (&$events): void {
+        $eventLinesCrawler->each(static function (Crawler $row) use (&$events): void {
             $dateCell = $row->filter('td:nth-child(2)')->text();
             preg_match(
                 '#(du|le) (\d+/\d+/\d+)(au (\d+/\d+/\d+))?#',
@@ -569,7 +576,7 @@ class FftaScrapper
                 $disciplineStr,
             );
 
-            $event = (new FftaEvent())
+            $event = new FftaEvent()
                 ->setFrom(
                     \DateTimeImmutable::createFromFormat('!d/m/Y', $fromDate),
                 )
@@ -610,7 +617,7 @@ class FftaScrapper
         );
         $tableCrawler = $crawler->filter('table.orbe3');
         $rowsCrawler = $tableCrawler->filter('tbody tr');
-        $rowsCrawler->each(function (Crawler $row) use (
+        $rowsCrawler->each(static function (Crawler $row) use (
             &$fftaResults,
             $fftaEvent,
             &$distance,
@@ -633,7 +640,7 @@ class FftaScrapper
                 $ageCategory,
             );
 
-            $fftaResult = (new FftaResult())
+            $fftaResult = new FftaResult()
                 ->setPosition((int) $row->filter('td:nth-child(1)')->text())
                 ->setName($row->filter('td:nth-child(2)')->text())
                 ->setClub($row->filter('td:nth-child(3)')->text())
@@ -679,10 +686,15 @@ class FftaScrapper
         }
 
         $this->managerSpaceBrowser = new HttpBrowser($this->managerSpaceHttpClient);
+
+        // Enable following redirects
+        $this->managerSpaceBrowser->followRedirects(true);
+
         $crawler = $this->managerSpaceBrowser->request(
             'GET',
             \sprintf('%s/auth/login', $this->managerSpaceBaseUrl),
         );
+
         $form = $crawler->filter('#form-login')->form();
         $this->managerSpaceBrowser->submit($form, [
             'username' => $this->club->getFftaUsername(),
@@ -691,9 +703,42 @@ class FftaScrapper
 
         /** @var Response $response */
         $response = $this->managerSpaceBrowser->getResponse();
-        if (200 !== $response->getStatusCode()) {
-            throw new BadRequestHttpException('Bad response from FFTA login procedure');
+        $statusCode = $response->getStatusCode();
+        $currentUrl = $this->managerSpaceBrowser->getHistory()->current()->getUri();
+
+        // Check for rate limiting
+        if (429 === $statusCode) {
+            throw new FftaRateLimitException('CRITICAL: HTTP 429 Too Many Requests. FFTA rate limit reached. STOPPING execution to prevent account suspension. Wait several hours before retrying.');
         }
+
+        // Check if we're still on the login page (login failed)
+        if (str_contains($currentUrl, '/auth/login')) {
+            $fullContent = $response->getContent();
+
+            // Check for account suspension - CRITICAL ERROR
+            if (str_contains($fullContent, 'Votre compte a été suspendu') || str_contains($fullContent, 'compte a été suspendu') || str_contains($fullContent, 'compte suspendu')) {
+                throw new FftaAccountSuspendedException('CRITICAL: FFTA account is SUSPENDED. STOPPING all operations immediately. Account suspended due to rate limiting. Wait several hours or days before retrying.');
+            }
+
+            // Check for rate limiting messages
+            if (str_contains($fullContent, 'rate limit') || str_contains($fullContent, 'trop de tentatives') || str_contains($fullContent, 'too many') || str_contains($fullContent, 'trop de connexions')) {
+                throw new FftaRateLimitException('CRITICAL: Rate limited by FFTA. STOPPING execution. Wait before retrying.');
+            }
+
+            // Try to find error messages
+            $crawler = $this->managerSpaceBrowser->getCrawler();
+            $errorMessages = $crawler->filter('.alert-danger, .error, .invalid-feedback, .text-danger')->each(static fn ($node): string => trim($node->text()));
+            $errorMsg = [] !== $errorMessages ? implode(' | ', $errorMessages) : 'Unknown error';
+
+            throw new FftaAuthenticationException(\sprintf('CRITICAL: Authentication FAILED. STOPPING execution to prevent account suspension. Error: %s', $errorMsg));
+        }
+
+        // Accept 200 (direct success) or 302 (redirect after login)
+        if (200 !== $statusCode && 302 !== $statusCode) {
+            throw new FftaAuthenticationException(\sprintf('CRITICAL: Bad response from FFTA login (HTTP %d). STOPPING execution to prevent account issues.', $statusCode));
+        }
+
+        $this->managerSpaceIsConnected = true;
     }
 
     protected function loginMyFftaSpace(): void
@@ -703,6 +748,10 @@ class FftaScrapper
         }
 
         $this->myFftaSpaceBrowser = new HttpBrowser($this->myFftaSpaceHttpClient);
+
+        // Enable following redirects
+        $this->myFftaSpaceBrowser->followRedirects(true);
+
         $crawler = $this->myFftaSpaceBrowser->request(
             'GET',
             $this->myFftaSpaceBaseUrl,
@@ -716,8 +765,31 @@ class FftaScrapper
 
         /** @var Response $response */
         $response = $this->myFftaSpaceBrowser->getResponse();
-        if (200 !== $response->getStatusCode()) {
-            throw new BadRequestHttpException('Bad response from FFTA login procedure');
+        $statusCode = $response->getStatusCode();
+        $currentUrl = $this->myFftaSpaceBrowser->getHistory()->current()->getUri();
+
+        // Check for rate limiting
+        if (429 === $statusCode) {
+            throw new FftaRateLimitException('CRITICAL: HTTP 429 Too Many Requests on Mon Espace FFTA. STOPPING execution.');
         }
+
+        // Check if still on login page or redirected back
+        if (str_contains($currentUrl, '/auth/login') || str_contains($currentUrl, 'login')) {
+            $fullContent = $response->getContent();
+
+            // Check for suspension
+            if (str_contains($fullContent, 'suspendu') || str_contains($fullContent, 'suspended')) {
+                throw new FftaAccountSuspendedException('CRITICAL: Mon Espace FFTA account suspended. STOPPING execution.');
+            }
+
+            throw new FftaAuthenticationException('CRITICAL: Mon Espace FFTA authentication failed. STOPPING execution to prevent account issues.');
+        }
+
+        // Accept 200 (direct success) or 302 (redirect after login)
+        if (200 !== $statusCode && 302 !== $statusCode) {
+            throw new FftaAuthenticationException(\sprintf('CRITICAL: Bad response from Mon Espace FFTA login (HTTP %d). STOPPING execution.', $statusCode));
+        }
+
+        $this->myFftaSpaceIsConnected = true;
     }
 }

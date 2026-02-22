@@ -17,12 +17,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-#[
-    UniqueEntity(
-        fields: ['email'],
-        message: 'There is already an account with this email',
-    ),
-]
+#[UniqueEntity(
+    fields: ['email'],
+    message: 'There is already an account with this email',
+),]
 #[Auditable]
 class User implements UserInterface, PasswordAuthenticatedUserInterface, \Stringable
 {
@@ -38,8 +36,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::JSON)]
     private array $roles = [];
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING)]
-    private string $password;
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, nullable: true)]
+    private ?string $password = null;
 
     #[ORM\Column(type: 'GenderType')]
     private string $gender;
@@ -53,17 +51,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 12, nullable: true)]
     private ?string $phoneNumber = null;
 
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATE_IMMUTABLE)]
+    #[Assert\NotBlank(message: 'La date de naissance est obligatoire.')]
+    #[Assert\LessThan(
+        value: '-15 years',
+        message: 'Vous devez avoir au moins 15 ans pour vous inscrire. Les mineurs de moins de 15 ans doivent être inscrits par un parent ou tuteur légal.',
+    )]
+    private \DateTimeImmutable $birthdate;
+
     /**
      * @var Collection<int, Licensee>
      */
-    #[
-        ORM\OneToMany(
-            mappedBy: 'user',
-            targetEntity: Licensee::class,
-            cascade: ['remove'],
-            fetch: 'EAGER',
-        ),
-    ]
+    #[ORM\OneToMany(targetEntity: Licensee::class, mappedBy: 'user', cascade: ['remove'], fetch: 'EAGER'),]
     private Collection $licensees;
 
     #[ORM\Column]
@@ -75,6 +74,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     #[Encrypted]
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, nullable: true)]
     private ?string $discordAccessToken = null;
+
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, options: ['default' => 0])]
+    private int $failedLoginAttempts = 0;
+
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $lastFailedLoginAt = null;
+
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $accountLockedUntil = null;
+
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $suspiciousActivityNotifiedAt = null;
 
     public function __construct()
     {
@@ -157,12 +168,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
      * @see PasswordAuthenticatedUserInterface
      */
     #[\Override]
-    public function getPassword(): string
+    public function getPassword(): ?string
     {
         return $this->password;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(?string $password): self
     {
         $this->password = $password;
 
@@ -230,6 +241,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         $this->phoneNumber = $phoneNumber;
 
         return $this;
+    }
+
+    public function getBirthdate(): \DateTimeImmutable
+    {
+        return $this->birthdate;
+    }
+
+    public function setBirthdate(\DateTimeImmutable $birthdate): self
+    {
+        $this->birthdate = $birthdate;
+
+        return $this;
+    }
+
+    public function getAge(): int
+    {
+        $now = new \DateTimeImmutable();
+        $diff = $this->birthdate->diff($now);
+
+        return (int) $diff->y;
     }
 
     /**
@@ -308,6 +339,94 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     public function setDiscordAccessToken(?string $discordAccessToken): self
     {
         $this->discordAccessToken = $discordAccessToken;
+
+        return $this;
+    }
+
+    public function getFailedLoginAttempts(): int
+    {
+        return $this->failedLoginAttempts;
+    }
+
+    public function setFailedLoginAttempts(int $failedLoginAttempts): self
+    {
+        $this->failedLoginAttempts = $failedLoginAttempts;
+
+        return $this;
+    }
+
+    public function incrementFailedAttempts(): self
+    {
+        ++$this->failedLoginAttempts;
+        $this->lastFailedLoginAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
+    public function resetFailedAttempts(): self
+    {
+        $this->failedLoginAttempts = 0;
+        $this->lastFailedLoginAt = null;
+
+        return $this;
+    }
+
+    public function getLastFailedLoginAt(): ?\DateTimeImmutable
+    {
+        return $this->lastFailedLoginAt;
+    }
+
+    public function setLastFailedLoginAt(?\DateTimeImmutable $lastFailedLoginAt): self
+    {
+        $this->lastFailedLoginAt = $lastFailedLoginAt;
+
+        return $this;
+    }
+
+    public function getAccountLockedUntil(): ?\DateTimeImmutable
+    {
+        return $this->accountLockedUntil;
+    }
+
+    public function setAccountLockedUntil(?\DateTimeImmutable $accountLockedUntil): self
+    {
+        $this->accountLockedUntil = $accountLockedUntil;
+
+        return $this;
+    }
+
+    public function isAccountLocked(): bool
+    {
+        if (!$this->accountLockedUntil instanceof \DateTimeImmutable) {
+            return false;
+        }
+
+        $now = new \DateTimeImmutable();
+        if ($now > $this->accountLockedUntil) {
+            // Account was locked but lock has expired
+            $this->accountLockedUntil = null;
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public function lockAccount(int $minutes = 30): self
+    {
+        $this->accountLockedUntil = new \DateTimeImmutable()->modify(\sprintf('+%d minutes', $minutes));
+
+        return $this;
+    }
+
+    public function getSuspiciousActivityNotifiedAt(): ?\DateTimeImmutable
+    {
+        return $this->suspiciousActivityNotifiedAt;
+    }
+
+    public function setSuspiciousActivityNotifiedAt(?\DateTimeImmutable $suspiciousActivityNotifiedAt): self
+    {
+        $this->suspiciousActivityNotifiedAt = $suspiciousActivityNotifiedAt;
 
         return $this;
     }

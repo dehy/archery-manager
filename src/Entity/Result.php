@@ -89,7 +89,7 @@ class Result
             $fftaResult->getCategory(),
         );
 
-        return (new self())
+        return new self()
             ->setEvent($event)
             ->setLicensee($licensee)
             ->setDiscipline($discipline)

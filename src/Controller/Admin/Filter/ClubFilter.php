@@ -19,7 +19,7 @@ class ClubFilter implements FilterInterface
 
     public static function new($label = null): self
     {
-        return (new self())
+        return new self()
             ->setFilterFqcn(self::class)
             ->setProperty('club')
             ->setLabel($label)

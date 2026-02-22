@@ -41,7 +41,7 @@ trait SecurityTrait
         /** @var TokenStorageDecorator $tokenStorage */
         $tokenStorage = self::getContainer()->get('security.token_storage');
 
-        $tokenStorage->setToken(null);
+        $tokenStorage->setToken();
     }
 
     protected function getUser(string $role = 'ROLE_USER', bool $userFromDatabase = false): User
@@ -71,7 +71,7 @@ trait SecurityTrait
 
     protected function createNewUser(string $role = 'ROLE_USE', bool $persist = false): User
     {
-        $user = (new User())
+        $user = new User()
             ->setRoles([$role])
             ->setEmail(\sprintf('test_%s@test.com', strtolower($role)))
             ->setPassword('test')

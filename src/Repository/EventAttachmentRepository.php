@@ -50,10 +50,8 @@ class EventAttachmentRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('ea')
             ->where('ea.event = :event')
             ->andWhere('ea.type = :type')
-            ->setParameters([
-                'event' => $event,
-                'type' => $attachmentType,
-            ])
+            ->setParameter('event', $event)
+            ->setParameter('type', $attachmentType)
             ->getQuery()
             ->getOneOrNullResult();
     }

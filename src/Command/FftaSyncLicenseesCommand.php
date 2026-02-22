@@ -17,12 +17,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 
-#[
-    AsCommand(
-        name: 'app:ffta:sync-licensees',
-        description: 'Sync licensees from the FFTA website',
-    ),
-]
+#[AsCommand(
+    name: 'app:ffta:sync-licensees',
+    description: 'Sync licensees from the FFTA website',
+),]
 class FftaSyncLicenseesCommand extends Command
 {
     public function __construct(
@@ -57,7 +55,7 @@ class FftaSyncLicenseesCommand extends Command
         $clubRepository = $this->entityManager->getRepository(Club::class);
         $club = $clubRepository->findOneBy(['fftaCode' => $fftaClubCode]);
 
-        if (!$club) {
+        if (null === $club) {
             $io->error(\sprintf('Unknown club %s', $fftaClubCode));
 
             return Command::INVALID;

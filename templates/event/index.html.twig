@@ -3,6 +3,7 @@
 {% block title %}Calendrier{% endblock %}
 
 {% block body %}
+    <div data-controller="event-highlight">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Calendrier</h2>
         {% if is_granted('ROLE_ADMIN') %}
@@ -75,13 +76,12 @@
                         </div>
                         {% for event in events %}
                             {% set event_name = event.name %}
-                            {% set link_style = "min-height: 1rem;" %}
+                            {% set link_style = "" %}
                             {% if event.allDay %}
-                                {% set link_class = "badge text-bg-primary mb-1 all-day-event" %}
-                                {% set link_style = "#{link_style} background-color: " ~ event|eventColor ~ " !important;" %}
+                                {% set link_class = "badge text-bg-primary all-day-event" %}
+                                {% set link_style = "background-color: " ~ event|eventColor ~ " !important;" %}
                             {% else %}
-                                {% set link_class = "" %}
-                                {% set link_style = "#{link_style}" %}
+                                {% set link_class = "event-link" %}
                             {% endif %}
                             {% if event.spanMultipleDays %}
                                 {% set link_class = "#{link_class} multi-day-event" %}
@@ -91,13 +91,13 @@
                                     {% set link_class = "#{link_class} multi-day-event-end" %}
                                     {% set event_name = "" %}
                                 {% endif %}
-                            {% else %}
-                                {% set link_style = "#{link_style} margin-left: 0.5rem !important; margin-right: 0.5rem !important;" %}
                             {% endif %}
                             <a href="{{ path('app_event_show', {slug: event.slug}) }}"
-                               class="event-link d-flex d-inline-block justify-content-between link-unstyled {{ link_class }}"
-                               style="pointer-events: auto; {{ link_style }}"
+                               class="d-flex justify-content-between link-unstyled {{ link_class }}"
+                               style="{{ link_style }}"
                                data-bs-toggle="tooltip" title="{{ event.name }}"
+                               data-event-id="{{ event.id }}"
+                               data-event-highlight-target="calendarEvent"
                             >
                                 <div class="event-name">
                                     {% if not event.allDay %}
@@ -140,7 +140,9 @@
                                 {% for event in events %}
                                     <li class="event-list-event">
                                         <a href="{{ path('app_event_show', {slug: event.slug}) }}"
-                                           class="d-flex flex-row link-unstyled p-2"
+                                           class="d-flex flex-row link-unstyled p-2 event-list-item"
+                                           data-event-id="{{ event.id }}"
+                                           data-event-highlight-target="listItem"
                                         >
                                             <div class="event-pill me-1"
                                                  style="background-color: {{ event|eventColor }}">
@@ -171,5 +173,6 @@
                 </ul>
             </div>
         </div>
+    </div>
     </div>
 {% endblock %}

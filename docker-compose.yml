@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+      args:
+        BUILD_TARGET: dev
     environment:
       - APP_ENV=dev
 
@@ -28,7 +30,7 @@ services:
 
 ###> doctrine/doctrine-bundle ###
   database:
-    image: mariadb:${MARIADB_VERSION:-10.11.5}
+    image: mariadb:${MARIADB_VERSION:-12.1}
     environment:
       MARIADB_ROOT_PASSWORD: "root"
       MARIADB_DATABASE: ${MARIADB_DATABASE:-app}
@@ -43,7 +45,18 @@ services:
     ports:
       - "8081:80"
 
+###> symfony/rate-limiter ###
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+###< symfony/rate-limiter ###
+
 volumes:
 ###> doctrine/doctrine-bundle ###
   db-data:
 ###< doctrine/doctrine-bundle ###
+###> symfony/rate-limiter ###
+  redis-data:
+###< symfony/rate-limiter ###

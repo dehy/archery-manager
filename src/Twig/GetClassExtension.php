@@ -4,25 +4,15 @@ declare(strict_types=1);
 
 namespace App\Twig;
 
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFilter;
-
-class GetClassExtension extends AbstractExtension
+class GetClassExtension
 {
-    #[\Override]
-    public function getFilters(): array
-    {
-        return [
-            new TwigFilter('get_class', $this->getClass(...)),
-            new TwigFilter('get_short_class', $this->getShortClass(...)),
-        ];
-    }
-
+    #[\Twig\Attribute\AsTwigFilter(name: 'get_class')]
     public function getClass(object $object): string
     {
         return $object::class;
     }
 
+    #[\Twig\Attribute\AsTwigFilter(name: 'get_short_class')]
     public function getShortClass(object $object): string
     {
         $reflect = new \ReflectionClass($object);

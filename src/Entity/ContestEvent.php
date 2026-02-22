@@ -24,7 +24,7 @@ class ContestEvent extends Event
     /**
      * @var Collection<int, Result>
      */
-    #[ORM\OneToMany(mappedBy: 'event', targetEntity: Result::class)]
+    #[ORM\OneToMany(targetEntity: Result::class, mappedBy: 'event')]
     private Collection $results;
 
     public function __construct()
@@ -118,14 +118,14 @@ class ContestEvent extends Event
     public function hasMandate(): bool
     {
         return $this->getAttachments()->exists(
-            fn (int $key, EventAttachment $attachment): bool => EventAttachmentType::MANDATE === $attachment->getType()
+            static fn (int $key, EventAttachment $attachment): bool => EventAttachmentType::MANDATE === $attachment->getType()
         );
     }
 
     public function hasResults(): bool
     {
         return $this->getAttachments()->exists(
-            fn (int $key, EventAttachment $attachment): bool => EventAttachmentType::RESULTS === $attachment->getType()
+            static fn (int $key, EventAttachment $attachment): bool => EventAttachmentType::RESULTS === $attachment->getType()
         );
     }
 

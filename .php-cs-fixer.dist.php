@@ -6,6 +6,7 @@ $finder = (new PhpCsFixer\Finder())
     ->in(__DIR__)
     ->exclude('var')
     ->exclude('vendor')
+    ->notPath('config/reference.php')
 ;
 
 return (new PhpCsFixer\Config())
@@ -14,7 +15,7 @@ return (new PhpCsFixer\Config())
     ->setRules([
         '@Symfony' => true,
         '@Symfony:risky' => true,
-        '@PHP83Migration' => true,
+        '@PHP84Migration' => true,
     ])
     ->setFinder($finder)
     ;

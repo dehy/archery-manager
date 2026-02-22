@@ -13,6 +13,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Arrow|null findOneBy(array $criteria, array $orderBy = null)
  * @method Arrow[]    findAll()
  * @method Arrow[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends \Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository<\App\Entity\Arrow>
  */
 class ArrowRepository extends ServiceEntityRepository
 {
@@ -23,17 +25,17 @@ class ArrowRepository extends ServiceEntityRepository
 
     public function add(Arrow $entity, bool $flush = true): void
     {
-        $this->_em->persist($entity);
+        $this->getEntityManager()->persist($entity);
         if ($flush) {
-            $this->_em->flush();
+            $this->getEntityManager()->flush();
         }
     }
 
     public function remove(Arrow $entity, bool $flush = true): void
     {
-        $this->_em->remove($entity);
+        $this->getEntityManager()->remove($entity);
         if ($flush) {
-            $this->_em->flush();
+            $this->getEntityManager()->flush();
         }
     }
 

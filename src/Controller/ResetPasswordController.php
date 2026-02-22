@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
+use App\EventListener\AuthenticationSuccessListener;
 use App\Form\ChangePasswordFormType;
 use App\Form\ResetPasswordRequestFormType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,13 +17,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use SymfonyCasts\Bundle\ResetPassword\Controller\ResetPasswordControllerTrait;
 use SymfonyCasts\Bundle\ResetPassword\Exception\ResetPasswordExceptionInterface;
 use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
 
-#[Route('/reset-password')]
 class ResetPasswordController extends AbstractController
 {
     use ResetPasswordControllerTrait;
@@ -30,25 +31,37 @@ class ResetPasswordController extends AbstractController
     public function __construct(
         private readonly ResetPasswordHelperInterface $resetPasswordHelper,
         private readonly EntityManagerInterface $entityManager,
+        private readonly MailerInterface $mailer,
+        private readonly TranslatorInterface $translator,
+        private readonly UserPasswordHasherInterface $userPasswordHasher,
+        private readonly AuthenticationSuccessListener $successListener,
+        private readonly RateLimiterFactory $passwordResetLimiter,
     ) {
     }
 
     /**
      * Display & process form to request a password reset.
      */
-    #[Route('', name: 'app_forgot_password_request')]
+    #[Route('/reset-password', name: 'app_forgot_password_request')]
     public function request(
         Request $request,
-        MailerInterface $mailer,
-        TranslatorInterface $translator,
     ): Response {
+        // Rate limiting check
+        $limiter = $this->passwordResetLimiter->create($request->getClientIp() ?? 'unknown');
+        if (false === $limiter->consume(1)->isAccepted()) {
+            $this->addFlash('danger', 'Trop de demandes de réinitialisation de mot de passe. Veuillez réessayer dans quelques minutes.');
+
+            return $this->redirectToRoute('app_forgot_password_request');
+        }
+
         $form = $this->createForm(ResetPasswordRequestFormType::class);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             return $this->processSendingPasswordResetEmail(
                 $form->get('email')->getData(),
-                $mailer,
+                $this->mailer,
+                $request,
             );
         }
 
@@ -60,7 +73,7 @@ class ResetPasswordController extends AbstractController
     /**
      * Confirmation page after a user has requested a password reset.
      */
-    #[Route('/check-email', name: 'app_check_email')]
+    #[Route('/reset-password/check-email', name: 'app_check_email')]
     public function checkEmail(): Response
     {
         // Generate a fake token if the user does not exist or someone hit this page directly.
@@ -77,11 +90,9 @@ class ResetPasswordController extends AbstractController
     /**
      * Validates and process the reset URL that the user clicked in their email.
      */
-    #[Route('/reset/{token}', name: 'app_reset_password')]
+    #[Route('/reset-password/reset/{token}', name: 'app_reset_password')]
     public function reset(
         Request $request,
-        UserPasswordHasherInterface $userPasswordHasher,
-        TranslatorInterface $translator,
         ?string $token = null,
     ): Response {
         if (null !== $token && '' !== $token && '0' !== $token) {
@@ -106,12 +117,12 @@ class ResetPasswordController extends AbstractController
                 'reset_password_error',
                 \sprintf(
                     '%s - %s',
-                    $translator->trans(
+                    $this->translator->trans(
                         ResetPasswordExceptionInterface::MESSAGE_PROBLEM_VALIDATE,
                         [],
                         'ResetPasswordBundle',
                     ),
-                    $translator->trans(
+                    $this->translator->trans(
                         $resetPasswordException->getReason(),
                         [],
                         'ResetPasswordBundle',
@@ -131,13 +142,20 @@ class ResetPasswordController extends AbstractController
             $this->resetPasswordHelper->removeResetRequest($token);
 
             // Encode(hash) the plain password, and set it.
-            $encodedPassword = $userPasswordHasher->hashPassword(
+            $encodedPassword = $this->userPasswordHasher->hashPassword(
                 $user,
                 $form->get('plainPassword')->getData(),
             );
 
             $user->setPassword($encodedPassword);
             $this->entityManager->flush();
+
+            // Log successful password reset
+            $this->successListener->logSuccessfulPasswordReset(
+                $user,
+                $request->getClientIp() ?? 'unknown',
+                $request->headers->get('User-Agent', '')
+            );
 
             // The session is cleaned up after the password has been changed.
             $this->cleanSessionAfterReset();
@@ -153,13 +171,20 @@ class ResetPasswordController extends AbstractController
     private function processSendingPasswordResetEmail(
         string $emailFormData,
         MailerInterface $mailer,
+        Request $request,
     ): RedirectResponse {
         $user = $this->entityManager->getRepository(User::class)->findOneBy([
             'email' => $emailFormData,
         ]);
 
+        $ipAddress = $request->getClientIp() ?? 'unknown';
+        $userAgent = $request->headers->get('User-Agent', '');
+
+        // Log password reset request (even if user doesn't exist, for security monitoring)
+        $this->successListener->logPasswordResetRequested($user, $emailFormData, $ipAddress, $userAgent);
+
         // Do not reveal whether a user account was found or not.
-        if (!$user) {
+        if (null === $user) {
             return $this->redirectToRoute('app_check_email');
         }
 
@@ -179,7 +204,7 @@ class ResetPasswordController extends AbstractController
             return $this->redirectToRoute('app_check_email');
         }
 
-        $email = (new TemplatedEmail())
+        $email = new TemplatedEmail()
             ->from(new Address('noreply@admds.net', 'Les Archers de Guyenne'))
             ->to($user->getEmail())
             ->subject('Votre demande de réinitialisation de mot de passe')

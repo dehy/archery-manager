@@ -1,0 +1,183 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Matériel du club - {{ club.name }}{% endblock %}
+
+{% block body %}
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <em class="fa-solid fa-bow-arrow me-2"></em>
+                Matériel du club
+            </h1>
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_club_equipment_loans') }}" class="btn btn-outline-warning">
+                    <em class="fa-solid fa-hand-holding me-2"></em>
+                    Prêts en cours
+                </a>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('app_club_equipment_new') }}" class="btn btn-primary">
+                        <em class="fa-solid fa-plus me-2"></em>
+                        Ajouter du matériel
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            {% set totalUnits = equipment|reduce((acc, e) => acc + e.quantity, 0) %}
+            {% set totalAvailableUnits = equipment|reduce((acc, e) => acc + e.availableQuantity, 0) %}
+            {% set totalLoanedUnits = totalUnits - totalAvailableUnits %}
+            {% set totalValue = equipment|reduce((acc, e) => acc + (e.totalValue ?? 0), 0) %}
+            <div class="col-md-3 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-check-circle me-2"></em>
+                            Disponible
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="display-4">{{ totalAvailableUnits }}</div>
+                        <p class="text-muted mb-0">unité(s) disponible(s)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-hand-holding me-2"></em>
+                            Prêté
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="display-4">{{ totalLoanedUnits }}</div>
+                        <p class="text-muted mb-2">unité(s) prêtée(s)</p>
+                        <a href="{{ path('app_club_equipment_loans') }}" class="btn btn-sm btn-outline-warning">
+                            <em class="fa-solid fa-arrow-right me-1"></em>
+                            Voir les prêts
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-boxes me-2"></em>
+                            Total
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="display-4">{{ totalUnits }}</div>
+                        <p class="text-muted mb-0">unité(s) au total</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-euro-sign me-2"></em>
+                            Valeur
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="display-4">{{ totalValue|number_format(2, ',', ' ') }} €</div>
+                        <p class="text-muted mb-0">valeur totale TTC</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <em class="fa-solid fa-list me-2"></em>
+                    Liste du matériel
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if equipment is empty %}
+                    <div class="text-center text-muted py-4">
+                        <em class="fa-solid fa-boxes fa-3x mb-3"></em>
+                        <p class="mb-0">Aucun équipement enregistré</p>
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Nom</th>
+                                    <th>N° de série</th>
+                                    <th>Stock</th>
+                                    <th>Disponible</th>
+                                    <th>Prix unit. TTC</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in equipment %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                {{ item.type|club_equipment_type_readable }}
+                                            </span>
+                                        </td>
+                                        <td>{{ item.name }}</td>
+                                        <td>{{ item.serialNumber ?? '-' }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>
+                                            {% if item.availableQuantity > 0 %}
+                                                <span class="badge bg-success">
+                                                    {{ item.availableQuantity }}/{{ item.quantity }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <em class="fa-solid fa-clock me-1"></em>
+                                                    Tout prêté
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.purchasePrice %}
+                                                {{ item.purchasePrice|number_format(2, ',', ' ') }} €
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ path('app_club_equipment_show', {id: item.id}) }}" 
+                                                   class="btn btn-outline-primary"
+                                                   title="Voir les détails">
+                                                    <em class="fa-solid fa-eye"></em>
+                                                </a>
+                                                {% if is_granted('ROLE_ADMIN') %}
+                                                    <a href="{{ path('app_club_equipment_edit', {id: item.id}) }}" 
+                                                       class="btn btn-outline-secondary"
+                                                       title="Modifier">
+                                                        <em class="fa-solid fa-edit"></em>
+                                                    </a>
+                                                    {% if not item.isFullyLoaned %}
+                                                        <a href="{{ path('app_club_equipment_loan', {id: item.id}) }}" 
+                                                           class="btn btn-outline-warning"
+                                                           title="Prêter">
+                                                            <em class="fa-solid fa-hand-holding"></em>
+                                                        </a>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

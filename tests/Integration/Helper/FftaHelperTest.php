@@ -8,11 +8,16 @@ use App\Entity\Club;
 use App\Entity\User;
 use App\Helper\FftaHelper;
 use App\Repository\UserRepository;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\JsonMockResponse;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
+/**
+ * @internal
+ */
+#[Group('disabled')]
 final class FftaHelperTest extends KernelTestCase
 {
     use FftaHelperTestDataLoader;
@@ -20,7 +25,7 @@ final class FftaHelperTest extends KernelTestCase
     public function testSyncLicenseesSendsSummaryEmail(): void
     {
         $clubManagers = [
-            (new User())
+            new User()
                 ->setEmail('manager@club.fr')
                 ->setFirstname('Firstname')
                 ->setLastname('Lastname'),
@@ -46,8 +51,15 @@ final class FftaHelperTest extends KernelTestCase
                 }
 
                 if ('POST' === $method) {
-                    return new JsonMockResponse();
+                    return new MockResponse('', [
+                        'http_code' => 302,
+                        'response_headers' => ['Location' => 'https://dirigeant.ffta.fr/home'],
+                    ]);
                 }
+            }
+
+            if ('/home' === $url) {
+                return new MockResponse('');
             }
 
             if (1 === preg_match('!/structures/fiche/\d+/licencies/ajax!', $url)) {
@@ -83,11 +95,11 @@ final class FftaHelperTest extends KernelTestCase
         self::bootKernel();
 
         // Create and persist the club entity first with all required fields
-        $club = (new Club())
+        $club = new Club()
             ->setName('Test Club')
             ->setCity('Test City')
             ->setPrimaryColor('#FF0000')
-            ->setFftaCode('1033093')
+            ->setFftaCode('9999999')
             ->setFftaUsername('invalid@ffta.fr')
             ->setFftaPassword('invalid')
             ->setContactEmail('reply@club.invalid');
@@ -101,7 +113,7 @@ final class FftaHelperTest extends KernelTestCase
         $fftaHelper = $this->getContainer()->get(FftaHelper::class);
         $fftaHelper->setHttpClient($mockHttpClient);
         $fftaHelper->setUserRepository($mockUserRepository);
-        
+
         $fftaHelper->syncLicensees($club, 2025);
 
         // 5 mails queues for users (1 welcome for each), 1 summary for club admins

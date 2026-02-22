@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Étape 2 : Licence{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_licensee_index') }}">Licenciés</a></li>
+                    <li class="breadcrumb-item active">Création</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <em class="fa-solid fa-id-card me-2"></em>
+                        Étape 2/4 : Licence {{ season }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'data-controller': 'license-form'}}) }}
+                        <div class="mb-3">
+                            {{ form_row(form.ageCategory, {'attr': {'data-license-form-target': 'ageCategory'}}) }}
+                            <div class="form-text">
+                                <em class="fa-solid fa-info-circle me-1"></em>
+                                La catégorie sera automatiquement définie en fonction de l'âge (U11→Poussin, U13-U21→Jeunes, Senior 1-3→Adultes)
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_row(form.category, {'attr': {'data-license-form-target': 'category'}}) }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_row(form.type, {'attr': {'data-license-form-target': 'type'}}) }}
+                            <div class="form-text">
+                                <em class="fa-solid fa-info-circle me-1"></em>
+                                Les types disponibles dépendent de la catégorie sélectionnée
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_label(form.activities) }}
+                            <div class="border rounded p-3">
+                                {{ form_widget(form.activities) }}
+                            </div>
+                            {{ form_errors(form.activities) }}
+                        </div>
+
+                        <div class="progress mb-3" style="height: 30px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
+                                Étape 2/4
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('app_licensee_new_step1') }}" class="btn btn-secondary">
+                                <em class="fa-solid fa-arrow-left me-2"></em>
+                                Retour
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                Suivant
+                                <em class="fa-solid fa-arrow-right ms-2"></em>
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+
+        {# Sidebar with birthdate info and suggestions #}
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <div class="card bg-light">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <em class="fa-solid fa-lightbulb me-2"></em>
+                        Suggestions automatiques
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if licensee_data.firstname and licensee_data.lastname %}
+                        <h6 class="mb-3">
+                            <em class="fa-solid fa-user me-2"></em>
+                            {{ licensee_data.firstname }} {{ licensee_data.lastname }}
+                        </h6>
+                    {% endif %}
+
+                    {% if birthdate_display %}
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <em class="fa-solid fa-calendar-days me-2 text-primary"></em>
+                                <strong>Date de naissance :</strong>
+                            </div>
+                            <div class="ms-4">{{ birthdate_display }}</div>
+                        </div>
+                    {% endif %}
+
+                    {% if suggested_age_category %}
+                        <div class="alert alert-success mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <em class="fa-solid fa-check-circle me-2"></em>
+                                <strong>Catégorie d'âge suggérée :</strong>
+                            </div>
+                            <div class="ms-4 fs-5">
+                                {{ suggested_age_category }}
+                                <div class="small text-muted">Basée sur la date de naissance</div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if suggested_category %}
+                        <div class="alert alert-info mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <em class="fa-solid fa-check-circle me-2"></em>
+                                <strong>Catégorie suggérée :</strong>
+                            </div>
+                            <div class="ms-4 fs-5">
+                                {% if suggested_category == 'P' %}Poussins
+                                {% elseif suggested_category == 'J' %}Jeunes
+                                {% elseif suggested_category == 'A' %}Adultes
+                                {% else %}{{ suggested_category }}
+                                {% endif %}
+                                <div class="small text-muted">Déduite de la catégorie d'âge</div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if not birthdate_display %}
+                        <div class="alert alert-warning">
+                            <em class="fa-solid fa-exclamation-triangle me-2"></em>
+                            Date de naissance manquante. Les suggestions ne sont pas disponibles.
+                        </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <div class="small text-muted">
+                        <p class="mb-2"><strong>Règles FFTA {{ season }} :</strong></p>
+                        <ul class="mb-0">
+                            <li>U11 → Poussins</li>
+                            <li>U13, U15, U18, U21 → Jeunes</li>
+                            <li>Senior 1, 2, 3 → Adultes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

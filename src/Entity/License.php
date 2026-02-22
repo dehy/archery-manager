@@ -11,6 +11,7 @@ use App\DBAL\Types\LicenseType;
 use App\Helper\ObjectComparator;
 use App\Helper\SyncReturnValues;
 use App\Repository\LicenseRepository;
+use App\Validator\Constraints\ValidLicenseCombination;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
@@ -23,6 +24,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
         message: 'There is already an license for this season for this licensee',
     ),
 ]
+#[ValidLicenseCombination]
 #[Auditable]
 #[ApiResource]
 class License

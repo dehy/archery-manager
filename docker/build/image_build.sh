@@ -29,20 +29,20 @@ apt-get install -y --no-install-recommends \
     netcat \
     nginx-light \
     nodejs \
-    php8.3-apcu \
-    php8.3-bcmath \
-    php8.3-cli \
-    php8.3-curl \
-    php8.3-fpm \
-    php8.3-gd \
-    php8.3-imagick \
-    php8.3-intl \
-    php8.3-mbstring \
-    php8.3-mysqlnd \
-    php8.3-pcov \
-    php8.3-uuid \
-    php8.3-xml \
-    php8.3-zip \
+    php8.4-apcu \
+    php8.4-bcmath \
+    php8.4-cli \
+    php8.4-curl \
+    php8.4-fpm \
+    php8.4-gd \
+    php8.4-imagick \
+    php8.4-intl \
+    php8.4-mbstring \
+    php8.4-mysqlnd \
+    php8.4-pcov \
+    php8.4-uuid \
+    php8.4-xml \
+    php8.4-zip \
     supervisor \
     unzip \
     vim \
@@ -72,7 +72,7 @@ chown symfony: /app
 
 apt-get -y autoremove
 apt-get clean
-apt-get install -y --no-install-recommends -d php8.3-xdebug # Download only
+apt-get install -y --no-install-recommends -d php8.4-xdebug # Download only
 rm -rf /var/lib/apt/lists/*
 rm -rf /usr/share/man/*
 rm -rf /tmp/* /root/.npm

@@ -19,6 +19,8 @@ use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
  * @method User|null findOneBy(array $criteria, array $orderBy = null)
  * @method User[]    findAll()
  * @method User[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends \Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository<\App\Entity\User>
  */
 class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
 {
@@ -29,17 +31,17 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
     public function add(User $entity, bool $flush = true): void
     {
-        $this->_em->persist($entity);
+        $this->getEntityManager()->persist($entity);
         if ($flush) {
-            $this->_em->flush();
+            $this->getEntityManager()->flush();
         }
     }
 
     public function remove(User $entity, bool $flush = true): void
     {
-        $this->_em->remove($entity);
+        $this->getEntityManager()->remove($entity);
         if ($flush) {
-            $this->_em->flush();
+            $this->getEntityManager()->flush();
         }
     }
 
@@ -56,8 +58,8 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         }
 
         $user->setPassword($newHashedPassword);
-        $this->_em->persist($user);
-        $this->_em->flush();
+        $this->getEntityManager()->persist($user);
+        $this->getEntityManager()->flush();
     }
 
     /**
@@ -83,11 +85,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->andWhere('ls.club = :club')
             ->andWhere('ls.season = :season')
             ->groupBy('u.id')
-            ->setParameters([
-                'club' => $club,
-                'role' => \sprintf('%%%s%%', $role),
-                'season' => $season,
-            ])
+            ->setParameter('club', $club)
+            ->setParameter('role', \sprintf('%%%s%%', $role))
+            ->setParameter('season', $season)
             ->getQuery()
             ->getResult();
     }

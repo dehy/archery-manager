@@ -15,7 +15,7 @@ final class VichImageField implements FieldInterface
     #[\Override]
     public static function new(string $propertyName, ?string $label = 'Image'): self
     {
-        return (new self())
+        return new self()
             ->setProperty($propertyName)
             ->setLabel($label)
             // this template is used in 'index' and 'detail' pages

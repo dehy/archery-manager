@@ -55,16 +55,17 @@ if [[ -z "${1:-}" && ("${APP_ENV}" == "dev" || "${APP_ENV}" == "test") ]]; then
             -e 's!\(error_reporting\) = .*!\1 = E_ALL!' \
             -e 's!\(display_errors\) = off!\1 = on!' \
             -e 's!\(display_startup_errors\) = off!\1 = on!' \
-            /etc/php/8.3/fpm/conf.d/99-symfony.ini
+            /etc/php/8.4/fpm/conf.d/99-symfony.ini
 
         apt-get update
-        apt-get install -y --no-install-recommends php8.3-xdebug
+        apt-get install -y --no-install-recommends php8.4-xdebug
         apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
         apt-get autoremove -y
     fi
 
     ${GOSU} composer install --prefer-dist
-    [[ "${APP_ENV}" == "dev" ]] && ${GOSU} yarn
+    # Yarn is run on host in dev mode, not in container
+    # [[ "${APP_ENV}" == "dev" ]] && ${GOSU} yarn
 fi
 
 DATABASE_URL_PARTS=$(php -r "echo json_encode(parse_url('${DATABASE_URL}'));")
@@ -84,6 +85,10 @@ fi
 # System Under Test
 if [[ "${1:-}" == "sut" ]]; then
     ${GOSU} composer install --prefer-dist
+
+    # Build frontend assets for tests
+    ${GOSU} yarn install --immutable
+    ${GOSU} yarn run encore dev
 
     # Executing migrations
     ${GOSU} php bin/console doctrine:migrations:migrate --no-interaction
@@ -112,8 +117,8 @@ if [[ "${1:-}" == "sut" ]]; then
       apt-get install -y --no-install-recommends curl unzip
 
       # Install sonar-scanner
-      SONAR_CLI_VERSION="6.2.0.4584-linux-x64"
-      SONAR_CLI_SHA256_SUM="bc77135e0755bacb1049635928027f3e6c9fec6d728134935df0f43c77108e35"
+      SONAR_CLI_VERSION="8.0.1.6346-linux-x64"
+      SONAR_CLI_SHA256_SUM="4bd40bf8411ed104853e94a3746ec92bc92845fde2b27dbf5c33fb5cfa8ecbe9"
       SONAR_CLI_DIRNAME="sonar-scanner-cli-${SONAR_CLI_VERSION}"
       SONAR_CLI_FILENAME="${SONAR_CLI_DIRNAME}.zip"
       SONAR_CLI_FILEPATH="/tmp/${SONAR_CLI_FILENAME}"

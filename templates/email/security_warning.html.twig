@@ -1,0 +1,42 @@
+<h1>Activité suspecte détectée</h1>
+
+<p>Bonjour {{ user.firstname }} {{ user.lastname }},</p>
+
+<p>
+    Nous avons détecté <strong>{{ failedAttempts }} tentatives de connexion échouées</strong> sur votre compte.
+</p>
+
+<p>
+    Si vous êtes à l'origine de ces tentatives et que vous avez oublié votre mot de passe, vous pouvez le réinitialiser en cliquant sur le lien ci-dessous.
+</p>
+
+<p style="text-align: center; margin: 30px 0;">
+    <a href="{{ url('app_forgot_password_request') }}" 
+       style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+        Réinitialiser mon mot de passe
+    </a>
+</p>
+
+<p>
+    <strong>Si vous n'êtes pas à l'origine de ces tentatives, votre compte pourrait être ciblé.</strong>
+    Nous vous recommandons de :
+</p>
+
+<ul>
+    <li>Modifier votre mot de passe dès que possible</li>
+    <li>Vérifier que votre adresse email n'a pas été compromise</li>
+    <li>Utiliser un mot de passe fort et unique</li>
+</ul>
+
+<p>
+    Après <strong>10 tentatives échouées</strong>, votre compte sera automatiquement verrouillé pendant 30 minutes pour votre sécurité.
+</p>
+
+<p>
+    Si vous avez des questions ou des préoccupations concernant la sécurité de votre compte, 
+    n'hésitez pas à nous contacter.
+</p>
+
+<p style="color: #666; font-size: 12px; margin-top: 30px;">
+    Cet email a été envoyé automatiquement par le système de sécurité des Archers de Bordeaux Guyenne.
+</p>

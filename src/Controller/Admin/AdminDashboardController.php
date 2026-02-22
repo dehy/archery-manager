@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
-use App\Entity\Applicant;
 use App\Entity\Club;
 use App\Entity\ContestEvent;
 use App\Entity\EventParticipation;
@@ -15,22 +14,21 @@ use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\PracticeAdvice;
 use App\Entity\Result;
+use App\Entity\SecurityLog;
 use App\Entity\TrainingEvent;
 use App\Entity\User;
-use Dmishh\SettingsBundle\Entity\Setting;
-use Dmishh\SettingsBundle\Manager\SettingsManagerInterface;
+use App\Repository\SecurityLogRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class AdminDashboardController extends AbstractDashboardController
 {
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly SettingsManagerInterface $settingsManager,
     ) {
     }
 
@@ -38,7 +36,22 @@ class AdminDashboardController extends AbstractDashboardController
     #[\Override]
     public function index(): Response
     {
-        return $this->render('admin/dashboard.html.twig');
+        /** @var SecurityLogRepository $securityLogRepo */
+        $securityLogRepo = $this->entityManager->getRepository(SecurityLog::class);
+        $this->entityManager->getRepository(User::class);
+
+        // Security statistics
+        $failedLoginsLast24h = $securityLogRepo->getFailedLoginCountLast24Hours();
+        $lockedAccountsCount = $securityLogRepo->getCurrentlyLockedAccountsCount();
+        $mostTargetedAccounts = $securityLogRepo->getMostTargetedAccounts(5);
+        $recentSecurityLogs = $securityLogRepo->findRecent(10);
+
+        return $this->render('admin/dashboard.html.twig', [
+            'failedLoginsLast24h' => $failedLoginsLast24h,
+            'lockedAccountsCount' => $lockedAccountsCount,
+            'mostTargetedAccounts' => $mostTargetedAccounts,
+            'recentSecurityLogs' => $recentSecurityLogs,
+        ]);
     }
 
     #[\Override]
@@ -130,32 +143,12 @@ class AdminDashboardController extends AbstractDashboardController
             Result::class,
         );
 
-        yield MenuItem::section('Pré-inscriptions');
-
-        yield MenuItem::linkToRoute(
-            'Stats Pré-inscriptions',
-            'fa-solid fa-chart-simple',
-            'app_admin_applicants_stats',
-        );
-
-        yield MenuItem::linkToCrud(
-            'Pré-inscripts',
-            'fa-solid fa-user-plus',
-            Applicant::class,
-        )->setController(ApplicantCrudController::class);
-
-        yield MenuItem::linkToCrud(
-            'Création des licenses',
-            'fa-solid fa-id-badge',
-            Applicant::class,
-        )->setController(RegistrationCrudController::class);
-
         yield MenuItem::section('Technique');
 
         yield MenuItem::linkToCrud(
-            'Paramètres',
-            'fa-solid fa-wrench',
-            Setting::class,
+            'Journal de sécurité',
+            'fa-solid fa-shield-halved',
+            SecurityLog::class,
         );
 
         yield MenuItem::linkToUrl(

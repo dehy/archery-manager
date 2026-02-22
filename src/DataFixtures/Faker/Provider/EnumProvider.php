@@ -11,7 +11,7 @@ final class EnumProvider extends Base
 {
     public static function enum(string $enumClass): int|string
     {
-        /** @var AbstractEnumType $class */
+        /** @var class-string<AbstractEnumType> $class */
         $class = 'App\\DBAL\\Types\\'.$enumClass;
         $values = $class::getValues();
         $randomKey = self::numberBetween(0, \count($values) - 1);
