@@ -310,31 +310,60 @@ make qa
 ### Testing
 
 #### Running Tests
+
+##### Full CI-equivalent run (recommended)
+
+This mirrors what the GitHub Actions workflow does:
+
 ```bash
-# All tests
-docker compose exec -u symfony -w /app app bin/phpunit
+# Export the Font Awesome token from .env.local first (required to build frontend assets)
+export $(grep FONTAWESOME_NPM_AUTH_TOKEN .env.local | xargs)
 
-# Specific test
-docker compose exec -u symfony -w /app app bin/phpunit tests/Integration/Helper/FftaHelperTest.php
+# Run the full test suite via docker-compose.test.yml
+make test
 ```
 
-#### Test Environment
-- Config: `.env.test`
-- Encryption: Disabled via `config/packages/test/spec_shaper_encrypt.yaml`
-  ```yaml
-  spec_shaper_encrypt:
-      is_disabled: true
-  ```
-- Fixtures: YAML files in `fixtures/` directory
-  - `club.yml`, `licensee_*.yml`, `contest.yml`, `training_*.yml`, etc.
-  - Loaded via Doctrine DataFixtures
+`make test` runs `docker compose -p archery_test -f docker-compose.test.yml up --build --abort-on-container-exit --force-recreate`.  
+The `sut` entrypoint inside the container automatically:
+1. Runs `composer install` and `yarn install && yarn run encore dev`
+2. Migrates the `app_test` database (`APP_ENV=test`)
+3. Loads fixtures (`hautelook:fixtures:load`)
+4. Executes `bin/phpunit` with clover/JUnit coverage output
 
-#### Encryption Key for Tests
-`.env.test` must include:
-```env
-SPEC_SHAPER_ENCRYPT_KEY=<generated-key>
+**FONTAWESOME_NPM_AUTH_TOKEN** must be available in the shell environment (or `.env.local`) so the image build can install the Font Awesome Pro npm packages.
+
+##### Quick local loop (inside running dev container)
+
+Use this when iterating quickly — no full image rebuild needed:
+
+```bash
+# 1. (Re)create and migrate the test database
+docker compose exec -u symfony -w /app app sh -c '
+  APP_ENV=test bin/console doctrine:database:drop --force --if-exists &&
+  APP_ENV=test bin/console doctrine:database:create &&
+  APP_ENV=test bin/console doctrine:migrations:migrate --no-interaction
+'
+
+# 2. Load fixtures into app_test
+docker compose exec -u symfony -w /app app sh -c \
+  'APP_ENV=test bin/console hautelook:fixtures:load --no-interaction'
+
+# 3. Run all tests (excluding the "disabled" group)
+docker compose exec -u symfony -w /app app bin/phpunit --exclude-group=disabled
+
+# 4. Run a specific test file
+docker compose exec -u symfony -w /app app bin/phpunit tests/Functional/Controller/ClubEquipmentControllerTest.php
 ```
-Generate with:
+
+##### Key test environment details
+- **Config**: `.env.test` — database points to `app_test`, FriendlyCaptcha is bypassed, encryption key must be set
+- **FriendlyCaptcha**: Disabled via `when@test` override in `config/services.yaml` (`$enabled: false`) — `verify()` always returns `true` in tests
+- **Encryption**: Disabled via `config/packages/test/spec_shaper_encrypt.yaml`
+- **DB transactions**: DAMA DoctrineTestBundle rolls back each test case automatically (configured in `config/packages/test/dama_doctrine_test_bundle.yaml`)
+- **Fixtures**: YAML files in `fixtures/` loaded by `hautelook:fixtures:load`; must be reloaded whenever the schema changes
+
+##### Encryption key for `.env.test`
+`.env.test` must contain a valid `SPEC_SHAPER_ENCRYPT_KEY`. Generate one with:
 ```bash
 docker compose exec -u symfony -w /app app bin/console encrypt:genkey
 ```
