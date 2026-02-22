@@ -1197,6 +1197,10 @@ $entityManager->flush();
 - [ ] No hardcoded values (use parameters or config)
 - [ ] Proper use of Symfony services (no `new`)
 - [ ] Error logging for debugging
+- [ ] No repeated string literals (extract to `const` if used 3+ times)
+- [ ] Methods have ≤ 3 `return` statements
+- [ ] No commented-out code left in source
+- [ ] TypeScript classes are named and use `readonly` on static properties
 
 ### Common Mistakes to Avoid
 - ❌ Running PHP commands outside Docker container
@@ -1214,6 +1218,103 @@ $entityManager->flush();
 - ❌ Using `form_widget()` alone (lose labels and validation)
 - ❌ Ignoring mobile responsiveness
 - ❌ Making assumptions about library APIs without checking documentation
+
+### SonarQube Code Quality Rules
+
+SonarCloud runs on every push. The following patterns have been flagged and must be followed proactively to avoid new issues.
+
+#### PHP
+
+**Extract repeated string literals into constants** (rule: `php:S1192`)
+Any string literal used 3+ times must be extracted to a `private const`:
+```php
+// ❌ Bad
+->setParameter('{{ score }}', $value)  // repeated 3 times
+
+// ✅ Good
+private const string PLACEHOLDER_SCORE = '{{ score }}';
+->setParameter(self::PLACEHOLDER_SCORE, $value)
+```
+Applied in: `StrongPasswordValidator`, `SecurityLogCrudController`, `SecurityLogRepository`, `SecurityNotificationService`.
+
+**Limit method return points to 3** (rule: `php:S1142`)
+Methods must have at most 3 `return` statements. Refactor using an intermediate variable or restructured conditionals:
+```php
+// ❌ Bad — 4 returns
+public function verify(string $solution): bool {
+    if (!$this->enabled) return true;
+    if ('' === $solution) return false;
+    if ($result->shouldAccept()) return true;
+    return false;
+}
+
+// ✅ Good — 2 returns (early exit + single outcome)
+public function verify(string $solution): bool {
+    if (!$this->enabled) return true;
+    $accepted = false;
+    if ('' !== $solution) {
+        $accepted = $result->shouldAccept();
+    }
+    return $accepted;
+}
+```
+Applied in: `FriendlyCaptchaService::verify()`, `ClubEquipmentController::loan()`, `PendingClubApplicationsExtension::getPendingClubApplicationsCount()`.
+
+**Remove useless statements** (rule: `php:S1854`)
+Do not create objects whose value is never used:
+```php
+// ❌ Bad
+new \DateTimeImmutable();  // result discarded
+
+// ✅ Good — just remove the line entirely
+```
+Applied in: `SecurityLogRepository::getCurrentlyLockedAccountsCount()`.
+
+**Remove commented-out code** (rule: `php:S125` / `css:S125`)
+Commented-out code blocks must be deleted, not left in source:
+```scss
+// ❌ Bad
+// .calendar-case .multi-day-event-start .event-name {
+//   border-radius: 0 4px 4px 0;
+// }
+
+// ✅ Good — delete it entirely
+```
+Applied in: `assets/styles/_calendar.scss`.
+
+#### TypeScript / JavaScript
+
+**Name all classes** (rule: `typescript:S4212`)
+Anonymous default-exported classes must have a name matching the filename:
+```typescript
+// ❌ Bad
+export default class extends Controller { ... }
+
+// ✅ Good
+export default class PasswordStrengthController extends Controller { ... }
+```
+
+**Use `readonly` for static properties that are never reassigned** (rule: `typescript:S3827`)
+```typescript
+// ❌ Bad
+static targets = ["..."]
+static values = { ... }
+
+// ✅ Good
+static readonly targets = ["..."]
+static readonly values = { ... }
+```
+
+**Use optional chaining instead of null guards** (rule: `typescript:S6582`)
+```typescript
+// ❌ Bad
+if (this.hasTargetTarget && this.targetTarget) this.targetTarget.textContent = x;
+
+// ✅ Good
+this.targetTarget?.textContent = x;
+```
+
+Applied in: `assets/controllers/password-strength_controller.ts`.
 
 ### Project-Specific Vocabulary
 - **Licensee**: Club member (archer)
