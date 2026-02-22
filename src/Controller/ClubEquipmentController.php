@@ -198,19 +198,14 @@ class ClubEquipmentController extends BaseController
                         $equipment->getAvailableQuantity(),
                     ),
                 );
+            } else {
+                $em->persist($loan);
+                $em->flush();
 
-                return $this->render('club_equipment/loan.html.twig', [
-                    'form' => $form,
-                    'equipment' => $equipment,
-                ]);
+                $this->addFlash('success', 'Équipement prêté avec succès');
+
+                return $this->redirectToRoute('app_club_equipment_show', ['id' => $equipment->getId()]);
             }
-
-            $em->persist($loan);
-            $em->flush();
-
-            $this->addFlash('success', 'Équipement prêté avec succès');
-
-            return $this->redirectToRoute('app_club_equipment_show', ['id' => $equipment->getId()]);
         }
 
         return $this->render('club_equipment/loan.html.twig', [

@@ -42,34 +42,33 @@ class FriendlyCaptchaService
             return true;
         }
 
+        $accepted = false;
+
         if ('' === $solution || '0' === $solution) {
             $this->logger->warning('Empty CAPTCHA solution provided');
+        } else {
+            try {
+                $result = $this->client->verifyCaptchaResponse($solution);
+                $accepted = $result->wasAbleToVerify() && $result->shouldAccept();
 
-            return false;
-        }
-
-        try {
-            $result = $this->client->verifyCaptchaResponse($solution);
-
-            if ($result->wasAbleToVerify() && $result->shouldAccept()) {
-                $this->logger->info('CAPTCHA verification successful');
-
-                return true;
+                if ($accepted) {
+                    $this->logger->info('CAPTCHA verification successful');
+                } else {
+                    $this->logger->warning('CAPTCHA verification failed', [
+                        'able_to_verify' => $result->wasAbleToVerify(),
+                        'should_accept' => $result->shouldAccept(),
+                    ]);
+                }
+            } catch (\Exception $exception) {
+                $this->logger->error('CAPTCHA verification exception', [
+                    'message' => $exception->getMessage(),
+                    'exception_class' => $exception::class,
+                    'trace' => $exception->getTraceAsString(),
+                ]);
             }
-
-            $this->logger->warning('CAPTCHA verification failed', [
-                'able_to_verify' => $result->wasAbleToVerify(),
-                'should_accept' => $result->shouldAccept(),
-            ]);
-        } catch (\Exception $exception) {
-            $this->logger->error('CAPTCHA verification exception', [
-                'message' => $exception->getMessage(),
-                'exception_class' => $exception::class,
-                'trace' => $exception->getTraceAsString(),
-            ]);
         }
 
-        return false;
+        return $accepted;
     }
 
     public function getSiteKey(): string

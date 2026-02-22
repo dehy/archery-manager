@@ -14,6 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class SecurityLogRepository extends ServiceEntityRepository
 {
+    private const string CONDITION_EVENT_TYPE = 'sl.eventType = :eventType';
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, SecurityLog::class);
@@ -46,7 +48,7 @@ class SecurityLogRepository extends ServiceEntityRepository
 
         return (int) $this->createQueryBuilder('sl')
             ->select('COUNT(sl.id)')
-            ->where('sl.eventType = :eventType')
+            ->where(self::CONDITION_EVENT_TYPE)
             ->andWhere('sl.occurredAt >= :since')
             ->setParameter('eventType', SecurityLog::EVENT_FAILED_LOGIN)
             ->setParameter('since', $since)
@@ -59,11 +61,9 @@ class SecurityLogRepository extends ServiceEntityRepository
      */
     public function getCurrentlyLockedAccountsCount(): int
     {
-        new \DateTimeImmutable();
-
         return (int) $this->createQueryBuilder('sl')
             ->select('COUNT(DISTINCT sl.user)')
-            ->where('sl.eventType = :eventType')
+            ->where(self::CONDITION_EVENT_TYPE)
             ->andWhere('sl.user IS NOT NULL')
             ->setParameter('eventType', SecurityLog::EVENT_ACCOUNT_LOCKED)
             ->getQuery()
@@ -81,7 +81,7 @@ class SecurityLogRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('sl')
             ->select('sl.email', 'COUNT(sl.id) as attempts')
-            ->where('sl.eventType = :eventType')
+            ->where(self::CONDITION_EVENT_TYPE)
             ->andWhere('sl.occurredAt >= :since')
             ->groupBy('sl.email')
             ->orderBy('attempts', 'DESC')

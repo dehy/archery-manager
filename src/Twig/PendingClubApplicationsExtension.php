@@ -28,12 +28,8 @@ class PendingClubApplicationsExtension
         }
 
         $licensee = $this->licenseeHelper->getLicenseeFromSession();
-        if (!$licensee instanceof Licensee) {
-            return 0;
-        }
-
         $currentSeason = $this->seasonHelper->getSelectedSeason();
-        $license = $licensee->getLicenseForSeason($currentSeason);
+        $license = $licensee instanceof Licensee ? $licensee->getLicenseForSeason($currentSeason) : null;
         if (!$license instanceof \App\Entity\License) {
             return 0;
         }

@@ -14,6 +14,10 @@ use Symfony\Component\Mime\Address;
  */
 class SecurityNotificationService
 {
+    private const string MAILER_FROM_EMAIL = 'noreply@admds.net';
+
+    private const string MAILER_FROM_NAME = 'Les Archers de Guyenne';
+
     public function __construct(
         private readonly MailerInterface $mailer,
     ) {
@@ -25,7 +29,7 @@ class SecurityNotificationService
     public function notifySuspiciousActivity(User $user, int $failedAttempts): void
     {
         $email = new TemplatedEmail()
-            ->from(new Address('noreply@admds.net', 'Les Archers de Guyenne'))
+            ->from(new Address(self::MAILER_FROM_EMAIL, self::MAILER_FROM_NAME))
             ->to($user->getEmail())
             ->subject('Activité suspecte détectée sur votre compte')
             ->htmlTemplate('email/security_warning.html.twig')
@@ -43,7 +47,7 @@ class SecurityNotificationService
     public function notifyAccountLocked(User $user, int $lockDurationMinutes = 30): void
     {
         $email = new TemplatedEmail()
-            ->from(new Address('noreply@admds.net', 'Les Archers de Guyenne'))
+            ->from(new Address(self::MAILER_FROM_EMAIL, self::MAILER_FROM_NAME))
             ->to($user->getEmail())
             ->subject('Votre compte a été temporairement verrouillé')
             ->htmlTemplate('email/account_locked.html.twig')
@@ -62,7 +66,7 @@ class SecurityNotificationService
     public function notifyAccountUnlocked(User $user): void
     {
         $email = new TemplatedEmail()
-            ->from(new Address('noreply@admds.net', 'Les Archers de Guyenne'))
+            ->from(new Address(self::MAILER_FROM_EMAIL, self::MAILER_FROM_NAME))
             ->to($user->getEmail())
             ->subject('Votre compte a été déverrouillé')
             ->htmlTemplate('email/account_unlocked.html.twig')

@@ -15,9 +15,9 @@ import zxcvbn from "zxcvbn";
  *   </div>
  * </div>
  */
-export default class extends Controller {
-    static targets = ["input", "meter", "bar", "text"];
-    static values = {
+export default class PasswordStrengthController extends Controller {
+    static readonly targets = ["input", "meter", "bar", "text"];
+    static readonly values = {
         minScore: { type: Number, default: 2 }
     };
 
@@ -104,19 +104,19 @@ export default class extends Controller {
 
         // Try to get email
         const emailInput = form.querySelector<HTMLInputElement>("input[type='email']");
-        if (emailInput && emailInput.value) {
+        if (emailInput?.value) {
             inputs.push(emailInput.value);
         }
 
         // Try to get first name
         const firstnameInput = form.querySelector<HTMLInputElement>("input[name*='firstname'], input[id*='firstname']");
-        if (firstnameInput && firstnameInput.value) {
+        if (firstnameInput?.value) {
             inputs.push(firstnameInput.value);
         }
 
         // Try to get last name
         const lastnameInput = form.querySelector<HTMLInputElement>("input[name*='lastname'], input[id*='lastname']");
-        if (lastnameInput && lastnameInput.value) {
+        if (lastnameInput?.value) {
             inputs.push(lastnameInput.value);
         }
 

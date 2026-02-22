@@ -23,6 +23,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 
 class SecurityLogCrudController extends AbstractCrudController
 {
+    private const string ENTITY_LABEL = 'Journal de sécurité';
+
     #[\Override]
     public static function getEntityFqcn(): string
     {
@@ -33,9 +35,9 @@ class SecurityLogCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular('Journal de sécurité')
-            ->setEntityLabelInPlural('Journal de sécurité')
-            ->setPageTitle(Crud::PAGE_INDEX, 'Journal de sécurité')
+            ->setEntityLabelInSingular(self::ENTITY_LABEL)
+            ->setEntityLabelInPlural(self::ENTITY_LABEL)
+            ->setPageTitle(Crud::PAGE_INDEX, self::ENTITY_LABEL)
             ->setPageTitle(Crud::PAGE_DETAIL, static fn (SecurityLog $log): string => \sprintf('#%d - %s', $log->getId(), $log->getEventType()))
             ->setDefaultSort(['occurredAt' => 'DESC'])
             ->setPaginatorPageSize(50);

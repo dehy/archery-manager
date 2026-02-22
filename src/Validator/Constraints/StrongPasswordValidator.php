@@ -12,6 +12,8 @@ use ZxcvbnPhp\Zxcvbn;
 
 class StrongPasswordValidator extends ConstraintValidator
 {
+    private const string PLACEHOLDER_SCORE = '{{ score }}';
+
     private readonly Zxcvbn $zxcvbn;
 
     public function __construct()
@@ -47,18 +49,18 @@ class StrongPasswordValidator extends ConstraintValidator
             // Build violation message based on available feedback
             if (!empty($warning) && !empty($suggestions)) {
                 $this->context->buildViolation($constraint->withSuggestionsMessage)
-                    ->setParameter('{{ score }}', (string) $score)
+                    ->setParameter(self::PLACEHOLDER_SCORE, (string) $score)
                     ->setParameter('{{ warning }}', $warning)
                     ->setParameter('{{ suggestions }}', implode(', ', $suggestions))
                     ->addViolation();
             } elseif (!empty($warning)) {
                 $this->context->buildViolation($constraint->withWarningMessage)
-                    ->setParameter('{{ score }}', (string) $score)
+                    ->setParameter(self::PLACEHOLDER_SCORE, (string) $score)
                     ->setParameter('{{ warning }}', $warning)
                     ->addViolation();
             } else {
                 $this->context->buildViolation($constraint->tooWeakMessage)
-                    ->setParameter('{{ score }}', (string) $score)
+                    ->setParameter(self::PLACEHOLDER_SCORE, (string) $score)
                     ->addViolation();
             }
         }
