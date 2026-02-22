@@ -8,6 +8,8 @@ twig:
         appEnvironment: '%env(APP_ENV)%'
         apiUrl: '%env(APP_URL)%/api'
         observabilityCollectorUrl: '%env(OBSERVABILITY_COLLECTOR_URL)%'
+        matomoUrl: '%env(default::MATOMO_URL)%'
+        matomoSiteId: '%env(default::MATOMO_SITE_ID)%'
         licenseeHelper: '@App\Helper\LicenseeHelper'
         licenseHelper: '@App\Helper\LicenseHelper'
         eventHelper: '@App\Helper\EventHelper'
