@@ -11,7 +11,6 @@ use App\Repository\UserRepository;
 use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
-use Symfony\Component\HttpClient\Response\JsonMockResponse;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
 /**
@@ -51,8 +50,15 @@ final class FftaHelperTest extends KernelTestCase
                 }
 
                 if ('POST' === $method) {
-                    return new JsonMockResponse();
+                    return new MockResponse('', [
+                        'http_code' => 302,
+                        'response_headers' => ['Location' => 'https://dirigeant.ffta.fr/home'],
+                    ]);
                 }
+            }
+
+            if ('/home' === $url) {
+                return new MockResponse('');
             }
 
             if (1 === preg_match('!/structures/fiche/\d+/licencies/ajax!', $url)) {

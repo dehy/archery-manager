@@ -32,4 +32,10 @@
     <extensions>
         <bootstrap class="DAMA\DoctrineTestBundle\PHPUnit\PHPUnitExtension"/>
     </extensions>
+
+    <groups>
+        <exclude>
+            <group>disabled</group>
+        </exclude>
+    </groups>
 </phpunit>
