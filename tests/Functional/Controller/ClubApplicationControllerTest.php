@@ -202,7 +202,7 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/waiting-list');
         $this->assertResponseIsSuccessful();
 
-        $form = $crawler->selectButton('Mettre en liste d\'attente')->form();
+        $form = $crawler->selectButton("Mettre en liste d'attente")->form();
         $client->submit($form);
 
         $this->assertResponseRedirects(self::URL_MANAGE);

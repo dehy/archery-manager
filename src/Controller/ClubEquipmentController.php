@@ -296,6 +296,7 @@ class ClubEquipmentController extends BaseController
         if (!\in_array($sort, $validSorts, true)) {
             $sort = 'startDate';
         }
+
         $dir = 'ASC' === strtoupper($dir) ? 'ASC' : 'DESC';
 
         $activeLoans = $this->loanRepository->findActiveLoans(
