@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
@@ -35,7 +37,7 @@ final class LoginFormAuthenticatorTest extends TestCase
         );
 
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $rateLimiterFactory = $this->createMock(\Symfony\Component\RateLimiter\RateLimiterFactory::class);
+        $rateLimiterFactory = new RateLimiterFactory(['id' => 'login_test', 'policy' => 'no_limit'], new InMemoryStorage());
         $captchaService = $this->createMock(\App\Service\FriendlyCaptchaService::class);
 
         $this->authenticator = new LoginFormAuthenticator(

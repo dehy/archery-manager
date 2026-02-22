@@ -17,3 +17,13 @@ framework:
             policy: 'sliding_window'
             limit: 3
             interval: '1 hour'
+
+when@test:
+    framework:
+        rate_limiter:
+            login:
+                policy: 'no_limit'
+            registration:
+                policy: 'no_limit'
+            password_reset:
+                policy: 'no_limit'

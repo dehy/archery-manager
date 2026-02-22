@@ -40,6 +40,7 @@ final class ClubEquipmentTypeTest extends TypeTestCase
         $formData = [
             'type' => ClubEquipmentTypeEnum::BOW,
             'name' => 'Test Bow',
+            'quantity' => 1,
             'bowType' => 'classique_competition',
             'brand' => 'Hoyt',
             'model' => 'Formula Xi',
@@ -63,6 +64,7 @@ final class ClubEquipmentTypeTest extends TypeTestCase
         $formData = [
             'type' => ClubEquipmentTypeEnum::ARROWS,
             'name' => 'Test Arrows',
+            'quantity' => 1,
             'arrowType' => 'carbon',
             'arrowLength' => '28',
             'arrowSpine' => '500',
@@ -83,6 +85,7 @@ final class ClubEquipmentTypeTest extends TypeTestCase
         $formData = [
             'type' => ClubEquipmentTypeEnum::OTHER,
             'name' => 'Test Other',
+            'quantity' => 1,
         ];
 
         $equipment = new ClubEquipment();
@@ -117,7 +120,7 @@ final class ClubEquipmentTypeTest extends TypeTestCase
         $this->assertTrue($form->has('type'));
         $this->assertTrue($form->has('name'));
         $this->assertTrue($form->has('serialNumber'));
-        $this->assertTrue($form->has('count'));
+        $this->assertTrue($form->has('quantity'));
         $this->assertTrue($form->has('notes'));
     }
 
@@ -139,6 +142,7 @@ final class ClubEquipmentTypeTest extends TypeTestCase
             $form->submit([
                 'type' => $type,
                 'name' => 'Equipment '.$type,
+                'quantity' => 1,
             ]);
 
             $this->assertTrue($form->isSynchronized(), 'Form not synchronized for type: '.$type);

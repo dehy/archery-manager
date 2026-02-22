@@ -126,12 +126,13 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
 
     // ── Validate ───────────────────────────────────────────────────────
 
-    public function testValidateRequiresPostMethod(): void
+    public function testValidateFormRendersForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        // GET should not be allowed for validate action
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/99999/validate');
-        $this->assertResponseStatusCodeSame(405);
+        $applicationId = $this->createTestApplication($client);
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/validate');
+        $this->assertResponseIsSuccessful();
     }
 
     public function testValidateNonExistentApplicationReturns404(): void
@@ -146,7 +147,11 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $applicationId = $this->createTestApplication($client);
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/'.$applicationId.'/validate');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/validate');
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Accepter la demande')->form();
+        $client->submit($form);
 
         $this->assertResponseRedirects(self::URL_MANAGE);
 
@@ -160,28 +165,32 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $applicationId = $this->createTestApplication($client);
 
-        // Validate once
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/'.$applicationId.'/validate');
+        // Validate once via form submission
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/validate');
+        $this->assertResponseIsSuccessful();
+        $client->submit($crawler->selectButton('Accepter la demande')->form());
         $this->assertResponseRedirects(self::URL_MANAGE);
 
-        // Try to validate again
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/'.$applicationId.'/validate');
+        // Try to validate again — should redirect with warning (already processed)
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/validate');
         $this->assertResponseRedirects(self::URL_MANAGE);
     }
 
     // ── Waiting List ───────────────────────────────────────────────────
 
-    public function testWaitingListRequiresPostMethod(): void
+    public function testWaitingListFormRendersForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/99999/waiting-list');
-        $this->assertResponseStatusCodeSame(405);
+        $applicationId = $this->createTestApplication($client);
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/waiting-list');
+        $this->assertResponseIsSuccessful();
     }
 
     public function testWaitingListNonExistentApplicationReturns404(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/99999/waiting-list');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/99999/waiting-list');
         $this->assertResponseStatusCodeSame(404);
     }
 
@@ -190,7 +199,11 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $applicationId = $this->createTestApplication($client);
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/'.$applicationId.'/waiting-list');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/waiting-list');
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Mettre en liste d\'attente')->form();
+        $client->submit($form);
 
         $this->assertResponseRedirects(self::URL_MANAGE);
 
@@ -227,8 +240,8 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/reject');
         $this->assertResponseIsSuccessful();
 
-        $form = $crawler->selectButton('Refuser')->form([
-            'club_application_reject[rejectionReason]' => 'Le club a atteint sa capacité maximale pour cette saison.',
+        $form = $crawler->selectButton('Refuser la demande')->form([
+            'club_application_process[adminMessage]' => 'Le club a atteint sa capacité maximale pour cette saison.',
         ]);
         $client->submit($form);
 
@@ -237,7 +250,7 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         // Verify status changed
         $application = self::getContainer()->get(ClubApplicationRepository::class)->find($applicationId);
         $this->assertSame(ClubApplicationStatusType::REJECTED, $application->getStatus());
-        $this->assertNotNull($application->getRejectionReason());
+        $this->assertNotNull($application->getAdminMessage());
     }
 
     public function testRejectAlreadyProcessedShowsWarning(): void
@@ -245,11 +258,13 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $applicationId = $this->createTestApplication($client);
 
-        // First validate it
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/club-application/'.$applicationId.'/validate');
+        // First validate it via form submission
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/validate');
+        $this->assertResponseIsSuccessful();
+        $client->submit($crawler->selectButton('Accepter la demande')->form());
         $this->assertResponseRedirects(self::URL_MANAGE);
 
-        // Then try to reject it
+        // Then try to reject it — should redirect with warning (already processed)
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/reject');
         $this->assertResponseRedirects(self::URL_MANAGE);
     }
