@@ -3,14 +3,14 @@
 <script>
     var _paq = window._paq = window._paq || [];
     {% if app.user %}
-    _paq.push(['setUserId', '{{ app.user.id }}']);
+    _paq.push(['setUserId', '{{ app.user.id|e('js') }}']);
     {% endif %}
     _paq.push(['trackPageView']);
     _paq.push(['enableLinkTracking']);
     (function() {
-        var u = "{{ matomoUrl | trim('/') }}/";
+        var u = "{{ matomoUrl | trim('/') | e('js') }}/";
         _paq.push(['setTrackerUrl', u + 'matomo.php']);
-        _paq.push(['setSiteId', '{{ matomoSiteId }}']);
+        _paq.push(['setSiteId', '{{ matomoSiteId | e('js') }}']);
         var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
         g.async = true; g.src = u + 'matomo.js'; s.parentNode.insertBefore(g, s);
     })();
