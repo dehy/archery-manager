@@ -15,8 +15,8 @@ echo ${VERSION:-""} > version
 # Make the PHP-FPM php.ini same as fpm
 ln -sf /etc/php/8.4/fpm/php.ini /etc/php/8.4/cli/php.ini
 
-mkdir -p /app/{.yarn,node_modules,public/build}
-chown -R symfony: /app/{node_modules,public/build}
+mkdir -p /app/{.yarn,node_modules,public/build,var/log,var/cache}
+chown -R symfony: /app/{node_modules,public/build,var}
 
 apt update
 apt install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
