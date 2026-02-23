@@ -2,7 +2,6 @@ FROM ubuntu:22.04
 
 ARG BUILD_DATE
 ARG VCS_REF
-ARG FONTAWESOME_NPM_AUTH_TOKEN
 ARG BUILD_TARGET=dev
 
 ENV TZ="Europe/Paris"
@@ -19,7 +18,7 @@ COPY ./docker/config /etc
 COPY --chown=symfony:symfony . /app
 
 COPY ./docker/post_build/configure.sh /docker/post_build/configure.sh
-RUN /bin/bash /docker/post_build/configure.sh && rm -rf /docker
+RUN --mount=type=secret,id=fontawesome_npm_auth_token /bin/bash /docker/post_build/configure.sh && rm -rf /docker
 
 COPY ./docker/post_build/entrypoint.sh /entrypoint.sh
 RUN echo $VCS_REF > /app/REVISION
