@@ -34,7 +34,7 @@ if [ "${BUILD_TARGET}" = "prod" ]; then
         echo "ERROR: BuildKit secret 'fontawesome_npm_auth_token' is required for production builds"
         exit 1
     fi
-    export FONTAWESOME_NPM_AUTH_TOKEN=$(cat "${FONTAWESOME_SECRET_FILE}")
+    { set +x; export FONTAWESOME_NPM_AUTH_TOKEN=$(cat "${FONTAWESOME_SECRET_FILE}"); set -x; } 2>/dev/null
     ${GOSU} /usr/bin/yarn install --immutable
     ${GOSU} /usr/bin/yarn build
     ${GOSU} rm -rf /app/{node_modules,.bash*,.cache,.config,.local,.npm,.yarn,.yarnrc}
