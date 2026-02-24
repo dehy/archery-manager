@@ -1,6 +1,6 @@
 # Politique de Confidentialité
 
-**Dernière mise à jour : 1er février 2026**
+**Dernière mise à jour : 23 février 2026**
 
 ## 1. Introduction
 
@@ -171,6 +171,7 @@ Ont accès à vos données personnelles :
 Les données peuvent être traitées par les prestataires suivants :
 - **Scaleway** (hébergement) - France/UE
 - **Mailgun** ou **Scaleway** (envoi d'emails) - UE
+- **Matomo** (analytics d'audience) - hébergé sur nos serveurs (admds.net, France)
 - **Discord** (si intégration activée) - USA (avec clauses contractuelles types)
 - **FFTA** (synchronisation des licences) - France
 
@@ -285,11 +286,31 @@ La Plateforme utilise des **cookies strictement nécessaires** au fonctionnement
 | REMEMBERME | Maintien de la connexion | 7 jours | Consentement |
 | season_selection | Saison sélectionnée | 1 an | Nécessaire |
 
-### 9.2 Cookies tiers
+### 9.2 Cookies tiers et outils de suivi
 
-La Plateforme peut utiliser :
-- **Grafana Faro** (observabilité) - cookies de performance (avec consentement)
-- **Sentry** (suivi des erreurs) - pas de cookies
+La Plateforme utilise les outils suivants :
+- **Matomo Analytics** (mesure d'audience) — cookies de performance et identifiant de session
+- **Grafana Faro** (observabilité technique) — cookies de performance (avec consentement)
+- **Sentry** (suivi des erreurs) — pas de cookies
+
+#### Matomo Analytics
+
+La Plateforme utilise **Matomo**, un outil de mesure d'audience hébergé sur nos propres serveurs (`matomo.admds.net`, France). Matomo collecte les données suivantes :
+
+| Donnée collectée | Finalité | Durée de conservation |
+|------------------|----------|----------------------|
+| Pages visitées | Analyse du parcours utilisateur | 13 mois |
+| Durée des visites | Mesure de l'engagement | 13 mois |
+| Source du trafic (référent) | Compréhension des accès | 13 mois |
+| Type de navigateur et résolution d'écran | Optimisation du service | 13 mois |
+| Adresse IP (anonymisée) | Géolocalisation approximative | 13 mois |
+| **Identifiant utilisateur numérique** | Association des visites à un compte connecté | 13 mois |
+
+**Identifiant utilisateur :** lorsque vous êtes connecté(e), votre identifiant interne numérique (non directement lié à votre email ou nom) est transmis à Matomo afin d'associer vos visites à un même compte et de mieux comprendre les parcours utilisateurs. Cet identifiant ne permet pas de vous identifier directement depuis Matomo sans accès à la base de données de la Plateforme.
+
+**Hébergement :** Matomo est hébergé sur nos serveurs en France. **Aucune donnée n'est transmise à des tiers.**
+
+**Base légale :** intérêt légitime (Art. 6.1.f RGPD) — amélioration du Service et analyse de l'audience. L'adresse IP est anonymisée avant tout stockage.
 
 ### 9.3 Gestion des cookies
 
@@ -404,5 +425,5 @@ Cette Politique est régie par le droit français et le RGPD.
 ---
 
 **Archery Manager** - Politique de Confidentialité  
-Dernière mise à jour : 1er février 2026  
+Dernière mise à jour : 23 février 2026  
 © 2026 - Tous droits réservés
