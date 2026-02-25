@@ -52,11 +52,11 @@ final class ConsentControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
 
         /** @var ConsentLogRepository $repo */
-        $repo = static::getContainer()->get(ConsentLogRepository::class);
+        $repo = self::getContainer()->get(ConsentLogRepository::class);
         $logs = $repo->findBy([], ['id' => 'DESC'], 1);
 
         $this->assertCount(1, $logs);
-        $this->assertNull($logs[0]->getUser());
+        $this->assertNotInstanceOf(\App\Entity\User::class, $logs[0]->getUser());
     }
 
     public function testInvalidActionReturns400(): void
@@ -117,10 +117,10 @@ final class ConsentControllerAuthenticatedTest extends LoggedInTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
 
         /** @var ConsentLogRepository $repo */
-        $repo = static::getContainer()->get(ConsentLogRepository::class);
+        $repo = self::getContainer()->get(ConsentLogRepository::class);
         $logs = $repo->findBy([], ['id' => 'DESC'], 1);
 
         $this->assertCount(1, $logs);
-        $this->assertNotNull($logs[0]->getUser());
+        $this->assertInstanceOf(\App\Entity\User::class, $logs[0]->getUser());
     }
 }
