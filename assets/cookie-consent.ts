@@ -23,6 +23,7 @@ function initMatomo(cookiesEnabled: boolean): void {
     const matomoSiteId = config.get('matomoSiteId') as string | undefined;
 
     if (!matomoUrl || !matomoSiteId) {
+        console.log('Matomo URL or Site ID not configured; skipping Matomo initialization.');
         return;
     }
 
