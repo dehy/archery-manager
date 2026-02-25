@@ -1,3 +1,4 @@
+import "./cookie-consent";
 import "./styles/unauthenticated.scss";
 
 // start the Stimulus application
