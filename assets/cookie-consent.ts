@@ -1,5 +1,5 @@
 import 'vanilla-cookieconsent/dist/cookieconsent.css';
-import CookieConsent from 'vanilla-cookieconsent';
+import * as CookieConsent from 'vanilla-cookieconsent';
 import axios from 'axios';
 
 import config from './config';
