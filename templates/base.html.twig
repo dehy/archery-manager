@@ -33,6 +33,7 @@
         data-env-observability-collector-url="{{ observabilityCollectorUrl }}"
         data-env-matomo-url="{{ matomoUrl ?? '' }}"
         data-env-matomo-site-id="{{ matomoSiteId ?? '' }}"
+        data-env-matomo-user-id="{{ app.user ? app.user.id : '' }}"
         {{ stimulus_controller('modal') }}
 >
 <div class="mobile-tab-bar navbar navbar-expand navbar-dark bg-primary">

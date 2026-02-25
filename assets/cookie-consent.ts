@@ -36,6 +36,11 @@ function initMatomo(cookiesEnabled: boolean): void {
         paq.push(['rememberConsentGiven']);
     }
 
+    const matomoUserId = config.get('matomoUserId') as string | undefined;
+    if (matomoUserId) {
+        paq.push(['setUserId', matomoUserId]);
+    }
+
     paq.push(['trackPageView']);
     paq.push(['enableLinkTracking']);
 
