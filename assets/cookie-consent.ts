@@ -4,7 +4,7 @@ import axios from 'axios';
 
 import config from './config';
 
-const POLICY_VERSION = '2026-02-25';
+const POLICY_VERSION = '2026-02-24';
 
 declare global {
     interface Window {
@@ -94,8 +94,15 @@ function postConsentLog(): void {
 // ---------------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Always start Matomo cookieless (CNIL-exempt — no consent needed).
-    initMatomo(false);
+    // Start Matomo cookieless unless the user already has valid analytics consent.
+    // When existing consent is valid, `onConsent` fires right after run() and
+    // calls initMatomo(true), so we avoid a conflicting double-init.
+    const hasValidAnalyticsConsent =
+        CookieConsent.validConsent() && CookieConsent.acceptedCategory('analytics');
+
+    if (!hasValidAnalyticsConsent) {
+        initMatomo(false);
+    }
 
     CookieConsent.run({
         revision: 1,
@@ -128,7 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
         onChange: (): void => {
             postConsentLog();
             if (!CookieConsent.acceptedCategory('analytics')) {
-                // Matomo will keep running cookieless; _pk_* cookies are cleared by autoClear.
+                // Revert Matomo to cookieless mode; _pk_* cookies are cleared by autoClear.
+                window._paq?.push(['forgetConsentGiven']);
+                window._paq?.push(['disableCookies']);
                 return;
             }
             initMatomo(true);

@@ -286,15 +286,15 @@ La Plateforme utilise des **cookies strictement nécessaires** au fonctionnement
 | REMEMBERME | Maintien de la connexion | 7 jours | Consentement |
 | season_selection | Saison sélectionnée | 1 an | Nécessaire |
 
-### 9.2 Bannière de consentement (Klaro)
+### 9.2 Bannière de consentement (vanilla-cookieconsent)
 
-La Plateforme utilise **Klaro**, un gestionnaire de consentement (CMP) open source, pour vous permettre de contrôler les technologies de mesure d'audience.
+La Plateforme utilise la bibliothèque open source **vanilla-cookieconsent** comme gestionnaire de consentement (CMP), pour vous permettre de contrôler les technologies de mesure d'audience.
 
-Un bandeau de consentement s'affiche lors de votre première visite. Vous pouvez accepter ou refuser les outils de mesure et modifier votre choix à tout moment. Vos préférences sont enregistrées dans un cookie `klaro` (durée : 1 an) et consignées dans notre base de données à des fins d'audit RGPD.
+Un bandeau de consentement s'affiche lors de votre première visite. Vous pouvez accepter ou refuser les outils de mesure et modifier votre choix à tout moment. Vos préférences sont enregistrées dans un cookie `cc_cookie` (durée : 1 an) et consignées dans notre base de données à des fins d'audit RGPD.
 
 | Cookie | Finalité | Durée |
-|--------|----------|-------|
-| klaro | Mémorisation de vos préférences de consentement | 1 an |
+|--------|----------|---------|
+| cc_cookie | Mémorisation de vos préférences de consentement | 1 an |
 
 ### 9.3 Cookies tiers et outils de suivi
 
@@ -309,7 +309,7 @@ La Plateforme utilise **Matomo**, un outil de mesure d'audience hébergé sur no
 
 **Mode sans cookies (défaut, exempté CNIL) :** Par défaut, et sans aucune action de votre part, Matomo fonctionne en mode « sans cookies ». Dans ce mode, aucun cookie n'est déposé et votre adresse IP est anonymisée avant stockage. Ce traitement est exempté d'obligation de consentement selon les recommandations de la CNIL.
 
-**Mode avec cookies (si vous acceptez) :** Si vous acceptez via la bannière de consentement, Matomo dépose des cookies de performance (`_pk_*`) pour une analyse plus précise de votre parcours. Vous pouvez retirer ce consentement à tout moment via l'icône de gestion des consentements en bas de page.
+**Mode avec cookies (si vous acceptez) :** Si vous acceptez via la bannière de consentement, Matomo dépose des cookies de performance (`_pk_*`) pour une analyse plus précise de votre parcours. Vous pouvez retirer ce consentement à tout moment via le bouton « Cookies » affiché en bas de chaque page.
 
 Matomo collecte les données suivantes :
 

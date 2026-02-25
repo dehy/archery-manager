@@ -9,7 +9,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ConsentLogRepository::class)]
-#[ORM\Table(name: 'consent_log')]
+#[ORM\Table(
+    name: 'consent_log',
+    indexes: [
+        new ORM\Index(name: 'consent_log_created_at_idx', columns: ['created_at']),
+        new ORM\Index(name: 'consent_log_action_idx', columns: ['action']),
+    ],
+)]
 class ConsentLog
 {
     #[ORM\Id]
@@ -18,7 +24,7 @@ class ConsentLog
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $user = null;
 
     /** @var array<string> */

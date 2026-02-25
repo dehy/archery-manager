@@ -22,7 +22,7 @@ final class ConsentControllerTest extends WebTestCase
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
             'services' => ['matomo'],
             'action' => 'accepted',
-            'policyVersion' => '2026-02-23',
+            'policyVersion' => '2026-02-24',
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
@@ -34,7 +34,7 @@ final class ConsentControllerTest extends WebTestCase
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
             'services' => [],
             'action' => 'declined',
-            'policyVersion' => '2026-02-23',
+            'policyVersion' => '2026-02-24',
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
@@ -46,7 +46,7 @@ final class ConsentControllerTest extends WebTestCase
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
             'services' => ['matomo'],
             'action' => 'accepted',
-            'policyVersion' => '2026-02-23',
+            'policyVersion' => '2026-02-24',
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
@@ -56,7 +56,7 @@ final class ConsentControllerTest extends WebTestCase
         $logs = $repo->findBy([], ['id' => 'DESC'], 1);
 
         $this->assertCount(1, $logs);
-        $this->assertNotInstanceOf(\App\Entity\User::class, $logs[0]->getUser());
+        $this->assertNull($logs[0]->getUser());
     }
 
     public function testInvalidActionReturns400(): void
@@ -65,7 +65,7 @@ final class ConsentControllerTest extends WebTestCase
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
             'services' => ['matomo'],
             'action' => 'invalid_action',
-            'policyVersion' => '2026-02-23',
+            'policyVersion' => '2026-02-24',
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
@@ -99,7 +99,7 @@ final class ConsentControllerAuthenticatedTest extends LoggedInTestCase
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
             'services' => ['matomo'],
             'action' => 'accepted',
-            'policyVersion' => '2026-02-23',
+            'policyVersion' => '2026-02-24',
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
@@ -111,7 +111,7 @@ final class ConsentControllerAuthenticatedTest extends LoggedInTestCase
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
             'services' => ['matomo'],
             'action' => 'accepted',
-            'policyVersion' => '2026-02-23',
+            'policyVersion' => '2026-02-24',
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
