@@ -284,6 +284,38 @@ class EventController extends BaseController
         ]);
     }
 
+    #[Route('/events/{slug}/results', name: 'app_event_results')]
+    public function resultsShow(
+        string $slug,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $this->assertHasValidLicense();
+
+        /** @var ContestEventRepository $contestEventRepository */
+        $contestEventRepository = $entityManager->getRepository(ContestEvent::class);
+        /** @var ContestEvent $event */
+        $event = $contestEventRepository->findBySlug($slug);
+
+        /** @var ResultRepository $resultRepository */
+        $resultRepository = $entityManager->getRepository(Result::class);
+        $results = $resultRepository->findBy(['event' => $event]);
+
+        usort($results, static function (Result $a, Result $b): int {
+            if ($a->getAgeCategory() === $b->getAgeCategory()) {
+                return $a->getLicensee()->getFullname() <=> $b->getLicensee()->getFullname();
+            }
+
+            $choices = array_values(LicenseAgeCategoryType::getOrderedChoices());
+
+            return array_search($a->getAgeCategory(), $choices, true) <=> array_search($b->getAgeCategory(), $choices, true);
+        });
+
+        return $this->render('event/results.html.twig', [
+            'event' => $event,
+            'results' => $results,
+        ]);
+    }
+
     #[Route('/events/{slug}/results/edit')]
     public function resultsEdit(
         string $slug,
