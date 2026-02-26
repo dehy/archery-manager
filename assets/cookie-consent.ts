@@ -30,27 +30,32 @@ function initMatomo(cookiesEnabled: boolean): void {
     window._paq = window._paq ?? [];
     const paq = window._paq;
 
+    // Always update the consent mode — this is the only call that legitimately
+    // changes between invocations (cookieless → cookie or vice-versa).
     if (!cookiesEnabled) {
         paq.push(['disableCookies']);
     } else {
         paq.push(['rememberConsentGiven']);
     }
 
-    const matomoUserId = config.get('matomoUserId') as string | undefined;
-    if (matomoUserId) {
-        paq.push(['setUserId', matomoUserId]);
-    }
-
-    paq.push(['trackPageView']);
-    paq.push(['enableLinkTracking']);
-
-    const baseUrl = matomoUrl.replace(/\/$/, '') + '/';
-    paq.push(['setTrackerUrl', baseUrl + 'matomo.php']);
-    paq.push(['setSiteId', matomoSiteId]);
-
-    // Only inject the tracker script once.
+    // One-time setup: tracking commands and script injection.
+    // Guarded so that a second call (e.g. consent accepted after a cookieless
+    // init) does not produce duplicate trackPageView / configuration pushes.
     if (!matomoInitialized) {
         matomoInitialized = true;
+
+        const matomoUserId = config.get('matomoUserId') as string | undefined;
+        if (matomoUserId) {
+            paq.push(['setUserId', matomoUserId]);
+        }
+
+        paq.push(['trackPageView']);
+        paq.push(['enableLinkTracking']);
+
+        const baseUrl = matomoUrl.replace(/\/$/, '') + '/';
+        paq.push(['setTrackerUrl', baseUrl + 'matomo.php']);
+        paq.push(['setSiteId', matomoSiteId]);
+
         const script = document.createElement('script');
         script.async = true;
         script.src = baseUrl + 'matomo.js';
