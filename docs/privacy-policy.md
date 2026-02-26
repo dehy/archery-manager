@@ -330,7 +330,7 @@ Matomo collecte les données suivantes :
 
 ### 9.4 Gestion des cookies
 
-Vous pouvez gérer vos préférences de consentement à tout moment en cliquant sur l'icône de gestion des consentements affichée en bas de chaque page, ou via les paramètres de votre navigateur.
+Vous pouvez gérer vos préférences de consentement à tout moment en cliquant sur le bouton « Cookies » affiché en bas de chaque page, ou via les paramètres de votre navigateur.
 
 Le refus des cookies de mesure n'affecte pas le fonctionnement du Service. Seuls les cookies strictement nécessaires (session, connexion mémorisée, sélection de saison) sont alors conservés.
 
