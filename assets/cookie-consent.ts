@@ -114,8 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         guiOptions: {
             consentModal: {
-                layout: 'bar inline',
-                position: 'bottom center',
+                layout: 'box',
+                position: 'middle center',
             },
         },
 
