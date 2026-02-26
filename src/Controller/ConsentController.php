@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\ConsentLog;
 use App\Entity\User;
+use App\Helper\IpAnonymizer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,8 +29,10 @@ final class ConsentController extends AbstractController
 
     private const string ERROR_KEY = 'error';
 
-    public function __construct(private readonly RateLimiterFactory $consentLimiter)
-    {
+    public function __construct(
+        private readonly RateLimiterFactory $consentLimiter,
+        private readonly IpAnonymizer $ipAnonymizer,
+    ) {
     }
 
     #[Route('/api/consent', name: 'app_api_consent', methods: ['POST'])]
@@ -59,7 +62,7 @@ final class ConsentController extends AbstractController
             ->setServices($payloadOrError['services'])
             ->setAction($payloadOrError['action'])
             ->setPolicyVersion($payloadOrError['policyVersion'])
-            ->setIpAddressAnonymized($this->anonymizeIp($request->getClientIp() ?? ''))
+            ->setIpAddressAnonymized($this->ipAnonymizer->anonymize($request->getClientIp() ?? ''))
             ->setUserAgent($userAgent);
 
         $entityManager->persist($consentLog);
@@ -175,33 +178,5 @@ final class ConsentController extends AbstractController
         }
 
         return null;
-    }
-
-    private function anonymizeIp(string $ip): string
-    {
-        if ('' === $ip) {
-            return '';
-        }
-
-        if (str_contains($ip, ':')) {
-            // IPv6: zero the last 80 bits (10 bytes) of the 16-byte address
-            $packed = inet_pton($ip);
-            if (false !== $packed) {
-                $anonymized = inet_ntop(substr($packed, 0, 6).str_repeat("\x00", 10));
-                $result = $anonymized ?: '';
-            } else {
-                $result = '';
-            }
-        } else {
-            // IPv4: zero the last octet
-            $parts = explode('.', $ip);
-            $result = '';
-            if (4 === \count($parts)) {
-                $parts[3] = '0';
-                $result = implode('.', $parts);
-            }
-        }
-
-        return $result;
     }
 }
