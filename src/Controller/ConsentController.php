@@ -29,6 +29,15 @@ final class ConsentController extends AbstractController
 
     private const string ERROR_KEY = 'error';
 
+    /**
+     * Exhaustive list of service names that the cookie-consent frontend may submit.
+     * Keep this in sync with the `services:` keys defined inside each category in
+     * assets/cookie-consent.ts.
+     *
+     * @var list<string>
+     */
+    private const array VALID_SERVICES = ['matomo'];
+
     public function __construct(
         private readonly RateLimiterFactory $consentLimiter,
         private readonly IpAnonymizer $ipAnonymizer,
@@ -169,12 +178,29 @@ final class ConsentController extends AbstractController
         }
 
         foreach ($services as $service) {
-            if (\strlen($service) > self::MAX_SERVICE_LENGTH) {
-                return new JsonResponse(
-                    [self::ERROR_KEY => \sprintf('Each service name must not exceed %d characters.', self::MAX_SERVICE_LENGTH)],
-                    Response::HTTP_BAD_REQUEST,
-                );
+            $itemError = $this->validateServiceItem($service);
+            if ($itemError instanceof JsonResponse) {
+                return $itemError;
             }
+        }
+
+        return null;
+    }
+
+    private function validateServiceItem(string $service): ?JsonResponse
+    {
+        if (\strlen($service) > self::MAX_SERVICE_LENGTH) {
+            return new JsonResponse(
+                [self::ERROR_KEY => \sprintf('Each service name must not exceed %d characters.', self::MAX_SERVICE_LENGTH)],
+                Response::HTTP_BAD_REQUEST,
+            );
+        }
+
+        if (!\in_array($service, self::VALID_SERVICES, true)) {
+            return new JsonResponse(
+                [self::ERROR_KEY => \sprintf('Unknown service "%s". Allowed: %s.', $service, implode(', ', self::VALID_SERVICES) ?: 'none')],
+                Response::HTTP_BAD_REQUEST,
+            );
         }
 
         return null;

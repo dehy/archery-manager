@@ -19,7 +19,7 @@ final class ConsentControllerTest extends WebTestCase
     {
         $client = self::createClient();
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
-            'services' => ['matomo'],
+            'services' => [],
             'action' => 'accepted',
             'policyVersion' => '2026-02-24',
         ]);
@@ -43,7 +43,7 @@ final class ConsentControllerTest extends WebTestCase
     {
         $client = self::createClient();
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
-            'services' => ['matomo'],
+            'services' => [],
             'action' => 'accepted',
             'policyVersion' => '2026-02-24',
         ]);
@@ -62,7 +62,7 @@ final class ConsentControllerTest extends WebTestCase
     {
         $client = self::createClient();
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
-            'services' => ['matomo'],
+            'services' => [],
             'action' => 'invalid_action',
             'policyVersion' => '2026-02-24',
         ]);
@@ -91,7 +91,7 @@ final class ConsentControllerTest extends WebTestCase
     {
         $client = self::createClient();
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
-            'services' => ['matomo'],
+            'services' => [],
             'action' => 'accepted',
             'policyVersion' => '',
         ]);
@@ -103,7 +103,7 @@ final class ConsentControllerTest extends WebTestCase
     {
         $client = self::createClient();
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
-            'services' => ['matomo'],
+            'services' => [],
             'action' => 'accepted',
         ]);
 
@@ -114,7 +114,7 @@ final class ConsentControllerTest extends WebTestCase
     {
         $client = self::createClient();
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
-            'services' => ['matomo'],
+            'services' => [],
             'action' => 'accepted',
             'policyVersion' => str_repeat('a', 33),
         ]);
@@ -126,7 +126,7 @@ final class ConsentControllerTest extends WebTestCase
     {
         $client = self::createClient();
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
-            'services' => ['matomo'],
+            'services' => [],
             'action' => 'accepted',
             'policyVersion' => str_repeat('a', 32),
         ]);
@@ -140,7 +140,7 @@ final class ConsentControllerTest extends WebTestCase
     {
         $client = self::createClient();
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
-            'services' => array_fill(0, 21, 'matomo'),
+            'services' => array_fill(0, 21, str_repeat('x', 10)),
             'action' => 'accepted',
             'policyVersion' => '2026-02-24',
         ]);
@@ -160,11 +160,35 @@ final class ConsentControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
     }
 
-    public function testMaxServicesAndLengthReturns201(): void
+    public function testUnknownServiceReturns400(): void
     {
         $client = self::createClient();
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
-            'services' => array_fill(0, 20, str_repeat('x', 64)),
+            'services' => ['unknown-tracker'],
+            'action' => 'accepted',
+            'policyVersion' => '2026-02-24',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testKnownServiceReturns201(): void
+    {
+        $client = self::createClient();
+        $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
+            'services' => ['matomo'],
+            'action' => 'accepted',
+            'policyVersion' => '2026-02-24',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+    }
+
+    public function testEmptyServicesReturns201(): void
+    {
+        $client = self::createClient();
+        $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
+            'services' => [],
             'action' => 'accepted',
             'policyVersion' => '2026-02-24',
         ]);

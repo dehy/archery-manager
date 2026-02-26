@@ -2,6 +2,8 @@ import 'vanilla-cookieconsent/dist/cookieconsent.css';
 import * as CookieConsent from 'vanilla-cookieconsent';
 import axios from 'axios';
 
+const http = axios.create({ baseURL: '' });
+
 import config from './config';
 
 const POLICY_VERSION = '2026-02-24';
@@ -32,10 +34,10 @@ function initMatomo(cookiesEnabled: boolean): void {
 
     // Always update the consent mode — this is the only call that legitimately
     // changes between invocations (cookieless → cookie or vice-versa).
-    if (!cookiesEnabled) {
-        paq.push(['disableCookies']);
-    } else {
+    if (cookiesEnabled) {
         paq.push(['rememberConsentGiven']);
+    } else {
+        paq.push(['disableCookies']);
     }
 
     // One-time setup: tracking commands and script injection.
@@ -83,7 +85,7 @@ function postConsentLog(): void {
         action = 'partial';
     }
 
-    axios
+    http
         .post('/api/consent', {
             services: acceptedServices,
             action,
@@ -157,6 +159,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 enabled: false,
                 autoClear: {
                     cookies: [{ name: /^_pk_/ }],
+                },
+                services: {
+                    matomo: {
+                        label: 'Matomo Analytics',
+                    },
                 },
             },
         },

@@ -18,7 +18,7 @@ final class ConsentControllerAuthenticatedTest extends LoggedInTestCase
     {
         $client = self::createLoggedInAsUserClient();
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
-            'services' => ['matomo'],
+            'services' => [],
             'action' => 'accepted',
             'policyVersion' => '2026-02-24',
         ]);
@@ -30,7 +30,7 @@ final class ConsentControllerAuthenticatedTest extends LoggedInTestCase
     {
         $client = self::createLoggedInAsUserClient();
         $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
-            'services' => ['matomo'],
+            'services' => [],
             'action' => 'accepted',
             'policyVersion' => '2026-02-24',
         ]);
