@@ -196,5 +196,26 @@ final class ConsentControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
     }
 
+    public function testPartialActionWithSomeServicesReturns201AndStoresLog(): void
+    {
+        $client = self::createClient();
+        $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
+            'services' => ['matomo'],
+            'action' => 'partial',
+            'policyVersion' => '2026-02-24',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        /** @var ConsentLogRepository $repo */
+        $repo = self::getContainer()->get(ConsentLogRepository::class);
+        $logs = $repo->findBy([], ['id' => 'DESC'], 1);
+
+        $this->assertCount(1, $logs);
+        $this->assertSame('partial', $logs[0]->getAction());
+        $this->assertSame(['matomo'], $logs[0]->getServices());
+        $this->assertSame('2026-02-24', $logs[0]->getPolicyVersion());
+    }
+
     // ── Authenticated ──────────────────────────────────────────────────
 }
