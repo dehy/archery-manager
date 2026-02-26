@@ -56,7 +56,7 @@ final class ConsentControllerTest extends WebTestCase
         $logs = $repo->findBy([], ['id' => 'DESC'], 1);
 
         $this->assertCount(1, $logs);
-        $this->assertNull($logs[0]->getUser());
+        $this->assertNotInstanceOf(\App\Entity\User::class, $logs[0]->getUser());
     }
 
     public function testInvalidActionReturns400(): void
@@ -84,6 +84,93 @@ final class ConsentControllerTest extends WebTestCase
         );
 
         $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+    }
+
+    // ── policyVersion validation ───────────────────────────────────────
+
+    public function testEmptyPolicyVersionReturns400(): void
+    {
+        $client = self::createClient();
+        $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
+            'services' => ['matomo'],
+            'action' => 'accepted',
+            'policyVersion' => '',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testMissingPolicyVersionReturns400(): void
+    {
+        $client = self::createClient();
+        $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
+            'services' => ['matomo'],
+            'action' => 'accepted',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testTooLongPolicyVersionReturns400(): void
+    {
+        $client = self::createClient();
+        $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
+            'services' => ['matomo'],
+            'action' => 'accepted',
+            'policyVersion' => str_repeat('a', 33),
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testMaxLengthPolicyVersionReturns201(): void
+    {
+        $client = self::createClient();
+        $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
+            'services' => ['matomo'],
+            'action' => 'accepted',
+            'policyVersion' => str_repeat('a', 32),
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+    }
+
+    // ── services validation ────────────────────────────────────────────
+
+    public function testTooManyServicesReturns400(): void
+    {
+        $client = self::createClient();
+        $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
+            'services' => array_fill(0, 21, 'matomo'),
+            'action' => 'accepted',
+            'policyVersion' => '2026-02-24',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testServiceStringTooLongReturns400(): void
+    {
+        $client = self::createClient();
+        $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
+            'services' => [str_repeat('x', 65)],
+            'action' => 'accepted',
+            'policyVersion' => '2026-02-24',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testMaxServicesAndLengthReturns201(): void
+    {
+        $client = self::createClient();
+        $client->jsonRequest(Request::METHOD_POST, self::URL_CONSENT, [
+            'services' => array_fill(0, 20, str_repeat('x', 64)),
+            'action' => 'accepted',
+            'policyVersion' => '2026-02-24',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
     }
 
     // ── Authenticated ──────────────────────────────────────────────────
