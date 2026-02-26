@@ -1,3 +1,4 @@
+import "./cookie-consent";
 import "./styles/public.scss";
 
 import { library, dom } from "@fortawesome/fontawesome-svg-core";

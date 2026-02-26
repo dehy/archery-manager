@@ -1,6 +1,6 @@
 # Politique de Confidentialité
 
-**Dernière mise à jour : 23 février 2026**
+**Dernière mise à jour : 24 février 2026**
 
 ## 1. Introduction
 
@@ -286,16 +286,32 @@ La Plateforme utilise des **cookies strictement nécessaires** au fonctionnement
 | REMEMBERME | Maintien de la connexion | 7 jours | Consentement |
 | season_selection | Saison sélectionnée | 1 an | Nécessaire |
 
-### 9.2 Cookies tiers et outils de suivi
+### 9.2 Bannière de consentement (vanilla-cookieconsent)
+
+La Plateforme utilise la bibliothèque open source **vanilla-cookieconsent** comme gestionnaire de consentement (CMP), pour vous permettre de contrôler les technologies de mesure d'audience.
+
+Un bandeau de consentement s'affiche lors de votre première visite. Vous pouvez accepter ou refuser les outils de mesure et modifier votre choix à tout moment. Vos préférences sont enregistrées dans un cookie `cc_cookie` (durée : 1 an) et consignées dans notre base de données à des fins d'audit RGPD.
+
+| Cookie | Finalité | Durée |
+|--------|----------|---------|
+| cc_cookie | Mémorisation de vos préférences de consentement | 1 an |
+
+### 9.3 Cookies tiers et outils de suivi
 
 La Plateforme utilise les outils suivants :
-- **Matomo Analytics** (mesure d'audience) — cookies de performance et identifiant de session
+- **Matomo Analytics** (mesure d'audience) — cookies de performance (uniquement si vous acceptez)
 - **Grafana Faro** (observabilité technique) — cookies de performance (avec consentement)
 - **Sentry** (suivi des erreurs) — pas de cookies
 
 #### Matomo Analytics
 
-La Plateforme utilise **Matomo**, un outil de mesure d'audience hébergé sur nos propres serveurs (`matomo.admds.net`, France). Matomo collecte les données suivantes :
+La Plateforme utilise **Matomo**, un outil de mesure d'audience hébergé sur nos propres serveurs (`matomo.admds.net`, France).
+
+**Mode sans cookies (défaut, exempté CNIL) :** Par défaut, et sans aucune action de votre part, Matomo fonctionne en mode « sans cookies ». Dans ce mode, aucun cookie n'est déposé et votre adresse IP est anonymisée avant stockage. Ce traitement est exempté d'obligation de consentement selon les recommandations de la CNIL.
+
+**Mode avec cookies (si vous acceptez) :** Si vous acceptez via la bannière de consentement, Matomo dépose des cookies de performance (`_pk_*`) pour une analyse plus précise de votre parcours. Vous pouvez retirer ce consentement à tout moment via le bouton « Cookies » affiché en bas de chaque page.
+
+Matomo collecte les données suivantes :
 
 | Donnée collectée | Finalité | Durée de conservation |
 |------------------|----------|----------------------|
@@ -310,15 +326,15 @@ La Plateforme utilise **Matomo**, un outil de mesure d'audience hébergé sur no
 
 **Hébergement :** Matomo est hébergé sur nos serveurs en France. **Aucune donnée n'est transmise à des tiers.**
 
-**Base légale :** intérêt légitime (Art. 6.1.f RGPD) — amélioration du Service et analyse de l'audience. L'adresse IP est anonymisée avant tout stockage.
+**Base légale :** mode sans cookies — intérêt légitime (Art. 6.1.f RGPD) / mode avec cookies — consentement (Art. 6.1.a RGPD).
 
-### 9.3 Gestion des cookies
+### 9.4 Gestion des cookies
 
-Vous pouvez gérer les cookies via les paramètres de votre navigateur. Le refus des cookies strictement nécessaires peut empêcher l'utilisation de certaines fonctionnalités.
+Vous pouvez gérer vos préférences de consentement à tout moment en cliquant sur le bouton « Cookies » affiché en bas de chaque page, ou via les paramètres de votre navigateur.
 
-Les cookies analytiques et de performance nécessitent votre consentement préalable.
+Le refus des cookies de mesure n'affecte pas le fonctionnement du Service. Seuls les cookies strictement nécessaires (session, connexion mémorisée, sélection de saison) sont alors conservés.
 
-### 9.4 Pas de tracking publicitaire
+### 9.5 Pas de tracking publicitaire
 
 La Plateforme **ne réalise aucun tracking publicitaire** et n'utilise pas de cookies de ciblage publicitaire.
 
@@ -425,5 +441,5 @@ Cette Politique est régie par le droit français et le RGPD.
 ---
 
 **Archery Manager** - Politique de Confidentialité  
-Dernière mise à jour : 23 février 2026  
+Dernière mise à jour : 24 février 2026  
 © 2026 - Tous droits réservés

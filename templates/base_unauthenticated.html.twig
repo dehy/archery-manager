@@ -21,7 +21,10 @@
 
     <title>{% block title %}Archerie{% endblock %}</title>
 </head>
-<body>
+<body
+    data-env-matomo-url="{{ matomoUrl ?? '' }}"
+    data-env-matomo-site-id="{{ matomoSiteId ?? '' }}"
+>
 {% block page_layout %}
 <div class="container py-4">
     <div class="row justify-content-center">
@@ -40,6 +43,5 @@
 </div>
 {% endblock %}
 {% include '_footer.html.twig' %}
-{% include '_matomo.html.twig' %}
 </body>
 </html>

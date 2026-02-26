@@ -22,12 +22,14 @@
 
     <title>{% block title %}Les Archers de Bordeaux Guyenne{% endblock %}</title>
 </head>
-<body>
+<body
+    data-env-matomo-url="{{ matomoUrl ?? '' }}"
+    data-env-matomo-site-id="{{ matomoSiteId ?? '' }}"
+>
 <div class="container">
     {% block body %}{% endblock %}
 </div>
 
 {% include '_footer.html.twig' %}
-{% include '_matomo.html.twig' %}
 </body>
 </html>

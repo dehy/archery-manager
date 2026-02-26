@@ -18,6 +18,12 @@ framework:
             limit: 3
             interval: '1 hour'
 
+        # Consent submission limiter - 5 attempts per 10 minutes per IP
+        consent:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '10 minutes'
+
 when@test:
     framework:
         rate_limiter:
@@ -26,4 +32,6 @@ when@test:
             registration:
                 policy: 'no_limit'
             password_reset:
+                policy: 'no_limit'
+            consent:
                 policy: 'no_limit'

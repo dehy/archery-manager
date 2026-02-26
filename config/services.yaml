@@ -16,6 +16,7 @@ services:
             $loginLimiter: '@limiter.login'
             $registrationLimiter: '@limiter.registration'
             $passwordResetLimiter: '@limiter.password_reset'
+            $consentLimiter: '@limiter.consent'
             string $siteKey: '%env(FRIENDLY_CAPTCHA_SITE_KEY)%'
             string $secret: '%env(FRIENDLY_CAPTCHA_SECRET)%'
 
