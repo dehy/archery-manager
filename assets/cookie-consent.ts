@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     CookieConsent.run({
-        revision: 1,
+        revision: Number(POLICY_VERSION.replace(/-/g, '')),
 
         cookie: {
             name: 'cc_cookie',
