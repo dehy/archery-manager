@@ -40,5 +40,4 @@ class LicenseeAttachmentRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
-
 }

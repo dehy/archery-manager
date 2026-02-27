@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Twig;
 
+use App\Exception\StorageException;
 use Doctrine\Common\Util\ClassUtils;
 use League\Flysystem\FilesystemOperator;
-use App\Exception\StorageException;
 use Vich\UploaderBundle\Mapping\Attribute\UploadableField;
 
 class PublicUrlExtension

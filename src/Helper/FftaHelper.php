@@ -182,10 +182,10 @@ class FftaHelper
 
         try {
             $this->emailHelper->sendWelcomeEmail($licensee, $club);
-        } catch (TransportExceptionInterface $exception) {
+        } catch (TransportExceptionInterface $transportException) {
             $this->entityManager->rollback();
 
-            throw $exception;
+            throw $transportException;
         }
 
         $this->entityManager->commit();
@@ -204,7 +204,7 @@ class FftaHelper
         $dbProfilePicture = $licensee->getProfilePicture();
 
         try {
-            $dbProfilePictureChecksum = $dbProfilePicture ?
+            $dbProfilePictureChecksum = $dbProfilePicture instanceof LicenseeAttachment ?
                 $this->licenseesStorage->checksum(
                     $dbProfilePicture->getFile()->getName(),
                     ['checksum_algo' => 'sha1']
@@ -214,9 +214,9 @@ class FftaHelper
             $dbProfilePictureChecksum = null;
         }
 
-        if ($dbProfilePicture && $fftaProfilePicture instanceof LicenseeAttachment) {
+        if ($dbProfilePicture instanceof LicenseeAttachment && $fftaProfilePicture instanceof LicenseeAttachment) {
             $this->updateExistingProfilePicture($licensee, $dbProfilePicture, $fftaProfilePicture, $dbProfilePictureChecksum, $fftaProfilePictureChecksum);
-        } elseif ($dbProfilePicture) {
+        } elseif ($dbProfilePicture instanceof LicenseeAttachment) {
             $this->logger->notice('  - Removing profile picture');
             $licensee->removeAttachment($dbProfilePicture);
             $this->entityManager->remove($dbProfilePicture);

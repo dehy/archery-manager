@@ -52,5 +52,4 @@ class PracticeAdviceRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-
 }
