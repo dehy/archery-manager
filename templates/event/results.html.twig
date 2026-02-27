@@ -16,7 +16,7 @@
     <div class="container py-4">
         <div class="d-flex align-items-center mb-4 gap-3">
             <div class="icon-box bg-success bg-opacity-10 text-success">
-                <i class="fa-solid fa-trophy fa-lg"></i>
+                <em class="fa-solid fa-trophy fa-lg"></em>
             </div>
             <div>
                 <h1 class="h3 mb-0">Résultats</h1>
@@ -26,7 +26,7 @@
 
         {% if results is empty %}
             <div class="text-center text-muted py-5">
-                <i class="fa-solid fa-trophy fa-3x mb-3"></i>
+                <em class="fa-solid fa-trophy fa-3x mb-3"></em>
                 <p class="mb-0">Aucun résultat disponible pour ce concours.</p>
             </div>
         {% else %}
@@ -34,40 +34,54 @@
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-striped mb-0">
-                            {% set current_age_category = null %}
-                            {% for result in results %}
-                                {% if current_age_category != result.ageCategory %}
-                                    {% set current_age_category = result.ageCategory %}
-                                    <thead>
-                                        <tr class="table-light">
-                                            <th class="text-start">{{ result.ageCategory|readable_enum }}</th>
-                                            <th class="text-center">Série 1</th>
-                                            <th class="text-center">Série 2</th>
-                                            <th class="text-center">Total</th>
-                                            <th class="text-center d-none d-sm-table-cell">10+X</th>
-                                            <th class="text-center d-none d-sm-table-cell">X</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                {% endif %}
+                            <thead>
                                 <tr>
-                                    <td>
-                                        <a href="{{ path('app_licensee_profile', {fftaCode: result.licensee.fftaMemberCode}) }}">
-                                            {{ result.licensee.fullname }}
-                                        </a>
-                                        <br>
-                                        <small class="text-muted">{{ result.activity|readable_enum }}</small>
-                                    </td>
-                                    <td class="text-center">{{ result.score1 ?? '—' }}</td>
-                                    <td class="text-center">{{ result.score2 ?? '—' }}</td>
-                                    <td class="text-center fw-semibold">{{ result.total ?? '—' }}</td>
-                                    <td class="text-center d-none d-sm-table-cell">{{ result.nb10 ?? '—' }}</td>
-                                    <td class="text-center d-none d-sm-table-cell">{{ result.nb10p ?? '—' }}</td>
+                                    <th scope="col" class="text-start">Archer</th>
+                                    <th scope="col" class="text-center">Série 1</th>
+                                    <th scope="col" class="text-center">Série 2</th>
+                                    <th scope="col" class="text-center">Total</th>
+                                    <th scope="col" class="text-center d-none d-sm-table-cell">Dept. 1</th>
+                                    <th scope="col" class="text-center d-none d-sm-table-cell">Dept. 2</th>
                                 </tr>
-                                {% if loop.last or (results[loop.index] is defined and results[loop.index].ageCategory != result.ageCategory) %}
-                                    </tbody>
-                                {% endif %}
-                            {% endfor %}
+                            </thead>
+                            <tbody>
+                                {% set current_group = null %}
+                                {% for result in results %}
+                                    {% set group_key = result.ageCategory ~ '__' ~ result.activity %}
+                                    {% if current_group != group_key %}
+                                        {% set current_group = group_key %}
+                                        {% if result.activity == 'CO' %}
+                                            {% set tb1_label = '10' %}
+                                            {% set tb2_label = 'X' %}
+                                        {% else %}
+                                            {% set tb1_label = '9' %}
+                                            {% set tb2_label = '10' %}
+                                        {% endif %}
+                                        <tr class="table-light">
+                                            <th scope="rowgroup" class="text-start">
+                                                {{ result.ageCategory|readable_enum }} — {{ result.activity|readable_enum }}
+                                            </th>
+                                            <th scope="col" class="text-center text-muted fw-normal small">Série 1</th>
+                                            <th scope="col" class="text-center text-muted fw-normal small">Série 2</th>
+                                            <th scope="col" class="text-center text-muted fw-normal small">Total</th>
+                                            <th scope="col" class="text-center text-muted fw-normal small d-none d-sm-table-cell">{{ tb1_label }}</th>
+                                            <th scope="col" class="text-center text-muted fw-normal small d-none d-sm-table-cell">{{ tb2_label }}</th>
+                                        </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ path('app_licensee_profile', {id: result.licensee.id}) }}">
+                                                {{ result.licensee.fullname }}
+                                            </a>
+                                        </td>
+                                        <td class="text-center">{{ result.score1 ?? '—' }}</td>
+                                        <td class="text-center">{{ result.score2 ?? '—' }}</td>
+                                        <td class="text-center fw-semibold">{{ result.total ?? '—' }}</td>
+                                        <td class="text-center d-none d-sm-table-cell">{{ result.nb10 ?? '—' }}</td>
+                                        <td class="text-center d-none d-sm-table-cell">{{ result.nb10p ?? '—' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -80,7 +94,7 @@
                    class="btn btn-outline-primary btn-sm"
                    data-action="modal#open"
                    data-title="Édition des résultats">
-                    <i class="fa-solid fa-pencil me-1"></i>
+                    <em class="fa-solid fa-pencil me-1"></em>
                     Modifier les résultats
                 </a>
             </div>
