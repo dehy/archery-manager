@@ -284,6 +284,33 @@ class EventController extends BaseController
         ]);
     }
 
+    #[Route('/events/{slug}/results', name: 'app_event_results')]
+    public function resultsShow(
+        string $slug,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $this->assertHasValidLicense();
+
+        /** @var ContestEventRepository $contestEventRepository */
+        $contestEventRepository = $entityManager->getRepository(ContestEvent::class);
+        $event = $contestEventRepository->findBySlug($slug);
+
+        if (!$event instanceof ContestEvent) {
+            throw $this->createNotFoundException();
+        }
+
+        /** @var ResultRepository $resultRepository */
+        $resultRepository = $entityManager->getRepository(Result::class);
+        $results = $resultRepository->findBy(['event' => $event]);
+
+        $this->sortResults($results);
+
+        return $this->render('event/results.html.twig', [
+            'event' => $event,
+            'results' => $results,
+        ]);
+    }
+
     #[Route('/events/{slug}/results/edit')]
     public function resultsEdit(
         string $slug,
@@ -294,8 +321,11 @@ class EventController extends BaseController
 
         /** @var ContestEventRepository $contestEventRepository */
         $contestEventRepository = $entityManager->getRepository(ContestEvent::class);
-        /** @var ContestEvent $event */
         $event = $contestEventRepository->findBySlug($slug);
+
+        if (!$event instanceof ContestEvent) {
+            throw $this->createNotFoundException();
+        }
 
         /** @var ResultRepository $resultRepository */
         $resultRepository = $entityManager->getRepository(Result::class);
@@ -342,15 +372,7 @@ class EventController extends BaseController
             }
         }
 
-        usort($results, static function (Result $a, Result $b): int {
-            if ($a->getAgeCategory() === $b->getAgeCategory()) {
-                return $a->getLicensee()->getFullname() <=> $b->getLicensee()->getFullname();
-            }
-
-            $choices = array_values(LicenseAgeCategoryType::getOrderedChoices());
-
-            return array_search($a->getAgeCategory(), $choices, true) <=> array_search($b->getAgeCategory(), $choices, true);
-        });
+        $this->sortResults($results);
 
         $resultsForm = $this->createForm(
             EventResultsType::class,
@@ -370,5 +392,26 @@ class EventController extends BaseController
             'event' => $event,
             'results_form' => $resultsForm,
         ]);
+    }
+
+    /**
+     * @param Result[] $results
+     */
+    private function sortResults(array &$results): void
+    {
+        $rankMap = array_flip(array_values(LicenseAgeCategoryType::getOrderedChoices()));
+        usort($results, static function (Result $a, Result $b) use ($rankMap): int {
+            $rankA = $rankMap[$a->getAgeCategory()] ?? \PHP_INT_MAX;
+            $rankB = $rankMap[$b->getAgeCategory()] ?? \PHP_INT_MAX;
+            if ($rankA !== $rankB) {
+                return $rankA <=> $rankB;
+            }
+
+            if ($a->getActivity() !== $b->getActivity()) {
+                return $a->getActivity() <=> $b->getActivity();
+            }
+
+            return $a->getLicensee()->getFullname() <=> $b->getLicensee()->getFullname();
+        });
     }
 }
