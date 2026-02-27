@@ -6,7 +6,7 @@ const http = axios.create({ baseURL: '' });
 
 import config from './config';
 
-const POLICY_VERSION = '2026-02-24';
+const POLICY_VERSION: string = '2026-02-24';
 
 declare global {
     interface Window {
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     CookieConsent.run({
-        revision: Number(POLICY_VERSION.replace(/-/g, '')),
+        revision: Number(POLICY_VERSION.replaceAll('-', '')),
 
         cookie: {
             name: 'cc_cookie',

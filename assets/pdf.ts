@@ -11,13 +11,13 @@ const loadPdf = async (canvas: HTMLCanvasElement) => {
 
     const ctx = canvas.getContext("2d");
     if (null === ctx) {
-        throw Error('Cannot get a Context');
+        throw new Error('Cannot get a Context');
     }
     ctx.font = "14px Georgia";
     ctx.fillText('Chargement du document...', 4, 20);
 
     if (undefined === pdfUrl) {
-        throw Error('No url found in canvas element');
+        throw new Error('No url found in canvas element');
     }
 
     // Loading a document.
@@ -37,11 +37,11 @@ const renderPage = (pdfPage: pdfjsLib.PDFPageProxy, canvas: HTMLCanvasElement, s
     const parentElement = canvas.parentElement as HTMLElement;
     const parentComputedStyles = getComputedStyle(parentElement);
     const desiredWith = parentElement.clientWidth
-        - parseFloat(parentComputedStyles.paddingLeft)
-        - parseFloat(parentComputedStyles.paddingRight);
+        - Number.parseFloat(parentComputedStyles.paddingLeft)
+        - Number.parseFloat(parentComputedStyles.paddingRight);
     const desiredHeight = parentElement.clientHeight
-        - parseFloat(parentComputedStyles.paddingTop)
-        - parseFloat(parentComputedStyles.paddingBottom);
+        - Number.parseFloat(parentComputedStyles.paddingTop)
+        - Number.parseFloat(parentComputedStyles.paddingBottom);
 
     let wantedScale: number = 1.0;
     if (scalingMode === ScalingMode.Width) { // set document with, update canvas height
