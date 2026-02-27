@@ -17,6 +17,7 @@ use App\Entity\Result;
 use App\Exception\FftaAccountSuspendedException;
 use App\Exception\FftaAuthenticationException;
 use App\Exception\FftaCredentialsNotSetException;
+use App\Exception\FftaException;
 use App\Exception\FftaRateLimitException;
 use App\Exception\FftaUnknownDataException;
 use Symfony\Component\BrowserKit\HttpBrowser;
@@ -343,7 +344,7 @@ class FftaScrapper
             throw new NotFoundHttpException();
         }
 
-        throw new \ErrorException('Something went wrong during the request');
+        throw new FftaException('Something went wrong during the request');
     }
 
     public function fetchLicenseeProfile(int $fftaId, int $season): FftaProfile

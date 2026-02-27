@@ -6,6 +6,7 @@ namespace App\Twig;
 
 use Doctrine\Common\Util\ClassUtils;
 use League\Flysystem\FilesystemOperator;
+use App\Exception\StorageException;
 use Vich\UploaderBundle\Mapping\Attribute\UploadableField;
 
 class PublicUrlExtension
@@ -30,11 +31,11 @@ class PublicUrlExtension
         }
 
         if (empty($reflectionAttributes)) {
-            throw new \Exception(\sprintf('No uploaded file found in object of class %s', $object::class));
+            throw new StorageException(\sprintf('No uploaded file found in object of class %s', $object::class));
         }
 
         if (\count($reflectionAttributes) > 1) {
-            throw new \Exception(\sprintf('Multiple UploadableField found for object of class %s. Restrict with $propertyName property.', $object::class));
+            throw new StorageException(\sprintf('Multiple UploadableField found for object of class %s. Restrict with $propertyName property.', $object::class));
         }
 
         $reflectionAttribute = $reflectionAttributes[0];

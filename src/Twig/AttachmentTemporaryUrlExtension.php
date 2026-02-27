@@ -6,6 +6,7 @@ namespace App\Twig;
 
 use App\Entity\Attachment;
 use App\Entity\User;
+use App\Exception\StorageException;
 use League\Flysystem\FilesystemOperator;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -63,7 +64,7 @@ class AttachmentTemporaryUrlExtension
                 }
             }
 
-            throw new \Exception('Was not able to generate a temporary URL');
+            throw new StorageException('Was not able to generate a temporary URL');
         });
     }
 }

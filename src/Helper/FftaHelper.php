@@ -9,6 +9,7 @@ use App\DBAL\Types\UserRoleType;
 use App\Entity\Club;
 use App\Entity\License;
 use App\Entity\Licensee;
+use App\Exception\FftaException;
 use App\Entity\LicenseeAttachment;
 use App\Entity\User;
 use App\Factory\LicenseeFactory;
@@ -75,7 +76,7 @@ class FftaHelper
     /**
      * @throws NonUniqueResultException
      * @throws TransportExceptionInterface
-     * @throws \Exception
+     * @throws FftaException
      */
     public function syncLicensees(Club $club, int $season): array
     {
@@ -104,7 +105,7 @@ class FftaHelper
     /**
      * @throws NonUniqueResultException
      * @throws TransportExceptionInterface
-     * @throws \Exception
+     * @throws FftaException
      */
     public function syncLicenseeWithId(Club $club, int $fftaId, int $season): SyncReturnValues
     {
@@ -231,7 +232,7 @@ class FftaHelper
     }
 
     /**
-     * @throws \Exception
+     * @throws FftaException
      */
     public function profilePictureAttachmentForLicensee(Club $club, Licensee $licensee): ?LicenseeAttachment
     {
@@ -239,22 +240,22 @@ class FftaHelper
         if (null !== $fftaPicture && '' !== $fftaPicture && '0' !== $fftaPicture) {
             $temporaryPPPath = tempnam(sys_get_temp_dir(), \sprintf('pp_%s_', $licensee->getFftaMemberCode()));
             if (false === $temporaryPPPath) {
-                throw new \Exception('Cannot generate temporary filename');
+                throw new FftaException('Cannot generate temporary filename');
             }
 
             $writtenBytes = file_put_contents($temporaryPPPath, $fftaPicture);
             if (false === $writtenBytes) {
-                throw new \Exception('file not written');
+                throw new FftaException('file not written');
             }
 
             $mimetype = $this->mimeTypeGuesser->guessMimeType($temporaryPPPath);
             if (null === $mimetype || '' === $mimetype || '0' === $mimetype) {
-                throw new \Exception('Cannot guess mimetype for profile picture');
+                throw new FftaException('Cannot guess mimetype for profile picture');
             }
 
             $extension = $this->mimeTypes->getExtension($mimetype);
             if (!$extension) {
-                throw new \Exception('Cannot find a corresponding extension for mimetype '.$mimetype);
+                throw new FftaException('Cannot find a corresponding extension for mimetype '.$mimetype);
             }
 
             $uploadedFile = new UploadedFile(
@@ -278,7 +279,7 @@ class FftaHelper
      * Creates a new License if none exists for the Licensee and season or merge with the
      * existing one.
      *
-     * @throws \Exception
+     * @throws FftaException
      */
     public function syncLicenseForLicensee(Club $club, Licensee $licensee, int $season): SyncReturnValues
     {
@@ -305,7 +306,7 @@ class FftaHelper
     }
 
     /**
-     * @throws \Exception
+     * @throws FftaException
      */
     public function createLicenseForLicenseeAndSeason(
         Club $club,
