@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller;
 
+use App\Entity\ContestEvent;
 use App\Entity\Event;
+use App\Repository\ContestEventRepository;
 use App\Repository\EventRepository;
 use App\Tests\application\LoggedInTestCase;
 
@@ -172,6 +174,34 @@ final class EventControllerTest extends LoggedInTestCase
         $this->assertResponseStatusCodeSame(404);
     }
 
+    // ── Results Show ──────────────────────────────────────────────────
+
+    public function testResultsShowForExistingContestEvent(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+
+        /** @var ContestEventRepository $contestEventRepo */
+        $contestEventRepo = self::getContainer()->get(ContestEventRepository::class);
+        $contests = $contestEventRepo->findAll();
+
+        if (\count($contests) > 0) {
+            /** @var ContestEvent $contest */
+            $contest = $contests[0];
+            $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/events/'.$contest->getSlug().'/results');
+            $this->assertResponseIsSuccessful();
+        } else {
+            $this->markTestSkipped('No contest events available for results show test');
+        }
+    }
+
+    public function testResultsShowNonExistentEventReturns404(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/events/non-existent-slug-99999/results');
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
     // ── Results Edit ──────────────────────────────────────────────────
 
     public function testResultsEditNonExistentEventReturns404(): void
@@ -179,11 +209,6 @@ final class EventControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/events/non-existent-slug-99999/results/edit');
 
-        // Should either 404 or 500 depending on how the entity is resolved
-        $statusCode = $client->getResponse()->getStatusCode();
-        $this->assertTrue(
-            404 === $statusCode || 500 === $statusCode,
-            'Expected 404 or 500 for non-existent event results edit'
-        );
+        $this->assertResponseStatusCodeSame(404);
     }
 }
