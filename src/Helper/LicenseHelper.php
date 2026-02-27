@@ -151,59 +151,58 @@ class LicenseHelper
         $mapping = $this->mappingSeason[$this->seasonHelper->getSelectedSeason()];
 
         foreach ($mapping as $dateKey => $ageCategory) {
-            $parts = explode('_', (string) $dateKey);
-            $leftPart = $parts[0];
-            $rightPart = $parts[1] ?? null;
-            $after = null;
-            $before = null;
-            $afterInclusive = false;
-            $beforeInclusive = false;
-
-            if (null === $rightPart || '' === $rightPart || '0' === $rightPart) {
-                if (str_starts_with($leftPart, '>=')) {
-                    $after = $this->dateTimeFromKeyPartInclusive($leftPart);
-                    $afterInclusive = true;
-                } elseif (str_starts_with($leftPart, '<=')) {
-                    $before = $this->dateTimeFromKeyPartInclusive($leftPart);
-                    $beforeInclusive = true;
-                } elseif (str_starts_with($leftPart, '>')) {
-                    $after = $this->dateTimeFromKeyPart($leftPart);
-                    $afterInclusive = false;
-                } elseif (str_starts_with($leftPart, '<')) {
-                    $before = $this->dateTimeFromKeyPart($leftPart);
-                    $beforeInclusive = false;
-                }
-            } else {
-                // Handle left part
-                if (str_starts_with($leftPart, '>=')) {
-                    $after = $this->dateTimeFromKeyPartInclusive($leftPart);
-                    $afterInclusive = true;
-                } else {
-                    $after = $this->dateTimeFromKeyPart($leftPart);
-                    $afterInclusive = false;
-                }
-
-                // Handle right part
-                if (str_starts_with($rightPart, '<=')) {
-                    $before = $this->dateTimeFromKeyPartInclusive($rightPart);
-                    $beforeInclusive = true;
-                } else {
-                    $before = $this->dateTimeFromKeyPart($rightPart);
-                    $beforeInclusive = false;
-                }
-            }
-
-            $afterCheck = (!$after instanceof \DateTimeImmutable)
-                         || ($afterInclusive ? $birthdate >= $after : $birthdate > $after);
-            $beforeCheck = (!$before instanceof \DateTimeImmutable)
-                          || ($beforeInclusive ? $birthdate <= $before : $birthdate < $before);
-
-            if ($afterCheck && $beforeCheck) {
+            if ($this->birthdateMatchesDateKey($birthdate, (string) $dateKey)) {
                 return $ageCategory;
             }
         }
 
         throw new \LogicException(\sprintf('Should have found a value. %s given', $birthdate->format('Y-m-d')));
+    }
+
+    private function birthdateMatchesDateKey(\DateTimeInterface $birthdate, string $dateKey): bool
+    {
+        $parts = explode('_', $dateKey);
+        $leftPart = $parts[0];
+        $rightPart = $parts[1] ?? null;
+        $after = null;
+        $before = null;
+        $afterInclusive = false;
+        $beforeInclusive = false;
+
+        if (null === $rightPart || '' === $rightPart || '0' === $rightPart) {
+            if (str_starts_with($leftPart, '>=')) {
+                $after = $this->dateTimeFromKeyPartInclusive($leftPart);
+                $afterInclusive = true;
+            } elseif (str_starts_with($leftPart, '<=')) {
+                $before = $this->dateTimeFromKeyPartInclusive($leftPart);
+                $beforeInclusive = true;
+            } elseif (str_starts_with($leftPart, '>')) {
+                $after = $this->dateTimeFromKeyPart($leftPart);
+            } else {
+                $before = $this->dateTimeFromKeyPart($leftPart);
+            }
+        } else {
+            if (str_starts_with($leftPart, '>=')) {
+                $after = $this->dateTimeFromKeyPartInclusive($leftPart);
+                $afterInclusive = true;
+            } else {
+                $after = $this->dateTimeFromKeyPart($leftPart);
+            }
+
+            if (str_starts_with($rightPart, '<=')) {
+                $before = $this->dateTimeFromKeyPartInclusive($rightPart);
+                $beforeInclusive = true;
+            } else {
+                $before = $this->dateTimeFromKeyPart($rightPart);
+            }
+        }
+
+        $afterCheck = (!$after instanceof \DateTimeImmutable)
+                     || ($afterInclusive ? $birthdate >= $after : $birthdate > $after);
+        $beforeCheck = (!$before instanceof \DateTimeImmutable)
+                      || ($beforeInclusive ? $birthdate <= $before : $birthdate < $before);
+
+        return $afterCheck && $beforeCheck;
     }
 
     private function dateTimeFromKeyPart(string $keyPart): \DateTimeImmutable

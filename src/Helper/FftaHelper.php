@@ -9,13 +9,14 @@ use App\DBAL\Types\UserRoleType;
 use App\Entity\Club;
 use App\Entity\License;
 use App\Entity\Licensee;
-use App\Exception\FftaException;
 use App\Entity\LicenseeAttachment;
 use App\Entity\User;
+use App\Exception\FftaException;
 use App\Factory\LicenseeFactory;
 use App\Factory\UserFactory;
 use App\Repository\LicenseeRepository;
 use App\Repository\UserRepository;
+use App\Scrapper\FftaProfile;
 use App\Scrapper\FftaScrapper;
 use AsyncAws\S3\Exception\NoSuchKeyException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -120,47 +121,7 @@ class FftaHelper
         $fftaProfile = $scrapper->fetchLicenseeProfile($fftaId, $season);
         $fftaLicensee = LicenseeFactory::createFromFftaProfile($fftaProfile);
         if (!$licensee) {
-            $this->logger->notice(
-                \sprintf(
-                    '+ New Licensee: %s (%s)',
-                    $fftaLicensee->__toString(),
-                    $fftaLicensee->getFftaMemberCode(),
-                ),
-            );
-            $licensee = $fftaLicensee;
-
-            /** @var UserRepository $userRepository */
-            $userRepository = $this->entityManager->getRepository(User::class);
-            $user = $userRepository->findOneByEmail($fftaProfile->getEmail());
-
-            if (!$user) {
-                $user = UserFactory::createFromFftaProfile($fftaProfile);
-                $this->entityManager->persist($user);
-            }
-
-            $licensee->setUser($user);
-
-            $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
-            if ($fftaProfilePicture instanceof LicenseeAttachment) {
-                $this->logger->notice('  + Adding profile picture');
-                $licensee->addAttachment($fftaProfilePicture);
-                $this->entityManager->persist($fftaProfilePicture);
-            } else {
-                $this->logger->notice('  ! No profile picture');
-            }
-
-            $this->entityManager->beginTransaction();
-            $this->entityManager->persist($licensee);
-
-            try {
-                $this->emailHelper->sendWelcomeEmail($licensee, $club);
-            } catch (TransportExceptionInterface $exception) {
-                $this->entityManager->rollback();
-
-                throw $exception;
-            }
-
-            $this->entityManager->commit();
+            $licensee = $this->createAndPersistNewLicensee($club, $fftaProfile, $fftaLicensee);
         } else {
             $this->logger->notice(
                 \sprintf(
@@ -170,58 +131,123 @@ class FftaHelper
                 ),
             );
             $licensee->mergeWith($fftaLicensee);
-            $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
-            $fftaProfilePictureContent = $fftaProfilePicture?->getUploadedFile()?->getContent();
-            $fftaProfilePictureChecksum = $fftaProfilePicture instanceof LicenseeAttachment ? sha1((string) $fftaProfilePictureContent) : null;
-            $dbProfilePicture = $licensee->getProfilePicture();
-
-            try {
-                $dbProfilePictureChecksum = $dbProfilePicture ?
-                    $this->licenseesStorage->checksum(
-                        $dbProfilePicture->getFile()->getName(),
-                        ['checksum_algo' => 'sha1']
-                    ) : null;
-            } catch (UnableToProvideChecksum|NoSuchKeyException) {
-                $dbProfilePicture = null;
-                $dbProfilePictureChecksum = null;
-            }
-
-            if ($dbProfilePicture && $fftaProfilePicture instanceof LicenseeAttachment) {
-                // Licensee has already a profile picture
-                if ($dbProfilePictureChecksum !== $fftaProfilePictureChecksum) {
-                    $this->logger->notice('  ~ Updating profile picture.');
-                    $licensee->removeAttachment($dbProfilePicture);
-                    $this->entityManager->remove($dbProfilePicture);
-
-                    $licensee->addAttachment($fftaProfilePicture);
-                    $licensee->setUpdatedAt(new \DateTimeImmutable());
-                    $this->entityManager->persist($fftaProfilePicture);
-                } else {
-                    $this->logger->notice('  = Same profile picture. Not updating.');
-                }
-            }
-
-            if ($dbProfilePicture && !$fftaProfilePicture instanceof LicenseeAttachment) {
-                $this->logger->notice('  - Removing profile picture');
-                $licensee->removeAttachment($dbProfilePicture);
-                $this->entityManager->remove($dbProfilePicture);
-            }
-
-            if (!$dbProfilePicture && $fftaProfilePicture instanceof LicenseeAttachment) {
-                $this->logger->notice('  + Adding profile picture');
-                $licensee->addAttachment($fftaProfilePicture);
-                $licensee->setUpdatedAt(new \DateTimeImmutable());
-                $this->entityManager->persist($fftaProfilePicture);
-            }
-
-            if (!$dbProfilePicture && !$fftaProfilePicture instanceof LicenseeAttachment) {
-                $this->logger->notice('  ! No profile picture');
-            }
+            $this->syncExistingLicenseeProfilePicture($club, $licensee);
         }
 
         $this->entityManager->flush();
 
         return $this->syncLicenseForLicensee($club, $licensee, $season);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws FftaException
+     */
+    private function createAndPersistNewLicensee(
+        Club $club,
+        FftaProfile $fftaProfile,
+        Licensee $fftaLicensee,
+    ): Licensee {
+        $this->logger->notice(
+            \sprintf(
+                '+ New Licensee: %s (%s)',
+                $fftaLicensee->__toString(),
+                $fftaLicensee->getFftaMemberCode(),
+            ),
+        );
+        $licensee = $fftaLicensee;
+
+        /** @var UserRepository $userRepository */
+        $userRepository = $this->entityManager->getRepository(User::class);
+        $user = $userRepository->findOneByEmail($fftaProfile->getEmail());
+
+        if (!$user) {
+            $user = UserFactory::createFromFftaProfile($fftaProfile);
+            $this->entityManager->persist($user);
+        }
+
+        $licensee->setUser($user);
+
+        $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
+        if ($fftaProfilePicture instanceof LicenseeAttachment) {
+            $this->logger->notice('  + Adding profile picture');
+            $licensee->addAttachment($fftaProfilePicture);
+            $this->entityManager->persist($fftaProfilePicture);
+        } else {
+            $this->logger->notice('  ! No profile picture');
+        }
+
+        $this->entityManager->beginTransaction();
+        $this->entityManager->persist($licensee);
+
+        try {
+            $this->emailHelper->sendWelcomeEmail($licensee, $club);
+        } catch (TransportExceptionInterface $exception) {
+            $this->entityManager->rollback();
+
+            throw $exception;
+        }
+
+        $this->entityManager->commit();
+
+        return $licensee;
+    }
+
+    /**
+     * @throws FftaException
+     */
+    private function syncExistingLicenseeProfilePicture(Club $club, Licensee $licensee): void
+    {
+        $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
+        $fftaProfilePictureContent = $fftaProfilePicture?->getUploadedFile()?->getContent();
+        $fftaProfilePictureChecksum = $fftaProfilePicture instanceof LicenseeAttachment ? sha1((string) $fftaProfilePictureContent) : null;
+        $dbProfilePicture = $licensee->getProfilePicture();
+
+        try {
+            $dbProfilePictureChecksum = $dbProfilePicture ?
+                $this->licenseesStorage->checksum(
+                    $dbProfilePicture->getFile()->getName(),
+                    ['checksum_algo' => 'sha1']
+                ) : null;
+        } catch (UnableToProvideChecksum|NoSuchKeyException) {
+            $dbProfilePicture = null;
+            $dbProfilePictureChecksum = null;
+        }
+
+        if ($dbProfilePicture && $fftaProfilePicture instanceof LicenseeAttachment) {
+            $this->updateExistingProfilePicture($licensee, $dbProfilePicture, $fftaProfilePicture, $dbProfilePictureChecksum, $fftaProfilePictureChecksum);
+        } elseif ($dbProfilePicture) {
+            $this->logger->notice('  - Removing profile picture');
+            $licensee->removeAttachment($dbProfilePicture);
+            $this->entityManager->remove($dbProfilePicture);
+        } elseif ($fftaProfilePicture instanceof LicenseeAttachment) {
+            $this->logger->notice('  + Adding profile picture');
+            $licensee->addAttachment($fftaProfilePicture);
+            $licensee->setUpdatedAt(new \DateTimeImmutable());
+            $this->entityManager->persist($fftaProfilePicture);
+        } else {
+            $this->logger->notice('  ! No profile picture');
+        }
+    }
+
+    private function updateExistingProfilePicture(
+        Licensee $licensee,
+        LicenseeAttachment $dbProfilePicture,
+        LicenseeAttachment $fftaProfilePicture,
+        ?string $dbChecksum,
+        ?string $fftaChecksum,
+    ): void {
+        if ($dbChecksum !== $fftaChecksum) {
+            $this->logger->notice('  ~ Updating profile picture.');
+            $licensee->removeAttachment($dbProfilePicture);
+            $this->entityManager->remove($dbProfilePicture);
+
+            $licensee->addAttachment($fftaProfilePicture);
+            $licensee->setUpdatedAt(new \DateTimeImmutable());
+            $this->entityManager->persist($fftaProfilePicture);
+        } else {
+            $this->logger->notice('  = Same profile picture. Not updating.');
+        }
     }
 
     public function fetchProfilePictureForLicensee(Club $club, Licensee $licensee): ?string
