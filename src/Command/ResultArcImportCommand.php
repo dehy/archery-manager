@@ -56,18 +56,16 @@ class ResultArcImportCommand extends Command
             return Command::INVALID;
         }
 
-        if (!$contestEvent->getContestType()) {
-            $io->error(
-                'You must set the contest type value of the event before importing results',
-            );
-
-            return Command::INVALID;
-        }
-
-        if (!$contestEvent->getDiscipline()) {
-            $io->error(
-                'You must set the event discipline before importing results',
-            );
+        if (!$contestEvent->getContestType() || !$contestEvent->getDiscipline()) {
+            if (!$contestEvent->getContestType()) {
+                $io->error(
+                    'You must set the contest type value of the event before importing results',
+                );
+            } else {
+                $io->error(
+                    'You must set the event discipline before importing results',
+                );
+            }
 
             return Command::INVALID;
         }

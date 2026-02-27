@@ -333,11 +333,7 @@ class Result
         string $ageCategory,
     ): array {
         if (DisciplineType::INDOOR === $discipline) {
-            if (LicenseActivityType::CO === $activity) {
-                return [18, 60];
-            }
-
-            return match ($ageCategory) {
+            return LicenseActivityType::CO === $activity ? [18, 60] : match ($ageCategory) {
                 LicenseAgeCategoryType::POUSSIN, LicenseAgeCategoryType::U11 => [10, 80],
                 LicenseAgeCategoryType::BENJAMIN, LicenseAgeCategoryType::U13 => [15, 80],
                 LicenseAgeCategoryType::MINIME, LicenseAgeCategoryType::U15 => [15, 60],
@@ -346,11 +342,7 @@ class Result
         }
 
         if (DisciplineType::TARGET === $discipline) {
-            if (LicenseActivityType::CO === $activity) {
-                return [30, 80];
-            }
-
-            return match ($ageCategory) {
+            return LicenseActivityType::CO === $activity ? [30, 80] : match ($ageCategory) {
                 LicenseAgeCategoryType::POUSSIN, LicenseAgeCategoryType::U11, => [15, 80],
                 LicenseAgeCategoryType::BENJAMIN, LicenseAgeCategoryType::U13 => [20, 122],
                 LicenseAgeCategoryType::MINIME, LicenseAgeCategoryType::U15 => [25, 122],
@@ -367,11 +359,7 @@ class Result
         string $ageCategory,
     ): array {
         if (DisciplineType::INDOOR === $discipline) {
-            if (LicenseActivityType::CO === $activity) {
-                return [18, 20];
-            }
-
-            return match ($ageCategory) {
+            return LicenseActivityType::CO === $activity ? [18, 20] : match ($ageCategory) {
                 LicenseAgeCategoryType::POUSSIN, LicenseAgeCategoryType::U11 => [18, 80],
                 LicenseAgeCategoryType::BENJAMIN,
                 LicenseAgeCategoryType::MINIME,
@@ -382,11 +370,7 @@ class Result
         }
 
         if (DisciplineType::TARGET === $discipline) {
-            if (LicenseActivityType::CO === $activity) {
-                return [50, 80];
-            }
-
-            return match ($ageCategory) {
+            return LicenseActivityType::CO === $activity ? [50, 80] : match ($ageCategory) {
                 LicenseAgeCategoryType::POUSSIN, LicenseAgeCategoryType::U11 => [20, 80],
                 LicenseAgeCategoryType::BENJAMIN, LicenseAgeCategoryType::U13 => [30, 80],
                 LicenseAgeCategoryType::MINIME, LicenseAgeCategoryType::U15 => [40, 80],

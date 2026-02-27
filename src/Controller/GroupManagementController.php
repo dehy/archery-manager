@@ -88,17 +88,18 @@ class GroupManagementController extends BaseController
         }
 
         // Ajouter le licencié au groupe s'il n'y est pas déjà
+        $response = new JsonResponse(['error' => 'Ce licencié fait déjà partie du groupe'], Response::HTTP_BAD_REQUEST);
         if (!$group->getLicensees()->contains($licensee)) {
             $group->addLicensee($licensee);
             $entityManager->flush();
 
-            return new JsonResponse([
+            $response = new JsonResponse([
                 'success' => true,
                 'message' => \sprintf('%s a été ajouté(e) au groupe %s', $licensee->getFullname(), $group->getName()),
             ]);
         }
 
-        return new JsonResponse(['error' => 'Ce licencié fait déjà partie du groupe'], Response::HTTP_BAD_REQUEST);
+        return $response;
     }
 
     #[Route('/admin/groups/{id}/remove-member', name: 'app_group_remove_member', methods: ['POST'])]
@@ -124,17 +125,18 @@ class GroupManagementController extends BaseController
         }
 
         // Retirer le licencié du groupe s'il en fait partie
+        $response = new JsonResponse(['error' => 'Ce licencié ne fait pas partie du groupe'], Response::HTTP_BAD_REQUEST);
         if ($group->getLicensees()->contains($licensee)) {
             $group->removeLicensee($licensee);
             $entityManager->flush();
 
-            return new JsonResponse([
+            $response = new JsonResponse([
                 'success' => true,
                 'message' => \sprintf('%s a été retiré(e) du groupe %s', $licensee->getFullname(), $group->getName()),
             ]);
         }
 
-        return new JsonResponse(['error' => 'Ce licencié ne fait pas partie du groupe'], Response::HTTP_BAD_REQUEST);
+        return $response;
     }
 
     #[Route('/admin/groups/create', name: 'app_group_create')]

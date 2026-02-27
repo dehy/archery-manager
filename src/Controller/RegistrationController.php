@@ -93,12 +93,7 @@ class RegistrationController extends AbstractController
         Request $request,
     ): Response {
         $id = $request->query->get('id');
-
-        if (null === $id) {
-            return $this->redirectToRoute('app_register');
-        }
-
-        $user = $this->userRepository->find($id);
+        $user = null !== $id ? $this->userRepository->find($id) : null;
 
         if (null === $user) {
             return $this->redirectToRoute('app_register');
