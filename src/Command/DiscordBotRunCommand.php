@@ -37,7 +37,7 @@ class DiscordBotRunCommand extends Command
             $io->info('Bot is ready!');
 
             // Listen for messages.
-            $discord->on(Event::MESSAGE_CREATE, static function (Message $message, Discord $_discord) use ($io): void {
+            $discord->on(Event::MESSAGE_CREATE, static function (Message $message) use ($io): void {
                 $io->writeln(\sprintf('%s: %s', $message->author->username, $message->content));
             });
         });

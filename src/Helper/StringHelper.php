@@ -15,11 +15,11 @@ class StringHelper
     {
         $characters =
             '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!-.[]?*()';
-        $password = '';
         $characterListLength = mb_strlen($characters, '8bit') - 1;
-        foreach (range(1, $length) as $_) {
-            $password .= $characters[random_int(0, $characterListLength)];
-        }
+        $password = implode('', array_map(
+            static fn () => $characters[random_int(0, $characterListLength)],
+            range(1, $length),
+        ));
 
         return $password;
     }
