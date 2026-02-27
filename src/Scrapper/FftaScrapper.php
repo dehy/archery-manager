@@ -29,6 +29,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class FftaScrapper
 {
+    private const string TD_FIFTH_COLUMN = 'td:nth-child(5)';
+
     protected HttpClientInterface $managerSpaceHttpClient;
 
     protected HttpBrowser $managerSpaceBrowser;
@@ -563,7 +565,7 @@ class FftaScrapper
             $location = $row->filter('td:nth-child(4)')->text();
             $url = $row->attr('data-modal');
 
-            $characteristicsCell = $row->filter('td:nth-child(5)')->html();
+            $characteristicsCell = $row->filter(self::TD_FIFTH_COLUMN)->html();
             preg_match(
                 '/^<strong>(.*)<\\/strong>( - (.*))?<br>Saison \\d+<br>(.*<br>)+$/',
                 $characteristicsCell,
@@ -632,7 +634,7 @@ class FftaScrapper
             $event = new ContestEvent();
             $event->setDiscipline($fftaEvent->getDiscipline());
 
-            $category = $row->filter('td:nth-child(5)')->text();
+            $category = $row->filter(self::TD_FIFTH_COLUMN)->text();
             [$ageCategory, $activity] = CategoryParser::parseString($category);
             [$distance, $size] = Result::distanceForContestAndActivity(
                 $event,
@@ -645,7 +647,7 @@ class FftaScrapper
                 ->setName($row->filter('td:nth-child(2)')->text())
                 ->setClub($row->filter('td:nth-child(3)')->text())
                 ->setLicense($row->filter('td:nth-child(4)')->text())
-                ->setCategory($row->filter('td:nth-child(5)')->text())
+                ->setCategory($row->filter(self::TD_FIFTH_COLUMN)->text())
                 ->setDistance($distance)
                 ->setSize($size)
                 ->setScore1((int) $row->filter('td:nth-child(6)')->text())
