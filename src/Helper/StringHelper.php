@@ -16,11 +16,10 @@ class StringHelper
         $characters =
             '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!-.[]?*()';
         $characterListLength = mb_strlen($characters, '8bit') - 1;
-        $password = implode('', array_map(
-            static fn () => $characters[random_int(0, $characterListLength)],
+
+        return implode('', array_map(
+            static fn (): string => $characters[random_int(0, $characterListLength)],
             range(1, $length),
         ));
-
-        return $password;
     }
 }
