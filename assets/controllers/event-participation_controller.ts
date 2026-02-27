@@ -2,12 +2,12 @@ import {ActionEvent, Controller} from "@hotwired/stimulus";
 import api from "../api";
 import axios from "axios";
 
-export default class extends Controller<HTMLElement> {
+export default class EventParticipationController extends Controller<HTMLElement> {
     eventId?: string;
     participationId?: string;
     licenseeId?: string;
 
-    static targets = ['stateButtons'];
+    static readonly targets = ['stateButtons'];
 
     declare readonly stateButtonsTargets: HTMLButtonElement[];
 

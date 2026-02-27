@@ -1,8 +1,8 @@
 import {ActionEvent, Controller} from "@hotwired/stimulus";
 import {Modal} from 'bootstrap';
 
-export default class extends Controller {
-    static targets = ["modal", "title", "body", "submit"];
+export default class ModalController extends Controller {
+    static readonly targets = ["modal", "title", "body", "submit"];
 
     declare readonly modalTarget: HTMLDivElement;
     declare readonly titleTarget: HTMLHeadingElement;

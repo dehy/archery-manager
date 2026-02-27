@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
 
-export default class extends Controller<HTMLCanvasElement> {
+export default class ResultsChartController extends Controller<HTMLCanvasElement> {
     connect() {
         this.element.addEventListener('chartjs:pre-connect', this._onPreConnect);
         this.element.addEventListener('chartjs:connect', this._onConnect);
