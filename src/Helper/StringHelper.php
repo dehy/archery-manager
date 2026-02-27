@@ -17,7 +17,7 @@ class StringHelper
             '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!-.[]?*()';
         $password = '';
         $characterListLength = mb_strlen($characters, '8bit') - 1;
-        foreach (range(1, $length) as $index) {
+        foreach (range(1, $length) as $_) {
             $password .= $characters[random_int(0, $characterListLength)];
         }
 

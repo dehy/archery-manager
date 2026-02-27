@@ -85,7 +85,7 @@ class Result
         Licensee $licensee,
         string $discipline,
     ): self {
-        [$ageCategory, $activity] = CategoryParser::parseString(
+        [, $activity] = CategoryParser::parseString(
             $fftaResult->getCategory(),
         );
 

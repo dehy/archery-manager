@@ -108,7 +108,6 @@ class FftaHelper
      */
     public function syncLicenseeWithId(Club $club, int $fftaId, int $season): SyncReturnValues
     {
-        $syncResult = SyncReturnValues::UNTOUCHED;
         $scrapper = $this->getScrapper($club);
 
         /** @var LicenseeRepository $licenseeRepository */
@@ -120,7 +119,6 @@ class FftaHelper
         $fftaProfile = $scrapper->fetchLicenseeProfile($fftaId, $season);
         $fftaLicensee = LicenseeFactory::createFromFftaProfile($fftaProfile);
         if (!$licensee) {
-            $syncResult = SyncReturnValues::CREATED;
             $this->logger->notice(
                 \sprintf(
                     '+ New Licensee: %s (%s)',
@@ -170,7 +168,7 @@ class FftaHelper
                     $licensee->getFftaMemberCode(),
                 ),
             );
-            $syncResult = $licensee->mergeWith($fftaLicensee);
+            $licensee->mergeWith($fftaLicensee);
             $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
             $fftaProfilePictureContent = $fftaProfilePicture?->getUploadedFile()?->getContent();
             $fftaProfilePictureChecksum = $fftaProfilePicture instanceof LicenseeAttachment ? sha1((string) $fftaProfilePictureContent) : null;
@@ -197,7 +195,6 @@ class FftaHelper
                     $licensee->addAttachment($fftaProfilePicture);
                     $licensee->setUpdatedAt(new \DateTimeImmutable());
                     $this->entityManager->persist($fftaProfilePicture);
-                    $syncResult = SyncReturnValues::UPDATED;
                 } else {
                     $this->logger->notice('  = Same profile picture. Not updating.');
                 }
@@ -207,7 +204,6 @@ class FftaHelper
                 $this->logger->notice('  - Removing profile picture');
                 $licensee->removeAttachment($dbProfilePicture);
                 $this->entityManager->remove($dbProfilePicture);
-                $syncResult = SyncReturnValues::UPDATED;
             }
 
             if (!$dbProfilePicture && $fftaProfilePicture instanceof LicenseeAttachment) {
@@ -215,7 +211,6 @@ class FftaHelper
                 $licensee->addAttachment($fftaProfilePicture);
                 $licensee->setUpdatedAt(new \DateTimeImmutable());
                 $this->entityManager->persist($fftaProfilePicture);
-                $syncResult = SyncReturnValues::UPDATED;
             }
 
             if (!$dbProfilePicture && !$fftaProfilePicture instanceof LicenseeAttachment) {
