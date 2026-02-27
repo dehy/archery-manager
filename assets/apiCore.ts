@@ -22,7 +22,7 @@ class APICore {
                     })
                 : [];
 
-            const queryString = [].concat(...queryStringArray).join('&');
+            const queryString = queryStringArray.flat().join('&');
 
             response = axios.get(`${url}?${queryString}`, params);
         } else {

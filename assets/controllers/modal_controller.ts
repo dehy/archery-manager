@@ -35,7 +35,7 @@ export default class ModalController extends Controller {
             modal.show();
             fetch(url).then(response => response.text()).then(html => {
                 this.#setBody(html);
-                if (null === this.#getForm(this.bodyTarget)) {
+                if (this.#getForm(this.bodyTarget) === null) {
                     this.submitTarget.classList.add('d-none');
                 } else {
                     this.submitTarget.classList.remove('d-none');
@@ -46,33 +46,33 @@ export default class ModalController extends Controller {
 
     submit() {
         const modalForm = this.#getForm(this.bodyTarget);
-        if (modalForm !== null) {
-            fetch(modalForm.action, {
-                method: modalForm.method,
-                body: new FormData(modalForm)
-            })
-                .then(response => {
-                    if (response.redirected) {
-                        window.location.href = response.url;
-                        throw new Error('Redirecting...');
-                    }
-                    return response.text();
-                })
-                .then(html => this.#setBody(html))
-        } else {
+        if (modalForm === null) {
             console.log("No form in the modal");
+            return;
         }
+        fetch(modalForm.action, {
+            method: modalForm.method,
+            body: new FormData(modalForm)
+        })
+            .then(response => {
+                if (response.redirected) {
+                    globalThis.location.href = response.url;
+                    throw new Error('Redirecting...');
+                }
+                return response.text();
+            })
+            .then(html => this.#setBody(html));
     }
 
     #setBody(html: string) {
         const doc = new DOMParser().parseFromString(html, "text/html");
         const form = this.#getForm(doc);
-        if (form !== null) {
-            this.form = form;
-            this.submitTarget?.classList.remove('d-none');
-        } else {
+        if (form === null) {
             this.form = null;
             this.submitTarget.classList.add('d-none');
+        } else {
+            this.form = form;
+            this.submitTarget?.classList.remove('d-none');
         }
         this.bodyTarget.innerHTML = doc.documentElement.outerHTML;
     }

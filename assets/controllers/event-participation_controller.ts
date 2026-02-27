@@ -62,7 +62,7 @@ export default class EventParticipationController extends Controller<HTMLElement
                 button.classList.remove(`btn-outline-${badgeType}`, `btn-${badgeType}`);
             }
             console.debug(eventParticipation.participationState, button.dataset.state);
-            const outline = eventParticipation.participationState != button.dataset.state ? 'outline-' : '';
+            const outline = eventParticipation.participationState === button.dataset.state ? '' : 'outline-';
             button.classList.add(`btn-${outline}${badgeType}`);
         });
     }
