@@ -9,9 +9,7 @@ import config from './config';
 const POLICY_VERSION: string = '2026-02-24';
 
 declare global {
-    interface Window {
-        _paq?: unknown[][];
-    }
+    var _paq: unknown[][] | undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -29,8 +27,8 @@ function initMatomo(cookiesEnabled: boolean): void {
         return;
     }
 
-    window._paq = window._paq ?? [];
-    const paq = window._paq;
+    globalThis._paq = globalThis._paq ?? [];
+    const paq = globalThis._paq;
 
     // Always update the consent mode — this is the only call that legitimately
     // changes between invocations (cookieless → cookie or vice-versa).
@@ -51,12 +49,10 @@ function initMatomo(cookiesEnabled: boolean): void {
             paq.push(['setUserId', matomoUserId]);
         }
 
-        paq.push(['trackPageView']);
-        paq.push(['enableLinkTracking']);
+        paq.push(['trackPageView'], ['enableLinkTracking']);
 
         const baseUrl = matomoUrl.replace(/\/$/, '') + '/';
-        paq.push(['setTrackerUrl', baseUrl + 'matomo.php']);
-        paq.push(['setSiteId', matomoSiteId]);
+        paq.push(['setTrackerUrl', baseUrl + 'matomo.php'], ['setSiteId', matomoSiteId]);
 
         const script = document.createElement('script');
         script.async = true;
@@ -74,7 +70,7 @@ function initMatomo(cookiesEnabled: boolean): void {
 
 function postConsentLog(): void {
     const prefs = CookieConsent.getUserPreferences();
-    const acceptedServices = (Object.values(prefs.acceptedServices) as string[][]).flat();
+    const acceptedServices = Object.values(prefs.acceptedServices).flat();
 
     let action: string;
     if (prefs.acceptType === 'all') {
@@ -143,8 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
             postConsentLog();
             if (!CookieConsent.acceptedCategory('analytics')) {
                 // Revert Matomo to cookieless mode; _pk_* cookies are cleared by autoClear.
-                window._paq?.push(['forgetConsentGiven']);
-                window._paq?.push(['disableCookies']);
+                globalThis._paq?.push(['forgetConsentGiven'], ['disableCookies']);
                 return;
             }
             initMatomo(true);
