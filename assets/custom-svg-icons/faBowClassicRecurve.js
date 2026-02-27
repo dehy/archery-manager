@@ -1,12 +1,12 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-var prefix = 'fac';
-var iconName = 'bow-classic-recurve';
-var width = 512;
-var height = 512;
-var aliases = [62138,"bow-classic-recurve"];
-var unicode = 'f300';
-var svgPathData = '';
+const prefix = 'fac';
+const iconName = 'bow-classic-recurve';
+const width = 512;
+const height = 512;
+const aliases = [62138,"bow-classic-recurve"];
+const unicode = 'f300';
+const svgPathData = '';
 
 exports.definition = {
   prefix: prefix,

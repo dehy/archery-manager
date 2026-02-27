@@ -33,7 +33,7 @@ enum ScalingMode {
     Height = 'height'
 }
 const renderPage = (pdfPage: pdfjsLib.PDFPageProxy, canvas: HTMLCanvasElement, scalingMode: ScalingMode = ScalingMode.Width): pdfjsLib.RenderTask => {
-    const originalViewport = pdfPage.getViewport({scale: 1.0});
+    const originalViewport = pdfPage.getViewport({scale: 1});
     const parentElement = canvas.parentElement as HTMLElement;
     const parentComputedStyles = getComputedStyle(parentElement);
     const desiredWith = parentElement.clientWidth
@@ -43,7 +43,7 @@ const renderPage = (pdfPage: pdfjsLib.PDFPageProxy, canvas: HTMLCanvasElement, s
         - Number.parseFloat(parentComputedStyles.paddingTop)
         - Number.parseFloat(parentComputedStyles.paddingBottom);
 
-    let wantedScale: number = 1.0;
+    let wantedScale: number = 1;
     if (scalingMode === ScalingMode.Width) { // set document with, update canvas height
         wantedScale = desiredWith / originalViewport.width;
     }
@@ -57,9 +57,9 @@ const renderPage = (pdfPage: pdfjsLib.PDFPageProxy, canvas: HTMLCanvasElement, s
     canvas.style.width = Math.floor(scaledViewport.width) + "px";
     canvas.style.height =  Math.floor(scaledViewport.height) + "px";
 
-    const transform = outputScale !== 1
-        ? [outputScale, 0, 0, outputScale, 0, 0]
-        : undefined;
+    const transform = outputScale === 1
+        ? undefined
+        : [outputScale, 0, 0, outputScale, 0, 0];
 
     const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     return pdfPage.render({
