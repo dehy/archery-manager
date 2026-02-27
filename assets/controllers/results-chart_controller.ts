@@ -14,11 +14,9 @@ export default class ResultsChartController extends Controller<HTMLCanvasElement
 
     _onPreConnect(event: Event) {
         // The chart is not yet created
-        const options = (event as CustomEvent).detail.options;
     }
 
     _onConnect(event: Event) {
         // The chart was just created
-        const chart = (event as CustomEvent).detail.chart;
     }
 }
