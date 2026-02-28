@@ -49,9 +49,12 @@ function initMatomo(cookiesEnabled: boolean): void {
             paq.push(['setUserId', matomoUserId]);
         }
 
+        // _paq.push() accepts multiple command arrays in a single call.
+        // See https://developer.matomo.org/guides/tracking-javascript-guide#asynchronous-tracking
         paq.push(['trackPageView'], ['enableLinkTracking']);
 
         const baseUrl = matomoUrl.replace(/\/$/, '') + '/';
+        // Consolidated push is supported since Matomo 1.x — confirmed in the async tracking guide above.
         paq.push(['setTrackerUrl', baseUrl + 'matomo.php'], ['setSiteId', matomoSiteId]);
 
         const script = document.createElement('script');
