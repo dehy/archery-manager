@@ -15,7 +15,7 @@ use App\Factory\LicenseeFactory;
 use App\Factory\UserFactory;
 use App\Repository\LicenseeRepository;
 use App\Repository\UserRepository;
-use App\Scrapper\FftaScrapper;
+use App\Scrapper\MonEspaceFftaScrapper;
 use AsyncAws\S3\Exception\NoSuchKeyException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -58,10 +58,10 @@ class FftaHelper
         $this->userRepository = $userRepository;
     }
 
-    public function getScrapper(Club $club): FftaScrapper
+    public function getScrapper(Club $club): MonEspaceFftaScrapper
     {
         if (!isset($this->scrappers[$club->getId()])) {
-            $this->scrappers[$club->getId()] = new FftaScrapper($club, $this->httpClient);
+            $this->scrappers[$club->getId()] = new MonEspaceFftaScrapper($club, $this->httpClient);
         }
 
         return $this->scrappers[$club->getId()];

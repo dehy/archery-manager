@@ -6,7 +6,7 @@ namespace App\Command;
 
 use App\Entity\Club;
 use App\Repository\ClubRepository;
-use App\Scrapper\FftaScrapper;
+use App\Scrapper\MonEspaceFftaScrapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -54,7 +54,7 @@ class FftaFindId extends Command
         /** @var ClubRepository $clubRepository */
         $clubRepository = $this->entityManager->getRepository(Club::class);
         $club = $clubRepository->findOneByCode($clubId);
-        $scrapper = new FftaScrapper($club);
+        $scrapper = new MonEspaceFftaScrapper($club);
 
         $id = $scrapper->findLicenseeIdFromCode($code);
 
