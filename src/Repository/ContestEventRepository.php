@@ -21,6 +21,14 @@ class ContestEventRepository extends EventRepository
         parent::__construct($registry, ContestEvent::class);
     }
 
+    public function findOneByFftaEventId(int $fftaEventId): ?ContestEvent
+    {
+        /** @var ContestEvent|null $result */
+        $result = $this->findOneBy(['fftaEventId' => $fftaEventId]);
+
+        return $result;
+    }
+
     #[\Override]
     public function add(Event $entity, bool $flush = true): void
     {
