@@ -139,6 +139,18 @@ class FftaSyncPublicCompetitionsCommand extends Command
         $comiteReg = strtolower($fftaEvent->comiteRegional);
 
         if (
+            str_contains($name, 'international')
+            || str_contains($name, 'coupe du monde')
+            || str_contains($name, 'world cup')
+            || str_contains($name, 'champion du monde')
+            || str_contains($name, 'championnat du monde')
+            || str_contains($name, 'european')
+            || str_contains($name, 'européen')
+        ) {
+            return EventScopeType::INTERNATIONAL;
+        }
+
+        if (
             str_contains($name, 'national')
             || str_contains($name, 'france')
             || str_contains($name, 'championnat de france')

@@ -88,8 +88,9 @@ class EventRepository extends ServiceEntityRepository
             $qb->expr()->andX('e.scope = :scopeDep', $depCondition),
             // REGIONAL: match region code
             $qb->expr()->andX('e.scope = :scopeReg', $regCondition),
-            // NATIONAL: always visible
+            // NATIONAL / INTERNATIONAL: always visible
             'e.scope = :scopeNat',
+            'e.scope = :scopeInt',
         );
 
         $qb->select('e, ep')
@@ -118,6 +119,7 @@ class EventRepository extends ServiceEntityRepository
             ->setParameter('scopeDep', EventScopeType::DEPARTMENTAL)
             ->setParameter('scopeReg', EventScopeType::REGIONAL)
             ->setParameter('scopeNat', EventScopeType::NATIONAL)
+            ->setParameter('scopeInt', EventScopeType::INTERNATIONAL)
             ->setMaxResults($limit);
 
         return new ArrayCollection($qb->getQuery()->getResult());
@@ -167,15 +169,17 @@ class EventRepository extends ServiceEntityRepository
             ->setParameter('scopeClub', EventScopeType::CLUB)
             ->setParameter('scopeDep', EventScopeType::DEPARTMENTAL)
             ->setParameter('scopeReg', EventScopeType::REGIONAL)
-            ->setParameter('scopeNat', EventScopeType::NATIONAL);
+            ->setParameter('scopeNat', EventScopeType::NATIONAL)
+            ->setParameter('scopeInt', EventScopeType::INTERNATIONAL);
 
         $em = $this->getEntityManager();
 
         $orX = $qb->expr()->orX(
             // CLUB scope: own clubs
             $qb->expr()->andX('e.scope = :scopeClub', '(e.club IN (:clubs) OR e.club IS NULL)'),
-            // NATIONAL scope: always
+            // NATIONAL / INTERNATIONAL scope: always
             'e.scope = :scopeNat',
+            'e.scope = :scopeInt',
         );
 
         if ([] !== $departmentCodes) {
