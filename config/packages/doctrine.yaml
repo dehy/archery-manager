@@ -16,6 +16,7 @@ doctrine:
             DisciplineType: App\DBAL\Types\DisciplineType
             EventAttachmentType: App\DBAL\Types\EventAttachmentType
             EventParticipationStateType: App\DBAL\Types\EventParticipationStateType
+            EventScopeType: App\DBAL\Types\EventScopeType
             EventType: App\DBAL\Types\EventType
             FletchingType: App\DBAL\Types\FletchingType
             GenderType: App\DBAL\Types\GenderType

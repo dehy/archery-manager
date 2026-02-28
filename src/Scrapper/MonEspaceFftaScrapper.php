@@ -27,7 +27,7 @@ use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class FftaScrapper
+class MonEspaceFftaScrapper
 {
     protected HttpClientInterface $managerSpaceHttpClient;
 
