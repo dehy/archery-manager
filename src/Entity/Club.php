@@ -85,13 +85,13 @@ class Club implements \Stringable
     /**
      * @var list<string>
      */
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::JSON)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::JSON, options: ['default' => '[]'])]
     private array $watchedDepartmentCodes = [];
 
     /**
      * @var list<string>
      */
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::JSON)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::JSON, options: ['default' => '[]'])]
     private array $watchedRegionCodes = [];
 
     public function __construct()

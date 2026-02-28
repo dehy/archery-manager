@@ -19,7 +19,7 @@ final class Version20260228142418 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE club ADD department_code VARCHAR(3) DEFAULT NULL, ADD region_code VARCHAR(10) DEFAULT NULL, ADD watched_department_codes JSON NOT NULL, ADD watched_region_codes JSON NOT NULL');
+        $this->addSql('ALTER TABLE club ADD department_code VARCHAR(3) DEFAULT NULL, ADD region_code VARCHAR(10) DEFAULT NULL, ADD watched_department_codes JSON NOT NULL DEFAULT \'[]\', ADD watched_region_codes JSON NOT NULL DEFAULT \'[]\'');
         $this->addSql('DROP INDEX consent_log_created_at_idx ON consent_log');
         $this->addSql('DROP INDEX consent_log_action_idx ON consent_log');
         $this->addSql('ALTER TABLE consent_log CHANGE created_at created_at DATETIME NOT NULL');
