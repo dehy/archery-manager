@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\DBAL\Types\DisciplineType;
+use App\DBAL\Types\EventScopeType;
 use App\Entity\TrainingEvent;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
@@ -41,6 +42,7 @@ class TrainingEventCrudController extends AbstractCrudController
             DateTimeField::new('startsAt'),
             DateTimeField::new('endsAt'),
             BooleanField::new('allDay')->renderAsSwitch(false),
+            ChoiceField::new('scope')->setChoices(EventScopeType::getChoices()),
             ChoiceField::new('discipline')->setChoices(
                 DisciplineType::getChoices(),
             ),

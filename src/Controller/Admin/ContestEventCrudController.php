@@ -7,6 +7,7 @@ namespace App\Controller\Admin;
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventAttachmentType;
+use App\DBAL\Types\EventScopeType;
 use App\DBAL\Types\EventType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
@@ -29,6 +30,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
@@ -61,6 +63,7 @@ class ContestEventCrudController extends AbstractCrudController
             DateTimeField::new('startsAt'),
             DateTimeField::new('endsAt'),
             BooleanField::new('allDay')->renderAsSwitch(false),
+            ChoiceField::new('scope')->setChoices(EventScopeType::getChoices()),
             ChoiceField::new('contestType')->setChoices(
                 ContestType::getChoices(),
             ),
@@ -71,6 +74,9 @@ class ContestEventCrudController extends AbstractCrudController
             TextField::new('latitude'),
             TextField::new('longitude'),
             AssociationField::new('assignedGroups'),
+            IntegerField::new('fftaEventId', 'ID FFTA')->hideOnIndex(),
+            TextField::new('fftaComiteDepartemental', 'Comité départemental FFTA')->hideOnIndex(),
+            TextField::new('fftaComiteRegional', 'Comité régional FFTA')->hideOnIndex(),
             BooleanField::new('hasMandate', 'Mandat')->renderAsSwitch(false)->hideOnForm(),
             BooleanField::new('hasResults', 'Résultats')->renderAsSwitch(false)->hideOnForm(),
         ];
@@ -87,6 +93,7 @@ class ContestEventCrudController extends AbstractCrudController
     {
         return parent::configureFilters($filters)
             ->add(EntityFilter::new('club'))
+            ->add(ChoiceFilter::new('scope')->setChoices(EventScopeType::getChoices()))
             ->add(ChoiceFilter::new('type')->setChoices(EventType::getChoices()))
             ->add(ChoiceFilter::new('discipline')->setChoices(DisciplineType::getChoices()));
     }
