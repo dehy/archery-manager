@@ -76,6 +76,24 @@ class Club implements \Stringable
     #[Encrypted]
     private ?string $fftaPassword = null;
 
+    #[ORM\Column(length: 3, nullable: true)]
+    private ?string $departmentCode = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $regionCode = null;
+
+    /**
+     * @var list<string>
+     */
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::JSON)]
+    private array $watchedDepartmentCodes = [];
+
+    /**
+     * @var list<string>
+     */
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::JSON)]
+    private array $watchedRegionCodes = [];
+
     public function __construct()
     {
         $this->events = new ArrayCollection();
@@ -298,6 +316,66 @@ class Club implements \Stringable
     public function setFftaPassword(?string $fftaPassword): self
     {
         $this->fftaPassword = $fftaPassword;
+
+        return $this;
+    }
+
+    public function getDepartmentCode(): ?string
+    {
+        return $this->departmentCode;
+    }
+
+    public function setDepartmentCode(?string $departmentCode): self
+    {
+        $this->departmentCode = $departmentCode;
+
+        return $this;
+    }
+
+    public function getRegionCode(): ?string
+    {
+        return $this->regionCode;
+    }
+
+    public function setRegionCode(?string $regionCode): self
+    {
+        $this->regionCode = $regionCode;
+
+        return $this;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getWatchedDepartmentCodes(): array
+    {
+        return $this->watchedDepartmentCodes;
+    }
+
+    /**
+     * @param list<string> $watchedDepartmentCodes
+     */
+    public function setWatchedDepartmentCodes(array $watchedDepartmentCodes): self
+    {
+        $this->watchedDepartmentCodes = $watchedDepartmentCodes;
+
+        return $this;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getWatchedRegionCodes(): array
+    {
+        return $this->watchedRegionCodes;
+    }
+
+    /**
+     * @param list<string> $watchedRegionCodes
+     */
+    public function setWatchedRegionCodes(array $watchedRegionCodes): self
+    {
+        $this->watchedRegionCodes = $watchedRegionCodes;
 
         return $this;
     }

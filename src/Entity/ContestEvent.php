@@ -6,11 +6,13 @@ namespace App\Entity;
 
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
+use App\DBAL\Types\EventScopeType;
 use App\DBAL\Types\EventAttachmentType;
 use App\DBAL\Types\EventParticipationStateType;
 use App\DBAL\Types\EventType;
 use App\Repository\ContestEventRepository;
 use App\Scrapper\FftaEvent;
+use App\Scrapper\FftaPublicEvent;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -20,6 +22,15 @@ class ContestEvent extends Event
 {
     #[ORM\Column(type: 'ContestType', nullable: true)]
     private ?string $contestType = null;
+
+    #[ORM\Column(nullable: true, unique: true)]
+    private ?int $fftaEventId = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $fftaComiteDepartemental = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $fftaComiteRegional = null;
 
     /**
      * @var Collection<int, Result>
@@ -57,6 +68,60 @@ class ContestEvent extends Event
             ->setStartsAt($fftaEvent->getFrom());
 
         return $event;
+    }
+
+    public static function fromFftaPublicEvent(FftaPublicEvent $event): self
+    {
+        $contest = new self();
+        $contest
+            ->setFftaEventId($event->fftaEventId)
+            ->setFftaComiteDepartemental($event->comiteDepartemental)
+            ->setFftaComiteRegional($event->comiteRegional)
+            ->setContestType($event->contestType ?? ContestType::INDIVIDUAL)
+            ->setAddress($event->address)
+            ->setDiscipline($event->discipline)
+            ->setEndsAt($event->endsAt)
+            ->setName($event->name)
+            ->setStartsAt($event->startsAt)
+            ->setScope(EventScopeType::DEPARTMENTAL);
+
+        return $contest;
+    }
+
+    public function getFftaEventId(): ?int
+    {
+        return $this->fftaEventId;
+    }
+
+    public function setFftaEventId(?int $fftaEventId): self
+    {
+        $this->fftaEventId = $fftaEventId;
+
+        return $this;
+    }
+
+    public function getFftaComiteDepartemental(): ?string
+    {
+        return $this->fftaComiteDepartemental;
+    }
+
+    public function setFftaComiteDepartemental(?string $fftaComiteDepartemental): self
+    {
+        $this->fftaComiteDepartemental = $fftaComiteDepartemental;
+
+        return $this;
+    }
+
+    public function getFftaComiteRegional(): ?string
+    {
+        return $this->fftaComiteRegional;
+    }
+
+    public function setFftaComiteRegional(?string $fftaComiteRegional): self
+    {
+        $this->fftaComiteRegional = $fftaComiteRegional;
+
+        return $this;
     }
 
     public function getContestType(): ?string

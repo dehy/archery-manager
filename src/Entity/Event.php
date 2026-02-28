@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\DBAL\Types\EventScopeType;
 use App\DBAL\Types\EventType;
 use App\Repository\EventRepository;
 use Cocur\Slugify\Slugify;
@@ -78,6 +79,9 @@ class Event implements \Stringable
     #[ORM\Column(length: 16, nullable: true)]
     protected ?string $longitude = null;
 
+    #[ORM\Column(type: 'EventScopeType')]
+    protected string $scope = EventScopeType::CLUB;
+
     #[ORM\Column]
     protected ?\DateTimeImmutable $updatedAt = null;
 
@@ -97,6 +101,18 @@ class Event implements \Stringable
             EventType::getReadableValue(static::class),
             $this->getName(),
         );
+    }
+
+    public function getScope(): string
+    {
+        return $this->scope;
+    }
+
+    public function setScope(string $scope): self
+    {
+        $this->scope = $scope;
+
+        return $this;
     }
 
     public function getClub(): ?Club
