@@ -27,6 +27,8 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class AdminDashboardController extends AbstractDashboardController
 {
+    private const string FA_CALENDAR = 'fa-regular fa-calendar';
+
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
     ) {
@@ -112,22 +114,22 @@ class AdminDashboardController extends AbstractDashboardController
 
         yield MenuItem::linkToCrud(
             'Entrainements',
-            'fa-regular fa-calendar',
+            self::FA_CALENDAR,
             TrainingEvent::class,
         );
         yield MenuItem::linkToCrud(
             'Entrainements Libres',
-            'fa-regular fa-calendar',
+            self::FA_CALENDAR,
             FreeTrainingEvent::class,
         );
         yield MenuItem::linkToCrud(
             'Concours',
-            'fa-regular fa-calendar',
+            self::FA_CALENDAR,
             ContestEvent::class,
         );
         yield MenuItem::linkToCrud(
             'Challenge 33',
-            'fa-regular fa-calendar',
+            self::FA_CALENDAR,
             HobbyContestEvent::class,
         );
 

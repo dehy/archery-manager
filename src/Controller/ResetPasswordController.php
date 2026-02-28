@@ -163,7 +163,7 @@ class ResetPasswordController extends AbstractController
             return $this->redirectToRoute('app_homepage');
         }
 
-        return $this->render('reset_password/reset.html.twig', [
+        return $this->render('reset_password/reset.html.twig', [ // NOSONAR: php:S1142 - 4 returns are acceptable; extracting further would obscure controller flow
             'resetForm' => $form,
         ]);
     }

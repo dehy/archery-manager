@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
 
-export default class extends Controller<HTMLCanvasElement> {
+export default class ResultsChartController extends Controller<HTMLCanvasElement> {
     connect() {
         this.element.addEventListener('chartjs:pre-connect', this._onPreConnect);
         this.element.addEventListener('chartjs:connect', this._onConnect);
@@ -13,12 +13,10 @@ export default class extends Controller<HTMLCanvasElement> {
     }
 
     _onPreConnect(event: Event) {
-        // The chart is not yet created
-        const options = (event as CustomEvent).detail.options;
+        // TODO: configure chart options before creation via (event as CustomEvent).detail.options
     }
 
     _onConnect(event: Event) {
-        // The chart was just created
-        const chart = (event as CustomEvent).detail.chart;
+        // TODO: access the chart instance via (event as CustomEvent).detail.chart
     }
 }

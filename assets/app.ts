@@ -292,7 +292,4 @@ document.addEventListener('DOMContentLoaded', () => {
     tooltipTriggerList.forEach(
         (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
     );
-
-    const collections = [...document.querySelectorAll('.collection')];
-    //formCollection(collections);
 });

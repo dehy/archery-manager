@@ -2,12 +2,12 @@ import {ActionEvent, Controller} from "@hotwired/stimulus";
 import api from "../api";
 import axios from "axios";
 
-export default class extends Controller<HTMLElement> {
+export default class EventParticipationController extends Controller<HTMLElement> {
     eventId?: string;
     participationId?: string;
     licenseeId?: string;
 
-    static targets = ['stateButtons'];
+    static readonly targets = ['stateButtons'];
 
     declare readonly stateButtonsTargets: HTMLButtonElement[];
 
@@ -62,7 +62,7 @@ export default class extends Controller<HTMLElement> {
                 button.classList.remove(`btn-outline-${badgeType}`, `btn-${badgeType}`);
             }
             console.debug(eventParticipation.participationState, button.dataset.state);
-            const outline = eventParticipation.participationState != button.dataset.state ? 'outline-' : '';
+            const outline = eventParticipation.participationState === button.dataset.state ? '' : 'outline-';
             button.classList.add(`btn-${outline}${badgeType}`);
         });
     }

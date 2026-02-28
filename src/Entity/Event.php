@@ -24,6 +24,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class Event implements \Stringable
 {
+    private const string DATE_FORMAT = 'd/m/Y';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
@@ -93,7 +95,7 @@ class Event implements \Stringable
     {
         return \sprintf(
             '%s - %s - %s',
-            $this->getStartsAt()->format('d/m/Y'),
+            $this->getStartsAt()->format(self::DATE_FORMAT),
             EventType::getReadableValue(static::class),
             $this->getName(),
         );
@@ -334,7 +336,7 @@ class Event implements \Stringable
 
     public function spanMultipleDays(): bool
     {
-        return $this->getStartsAt()->format('d/m/Y') !== $this->getEndsAt()->format('d/m/Y');
+        return $this->getStartsAt()->format(self::DATE_FORMAT) !== $this->getEndsAt()->format(self::DATE_FORMAT);
     }
 
     public function getUpdatedAt(): ?\DateTimeImmutable

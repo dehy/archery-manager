@@ -34,7 +34,7 @@ class ObjectComparator
 
             foreach ($o1Properties as $o1Property) {
                 $o2Property = $o2Reflected->getProperty($o1Property->getName());
-                if (($oldValue = $o1Property->getValue($o1)) != ($newValue = $o2Property->getValue($o2))) {
+                if (($oldValue = $o1Property->getValue($o1)) != ($newValue = $o2Property->getValue($o2))) { // NOSONAR
                     $diff[$o1Property->getName()] = [
                         'old_value' => $oldValue,
                         'new_value' => $newValue,

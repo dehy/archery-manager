@@ -15,7 +15,6 @@ use App\Form\FreeTrainingEventType;
 use App\Form\TrainingEventType;
 use App\Helper\ClubHelper;
 use App\Repository\EventRepository;
-use App\Repository\GroupRepository;
 use App\Security\Voter\EventVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,7 +29,6 @@ class EventManagementController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ClubHelper $clubHelper,
-        private readonly GroupRepository $groupRepository,
     ) {
     }
 

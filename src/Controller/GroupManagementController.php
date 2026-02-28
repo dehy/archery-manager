@@ -98,7 +98,7 @@ class GroupManagementController extends BaseController
             ]);
         }
 
-        return new JsonResponse(['error' => 'Ce licencié fait déjà partie du groupe'], Response::HTTP_BAD_REQUEST);
+        return new JsonResponse(['error' => 'Ce licencié fait déjà partie du groupe'], Response::HTTP_BAD_REQUEST); // NOSONAR: php:S1142 - early-return guards are clearer than a result variable
     }
 
     #[Route('/admin/groups/{id}/remove-member', name: 'app_group_remove_member', methods: ['POST'])]
@@ -134,7 +134,7 @@ class GroupManagementController extends BaseController
             ]);
         }
 
-        return new JsonResponse(['error' => 'Ce licencié ne fait pas partie du groupe'], Response::HTTP_BAD_REQUEST);
+        return new JsonResponse(['error' => 'Ce licencié ne fait pas partie du groupe'], Response::HTTP_BAD_REQUEST); // NOSONAR: php:S1142 - early-return guards are clearer than a result variable
     }
 
     #[Route('/admin/groups/create', name: 'app_group_create')]
