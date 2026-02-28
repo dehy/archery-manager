@@ -19,10 +19,13 @@ final class EventScopeType extends AbstractEnumType
 
     public const string NATIONAL = 'national';
 
+    public const string INTERNATIONAL = 'international';
+
     protected static array $choices = [
         self::CLUB => 'Club',
         self::DEPARTMENTAL => 'Comité départemental',
         self::REGIONAL => 'Comité régional',
         self::NATIONAL => 'National',
+        self::INTERNATIONAL => 'International',
     ];
 }
