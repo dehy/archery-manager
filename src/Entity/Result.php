@@ -332,6 +332,10 @@ class Result
         string $activity,
         string $ageCategory,
     ): array {
+        DisciplineType::assertValidChoice($discipline);
+        LicenseActivityType::assertValidChoice($activity);
+        LicenseAgeCategoryType::assertValidChoice($ageCategory);
+
         if (DisciplineType::INDOOR === $discipline) {
             return LicenseActivityType::CO === $activity ? [18, 60] : match ($ageCategory) {
                 LicenseAgeCategoryType::POUSSIN, LicenseAgeCategoryType::U11 => [10, 80],
@@ -358,6 +362,10 @@ class Result
         string $activity,
         string $ageCategory,
     ): array {
+        DisciplineType::assertValidChoice($discipline);
+        LicenseActivityType::assertValidChoice($activity);
+        LicenseAgeCategoryType::assertValidChoice($ageCategory);
+
         if (DisciplineType::INDOOR === $discipline) {
             return LicenseActivityType::CO === $activity ? [18, 20] : match ($ageCategory) {
                 LicenseAgeCategoryType::POUSSIN, LicenseAgeCategoryType::U11 => [18, 80],
