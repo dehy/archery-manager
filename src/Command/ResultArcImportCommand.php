@@ -56,17 +56,7 @@ class ResultArcImportCommand extends Command
             return Command::INVALID;
         }
 
-        if (!$contestEvent->getContestType() || !$contestEvent->getDiscipline()) {
-            if (!$contestEvent->getContestType()) {
-                $io->error(
-                    'You must set the contest type value of the event before importing results',
-                );
-            } else {
-                $io->error(
-                    'You must set the event discipline before importing results',
-                );
-            }
-
+        if (!$this->validateContestEventForImport($contestEvent, $io)) {
             return Command::INVALID;
         }
 
@@ -117,5 +107,22 @@ class ResultArcImportCommand extends Command
         $this->entityManager->flush();
 
         return Command::SUCCESS;
+    }
+
+    private function validateContestEventForImport(ContestEvent $contestEvent, SymfonyStyle $io): bool
+    {
+        if (!$contestEvent->getContestType()) {
+            $io->error('You must set the contest type value of the event before importing results');
+
+            return false;
+        }
+
+        if ('' === $contestEvent->getDiscipline() || '0' === $contestEvent->getDiscipline()) {
+            $io->error('You must set the event discipline before importing results');
+
+            return false;
+        }
+
+        return true;
     }
 }

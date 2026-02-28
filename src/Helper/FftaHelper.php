@@ -10,7 +10,6 @@ use App\Entity\Club;
 use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\LicenseeAttachment;
-use App\Entity\User;
 use App\Exception\FftaException;
 use App\Factory\LicenseeFactory;
 use App\Factory\UserFactory;
@@ -157,11 +156,9 @@ class FftaHelper
         );
         $licensee = $fftaLicensee;
 
-        /** @var UserRepository $userRepository */
-        $userRepository = $this->entityManager->getRepository(User::class);
-        $user = $userRepository->findOneByEmail($fftaProfile->getEmail());
+        $user = $this->userRepository->findOneByEmail($fftaProfile->getEmail());
 
-        if (!$user) {
+        if (!$user instanceof \App\Entity\User) {
             $user = UserFactory::createFromFftaProfile($fftaProfile);
             $this->entityManager->persist($user);
         }

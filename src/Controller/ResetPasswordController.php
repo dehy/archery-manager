@@ -137,7 +137,6 @@ class ResetPasswordController extends AbstractController
         $form = $this->createForm(ChangePasswordFormType::class);
         $form->handleRequest($request);
 
-        $redirectRoute = null;
         if ($form->isSubmitted() && $form->isValid()) {
             // A password reset token should be used only once, remove it.
             $this->resetPasswordHelper->removeResetRequest($token);
@@ -161,14 +160,12 @@ class ResetPasswordController extends AbstractController
             // The session is cleaned up after the password has been changed.
             $this->cleanSessionAfterReset();
 
-            $redirectRoute = 'app_homepage';
+            return $this->redirectToRoute('app_homepage');
         }
 
-        return null !== $redirectRoute
-            ? $this->redirectToRoute($redirectRoute)
-            : $this->render('reset_password/reset.html.twig', [
-                'resetForm' => $form,
-            ]);
+        return $this->render('reset_password/reset.html.twig', [ // NOSONAR: php:S1142 - 4 returns are acceptable; extracting further would obscure controller flow
+            'resetForm' => $form,
+        ]);
     }
 
     private function processSendingPasswordResetEmail(
