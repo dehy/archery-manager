@@ -125,7 +125,8 @@ class FftaSyncPublicCompetitionsCommand extends Command
             ->setName($fftaEvent->name)
             ->setStartsAt($fftaEvent->startsAt)
             ->setEndsAt($fftaEvent->endsAt)
-            ->setAddress($fftaEvent->address)
+            ->setAddress($fftaEvent->address);
+        $contest
             ->setFftaComiteDepartemental($fftaEvent->comiteDepartemental)
             ->setFftaComiteRegional($fftaEvent->comiteRegional)
             ->setScope($this->inferScope($fftaEvent));

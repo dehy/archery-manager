@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\DBAL\Types\EventScopeType;
+use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\License;
 use App\Entity\Licensee;
@@ -53,21 +54,40 @@ class EventRepository extends ServiceEntityRepository
         $departmentCode = $club?->getDepartmentCode();
         $regionCode = $club?->getRegionCode();
 
+        $em = $this->getEntityManager();
         $qb = $this->createQueryBuilder('e');
+
+        // DEPARTMENTAL: subquery against ContestEvent to avoid DQL field-not-found on parent
+        $depCondition = '1=0';
+        if ($departmentCode) {
+            $depSubDql = $em->createQueryBuilder()
+                ->select('ce_dep.id')
+                ->from(ContestEvent::class, 'ce_dep')
+                ->where('ce_dep.fftaComiteDepartemental LIKE :depPattern')
+                ->getDQL();
+            $depCondition = $qb->expr()->in('e.id', $depSubDql);
+            $qb->setParameter('depPattern', '%'.$departmentCode.'%');
+        }
+
+        // REGIONAL: subquery against ContestEvent
+        $regCondition = '1=0';
+        if ($regionCode) {
+            $regSubDql = $em->createQueryBuilder()
+                ->select('ce_reg.id')
+                ->from(ContestEvent::class, 'ce_reg')
+                ->where('ce_reg.fftaComiteRegional LIKE :regPattern')
+                ->getDQL();
+            $regCondition = $qb->expr()->in('e.id', $regSubDql);
+            $qb->setParameter('regPattern', '%'.$regionCode.'%');
+        }
 
         $scopeExpr = $qb->expr()->orX(
             // CLUB scope: own club's events
             $qb->expr()->andX('e.scope = :scopeClub', $qb->expr()->orX('e.club = :club', 'e.club IS NULL')),
             // DEPARTMENTAL: match department code in committee name
-            $qb->expr()->andX(
-                'e.scope = :scopeDep',
-                $departmentCode ? $qb->expr()->like('e.fftaComiteDepartemental', ':depPattern') : '1=0',
-            ),
+            $qb->expr()->andX('e.scope = :scopeDep', $depCondition),
             // REGIONAL: match region code
-            $qb->expr()->andX(
-                'e.scope = :scopeReg',
-                $regionCode ? $qb->expr()->like('e.fftaComiteRegional', ':regPattern') : '1=0',
-            ),
+            $qb->expr()->andX('e.scope = :scopeReg', $regCondition),
             // NATIONAL: always visible
             'e.scope = :scopeNat',
         );
@@ -99,14 +119,6 @@ class EventRepository extends ServiceEntityRepository
             ->setParameter('scopeReg', EventScopeType::REGIONAL)
             ->setParameter('scopeNat', EventScopeType::NATIONAL)
             ->setMaxResults($limit);
-
-        if ($departmentCode) {
-            $qb->setParameter('depPattern', '%'.$departmentCode.'%');
-        }
-
-        if ($regionCode) {
-            $qb->setParameter('regPattern', '%'.$regionCode.'%');
-        }
 
         return new ArrayCollection($qb->getQuery()->getResult());
     }
@@ -157,6 +169,8 @@ class EventRepository extends ServiceEntityRepository
             ->setParameter('scopeReg', EventScopeType::REGIONAL)
             ->setParameter('scopeNat', EventScopeType::NATIONAL);
 
+        $em = $this->getEntityManager();
+
         $orX = $qb->expr()->orX(
             // CLUB scope: own clubs
             $qb->expr()->andX('e.scope = :scopeClub', '(e.club IN (:clubs) OR e.club IS NULL)'),
@@ -165,21 +179,43 @@ class EventRepository extends ServiceEntityRepository
         );
 
         if ([] !== $departmentCodes) {
-            $qb->setParameter('depCodes', $departmentCodes);
+            // Subquery against ContestEvent to avoid DQL field-not-found on parent entity
+            $depSubQb = $em->createQueryBuilder()
+                ->select('ce_dep2.id')
+                ->from(ContestEvent::class, 'ce_dep2');
+            $depOrX = $depSubQb->expr()->orX();
+            foreach ($departmentCodes as $i => $depCode) {
+                $paramName = 'depPattern_'.$i;
+                $depOrX->add("ce_dep2.fftaComiteDepartemental LIKE :{$paramName}");
+                $qb->setParameter($paramName, '%'.$depCode.'%');
+            }
+
+            $depSubQb->where($depOrX);
             $orX->add(
                 $qb->expr()->andX(
                     'e.scope = :scopeDep',
-                    $qb->expr()->in('SUBSTRING(e.fftaComiteDepartemental, 1, 3)', ':depCodes'),
+                    $qb->expr()->in('e.id', $depSubQb->getDQL()),
                 )
             );
         }
 
         if ([] !== $regionCodes) {
-            $qb->setParameter('regCodes', $regionCodes);
+            // Subquery against ContestEvent to avoid DQL field-not-found on parent entity
+            $regSubQb = $em->createQueryBuilder()
+                ->select('ce_reg2.id')
+                ->from(ContestEvent::class, 'ce_reg2');
+            $regOrX = $regSubQb->expr()->orX();
+            foreach ($regionCodes as $i => $regCode) {
+                $paramName = 'regPattern_'.$i;
+                $regOrX->add("ce_reg2.fftaComiteRegional LIKE :{$paramName}");
+                $qb->setParameter($paramName, '%'.$regCode.'%');
+            }
+
+            $regSubQb->where($regOrX);
             $orX->add(
                 $qb->expr()->andX(
                     'e.scope = :scopeReg',
-                    $qb->expr()->in('e.fftaComiteRegional', ':regCodes'),
+                    $qb->expr()->in('e.id', $regSubQb->getDQL()),
                 )
             );
         }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Helper;
 
 use App\DBAL\Types\EventParticipationStateType;
+use App\DBAL\Types\EventScopeType;
 use App\DBAL\Types\LicenseActivityType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
@@ -117,6 +118,7 @@ final class EventHelperTest extends TestCase
     public function testCanLicenseeParticipateInEventReturnsTrueWhenNoAssignedGroups(): void
     {
         $event = $this->createMock(TrainingEvent::class);
+        $event->method('getScope')->willReturn(EventScopeType::CLUB);
         $event->method('getAssignedGroups')->willReturn(new ArrayCollection());
 
         $result = $this->eventHelper->canLicenseeParticipateInEvent($this->createStub(Licensee::class), $event);
@@ -131,6 +133,7 @@ final class EventHelperTest extends TestCase
         $licensee->method('getGroups')->willReturn(new ArrayCollection([$group]));
 
         $event = $this->createMock(TrainingEvent::class);
+        $event->method('getScope')->willReturn(EventScopeType::CLUB);
         $event->method('getAssignedGroups')->willReturn(new ArrayCollection([$group]));
 
         $result = $this->eventHelper->canLicenseeParticipateInEvent($licensee, $event);
@@ -147,6 +150,7 @@ final class EventHelperTest extends TestCase
         $licensee->method('getGroups')->willReturn(new ArrayCollection([$group1]));
 
         $event = $this->createMock(TrainingEvent::class);
+        $event->method('getScope')->willReturn(EventScopeType::CLUB);
         $event->method('getAssignedGroups')->willReturn(new ArrayCollection([$group2]));
 
         $result = $this->eventHelper->canLicenseeParticipateInEvent($licensee, $event);

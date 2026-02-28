@@ -23,7 +23,7 @@ class ContestEvent extends Event
     #[ORM\Column(type: 'ContestType', nullable: true)]
     private ?string $contestType = null;
 
-    #[ORM\Column(nullable: true, unique: true)]
+    #[ORM\Column(unique: true, nullable: true)]
     private ?int $fftaEventId = null;
 
     #[ORM\Column(length: 255, nullable: true)]

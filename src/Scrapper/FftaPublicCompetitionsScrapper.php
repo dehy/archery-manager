@@ -93,11 +93,11 @@ class FftaPublicCompetitionsScrapper
                 continue;
             }
 
-            $parts[] = urlencode($key).'='.urlencode((string) $value);
+            $parts[] = urlencode((string) $key).'='.urlencode((string) $value);
         }
 
         foreach ($departmentCodes as $code) {
-            $parts[] = 'dep%5B%5D='.urlencode($code);
+            $parts[] = 'dep%5B%5D='.urlencode((string) $code);
         }
 
         return implode('&', $parts);
@@ -137,7 +137,7 @@ class FftaPublicCompetitionsScrapper
     private function parseCompetitionRow(Crawler $node): ?FftaPublicEvent
     {
         $link = $node->filter('a')->first();
-        if (!$link->count()) {
+        if (0 === $link->count()) {
             return null;
         }
 
@@ -213,7 +213,7 @@ class FftaPublicCompetitionsScrapper
 
         // Try to find field rows in the main content area
         $content = $crawler->filter('.field--name-body, .event-content, main article, .node__content');
-        if (!$content->count()) {
+        if (0 === $content->count()) {
             $content = $crawler->filter('main, body');
         }
 
