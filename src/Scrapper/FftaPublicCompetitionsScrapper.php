@@ -21,7 +21,8 @@ class FftaPublicCompetitionsScrapper
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
-    ) {}
+    ) {
+    }
 
     /**
      * Fetches competitions visible in the given department codes for a date range.
@@ -50,7 +51,7 @@ class FftaPublicCompetitionsScrapper
             $query['dep[]'][] = $code;
         }
 
-        $url = self::BASE_URL . self::COMPETITIONS_PATH . '?' . $this->buildQuery($departmentCodes, $query);
+        $url = self::BASE_URL.self::COMPETITIONS_PATH.'?'.$this->buildQuery($departmentCodes, $query);
 
         $html = $this->fetchHtml($url);
         $crawler = new Crawler($html);
@@ -92,11 +93,11 @@ class FftaPublicCompetitionsScrapper
                 continue;
             }
 
-            $parts[] = urlencode($key) . '=' . urlencode((string) $value);
+            $parts[] = urlencode($key).'='.urlencode((string) $value);
         }
 
         foreach ($departmentCodes as $code) {
-            $parts[] = 'dep%5B%5D=' . urlencode($code);
+            $parts[] = 'dep%5B%5D='.urlencode($code);
         }
 
         return implode('&', $parts);
@@ -150,7 +151,7 @@ class FftaPublicCompetitionsScrapper
 
     private function parseDetailPage(int $fftaEventId): ?FftaPublicEvent
     {
-        $url = self::BASE_URL . '/epreuve/' . $fftaEventId;
+        $url = self::BASE_URL.'/epreuve/'.$fftaEventId;
         $html = $this->fetchHtml($url);
         if ('' === $html) {
             return null;
@@ -236,7 +237,7 @@ class FftaPublicCompetitionsScrapper
         // Try to parse the full address block after "Lieu"
         if (preg_match('/Lieu\s*:\s*([^\n\r]+)\n([^\n\r]+)\n(\d{5}[^\n\r]*)\n?([A-Z]+)?/i', $text, $m)) {
             $fields['lieu'] = trim($m[1]);
-            $fields['address'] = trim($m[1] . "\n" . $m[2] . "\n" . $m[3]);
+            $fields['address'] = trim($m[1]."\n".$m[2]."\n".$m[3]);
         }
 
         return $fields;
@@ -244,7 +245,7 @@ class FftaPublicCompetitionsScrapper
 
     /**
      * Parses competition dates from the detail page.
-     * Formats found: "LE 05 AVRIL 2026", "DU 11 AU 12 AVRIL 2026"
+     * Formats found: "LE 05 AVRIL 2026", "DU 11 AU 12 AVRIL 2026".
      *
      * @return array{start: \DateTimeImmutable, end: \DateTimeImmutable}|null
      */
@@ -261,19 +262,19 @@ class FftaPublicCompetitionsScrapper
         $monthPattern = implode('|', array_keys($frenchMonths));
 
         // "DU DD AU DD MOIS YYYY"
-        if (preg_match('/DU\s+(\d{1,2})\s+AU\s+(\d{1,2})\s+(' . $monthPattern . ')\s+(\d{4})/i', $text, $m)) {
+        if (preg_match('/DU\s+(\d{1,2})\s+AU\s+(\d{1,2})\s+('.$monthPattern.')\s+(\d{4})/i', $text, $m)) {
             $month = $frenchMonths[strtolower($m[3])];
-            $start = \DateTimeImmutable::createFromFormat('d/m/Y', sprintf('%02d/%s/%s', $m[1], $month, $m[4]));
-            $end = \DateTimeImmutable::createFromFormat('d/m/Y', sprintf('%02d/%s/%s', $m[2], $month, $m[4]));
+            $start = \DateTimeImmutable::createFromFormat('d/m/Y', \sprintf('%02d/%s/%s', $m[1], $month, $m[4]));
+            $end = \DateTimeImmutable::createFromFormat('d/m/Y', \sprintf('%02d/%s/%s', $m[2], $month, $m[4]));
             if ($start && $end) {
                 return ['start' => $start, 'end' => $end];
             }
         }
 
         // "LE DD MOIS YYYY"
-        if (preg_match('/LE\s+(\d{1,2})\s+(' . $monthPattern . ')\s+(\d{4})/i', $text, $m)) {
+        if (preg_match('/LE\s+(\d{1,2})\s+('.$monthPattern.')\s+(\d{4})/i', $text, $m)) {
             $month = $frenchMonths[strtolower($m[2])];
-            $start = \DateTimeImmutable::createFromFormat('d/m/Y', sprintf('%02d/%s/%s', $m[1], $month, $m[3]));
+            $start = \DateTimeImmutable::createFromFormat('d/m/Y', \sprintf('%02d/%s/%s', $m[1], $month, $m[3]));
             if ($start) {
                 return ['start' => $start, 'end' => $start];
             }

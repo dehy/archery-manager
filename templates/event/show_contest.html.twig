@@ -39,6 +39,22 @@
                             Inscriptions fermées
                         </span>
                     {% endif %}
+                    {% if event.scope == constant('App\\DBAL\\Types\\EventScopeType::DEPARTMENTAL') %}
+                        <span class="badge bg-info ms-1" title="{{ event.fftaComiteDepartemental }}">
+                            <i class="fa-solid fa-map-location-dot me-1"></i>
+                            {{ event.fftaComiteDepartemental ?: 'Comité départemental' }}
+                        </span>
+                    {% elseif event.scope == constant('App\\DBAL\\Types\\EventScopeType::REGIONAL') %}
+                        <span class="badge bg-primary ms-1" title="{{ event.fftaComiteRegional }}">
+                            <i class="fa-solid fa-earth-europe me-1"></i>
+                            {{ event.fftaComiteRegional ?: 'Comité régional' }}
+                        </span>
+                    {% elseif event.scope == constant('App\\DBAL\\Types\\EventScopeType::NATIONAL') %}
+                        <span class="badge bg-danger ms-1">
+                            <i class="fa-solid fa-flag me-1"></i>
+                            National
+                        </span>
+                    {% endif %}
                 </div>
                 <h1 class="display-6 mb-2">{{ event.title }}</h1>
                 <p class="text-muted mb-0">

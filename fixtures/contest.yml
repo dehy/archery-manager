@@ -7,4 +7,5 @@ App\Entity\ContestEvent:
         allDay: true
         address: '<address()>'
         discipline: 'indoor'
+        scope: 'club'
         assigned_groups: ['@group_ladg_competiteurs']

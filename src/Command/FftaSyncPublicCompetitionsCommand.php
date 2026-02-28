@@ -57,8 +57,8 @@ class FftaSyncPublicCompetitionsCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $seasonYear = (int) $input->getOption('season');
-        $start = new \DateTimeImmutable(sprintf('%d-09-01', $seasonYear - 1));
-        $end = new \DateTimeImmutable(sprintf('%d-08-31', $seasonYear));
+        $start = new \DateTimeImmutable(\sprintf('%d-09-01', $seasonYear - 1));
+        $end = new \DateTimeImmutable(\sprintf('%d-08-31', $seasonYear));
 
         /** @var ClubRepository $clubRepository */
         $clubRepository = $this->entityManager->getRepository(Club::class);
@@ -67,7 +67,7 @@ class FftaSyncPublicCompetitionsCommand extends Command
         if (null !== $clubId) {
             $club = $clubRepository->find((int) $clubId);
             if (!$club instanceof Club) {
-                $io->error(sprintf('Club with ID %d not found.', $clubId));
+                $io->error(\sprintf('Club with ID %d not found.', $clubId));
 
                 return Command::FAILURE;
             }
@@ -86,27 +86,27 @@ class FftaSyncPublicCompetitionsCommand extends Command
         foreach ($clubs as $club) {
             $departmentCodes = $club->getWatchedDepartmentCodes();
             if ([] === $departmentCodes) {
-                $io->text(sprintf('Skipping club "%s" — no watched department codes configured.', $club->getName()));
+                $io->text(\sprintf('Skipping club "%s" — no watched department codes configured.', $club->getName()));
                 continue;
             }
 
-            $io->section(sprintf('Syncing club "%s" (deps: %s)', $club->getName(), implode(', ', $departmentCodes)));
+            $io->section(\sprintf('Syncing club "%s" (deps: %s)', $club->getName(), implode(', ', $departmentCodes)));
 
             $fftaEvents = $this->scrapper->fetchCompetitions($departmentCodes, $start, $end);
-            $io->text(sprintf('Found %d competitions from FFTA.', \count($fftaEvents)));
+            $io->text(\sprintf('Found %d competitions from FFTA.', \count($fftaEvents)));
 
             foreach ($fftaEvents as $fftaEvent) {
                 $existing = $contestRepo->findOneByFftaEventId($fftaEvent->fftaEventId);
 
                 if ($existing instanceof ContestEvent) {
                     $this->updateContest($existing, $fftaEvent);
-                    $io->text(sprintf('  ✓ Updated: [#%d] %s', $fftaEvent->fftaEventId, $fftaEvent->name));
+                    $io->text(\sprintf('  ✓ Updated: [#%d] %s', $fftaEvent->fftaEventId, $fftaEvent->name));
                     ++$totalUpdated;
                 } else {
                     $contest = ContestEvent::fromFftaPublicEvent($fftaEvent);
                     $contest->setScope($this->inferScope($fftaEvent));
                     $this->entityManager->persist($contest);
-                    $io->text(sprintf('  + Created: [#%d] %s (scope: %s)', $fftaEvent->fftaEventId, $fftaEvent->name, $contest->getScope()));
+                    $io->text(\sprintf('  + Created: [#%d] %s (scope: %s)', $fftaEvent->fftaEventId, $fftaEvent->name, $contest->getScope()));
                     ++$totalCreated;
                 }
             }
@@ -114,7 +114,7 @@ class FftaSyncPublicCompetitionsCommand extends Command
             $this->entityManager->flush();
         }
 
-        $io->success(sprintf('Sync complete. Created: %d, Updated: %d.', $totalCreated, $totalUpdated));
+        $io->success(\sprintf('Sync complete. Created: %d, Updated: %d.', $totalCreated, $totalUpdated));
 
         return Command::SUCCESS;
     }

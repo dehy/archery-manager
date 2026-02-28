@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Helper;
 
 use App\DBAL\Types\EventParticipationStateType;
+use App\DBAL\Types\EventScopeType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\EventParticipation;
@@ -20,12 +21,19 @@ class EventHelper
     }
 
     /**
-     * Check if a licensee can participate in an event based on group membership.
-     * A licensee can participate if they belong to at least one of the event's assigned groups.
+     * Check if a licensee can participate in an event based on scope and group membership.
+     *
+     * For CLUB-scoped events: group membership applies.
+     * For DEPARTMENTAL / REGIONAL / NATIONAL events: any authenticated member can participate.
      */
     public function canLicenseeParticipateInEvent(Licensee $licensee, Event $event): bool
     {
-        // If event has no assigned groups, everyone can participate
+        // For broader-scope public events, everyone can participate
+        if (EventScopeType::CLUB !== $event->getScope()) {
+            return true;
+        }
+
+        // CLUB scope: if event has no assigned groups, everyone in the club can participate
         if ($event->getAssignedGroups()->isEmpty()) {
             return true;
         }

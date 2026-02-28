@@ -6,6 +6,10 @@ App\Entity\Club:
         primaryColor: '#e31d02'
         fftaCode: '1033093'
         contactEmail: 'lesarchersdeguyenne@gmail.com'
+        departmentCode: '33'
+        regionCode: 'NAQ'
+        watchedDepartmentCodes: ['33']
+        watchedRegionCodes: ['NAQ']
     club_ladb:
         name: Les Archers du Bosquet
         city: Le Bouscat
@@ -13,3 +17,7 @@ App\Entity\Club:
         primaryColor: '#b0c7da'
         fftaCode: '1033078'
         contactEmail: 'usb.archers.bosquet@free.fr'
+        departmentCode: '33'
+        regionCode: 'NAQ'
+        watchedDepartmentCodes: ['33']
+        watchedRegionCodes: ['NAQ']

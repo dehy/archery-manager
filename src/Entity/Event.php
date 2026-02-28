@@ -79,7 +79,7 @@ class Event implements \Stringable
     #[ORM\Column(length: 16, nullable: true)]
     protected ?string $longitude = null;
 
-    #[ORM\Column(type: 'EventScopeType')]
+    #[ORM\Column(type: 'EventScopeType', options: ['default' => EventScopeType::CLUB])]
     protected string $scope = EventScopeType::CLUB;
 
     #[ORM\Column]

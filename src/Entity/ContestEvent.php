@@ -6,9 +6,9 @@ namespace App\Entity;
 
 use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
-use App\DBAL\Types\EventScopeType;
 use App\DBAL\Types\EventAttachmentType;
 use App\DBAL\Types\EventParticipationStateType;
+use App\DBAL\Types\EventScopeType;
 use App\DBAL\Types\EventType;
 use App\Repository\ContestEventRepository;
 use App\Scrapper\FftaEvent;

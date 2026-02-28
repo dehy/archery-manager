@@ -23,5 +23,6 @@ final class FftaPublicEvent
         public readonly string $comiteRegional,
         public readonly string $organizerName,
         public readonly ?string $contestType = null,
-    ) {}
+    ) {
+    }
 }
