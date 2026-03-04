@@ -45,4 +45,15 @@ class LoggedInTestCase extends WebTestCase
 
         return $client;
     }
+
+    protected static function createLoggedInAsCoachClient(): KernelBrowser
+    {
+        $client = parent::createClient();
+        /** @var UserRepository $userRepository */
+        $userRepository = static::getContainer()->get(UserRepository::class);
+        $coach = $userRepository->findOneByEmail('coach@ladg.com');
+        $client->loginUser($coach);
+
+        return $client;
+    }
 }

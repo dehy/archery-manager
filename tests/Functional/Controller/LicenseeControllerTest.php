@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Controller;
 use App\Entity\Licensee;
 use App\Entity\User;
 use App\Repository\LicenseeRepository;
+use App\Repository\UserRepository;
 use App\Tests\application\LoggedInTestCase;
 
 final class LicenseeControllerTest extends LoggedInTestCase
@@ -253,6 +254,87 @@ final class LicenseeControllerTest extends LoggedInTestCase
     }
 
     // ── Download Attachment ────────────────────────────────────────────
+
+    // ── ROLE_COACH Access Control ─────────────────────────────────────
+
+    public function testCoachCanAccessSameClubLicenseeProfile(): void
+    {
+        $client = self::createLoggedInAsCoachClient();
+
+        // Resolve the coach's own club via their current-season license
+        /** @var User $coach */
+        $coach = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
+        $ownLicenseeIds = $coach->getLicensees()->map(static fn (Licensee $l): ?int => $l->getId())->toArray();
+        $coachClub = null;
+        foreach ($coach->getLicensees() as $l) {
+            $coachClub = $l->getLicenseForSeason(2026)?->getClub();
+            if (null !== $coachClub) {
+                break;
+            }
+        }
+
+        $this->assertNotNull($coachClub, 'Coach must have an active license to perform this test');
+
+        // Find a same-club licensee that is not the coach's own
+        $sameClubLicensee = null;
+        foreach (self::getContainer()->get(LicenseeRepository::class)->findAll() as $l) {
+            if (\in_array($l->getId(), $ownLicenseeIds, true)) {
+                continue;
+            }
+            if ($l->getLicenseForSeason(2026)?->getClub() === $coachClub) {
+                $sameClubLicensee = $l;
+                break;
+            }
+        }
+
+        if (!$sameClubLicensee instanceof Licensee) {
+            $this->markTestSkipped('No same-club licensee found for coach access test');
+        }
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$sameClubLicensee->getId());
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testCoachCannotAccessDifferentClubLicenseeProfile(): void
+    {
+        $client = self::createLoggedInAsCoachClient();
+
+        // Resolve the coach's own club via their current-season license
+        /** @var User $coach */
+        $coach = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
+        $ownLicenseeIds = $coach->getLicensees()->map(static fn (Licensee $l): ?int => $l->getId())->toArray();
+        $coachClub = null;
+        foreach ($coach->getLicensees() as $l) {
+            $coachClub = $l->getLicenseForSeason(2026)?->getClub();
+            if (null !== $coachClub) {
+                break;
+            }
+        }
+
+        $this->assertNotNull($coachClub, 'Coach must have an active license to perform this test');
+
+        // Find a licensee from a different club
+        $differentClubLicensee = null;
+        foreach (self::getContainer()->get(LicenseeRepository::class)->findAll() as $l) {
+            if (\in_array($l->getId(), $ownLicenseeIds, true)) {
+                continue;
+            }
+            $licenseClub = $l->getLicenseForSeason(2026)?->getClub();
+            if (null !== $licenseClub && $licenseClub !== $coachClub) {
+                $differentClubLicensee = $l;
+                break;
+            }
+        }
+
+        if (!$differentClubLicensee instanceof Licensee) {
+            $this->markTestSkipped('No different-club licensee found for coach access test');
+        }
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$differentClubLicensee->getId());
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    // ── Download Attachment (original) ────────────────────────────────
 
     public function testAttachmentDownloadNonExistentReturns404(): void
     {
