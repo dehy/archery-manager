@@ -316,11 +316,9 @@ class LicenseeController extends BaseController
      */
     private function checkLicenseeAccess(User $user, Licensee $licensee): void
     {
-        $hasAccess = $user->getLicensees()->contains($licensee)
-            || $this->isGranted('ROLE_ADMIN')
-            || $this->isGranted('ROLE_COACH');
+        $hasAccess = $user->getLicensees()->contains($licensee) || $this->isGranted('ROLE_ADMIN');
 
-        if (!$hasAccess && $this->isGranted('ROLE_CLUB_ADMIN')) {
+        if (!$hasAccess && ($this->isGranted('ROLE_CLUB_ADMIN') || $this->isGranted('ROLE_COACH'))) {
             $hasAccess = $this->checkClubAdminAccess($user, $licensee);
         }
 
