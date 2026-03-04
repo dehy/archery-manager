@@ -7,7 +7,6 @@ namespace App\Tests\Functional\Controller;
 use App\Entity\Licensee;
 use App\Entity\User;
 use App\Repository\LicenseeRepository;
-use App\Repository\UserRepository;
 use App\Tests\application\LoggedInTestCase;
 
 final class LicenseeControllerTest extends LoggedInTestCase
@@ -273,7 +272,7 @@ final class LicenseeControllerTest extends LoggedInTestCase
             }
         }
 
-        $this->assertNotNull($coachClub, 'Coach must have an active license to perform this test');
+        $this->assertInstanceOf(\App\Entity\Club::class, $coachClub, 'Coach must have an active license to perform this test');
 
         // Find a same-club licensee that is not the coach's own
         $sameClubLicensee = null;
@@ -281,6 +280,7 @@ final class LicenseeControllerTest extends LoggedInTestCase
             if (\in_array($l->getId(), $ownLicenseeIds, true)) {
                 continue;
             }
+
             if ($l->getLicenseForSeason(2026)?->getClub() === $coachClub) {
                 $sameClubLicensee = $l;
                 break;
@@ -311,7 +311,7 @@ final class LicenseeControllerTest extends LoggedInTestCase
             }
         }
 
-        $this->assertNotNull($coachClub, 'Coach must have an active license to perform this test');
+        $this->assertInstanceOf(\App\Entity\Club::class, $coachClub, 'Coach must have an active license to perform this test');
 
         // Find a licensee from a different club
         $differentClubLicensee = null;
@@ -319,6 +319,7 @@ final class LicenseeControllerTest extends LoggedInTestCase
             if (\in_array($l->getId(), $ownLicenseeIds, true)) {
                 continue;
             }
+
             $licenseClub = $l->getLicenseForSeason(2026)?->getClub();
             if (null !== $licenseClub && $licenseClub !== $coachClub) {
                 $differentClubLicensee = $l;

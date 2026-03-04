@@ -113,21 +113,35 @@ final class EventRepositoryTest extends KernelTestCase
 
         $this->assertIsArray($events);
 
+        // Mirror the repository padding: extend to previous Monday / next Sunday
+        $rangeStart = new \DateTime(\sprintf('%s-%s-01 midnight', $year, $month));
+        if (1 !== (int) $rangeStart->format('N')) {
+            $rangeStart->modify('previous monday');
+        }
+
+        $rangeEnd = new \DateTime(\sprintf('%s-%s-01 midnight', $year, $month));
+        $rangeEnd->modify('last day of this month');
+        if (7 !== (int) $rangeEnd->format('N')) {
+            $rangeEnd->modify('next sunday 23:59:59');
+        }
+
         foreach ($events as $event) {
             $this->assertInstanceOf(Event::class, $event);
 
-            // Verify event is within or overlaps the month
             $eventStart = $event->getStartsAt();
             $eventEnd = $event->getEndsAt();
 
-            $monthStart = new \DateTime(\sprintf('%s-%s-01', $year, $month));
-            $monthEnd = (clone $monthStart)->modify('last day of this month 23:59:59');
-
-            // Event should either start in month, end in month, or span across month
+            // Event must overlap the padded range
             $this->assertTrue(
-                ($eventStart >= $monthStart && $eventStart <= $monthEnd)
-                || ($eventEnd >= $monthStart && $eventEnd <= $monthEnd)
-                || ($eventStart <= $monthStart && $eventEnd >= $monthEnd)
+                $eventStart <= $rangeEnd && $eventEnd >= $rangeStart,
+                \sprintf(
+                    'Event "%s" (%s → %s) does not overlap the calendar range %s → %s',
+                    $event->getName(),
+                    $eventStart->format('Y-m-d'),
+                    $eventEnd->format('Y-m-d'),
+                    $rangeStart->format('Y-m-d'),
+                    $rangeEnd->format('Y-m-d'),
+                )
             );
         }
     }
