@@ -54,7 +54,6 @@ class ClubEquipmentController extends BaseController
     }
 
     #[Route('/club-equipment/new', name: 'app_club_equipment_new')]
-    #[IsGranted('ROLE_ADMIN')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
         $this->assertHasValidLicense();
@@ -105,7 +104,6 @@ class ClubEquipmentController extends BaseController
     }
 
     #[Route('/club-equipment/{id}/edit', name: 'app_club_equipment_edit', requirements: ['id' => '\d+'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function edit(ClubEquipment $equipment, Request $request, EntityManagerInterface $em): Response
     {
         $this->assertHasValidLicense();
@@ -134,7 +132,6 @@ class ClubEquipmentController extends BaseController
     }
 
     #[Route('/club-equipment/{id}/delete', name: 'app_club_equipment_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function delete(ClubEquipment $equipment, EntityManagerInterface $em): Response
     {
         $this->assertHasValidLicense();
@@ -161,7 +158,6 @@ class ClubEquipmentController extends BaseController
     }
 
     #[Route('/club-equipment/{id}/loan', name: 'app_club_equipment_loan', requirements: ['id' => '\d+'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function loan(ClubEquipment $equipment, Request $request, EntityManagerInterface $em): Response
     {
         $this->assertHasValidLicense();
@@ -215,7 +211,6 @@ class ClubEquipmentController extends BaseController
     }
 
     #[Route('/club-equipment/{id}/return', name: 'app_club_equipment_return', requirements: ['id' => '\d+'], methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function returnEquipment(ClubEquipment $equipment, EntityManagerInterface $em): Response
     {
         $this->assertHasValidLicense();
@@ -243,7 +238,6 @@ class ClubEquipmentController extends BaseController
     }
 
     #[Route('/club-equipment/loan/{loanId}/return', name: 'app_club_equipment_return_loan', requirements: ['loanId' => '\d+'], methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function returnLoan(
         #[MapEntity(id: 'loanId')]
         EquipmentLoan $loan,
