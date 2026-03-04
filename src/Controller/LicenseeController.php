@@ -312,14 +312,20 @@ class LicenseeController extends BaseController
     }
 
     /**
-     * Check if current user has access to view/edit a licensee.
+     * Assert that the current user is allowed to view/edit the given licensee.
+     *
+     * Access is granted when ANY of the following is true:
+     *   1. The licensee belongs to the authenticated user.
+     *   2. The user holds ROLE_ADMIN (unrestricted access).
+     *   3. The user holds ROLE_CLUB_ADMIN or ROLE_COACH AND shares the same
+     *      club as the licensee in the currently selected season.
      */
     private function checkLicenseeAccess(User $user, Licensee $licensee): void
     {
         $hasAccess = $user->getLicensees()->contains($licensee) || $this->isGranted('ROLE_ADMIN');
 
         if (!$hasAccess && ($this->isGranted('ROLE_CLUB_ADMIN') || $this->isGranted('ROLE_COACH'))) {
-            $hasAccess = $this->checkClubAdminAccess($user, $licensee);
+            $hasAccess = $this->hasSameClubAccess($user, $licensee);
         }
 
         if (!$hasAccess) {
@@ -328,9 +334,12 @@ class LicenseeController extends BaseController
     }
 
     /**
-     * Check if club admin has access to licensee in same club.
+     * Return true when the user and the target licensee share the same club
+     * in the currently selected season.
+     *
+     * Used to scope ROLE_CLUB_ADMIN and ROLE_COACH access to their own club.
      */
-    private function checkClubAdminAccess(User $user, Licensee $licensee): bool
+    private function hasSameClubAccess(User $user, Licensee $licensee): bool
     {
         $currentSeason = $this->seasonHelper->getSelectedSeason();
         $userLicensees = $user->getLicensees();
