@@ -132,6 +132,15 @@ final class ClubEquipmentControllerTest extends LoggedInTestCase
         $this->assertResponseIsSuccessful();
     }
 
+    public function testClubAdminCanViewEquipmentShow(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $equipmentId = $this->createTestEquipmentAsClubAdmin($client);
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId);
+        $this->assertResponseIsSuccessful();
+    }
+
     // ── Edit ───────────────────────────────────────────────────────────
 
     public function testEditEquipmentFormRenders(): void
@@ -178,12 +187,30 @@ final class ClubEquipmentControllerTest extends LoggedInTestCase
         $this->assertResponseStatusCodeSame(405);
     }
 
+    public function testClubAdminCanDeleteEquipment(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $equipmentId = $this->createTestEquipmentAsClubAdmin($client);
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_EQUIPMENT.$equipmentId.'/delete');
+        $this->assertResponseRedirects(self::URL_INDEX);
+    }
+
     // ── Loan ───────────────────────────────────────────────────────────
 
     public function testLoanFormRenders(): void
     {
         $client = self::createLoggedInAsAdminClient();
         $equipmentId = $this->createTestEquipment($client);
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId.'/loan');
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testClubAdminCanAccessLoanForm(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $equipmentId = $this->createTestEquipmentAsClubAdmin($client);
 
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId.'/loan');
         $this->assertResponseIsSuccessful();
@@ -316,6 +343,33 @@ final class ClubEquipmentControllerTest extends LoggedInTestCase
         $this->assertResponseRedirects(self::URL_EQUIPMENT.$equipmentId);
 
         // Return the equipment
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_EQUIPMENT.$equipmentId.'/return');
+        $this->assertResponseRedirects(self::URL_EQUIPMENT.$equipmentId);
+    }
+
+    public function testClubAdminLoanAndReturnFlow(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $equipmentId = $this->createTestEquipmentAsClubAdmin($client);
+
+        // Submit loan form as club admin — pick a borrower from the form's valid choices
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId.'/loan');
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Confirmer le prêt')->form();
+        $borrowerField = $form->get('equipment_loan[borrower]');
+        $this->assertInstanceOf(\Symfony\Component\DomCrawler\Field\ChoiceFormField::class, $borrowerField);
+        $validChoices = $borrowerField->availableOptionValues();
+        // Skip the empty placeholder ("")
+        $borrowerId = current(array_filter($validChoices, static fn (string $v): bool => '' !== $v));
+        $this->assertNotFalse($borrowerId, 'No valid borrower found for club admin');
+
+        $form['equipment_loan[borrower]'] = $borrowerId;
+        $client->submit($form);
+
+        $this->assertResponseRedirects(self::URL_EQUIPMENT.$equipmentId);
+
+        // Return the equipment as club admin
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_EQUIPMENT.$equipmentId.'/return');
         $this->assertResponseRedirects(self::URL_EQUIPMENT.$equipmentId);
     }

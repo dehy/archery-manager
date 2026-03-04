@@ -289,6 +289,7 @@ class ClubEquipmentController extends BaseController
         $dir = 'ASC' === strtoupper($dir) ? 'ASC' : 'DESC';
 
         $activeLoans = $this->loanRepository->findActiveLoans(
+            $club,
             '' !== $filterType ? $filterType : null,
             $sort,
             $dir,
