@@ -48,6 +48,14 @@ final class ClubEquipmentControllerTest extends LoggedInTestCase
         $this->assertResponseIsSuccessful();
     }
 
+    public function testIndexRendersForClubAdmin(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_INDEX);
+
+        $this->assertResponseIsSuccessful();
+    }
+
     // ── New Equipment ──────────────────────────────────────────────────
 
     public function testNewEquipmentFormRenders(): void
@@ -72,6 +80,37 @@ final class ClubEquipmentControllerTest extends LoggedInTestCase
         $client->submit($form);
 
         $this->assertResponseRedirects(self::URL_INDEX);
+    }
+
+    public function testNewEquipmentFormRendersForClubAdmin(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_NEW);
+
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testClubAdminCanCreateEquipment(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $equipmentId = $this->createTestEquipmentAsClubAdmin($client);
+
+        $this->assertGreaterThan(0, $equipmentId);
+    }
+
+    public function testClubAdminCanEditEquipment(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $equipmentId = $this->createTestEquipmentAsClubAdmin($client);
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_EQUIPMENT.$equipmentId.'/edit');
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Enregistrer')->form();
+        $form['club_equipment[name]'] = 'Updated by Club Admin';
+        $client->submit($form);
+
+        $this->assertResponseRedirects(self::URL_EQUIPMENT.$equipmentId);
     }
 
     public function testNewEquipmentDeniedForRegularUser(): void
@@ -190,7 +229,39 @@ final class ClubEquipmentControllerTest extends LoggedInTestCase
         $this->assertResponseStatusCodeSame(403);
     }
 
+    public function testLoansListRendersForClubAdmin(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LOANS);
+
+        $this->assertResponseIsSuccessful();
+    }
+
     // ── Helper ─────────────────────────────────────────────────────────
+
+    /**
+     * Create a test equipment via the form as club admin and return its ID.
+     */
+    private function createTestEquipmentAsClubAdmin(\Symfony\Bundle\FrameworkBundle\KernelBrowser $client): int
+    {
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_NEW);
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Enregistrer')->form();
+        $form['club_equipment[type]'] = ClubEquipmentTypeEnum::OTHER;
+        $form['club_equipment[name]'] = 'ClubAdmin Equipment '.uniqid();
+        $client->submit($form);
+
+        $this->assertResponseRedirects(self::URL_INDEX);
+
+        $equipmentRepo = self::getContainer()->get(ClubEquipmentRepository::class);
+        $allEquipment = $equipmentRepo->findAll();
+        $lastEquipment = end($allEquipment);
+
+        $this->assertInstanceOf(ClubEquipment::class, $lastEquipment);
+
+        return $lastEquipment->getId();
+    }
 
     /**
      * Create a test equipment via the form and return its ID.

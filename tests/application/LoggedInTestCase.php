@@ -34,4 +34,15 @@ class LoggedInTestCase extends WebTestCase
 
         return $client;
     }
+
+    protected static function createLoggedInAsClubAdminClient(): KernelBrowser
+    {
+        $client = parent::createClient();
+        /** @var UserRepository $userRepository */
+        $userRepository = static::getContainer()->get(UserRepository::class);
+        $clubAdmin = $userRepository->findOneByEmail('clubadmin@ladg.com');
+        $client->loginUser($clubAdmin);
+
+        return $client;
+    }
 }

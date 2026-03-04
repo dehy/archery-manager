@@ -211,6 +211,73 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $this->assertResponseStatusCodeSame(403);
     }
 
+    // ── ROLE_CLUB_ADMIN Access ────────────────────────────────────────
+
+    public function testClubAdminCanAccessChoice(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_CHOICE);
+
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testClubAdminChoicePostSyncRedirects(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
+            'choice' => 'sync',
+            'ffta_member_code' => '123456A',
+        ]);
+
+        $this->assertResponseRedirects('/licensees/manage/new/sync/123456A');
+    }
+
+    public function testClubAdminChoicePostManualRedirects(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
+            'choice' => 'manual',
+        ]);
+
+        $this->assertResponseRedirects(self::URL_MANUAL);
+    }
+
+    public function testClubAdminCanStartManualWizard(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MANUAL);
+
+        $this->assertResponseRedirects(self::URL_STEP1);
+    }
+
+    public function testClubAdminCanCompleteStep1(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MANUAL);
+
+        $crawler = $client->followRedirect();
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Suivant')->form([
+            'licensee_form[firstname]' => 'Club',
+            'licensee_form[lastname]' => 'Admin',
+            'licensee_form[gender]' => 'M',
+            'licensee_form[birthdate]' => '1990-01-01',
+        ]);
+        $client->submit($form);
+
+        $this->assertResponseRedirects(self::URL_STEP2);
+    }
+
+    public function testClubAdminCanAccessCancel(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MANUAL);
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_CANCEL);
+
+        $this->assertResponseRedirects('/licensees');
+    }
+
     // ── Full Wizard Flow ──────────────────────────────────────────────
 
     public function testFullWizardFlowWithNewUser(): void
