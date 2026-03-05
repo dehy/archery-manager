@@ -35,11 +35,6 @@ class LicenseeManagementController extends BaseController
     #[Route('/licensees/manage/new', name: 'app_licensee_new_choice', methods: ['GET', 'POST'])]
     public function newChoice(Request $request): Response
     {
-        // Check if user is CLUB_ADMIN and restrict to their club
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_CLUB_ADMIN')) {
-            throw $this->createAccessDeniedException();
-        }
-
         if ($request->isMethod('POST')) {
             $choice = $request->request->get('choice');
             $fftaMemberCode = $request->request->get('ffta_member_code');
@@ -61,10 +56,6 @@ class LicenseeManagementController extends BaseController
         string $fftaMemberCode,
         Request $request,
     ): Response {
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_CLUB_ADMIN')) {
-            throw $this->createAccessDeniedException();
-        }
-
         $club = $this->clubHelper->getClubForUser($this->getUser());
         if (!$club instanceof \App\Entity\Club) {
             $this->addFlash('danger', 'Impossible de déterminer votre club.');
@@ -117,10 +108,6 @@ class LicenseeManagementController extends BaseController
     #[Route('/licensees/manage/new/manual', name: 'app_licensee_new_manual', methods: ['GET'])]
     public function newManual(Request $request): Response
     {
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_CLUB_ADMIN')) {
-            throw $this->createAccessDeniedException();
-        }
-
         // Initialize session for manual creation
         $session = $request->getSession();
         $session->set('licensee_creation', [
@@ -135,10 +122,6 @@ class LicenseeManagementController extends BaseController
         Request $request,
         EntityManagerInterface $entityManager,
     ): Response {
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_CLUB_ADMIN')) {
-            throw $this->createAccessDeniedException();
-        }
-
         $session = $request->getSession();
         $creationData = $session->get('licensee_creation', []);
 
@@ -189,10 +172,6 @@ class LicenseeManagementController extends BaseController
     public function step2License(
         Request $request,
     ): Response {
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_CLUB_ADMIN')) {
-            throw $this->createAccessDeniedException();
-        }
-
         $session = $request->getSession();
         $creationData = $session->get('licensee_creation', []);
 
@@ -243,10 +222,6 @@ class LicenseeManagementController extends BaseController
     public function step3Groups(
         Request $request,
     ): Response {
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_CLUB_ADMIN')) {
-            throw $this->createAccessDeniedException();
-        }
-
         $session = $request->getSession();
         $creationData = $session->get('licensee_creation', []);
 
@@ -280,10 +255,6 @@ class LicenseeManagementController extends BaseController
         Request $request,
         EntityManagerInterface $entityManager,
     ): Response {
-        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_CLUB_ADMIN')) {
-            throw $this->createAccessDeniedException();
-        }
-
         $session = $request->getSession();
         $creationData = $session->get('licensee_creation', []);
 
