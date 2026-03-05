@@ -123,6 +123,8 @@ final class EventRepositoryTest extends KernelTestCase
         $rangeEnd->modify('last day of this month');
         if (7 !== (int) $rangeEnd->format('N')) {
             $rangeEnd->modify('next sunday 23:59:59');
+        } else {
+            $rangeEnd->setTime(23, 59, 59);
         }
 
         foreach ($events as $event) {

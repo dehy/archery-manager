@@ -263,6 +263,7 @@ final class LicenseeControllerTest extends LoggedInTestCase
         // Resolve the coach's own club via their current-season license
         /** @var User $coach */
         $coach = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
+        self::assertInstanceOf(User::class, $coach, 'Expected authenticated User instance.');
         $ownLicenseeIds = $coach->getLicensees()->map(static fn (Licensee $l): ?int => $l->getId())->toArray();
         $coachClub = null;
         foreach ($coach->getLicensees() as $l) {
@@ -302,6 +303,7 @@ final class LicenseeControllerTest extends LoggedInTestCase
         // Resolve the coach's own club via their current-season license
         /** @var User $coach */
         $coach = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
+        self::assertInstanceOf(User::class, $coach, 'Expected authenticated User instance.');
         $ownLicenseeIds = $coach->getLicensees()->map(static fn (Licensee $l): ?int => $l->getId())->toArray();
         $coachClub = null;
         foreach ($coach->getLicensees() as $l) {
