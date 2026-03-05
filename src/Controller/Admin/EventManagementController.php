@@ -15,7 +15,6 @@ use App\Form\FreeTrainingEventType;
 use App\Form\TrainingEventType;
 use App\Helper\ClubHelper;
 use App\Repository\EventRepository;
-use App\Repository\GroupRepository;
 use App\Security\Voter\EventVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,13 +23,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_CLUB_ADMIN')]
 class EventManagementController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ClubHelper $clubHelper,
-        private readonly GroupRepository $groupRepository,
     ) {
     }
 
