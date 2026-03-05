@@ -15,7 +15,6 @@ use App\Form\FreeTrainingEventType;
 use App\Form\TrainingEventType;
 use App\Helper\ClubHelper;
 use App\Repository\EventRepository;
-use App\Repository\GroupRepository;
 use App\Security\Voter\EventVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
