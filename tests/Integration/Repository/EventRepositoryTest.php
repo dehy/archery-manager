@@ -130,6 +130,7 @@ final class EventRepositoryTest extends KernelTestCase
 
             $eventStart = $event->getStartsAt();
             $eventEnd = $event->getEndsAt();
+            $this->assertInstanceOf(\DateTimeImmutable::class, $eventStart);
 
             // Event must overlap the padded range
             $this->assertTrue(
