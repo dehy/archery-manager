@@ -13,7 +13,7 @@
             {{ event|get_class|readable_enum }} - {{ event.discipline|readable_enum('DisciplineType') }}
         </div>
     </div>
-    {% if is_granted('ROLE_ADMIN') %}
+    {% if is_granted('ROLE_CLUB_ADMIN') %}
         <div class="dropdown">
             <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
                 <i class="fa-solid fa-ellipsis-vertical"></i>

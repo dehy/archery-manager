@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Club;
 use App\Entity\ClubEquipment;
 use App\Entity\EquipmentLoan;
 use App\Entity\Licensee;
@@ -30,7 +31,7 @@ class EquipmentLoanRepository extends ServiceEntityRepository
         parent::__construct($registry, EquipmentLoan::class);
     }
 
-    public function findActiveLoans(?string $type = null, string $sort = 'startDate', string $dir = 'DESC'): array
+    public function findActiveLoans(?Club $club = null, ?string $type = null, string $sort = 'startDate', string $dir = 'DESC'): array
     {
         $dir = 'ASC' === strtoupper($dir) ? 'ASC' : 'DESC';
         $sort = \array_key_exists($sort, self::SORTABLE_COLUMNS) ? $sort : 'startDate';
@@ -39,6 +40,11 @@ class EquipmentLoanRepository extends ServiceEntityRepository
             ->join('el.equipment', 'ce')
             ->join('el.borrower', 'l')
             ->where(self::FILTER_RETURN_DATE_NULL);
+
+        if ($club instanceof Club) {
+            $qb->andWhere('ce.club = :club')
+                ->setParameter('club', $club);
+        }
 
         if (null !== $type && '' !== $type) {
             $qb->andWhere('ce.type = :type')

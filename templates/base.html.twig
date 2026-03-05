@@ -55,7 +55,7 @@
                 Mon Club
             </a>
         </li>
-        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_CLUB_ADMIN') %}
+        {% if is_granted('ROLE_CLUB_ADMIN') %}
         <li class="nav-item">
             <a href="{{ path('app_club_equipment_index') }}" class="nav-link {{ _self.isActive('app_club_equipment_') }}">
                 <div class="icon">
@@ -130,7 +130,7 @@
                         Mon Club
                     </a>
                 </li>
-                {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_CLUB_ADMIN') %}
+                {% if is_granted('ROLE_CLUB_ADMIN') %}
                 <li class="nav-item">
                     <a class="nav-link {{ _self.isActive('app_club_equipment_') }}"
                        href="{{ path('app_club_equipment_index') }}">
@@ -193,7 +193,7 @@
                                 </a>
                             </li>
                         {% endif %}
-                        {% if (is_granted("ROLE_ADMIN") or is_granted("ROLE_CLUB_ADMIN")) %}
+                        {% if (is_granted("ROLE_CLUB_ADMIN")) %}
                             <li>
                                 <hr class="dropdown-divider">
                             </li>

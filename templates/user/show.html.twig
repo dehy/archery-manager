@@ -11,7 +11,7 @@
             </h1>
             <h2 class="text-primary">{{ user.fullname }}</h2>
         </div>
-        {% if is_granted('ROLE_ADMIN') %}
+        {% if is_granted('ROLE_CLUB_ADMIN') %}
             <div>
                 <a href="{{ path('app_user_edit', {'id': user.id}) }}" 
                    class="btn btn-warning">

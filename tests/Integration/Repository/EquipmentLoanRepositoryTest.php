@@ -250,4 +250,50 @@ final class EquipmentLoanRepositoryTest extends KernelTestCase
         $this->assertIsArray($result);
         $this->assertEmpty($result);
     }
+
+    public function testFindActiveLoansScopedToClub(): void
+    {
+        /** @var ClubRepository $clubRepository */
+        $clubRepository = $this->entityManager->getRepository(Club::class);
+
+        $clubLadg = $clubRepository->findOneBy(['name' => self::CLUB_NAME_LADG]);
+        $this->assertInstanceOf(Club::class, $clubLadg);
+
+        $clubLadb = $clubRepository->findOneBy(['name' => 'Les Archers du Bosquet']);
+        $this->assertInstanceOf(Club::class, $clubLadb);
+
+        // Equipment belonging to club_ladb
+        $otherEquipment = new ClubEquipment();
+        $otherEquipment->setClub($clubLadb);
+        $otherEquipment->setType(ClubEquipmentType::BOW);
+        $otherEquipment->setName('Other Club Bow');
+
+        $this->entityManager->persist($otherEquipment);
+
+        // Active loan for club_ladg equipment (this->equipment)
+        $ladgLoan = new EquipmentLoan();
+        $ladgLoan->setEquipment($this->equipment);
+        $ladgLoan->setBorrower($this->borrower);
+        $ladgLoan->setStartDate(new \DateTimeImmutable('-5 days'));
+
+        $this->entityManager->persist($ladgLoan);
+
+        // Active loan for club_ladb equipment
+        $ladbLoan = new EquipmentLoan();
+        $ladbLoan->setEquipment($otherEquipment);
+        $ladbLoan->setBorrower($this->borrower);
+        $ladbLoan->setStartDate(new \DateTimeImmutable('-5 days'));
+
+        $this->entityManager->persist($ladbLoan);
+
+        $this->entityManager->flush();
+
+        $resultLadg = $this->repository->findActiveLoans($clubLadg);
+        $this->assertContains($ladgLoan, $resultLadg);
+        $this->assertNotContains($ladbLoan, $resultLadg);
+
+        $resultLadb = $this->repository->findActiveLoans($clubLadb);
+        $this->assertContains($ladbLoan, $resultLadb);
+        $this->assertNotContains($ladgLoan, $resultLadb);
+    }
 }
