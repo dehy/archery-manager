@@ -68,7 +68,7 @@
                             <em class="fa-solid fa-users me-2"></em>
                             Groupes d'entraînement
                         </h3>
-                        {% if is_granted('ROLE_ADMIN') %}
+                        {% if is_granted('ROLE_CLUB_ADMIN') %}
                             <a href="{{ path('app_group_create') }}" class="btn btn-sm btn-success">
                                 <em class="fa-solid fa-plus me-1"></em>
                                 Nouveau groupe
@@ -87,7 +87,7 @@
                                         <div class="card-header bg-primary text-white">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <h5 class="card-title mb-0">{{ group.name }}</h5>
-                                                {% if is_granted('ROLE_ADMIN') %}
+                                                {% if is_granted('ROLE_CLUB_ADMIN') %}
                                                     <a href="{{ path('app_group_manage', {'id': group.id}) }}" 
                                                        class="btn btn-sm btn-light"
                                                        title="Gérer les membres de ce groupe">

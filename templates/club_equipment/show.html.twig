@@ -195,7 +195,7 @@
                                         <th>Qté</th>
                                         <th>Date</th>
                                         <th>Durée</th>
-                                        {% if is_granted('ROLE_ADMIN') %}<th></th>{% endif %}
+                                        {% if is_granted('ROLE_CLUB_ADMIN') %}<th></th>{% endif %}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -209,7 +209,7 @@
                                             <td>{{ loan.quantity }}</td>
                                             <td>{{ loan.startDate|date('d/m/Y') }}</td>
                                             <td>{{ loan.loanDurationInDays }} j.</td>
-                                            {% if is_granted('ROLE_ADMIN') %}
+                                            {% if is_granted('ROLE_CLUB_ADMIN') %}
                                                 <td>
                                                     <form method="post"
                                                           action="{{ path('app_club_equipment_return_loan', {loanId: loan.id}) }}"
@@ -224,7 +224,7 @@
                                         </tr>
                                         {% if loan.notes %}
                                             <tr class="table-light">
-                                                <td colspan="{{ is_granted('ROLE_ADMIN') ? 5 : 4 }}" class="text-muted small ps-4">
+                                                <td colspan="{{ is_granted('ROLE_CLUB_ADMIN') ? 5 : 4 }}" class="text-muted small ps-4">
                                                     <em class="fa-solid fa-note-sticky me-1"></em>{{ loan.notes }}
                                                 </td>
                                             </tr>
@@ -238,7 +238,7 @@
             </div>
         </div>
 
-        {% if is_granted('ROLE_ADMIN') %}
+        {% if is_granted('ROLE_CLUB_ADMIN') %}
             <div class="card mb-4">
                 <div class="card-header bg-secondary text-white">
                     <h5 class="mb-0">

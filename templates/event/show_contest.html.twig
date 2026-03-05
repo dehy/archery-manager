@@ -94,7 +94,7 @@
         </div>
     </div>
 
-    {% if is_granted('ROLE_ADMIN') %}
+    {% if is_granted('ROLE_CLUB_ADMIN') %}
         <!-- Admin Section -->
         <div class="row mb-4">
             <div class="col-12">
@@ -109,6 +109,7 @@
                                 <i class="fa-solid fa-edit me-1"></i>
                                 Modifier l'événement
                             </a>
+                            {% if is_granted('ROLE_ADMIN') %}
                             <a href="{{
                             adminUrlGenerator
                                 .setController('App\\Controller\\Admin\\' ~ event|get_short_class ~ 'CrudController')
@@ -119,6 +120,7 @@
                                 <i class="fa-solid fa-cog me-1"></i>
                                 EasyAdmin
                             </a>
+                            {% endif %}
                         </div>
                         <div class="btn-group me-2" role="group">
                             <a href="{{
@@ -359,7 +361,7 @@
                                 <i class="fa-solid fa-download me-1"></i>
                                 Télécharger
                             </a>
-                            {% if is_granted('ROLE_ADMIN') %}
+                            {% if is_granted('ROLE_CLUB_ADMIN') %}
                                 <a href="{{ path('events_attachment_edit', {slug: event.slug, attachmentType: 'mandate'}) }}"
                                    class="btn btn-outline-warning btn-sm"
                                    data-action="modal#open"
@@ -376,7 +378,7 @@
                         </div>
                     {% else %}
                         <p class="text-muted fst-italic">Mandat non disponible.</p>
-                        {% if is_granted('ROLE_ADMIN') %}
+                        {% if is_granted('ROLE_CLUB_ADMIN') %}
                             <a href="{{ path('events_attachment_edit', {slug: event.slug, attachmentType: 'mandate'}) }}"
                                class="btn btn-outline-warning"
                                data-action="modal#open"
@@ -401,7 +403,7 @@
                         <h5 class="card-title mb-0">Résultats</h5>
                     </div>
 
-                    {% if is_granted('ROLE_ADMIN') %}
+                    {% if is_granted('ROLE_CLUB_ADMIN') %}
                         <div class="d-flex gap-2 mb-3">
                             <a href="{{ path('app_event_resultsedit', {slug: event.slug}) }}"
                                class="btn btn-outline-primary btn-sm"
@@ -462,7 +464,7 @@
                                 Désolé, votre navigateur ne prend pas en charge le rendu de PDF.
                             </canvas>
                         </div>
-                    {% elseif is_granted('ROLE_ADMIN') and event.results is empty %}
+                    {% elseif is_granted('ROLE_CLUB_ADMIN') and event.results is empty %}
                         <a href="{{ path('events_attachment_edit', {slug: event.slug, attachmentType: 'results'}) }}"
                            class="btn btn-outline-success"
                            data-action="modal#open"

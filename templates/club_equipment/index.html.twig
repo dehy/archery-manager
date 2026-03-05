@@ -14,7 +14,7 @@
                     <em class="fa-solid fa-hand-holding me-2"></em>
                     Prêts en cours
                 </a>
-                {% if is_granted('ROLE_ADMIN') %}
+                {% if is_granted('ROLE_CLUB_ADMIN') %}
                     <a href="{{ path('app_club_equipment_new') }}" class="btn btn-primary">
                         <em class="fa-solid fa-plus me-2"></em>
                         Ajouter du matériel
@@ -154,7 +154,7 @@
                                                    title="Voir les détails">
                                                     <em class="fa-solid fa-eye"></em>
                                                 </a>
-                                                {% if is_granted('ROLE_ADMIN') %}
+                                                {% if is_granted('ROLE_CLUB_ADMIN') %}
                                                     <a href="{{ path('app_club_equipment_edit', {id: item.id}) }}" 
                                                        class="btn btn-outline-secondary"
                                                        title="Modifier">

@@ -96,7 +96,7 @@
                                     <th>{{ _self.sort_link('startDate', 'Date de prêt', sort, dir, filterType) }}</th>
                                     <th>Durée</th>
                                     <th>Notes</th>
-                                    {% if is_granted('ROLE_ADMIN') %}<th>Actions</th>{% endif %}
+                                    {% if is_granted('ROLE_CLUB_ADMIN') %}<th>Actions</th>{% endif %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -130,7 +130,7 @@
                                             {% endif %}
                                         </td>
                                         <td>{{ loan.notes ?? '-' }}</td>
-                                        {% if is_granted('ROLE_ADMIN') %}
+                                        {% if is_granted('ROLE_CLUB_ADMIN') %}
                                             <td>
                                                 <form method="post"
                                                       action="{{ path('app_club_equipment_return_loan', {loanId: loan.id}) }}"

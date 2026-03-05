@@ -24,7 +24,7 @@
             <em class="fa-solid fa-user me-2"></em>
             {{ licenseeHelper.licenseeFromSession.id is same as licensee.id ? licensee.fullname : licensee_display_name(licensee) }}
         </h1>
-        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_COACH') or is_granted('ROLE_CLUB_ADMIN') %}
+        {% if is_granted('ROLE_COACH') or is_granted('ROLE_CLUB_ADMIN') %}
             <div>
                 <a href="{{ path('app_licensee_edit', {'id': licensee.id}) }}" class="btn btn-warning">
                     <em class="fa-solid fa-pen-to-square me-2"></em>
@@ -154,7 +154,7 @@
                     </div>
 
                     <!-- User Account Link -->
-                    {% if is_granted('ROLE_ADMIN') or (app.user and app.user.id == licensee.user.id) %}
+                    {% if is_granted('ROLE_CLUB_ADMIN') or (app.user and app.user.id == licensee.user.id) %}
                         <div class="border-top pt-3">
                             <h5 class="mb-2">
                                 <em class="fa-solid fa-user-gear me-2"></em>
