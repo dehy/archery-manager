@@ -42,13 +42,17 @@ class UserController extends BaseController
     }
 
     #[Route('/user/{id}/edit', name: 'app_user_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted('ROLE_CLUB_ADMIN')]
     public function edit(User $user, Request $request, EntityManagerInterface $entityManager): Response
     {
         $this->assertHasValidLicense();
 
+        /** @var User $currentUser */
+        $currentUser = $this->getUser();
+        $this->checkUserAccess($currentUser, $user);
+
         $form = $this->createForm(UserFormType::class, $user, [
-            'is_admin' => true,
+            'is_admin' => $this->isGranted('ROLE_ADMIN'),
         ]);
 
         $form->handleRequest($request);

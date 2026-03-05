@@ -128,7 +128,7 @@ class LicenseeController extends BaseController
         $activeLoans = $this->loanRepository->findActiveLoansByBorrower($licensee);
 
         $licenseeSyncForm = null;
-        if ($this->isGranted('ROLE_ADMIN')) {
+        if ($this->isGranted('ROLE_CLUB_ADMIN')) {
             $licenseeSyncForm = $this->createSyncForm($licensee);
         }
 
