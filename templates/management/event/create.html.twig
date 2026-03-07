@@ -2,7 +2,7 @@
 
 {% block title %}Créer un événement{% endblock %}
 
-{% block return_link %}{{ path('app_admin_events_index') }}{% endblock %}
+{% block return_link %}{{ path('app_event_manage_index') }}{% endblock %}
 {% block return_text %}Événements{% endblock %}
 
 {% block body %}
@@ -38,7 +38,7 @@
                             </div>
                         </div>
                         <div class="card-footer text-center">
-                            <a href="{{ path('app_admin_events_create_type', {type: 'contest'}) }}" 
+                            <a href="{{ path('app_event_manage_create_type', {type: 'contest'}) }}" 
                                class="btn btn-primary">
                                 <em class="fa-solid fa-plus me-2"></em>
                                 Créer un concours
@@ -67,7 +67,7 @@
                             </div>
                         </div>
                         <div class="card-footer text-center">
-                            <a href="{{ path('app_admin_events_create_type', {type: 'hobby_contest'}) }}" 
+                            <a href="{{ path('app_event_manage_create_type', {type: 'hobby_contest'}) }}" 
                                class="btn btn-info">
                                 <em class="fa-solid fa-plus me-2"></em>
                                 Créer un concours loisir
@@ -96,7 +96,7 @@
                             </div>
                         </div>
                         <div class="card-footer text-center">
-                            <a href="{{ path('app_admin_events_create_type', {type: 'training'}) }}" 
+                            <a href="{{ path('app_event_manage_create_type', {type: 'training'}) }}" 
                                class="btn btn-success">
                                 <em class="fa-solid fa-plus me-2"></em>
                                 Créer un entraînement
@@ -125,7 +125,7 @@
                             </div>
                         </div>
                         <div class="card-footer text-center">
-                            <a href="{{ path('app_admin_events_create_type', {type: 'free_training'}) }}" 
+                            <a href="{{ path('app_event_manage_create_type', {type: 'free_training'}) }}" 
                                class="btn btn-secondary">
                                 <em class="fa-solid fa-plus me-2"></em>
                                 Créer un entraînement libre

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Controller\Admin;
+namespace App\Controller\Management;
 
 use App\DBAL\Types\EventType;
 use App\Entity\ContestEvent;
@@ -32,7 +32,7 @@ class EventManagementController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/events', name: 'app_admin_events_index')]
+    #[Route('/events/manage', name: 'app_event_manage_index', priority: 1)]
     public function index(Request $request): Response
     {
         /** @var EventRepository $eventRepository */
@@ -60,7 +60,7 @@ class EventManagementController extends AbstractController
 
         $totalPages = ceil($totalEvents / $limit);
 
-        return $this->render('admin/events/index.html.twig', [
+        return $this->render('management/event/index.html.twig', [
             'events' => $events,
             'currentPage' => $page,
             'totalPages' => $totalPages,
@@ -68,15 +68,15 @@ class EventManagementController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/events/create', name: 'app_admin_events_create')]
+    #[Route('/events/manage/create', name: 'app_event_manage_create')]
     public function create(): Response
     {
-        return $this->render('admin/events/create.html.twig', [
+        return $this->render('management/event/create.html.twig', [
             'eventTypes' => EventType::getChoices(),
         ]);
     }
 
-    #[Route('/admin/events/create/{type}', name: 'app_admin_events_create_type')]
+    #[Route('/events/manage/create/{type}', name: 'app_event_manage_create_type')]
     public function createType(string $type, Request $request): Response
     {
         $event = $this->createEventInstance($type);
@@ -89,12 +89,12 @@ class EventManagementController extends AbstractController
             $this->entityManager->persist($event);
             $this->entityManager->flush();
 
-            $this->addFlash('success', 'L\'événement a été créé avec succès.');
+            $this->addFlash('success', "L'événement a été créé avec succès.");
 
-            return $this->redirectToRoute('app_admin_events_index');
+            return $this->redirectToRoute('app_event_manage_index');
         }
 
-        return $this->render('admin/events/form.html.twig', [
+        return $this->render('management/event/form.html.twig', [
             'form' => $form,
             'event' => $event,
             'eventType' => $type,
@@ -102,7 +102,7 @@ class EventManagementController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/events/{id}/edit', name: 'app_admin_events_edit')]
+    #[Route('/events/manage/{id}/edit', name: 'app_event_manage_edit')]
     public function edit(Event $event, Request $request): Response
     {
         $this->denyAccessUnlessGranted(EventVoter::EDIT, $event);
@@ -113,12 +113,12 @@ class EventManagementController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
 
-            $this->addFlash('success', 'L\'événement a été modifié avec succès.');
+            $this->addFlash('success', "L'événement a été modifié avec succès.");
 
-            return $this->redirectToRoute('app_admin_events_index');
+            return $this->redirectToRoute('app_event_manage_index');
         }
 
-        return $this->render('admin/events/form.html.twig', [
+        return $this->render('management/event/form.html.twig', [
             'form' => $form,
             'event' => $event,
             'eventType' => $this->getEventTypeString($event),
@@ -126,7 +126,7 @@ class EventManagementController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/events/{id}/delete', name: 'app_admin_events_delete', methods: ['POST'])]
+    #[Route('/events/manage/{id}/delete', name: 'app_event_manage_delete', methods: ['POST'])]
     public function delete(Event $event, Request $request): Response
     {
         $this->denyAccessUnlessGranted(EventVoter::DELETE, $event);
@@ -135,10 +135,10 @@ class EventManagementController extends AbstractController
             $this->entityManager->remove($event);
             $this->entityManager->flush();
 
-            $this->addFlash('success', 'L\'événement a été supprimé avec succès.');
+            $this->addFlash('success', "L'événement a été supprimé avec succès.");
         }
 
-        return $this->redirectToRoute('app_admin_events_index');
+        return $this->redirectToRoute('app_event_manage_index');
     }
 
     private function createEventInstance(string $type): Event

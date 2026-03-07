@@ -148,13 +148,25 @@
             </div>
         </div>
     </div>
+
+    {# Hidden Symfony forms — provide automatic CSRF token for AJAX member actions #}
+    <div class="d-none">
+        {{ form_start(addMemberForm, {attr: {id: 'add-member-form'}}) }}
+        {{ form_widget(addMemberForm.licenseeId) }}
+        {{ form_end(addMemberForm) }}
+
+        {{ form_start(removeMemberForm, {attr: {id: 'remove-member-form'}}) }}
+        {{ form_widget(removeMemberForm.licenseeId) }}
+        {{ form_end(removeMemberForm) }}
+    </div>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const groupId = {{ group.id }};
+            const addForm = document.getElementById('add-member-form');
+            const removeForm = document.getElementById('remove-member-form');
             const alertContainer = document.getElementById('alert-container');
 
             // Fonction pour afficher des alertes
@@ -195,12 +207,10 @@
                     btn.disabled = true;
                     btn.innerHTML = '<em class="fa-solid fa-spinner fa-spin"></em> Ajout...';
 
-                    fetch(`/admin/groups/${groupId}/add-member`, {
+                    addForm.querySelector('[name="group_member_action[licenseeId]"]').value = licenseeId;
+                    fetch(addForm.action, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `licenseeId=${licenseeId}`
+                        body: new FormData(addForm),
                     })
                     .then(response => response.json())
                     .then(data => {
@@ -251,12 +261,10 @@
                     btn.disabled = true;
                     btn.innerHTML = '<em class="fa-solid fa-spinner fa-spin"></em> Suppression...';
 
-                    fetch(`/admin/groups/${groupId}/remove-member`, {
+                    removeForm.querySelector('[name="group_member_action[licenseeId]"]').value = licenseeId;
+                    fetch(removeForm.action, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `licenseeId=${licenseeId}`
+                        body: new FormData(removeForm),
                     })
                     .then(response => response.json())
                     .then(data => {

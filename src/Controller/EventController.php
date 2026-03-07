@@ -38,8 +38,14 @@ use Symfony\Component\Routing\RouterInterface;
 
 class EventController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly EventRepository $eventRepository, private readonly FilesystemOperator $eventsStorage, private readonly RouterInterface $router, private readonly EventHelper $eventHelper)
-    {
+    public function __construct(
+        LicenseeHelper $licenseeHelper,
+        \App\Helper\SeasonHelper $seasonHelper,
+        private readonly EventRepository $eventRepository,
+        private readonly FilesystemOperator $eventsStorage,
+        private readonly RouterInterface $router,
+        private readonly EventHelper $eventHelper,
+    ) {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
 

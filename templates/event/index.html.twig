@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Calendrier</h2>
         {% if is_granted('ROLE_CLUB_ADMIN') %}
-            <a href="{{ path('app_admin_events_create') }}" class="btn btn-primary btn-create-event">
+            <a href="{{ path('app_event_manage_create') }}" class="btn btn-primary btn-create-event">
                 <i class="fa-solid fa-plus me-2"></i>
                 Nouvel événement
             </a>
@@ -118,7 +118,7 @@
             <!-- Bouton nouvel événement pour mobile -->
             {% if is_granted('ROLE_CLUB_ADMIN') %}
                 <div class="d-xl-none mb-4">
-                    <a href="{{ path('app_admin_events_create') }}" class="btn btn-primary w-100 btn-create-event">
+                    <a href="{{ path('app_event_manage_create') }}" class="btn btn-primary w-100 btn-create-event">
                         <i class="fa-solid fa-plus me-2"></i>
                         Nouvel événement
                     </a>

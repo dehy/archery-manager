@@ -8,7 +8,7 @@
     {% endif %}
 {% endblock %}
 
-{% block return_link %}{{ path('app_admin_events_index') }}{% endblock %}
+{% block return_link %}{{ path('app_event_manage_index') }}{% endblock %}
 {% block return_text %}Événements{% endblock %}
 
 {% block body %}
@@ -41,6 +41,7 @@
                 {% endif %}
             </div>
 
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
@@ -49,7 +50,6 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
                     
                     <div class="row g-3">
                         <!-- Nom de l'événement -->
@@ -194,7 +194,7 @@
 
                 <div class="card-footer">
                     <div class="d-flex justify-content-between">
-                        <a href="{{ path('app_admin_events_index') }}" class="btn btn-secondary">
+                        <a href="{{ path('app_event_manage_index') }}" class="btn btn-secondary">
                             <em class="fa-solid fa-arrow-left me-2"></em>
                             Annuler
                         </a>
@@ -212,9 +212,8 @@
                         </div>
                     </div>
                 </div>
-
-                {{ form_end(form) }}
             </div>
+            {{ form_end(form) }}
 
             {% if isEdit %}
                 <!-- Modal de suppression -->
@@ -238,7 +237,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                <form method="post" action="{{ path('app_admin_events_delete', {id: event.id}) }}" class="d-inline">
+                                <form method="post" action="{{ path('app_event_manage_delete', {id: event.id}) }}" class="d-inline">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
                                     <button type="submit" class="btn btn-danger">
                                         <em class="fa-solid fa-trash me-2"></em>
