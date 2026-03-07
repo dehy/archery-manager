@@ -7,6 +7,7 @@ namespace App\Controller\Management;
 use App\Controller\BaseController;
 use App\Entity\Club;
 use App\Entity\Group;
+use App\Entity\Licensee;
 use App\Form\Type\GroupMemberActionType;
 use App\Form\Type\GroupType;
 use App\Helper\LicenseeHelper;
@@ -71,26 +72,14 @@ class GroupManagementController extends BaseController
     #[Route('/groups/{id}/add-member', name: 'app_group_add_member', methods: ['POST'])]
     public function addMember(Group $group, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        $club = $this->currentClub();
-
-        if ($group->getClub() !== $club) {
-            return new JsonResponse(['error' => 'Accès refusé'], Response::HTTP_FORBIDDEN);
+        $licenseeOrError = $this->resolveMemberAction($group, $request);
+        if ($licenseeOrError instanceof JsonResponse) {
+            return $licenseeOrError;
         }
 
-        $form = $this->createForm(GroupMemberActionType::class);
-        $form->handleRequest($request);
+        $licensee = $licenseeOrError;
 
-        if (!$form->isSubmitted() || !$form->isValid()) {
-            return new JsonResponse(['error' => 'Requête invalide'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $licensee = $this->licenseeRepository->find((int) $form->get('licenseeId')->getData());
-
-        if (!$licensee) {
-            return new JsonResponse(['error' => 'Licencié non trouvé'], Response::HTTP_NOT_FOUND);
-        }
-
-        if (!$licensee->getClubs()->contains($club)) {
+        if (!$licensee->getClubs()->contains($this->currentClub())) {
             return new JsonResponse(['error' => "Ce licencié n'appartient pas à votre club"], Response::HTTP_BAD_REQUEST);
         }
 
@@ -110,24 +99,12 @@ class GroupManagementController extends BaseController
     #[Route('/groups/{id}/remove-member', name: 'app_group_remove_member', methods: ['POST'])]
     public function removeMember(Group $group, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        $club = $this->currentClub();
-
-        if ($group->getClub() !== $club) {
-            return new JsonResponse(['error' => 'Accès refusé'], Response::HTTP_FORBIDDEN);
+        $licenseeOrError = $this->resolveMemberAction($group, $request);
+        if ($licenseeOrError instanceof JsonResponse) {
+            return $licenseeOrError;
         }
 
-        $form = $this->createForm(GroupMemberActionType::class);
-        $form->handleRequest($request);
-
-        if (!$form->isSubmitted() || !$form->isValid()) {
-            return new JsonResponse(['error' => 'Requête invalide'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $licensee = $this->licenseeRepository->find((int) $form->get('licenseeId')->getData());
-
-        if (!$licensee) {
-            return new JsonResponse(['error' => 'Licencié non trouvé'], Response::HTTP_NOT_FOUND);
-        }
+        $licensee = $licenseeOrError;
 
         if (!$group->getLicensees()->contains($licensee)) {
             return new JsonResponse(['error' => 'Ce licencié ne fait pas partie du groupe'], Response::HTTP_BAD_REQUEST);
@@ -172,5 +149,23 @@ class GroupManagementController extends BaseController
         $this->assertHasValidLicense();
 
         return $this->licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
+    }
+
+    private function resolveMemberAction(Group $group, Request $request): JsonResponse|Licensee
+    {
+        if ($group->getClub() !== $this->currentClub()) {
+            return new JsonResponse(['error' => 'Accès refusé'], Response::HTTP_FORBIDDEN);
+        }
+
+        $form = $this->createForm(GroupMemberActionType::class);
+        $form->handleRequest($request);
+
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return new JsonResponse(['error' => 'Requête invalide'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $licensee = $this->licenseeRepository->find((int) $form->get('licenseeId')->getData());
+
+        return $licensee ?? new JsonResponse(['error' => 'Licencié non trouvé'], Response::HTTP_NOT_FOUND);
     }
 }
