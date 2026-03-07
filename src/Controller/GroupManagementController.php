@@ -23,7 +23,7 @@ class GroupManagementController extends BaseController
         parent::__construct($licenseeHelper, $seasonHelper);
     }
 
-    #[Route('/admin/groups/{id}/manage', name: 'app_group_manage', requirements: ['id' => '\d+'])]
+    #[Route('/groups/{id}/manage', name: 'app_group_manage', requirements: ['id' => '\d+'])]
     public function manage(
         Group $group,
     ): Response {
@@ -60,7 +60,7 @@ class GroupManagementController extends BaseController
         ]);
     }
 
-    #[Route('/admin/groups/{id}/add-member', name: 'app_group_add_member', methods: ['POST'])]
+    #[Route('/groups/{id}/add-member', name: 'app_group_add_member', methods: ['POST'])]
     public function addMember(
         Group $group,
         Request $request,
@@ -101,7 +101,7 @@ class GroupManagementController extends BaseController
         return new JsonResponse(['error' => 'Ce licencié fait déjà partie du groupe'], Response::HTTP_BAD_REQUEST);
     }
 
-    #[Route('/admin/groups/{id}/remove-member', name: 'app_group_remove_member', methods: ['POST'])]
+    #[Route('/groups/{id}/remove-member', name: 'app_group_remove_member', methods: ['POST'])]
     public function removeMember(
         Group $group,
         Request $request,
@@ -137,7 +137,7 @@ class GroupManagementController extends BaseController
         return new JsonResponse(['error' => 'Ce licencié ne fait pas partie du groupe'], Response::HTTP_BAD_REQUEST);
     }
 
-    #[Route('/admin/groups/create', name: 'app_group_create')]
+    #[Route('/groups/create', name: 'app_group_create')]
     public function create(
         Request $request,
         EntityManagerInterface $entityManager,

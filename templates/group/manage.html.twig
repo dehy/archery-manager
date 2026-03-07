@@ -195,7 +195,7 @@
                     btn.disabled = true;
                     btn.innerHTML = '<em class="fa-solid fa-spinner fa-spin"></em> Ajout...';
 
-                    fetch(`/admin/groups/${groupId}/add-member`, {
+                    fetch(`/groups/${groupId}/add-member`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
@@ -251,7 +251,7 @@
                     btn.disabled = true;
                     btn.innerHTML = '<em class="fa-solid fa-spinner fa-spin"></em> Suppression...';
 
-                    fetch(`/admin/groups/${groupId}/remove-member`, {
+                    fetch(`/groups/${groupId}/remove-member`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',

@@ -32,7 +32,7 @@ class EventManagementController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/events', name: 'app_admin_events_index')]
+    #[Route('/events', name: 'app_admin_events_index')]
     public function index(Request $request): Response
     {
         /** @var EventRepository $eventRepository */
@@ -68,7 +68,7 @@ class EventManagementController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/events/create', name: 'app_admin_events_create')]
+    #[Route('/events/create', name: 'app_admin_events_create')]
     public function create(): Response
     {
         return $this->render('admin/events/create.html.twig', [
@@ -76,7 +76,7 @@ class EventManagementController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/events/create/{type}', name: 'app_admin_events_create_type')]
+    #[Route('/events/create/{type}', name: 'app_admin_events_create_type')]
     public function createType(string $type, Request $request): Response
     {
         $event = $this->createEventInstance($type);
@@ -102,7 +102,7 @@ class EventManagementController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/events/{id}/edit', name: 'app_admin_events_edit')]
+    #[Route('/events/{id}/edit', name: 'app_admin_events_edit')]
     public function edit(Event $event, Request $request): Response
     {
         $this->denyAccessUnlessGranted(EventVoter::EDIT, $event);
@@ -126,7 +126,7 @@ class EventManagementController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/events/{id}/delete', name: 'app_admin_events_delete', methods: ['POST'])]
+    #[Route('/events/{id}/delete', name: 'app_admin_events_delete', methods: ['POST'])]
     public function delete(Event $event, Request $request): Response
     {
         $this->denyAccessUnlessGranted(EventVoter::DELETE, $event);
