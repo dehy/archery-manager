@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Controller;
 
 use App\Entity\Group;
 use App\Repository\GroupRepository;
+use App\Repository\LicenseeRepository;
 use App\Tests\application\LoggedInTestCase;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -167,6 +168,102 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $this->assertStringContainsString('/groups/', (string) $client->getResponse()->headers->get('Location'));
     }
 
+    // ── Manage (access denied for other club's group) ─────────────────
+
+    public function testManageDeniedForOtherClubGroup(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $groupId = $this->getLadgGroupId();
+
+        $client->request(Request::METHOD_GET, \sprintf(self::URL_MANAGE, $groupId));
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    // ── resolveMemberAction: wrong club ────────────────────────────────
+
+    public function testAddMemberDeniedForOtherClubGroup(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $groupId = $this->getLadgGroupId();
+
+        // POST directly (no CSRF needed – club check happens first)
+        $client->request(Request::METHOD_POST, \sprintf(self::URL_ADD_MEMBER, $groupId));
+
+        $this->assertResponseStatusCodeSame(403);
+        $this->assertJson($client->getResponse()->getContent());
+    }
+
+    // ── resolveMemberAction: invalid / missing form ────────────────────
+
+    public function testAddMemberInvalidForm(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $groupId = $this->getFirstGroupId();
+
+        // POST with no form data → form is never submitted → 400
+        $client->request(Request::METHOD_POST, \sprintf(self::URL_ADD_MEMBER, $groupId));
+
+        $this->assertResponseStatusCodeSame(400);
+        $this->assertJson($client->getResponse()->getContent());
+    }
+
+    public function testRemoveMemberInvalidForm(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $groupId = $this->getFirstGroupId();
+
+        // POST with no form data → form is never submitted → 400
+        $client->request(Request::METHOD_POST, \sprintf(self::URL_REMOVE_MEMBER, $groupId));
+
+        $this->assertResponseStatusCodeSame(400);
+        $this->assertJson($client->getResponse()->getContent());
+    }
+
+    // ── removeMember: licensee not in group ────────────────────────────
+
+    public function testRemoveMemberNotInGroup(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        // Use a group that has no members in fixtures so any licensed ladb
+        // member is guaranteed to NOT be in it
+        $emptyGroupId = $this->getEmptyLabdGroupId();
+
+        $crawler = $client->request(Request::METHOD_GET, \sprintf(self::URL_MANAGE, $emptyGroupId));
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->filter('#remove-member-form')->form([
+            'group_member_action[licenseeId]' => (string) $this->getLicenseeNotInGroupId($emptyGroupId),
+        ]);
+        $client->submit($form);
+
+        $this->assertResponseStatusCodeSame(400);
+        $this->assertJson($client->getResponse()->getContent());
+        $data = json_decode($client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
+    }
+
+    // ── removeMember: success ──────────────────────────────────────────
+
+    public function testRemoveMemberSuccess(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $groupId = $this->getFirstGroupId();
+
+        $crawler = $client->request(Request::METHOD_GET, \sprintf(self::URL_MANAGE, $groupId));
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->filter('#remove-member-form')->form([
+            'group_member_action[licenseeId]' => (string) $this->getLicenseeInGroupId($groupId),
+        ]);
+        $client->submit($form);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertJson($client->getResponse()->getContent());
+        $data = json_decode($client->getResponse()->getContent(), true);
+        $this->assertTrue($data['success']);
+    }
+
     // ── Helper ─────────────────────────────────────────────────────────
 
     private function getFirstGroupId(): int
@@ -190,5 +287,58 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $this->assertInstanceOf(Group::class, $group, "Could not find admin's group");
 
         return $group->getId();
+    }
+
+    private function getLadgGroupId(): int
+    {
+        $groupRepo = self::getContainer()->get(GroupRepository::class);
+        $group = $groupRepo->findOneBy(['name' => 'Groupe Compétiteurs']);
+
+        $this->assertInstanceOf(Group::class, $group, 'LaDG group not found in fixtures');
+
+        return $group->getId();
+    }
+
+    private function getEmptyLabdGroupId(): int
+    {
+        // 'Débutants Adultes' for ladb has no licensees in fixtures
+        $groupRepo = self::getContainer()->get(GroupRepository::class);
+        $group = $groupRepo->findOneBy(['name' => 'Débutants Adultes']);
+        $this->assertInstanceOf(Group::class, $group, 'LADB Débutants Adultes group not found');
+
+        return $group->getId();
+    }
+
+    private function getLicenseeNotInGroupId(int $groupId): int
+    {
+        $groupRepo = self::getContainer()->get(GroupRepository::class);
+        /** @var Group $group */
+        $group = $groupRepo->find($groupId);
+        $this->assertInstanceOf(Group::class, $group);
+
+        /** @var LicenseeRepository $licenseeRepo */
+        $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
+        $allLicensees = $licenseeRepo->findByLicenseYear($group->getClub(), 2026);
+
+        foreach ($allLicensees as $licensee) {
+            if (!$group->getLicensees()->contains($licensee)) {
+                return $licensee->getId();
+            }
+        }
+
+        $this->fail('No licensee outside the group found for club ' . $group->getClub()->getName());
+    }
+
+    private function getLicenseeInGroupId(int $groupId): int
+    {
+        $groupRepo = self::getContainer()->get(GroupRepository::class);
+        /** @var Group $group */
+        $group = $groupRepo->find($groupId);
+        $this->assertInstanceOf(Group::class, $group);
+
+        $members = $group->getLicensees();
+        $this->assertGreaterThan(0, $members->count(), 'Group has no members; cannot test remove');
+
+        return $members->first()->getId();
     }
 }

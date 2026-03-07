@@ -41,6 +41,7 @@
                 {% endif %}
             </div>
 
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
@@ -49,7 +50,6 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
                     
                     <div class="row g-3">
                         <!-- Nom de l'événement -->
@@ -212,9 +212,8 @@
                         </div>
                     </div>
                 </div>
-
-                {{ form_end(form) }}
             </div>
+            {{ form_end(form) }}
 
             {% if isEdit %}
                 <!-- Modal de suppression -->

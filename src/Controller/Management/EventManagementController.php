@@ -32,7 +32,7 @@ class EventManagementController extends AbstractController
     ) {
     }
 
-    #[Route('/events/manage', name: 'app_event_manage_index')]
+    #[Route('/events/manage', name: 'app_event_manage_index', priority: 1)]
     public function index(Request $request): Response
     {
         /** @var EventRepository $eventRepository */
