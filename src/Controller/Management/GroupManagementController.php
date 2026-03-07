@@ -58,7 +58,7 @@ class GroupManagementController extends BaseController
             'action' => $this->generateUrl('app_group_remove_member', ['id' => $group->getId()]),
         ]);
 
-        return $this->render('group/manage.html.twig', [
+        return $this->render('management/group/manage.html.twig', [
             'group' => $group,
             'groupMembers' => $groupMembers,
             'availableLicensees' => $availableLicensees,
@@ -162,7 +162,7 @@ class GroupManagementController extends BaseController
             return $this->redirectToRoute('app_group_manage', ['id' => $group->getId()]);
         }
 
-        return $this->render('group/create.html.twig', [
+        return $this->render('management/group/create.html.twig', [
             'form' => $form->createView(),
         ]);
     }

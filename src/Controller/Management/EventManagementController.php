@@ -60,7 +60,7 @@ class EventManagementController extends AbstractController
 
         $totalPages = ceil($totalEvents / $limit);
 
-        return $this->render('admin/events/index.html.twig', [
+        return $this->render('management/event/index.html.twig', [
             'events' => $events,
             'currentPage' => $page,
             'totalPages' => $totalPages,
@@ -71,7 +71,7 @@ class EventManagementController extends AbstractController
     #[Route('/events/manage/create', name: 'app_event_manage_create')]
     public function create(): Response
     {
-        return $this->render('admin/events/create.html.twig', [
+        return $this->render('management/event/create.html.twig', [
             'eventTypes' => EventType::getChoices(),
         ]);
     }
@@ -94,7 +94,7 @@ class EventManagementController extends AbstractController
             return $this->redirectToRoute('app_event_manage_index');
         }
 
-        return $this->render('admin/events/form.html.twig', [
+        return $this->render('management/event/form.html.twig', [
             'form' => $form,
             'event' => $event,
             'eventType' => $type,
@@ -118,7 +118,7 @@ class EventManagementController extends AbstractController
             return $this->redirectToRoute('app_event_manage_index');
         }
 
-        return $this->render('admin/events/form.html.twig', [
+        return $this->render('management/event/form.html.twig', [
             'form' => $form,
             'event' => $event,
             'eventType' => $this->getEventTypeString($event),
