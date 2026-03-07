@@ -7,7 +7,7 @@ namespace App\Controller\Management;
 use App\Controller\BaseController;
 use App\Entity\Club;
 use App\Entity\Group;
-use App\Entity\Licensee;
+use App\Form\Type\GroupMemberActionType;
 use App\Form\Type\GroupType;
 use App\Helper\LicenseeHelper;
 use App\Helper\LicenseHelper;
@@ -51,24 +51,44 @@ class GroupManagementController extends BaseController
             }
         }
 
+        $addMemberForm = $this->createForm(GroupMemberActionType::class, null, [
+            'action' => $this->generateUrl('app_group_add_member', ['id' => $group->getId()]),
+        ]);
+        $removeMemberForm = $this->createForm(GroupMemberActionType::class, null, [
+            'action' => $this->generateUrl('app_group_remove_member', ['id' => $group->getId()]),
+        ]);
+
         return $this->render('group/manage.html.twig', [
             'group' => $group,
             'groupMembers' => $groupMembers,
             'availableLicensees' => $availableLicensees,
             'season' => $season,
+            'addMemberForm' => $addMemberForm,
+            'removeMemberForm' => $removeMemberForm,
         ]);
     }
 
     #[Route('/groups/{id}/add-member', name: 'app_group_add_member', methods: ['POST'])]
     public function addMember(Group $group, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        $memberOrError = $this->resolveMemberAction($group, $request);
-        if ($memberOrError instanceof JsonResponse) {
-            return $memberOrError;
+        $club = $this->currentClub();
+
+        if ($group->getClub() !== $club) {
+            return new JsonResponse(['error' => 'Accès refusé'], Response::HTTP_FORBIDDEN);
         }
 
-        $licensee = $memberOrError;
-        $club = $this->currentClub();
+        $form = $this->createForm(GroupMemberActionType::class);
+        $form->handleRequest($request);
+
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return new JsonResponse(['error' => 'Requête invalide'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $licensee = $this->licenseeRepository->find((int) $form->get('licenseeId')->getData());
+
+        if (!$licensee) {
+            return new JsonResponse(['error' => 'Licencié non trouvé'], Response::HTTP_NOT_FOUND);
+        }
 
         if (!$licensee->getClubs()->contains($club)) {
             return new JsonResponse(['error' => "Ce licencié n'appartient pas à votre club"], Response::HTTP_BAD_REQUEST);
@@ -90,12 +110,24 @@ class GroupManagementController extends BaseController
     #[Route('/groups/{id}/remove-member', name: 'app_group_remove_member', methods: ['POST'])]
     public function removeMember(Group $group, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        $memberOrError = $this->resolveMemberAction($group, $request);
-        if ($memberOrError instanceof JsonResponse) {
-            return $memberOrError;
+        $club = $this->currentClub();
+
+        if ($group->getClub() !== $club) {
+            return new JsonResponse(['error' => 'Accès refusé'], Response::HTTP_FORBIDDEN);
         }
 
-        $licensee = $memberOrError;
+        $form = $this->createForm(GroupMemberActionType::class);
+        $form->handleRequest($request);
+
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return new JsonResponse(['error' => 'Requête invalide'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $licensee = $this->licenseeRepository->find((int) $form->get('licenseeId')->getData());
+
+        if (!$licensee) {
+            return new JsonResponse(['error' => 'Licencié non trouvé'], Response::HTTP_NOT_FOUND);
+        }
 
         if (!$group->getLicensees()->contains($licensee)) {
             return new JsonResponse(['error' => 'Ce licencié ne fait pas partie du groupe'], Response::HTTP_BAD_REQUEST);
@@ -140,25 +172,5 @@ class GroupManagementController extends BaseController
         $this->assertHasValidLicense();
 
         return $this->licenseHelper->getCurrentLicenseeCurrentLicense()->getClub();
-    }
-
-    private function resolveMemberAction(Group $group, Request $request): JsonResponse|Licensee
-    {
-        $club = $this->currentClub();
-
-        if ($group->getClub() !== $club) {
-            return new JsonResponse(['error' => 'Accès refusé'], Response::HTTP_FORBIDDEN);
-        }
-
-        if (!$this->isCsrfTokenValid('group_member', $request->request->get('_token'))) {
-            return new JsonResponse(['error' => 'Jeton CSRF invalide'], Response::HTTP_FORBIDDEN);
-        }
-
-        $licensee = $this->licenseeRepository->find($request->request->get('licenseeId'));
-        if (!$licensee) {
-            return new JsonResponse(['error' => 'Licencié non trouvé'], Response::HTTP_NOT_FOUND);
-        }
-
-        return $licensee;
     }
 }

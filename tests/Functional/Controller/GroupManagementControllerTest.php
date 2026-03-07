@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Controller;
 use App\Entity\Group;
 use App\Repository\GroupRepository;
 use App\Tests\application\LoggedInTestCase;
+use Symfony\Component\HttpFoundation\Request;
 
 final class GroupManagementControllerTest extends LoggedInTestCase
 {
@@ -25,7 +26,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsUserClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, \sprintf(self::URL_MANAGE, $groupId));
+        $client->request(Request::METHOD_GET, \sprintf(self::URL_MANAGE, $groupId));
         $this->assertResponseStatusCodeSame(403);
     }
 
@@ -34,7 +35,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, \sprintf(self::URL_MANAGE, $groupId));
+        $client->request(Request::METHOD_GET, \sprintf(self::URL_MANAGE, $groupId));
         $this->assertResponseIsSuccessful();
     }
 
@@ -43,7 +44,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $groupId = $this->getFirstGroupId();
 
-        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, \sprintf(self::URL_MANAGE, $groupId));
+        $crawler = $client->request(Request::METHOD_GET, \sprintf(self::URL_MANAGE, $groupId));
         $this->assertResponseIsSuccessful();
         // Should display some content
         $this->assertGreaterThan(0, $crawler->filter('body')->count());
@@ -56,7 +57,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsUserClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, \sprintf(self::URL_ADD_MEMBER, $groupId), [
+        $client->request(Request::METHOD_POST, \sprintf(self::URL_ADD_MEMBER, $groupId), [
             'licenseeId' => 1,
         ]);
 
@@ -68,7 +69,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, \sprintf(self::URL_ADD_MEMBER, $groupId));
+        $client->request(Request::METHOD_GET, \sprintf(self::URL_ADD_MEMBER, $groupId));
         $this->assertResponseStatusCodeSame(405);
     }
 
@@ -77,13 +78,17 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, \sprintf(self::URL_ADD_MEMBER, $groupId), [
-            'licenseeId' => 99999, // Non-existent
+        $crawler = $client->request(Request::METHOD_GET, \sprintf(self::URL_MANAGE, $groupId));
+        $this->assertResponseIsSuccessful();
+
+        // BrowserKit automatically includes the hidden _token field from the rendered form
+        $form = $crawler->filter('#add-member-form')->form([
+            'group_member_action[licenseeId]' => '99999',
         ]);
+        $client->submit($form);
 
         $this->assertResponseStatusCodeSame(404);
-        $response = $client->getResponse();
-        $this->assertJson($response->getContent());
+        $this->assertJson($client->getResponse()->getContent());
     }
 
     // ── Remove Member ──────────────────────────────────────────────────
@@ -93,7 +98,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsUserClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, \sprintf(self::URL_REMOVE_MEMBER, $groupId), [
+        $client->request(Request::METHOD_POST, \sprintf(self::URL_REMOVE_MEMBER, $groupId), [
             'licenseeId' => 1,
         ]);
 
@@ -105,7 +110,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, \sprintf(self::URL_REMOVE_MEMBER, $groupId));
+        $client->request(Request::METHOD_GET, \sprintf(self::URL_REMOVE_MEMBER, $groupId));
         $this->assertResponseStatusCodeSame(405);
     }
 
@@ -114,13 +119,17 @@ final class GroupManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $groupId = $this->getFirstGroupId();
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, \sprintf(self::URL_REMOVE_MEMBER, $groupId), [
-            'licenseeId' => 99999,
+        $crawler = $client->request(Request::METHOD_GET, \sprintf(self::URL_MANAGE, $groupId));
+        $this->assertResponseIsSuccessful();
+
+        // BrowserKit automatically includes the hidden _token field from the rendered form
+        $form = $crawler->filter('#remove-member-form')->form([
+            'group_member_action[licenseeId]' => '99999',
         ]);
+        $client->submit($form);
 
         $this->assertResponseStatusCodeSame(404);
-        $response = $client->getResponse();
-        $this->assertJson($response->getContent());
+        $this->assertJson($client->getResponse()->getContent());
     }
 
     // ── Create Group ───────────────────────────────────────────────────
@@ -128,7 +137,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
     public function testCreateRequiresAdmin(): void
     {
         $client = self::createLoggedInAsUserClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_CREATE);
+        $client->request(Request::METHOD_GET, self::URL_CREATE);
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -136,7 +145,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
     public function testCreateRendersFormForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_CREATE);
+        $client->request(Request::METHOD_GET, self::URL_CREATE);
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
@@ -145,7 +154,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
     public function testCreateSubmitCreatesGroup(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_CREATE);
+        $crawler = $client->request(Request::METHOD_GET, self::URL_CREATE);
 
         $this->assertResponseIsSuccessful();
 
