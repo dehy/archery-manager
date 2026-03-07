@@ -23,10 +23,15 @@
                     <i class="fa-solid fa-edit me-2"></i>Modifier
                 </a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="{{ path('app_event_manage_delete', {id: event.id}) }}" 
-                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')">
-                    <i class="fa-solid fa-trash me-2"></i>Supprimer
-                </a></li>
+                <li>
+                    <form method="post" action="{{ path('app_event_manage_delete', {id: event.id}) }}"
+                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                        <button type="submit" class="dropdown-item text-danger">
+                            <i class="fa-solid fa-trash me-2"></i>Supprimer
+                        </button>
+                    </form>
+                </li>
             </ul>
         </div>
     {% endif %}
