@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Management;
 
 use App\Entity\Group;
 use App\Form\Type\GroupType;
