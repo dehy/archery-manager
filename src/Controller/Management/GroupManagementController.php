@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller\Management;
 
+use App\Controller\BaseController;
 use App\Entity\Group;
 use App\Form\Type\GroupType;
 use App\Helper\LicenseHelper;
+use App\Helper\LicenseeHelper;
+use App\Helper\SeasonHelper;
 use App\Repository\LicenseeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CLUB_ADMIN')]
 class GroupManagementController extends BaseController
 {
-    public function __construct(\App\Helper\LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }

@@ -11,8 +11,11 @@ use App\Tests\application\LoggedInTestCase;
 final class GroupManagementControllerTest extends LoggedInTestCase
 {
     private const string URL_CREATE = '/groups/create';
+
     private const string URL_MANAGE = '/groups/%d/manage';
+
     private const string URL_ADD_MEMBER = '/groups/%d/add-member';
+
     private const string URL_REMOVE_MEMBER = '/groups/%d/remove-member';
 
     // ── Manage Group ───────────────────────────────────────────────────
