@@ -154,7 +154,8 @@
     {{ parent() }}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const groupId = {{ group.id }};
+            const addMemberUrl = "{{ path('app_group_add_member', { id: group.id })|e('js') }}";
+            const removeMemberUrl = "{{ path('app_group_remove_member', { id: group.id })|e('js') }}";
             const alertContainer = document.getElementById('alert-container');
 
             // Fonction pour afficher des alertes
@@ -195,7 +196,7 @@
                     btn.disabled = true;
                     btn.innerHTML = '<em class="fa-solid fa-spinner fa-spin"></em> Ajout...';
 
-                    fetch(`/groups/${groupId}/add-member`, {
+                    fetch(addMemberUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
@@ -251,7 +252,7 @@
                     btn.disabled = true;
                     btn.innerHTML = '<em class="fa-solid fa-spinner fa-spin"></em> Suppression...';
 
-                    fetch(`/groups/${groupId}/remove-member`, {
+                    fetch(removeMemberUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
