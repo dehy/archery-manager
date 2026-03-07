@@ -58,7 +58,7 @@ final class EventManagementControllerTest extends LoggedInTestCase
     public function testCreateTrainingFormShowsForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request(Request::METHOD_GET, self::URL_CREATE . '/training');
+        $client->request(Request::METHOD_GET, self::URL_CREATE.'/training');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
@@ -67,7 +67,7 @@ final class EventManagementControllerTest extends LoggedInTestCase
     public function testCreateContestFormShowsForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request(Request::METHOD_GET, self::URL_CREATE . '/contest');
+        $client->request(Request::METHOD_GET, self::URL_CREATE.'/contest');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
@@ -76,7 +76,7 @@ final class EventManagementControllerTest extends LoggedInTestCase
     public function testCreateHobbyContestFormShowsForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request(Request::METHOD_GET, self::URL_CREATE . '/hobby_contest');
+        $client->request(Request::METHOD_GET, self::URL_CREATE.'/hobby_contest');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
@@ -85,7 +85,7 @@ final class EventManagementControllerTest extends LoggedInTestCase
     public function testCreateFreeTrainingFormShowsForAdmin(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->request(Request::METHOD_GET, self::URL_CREATE . '/free_training');
+        $client->request(Request::METHOD_GET, self::URL_CREATE.'/free_training');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
@@ -94,7 +94,7 @@ final class EventManagementControllerTest extends LoggedInTestCase
     public function testCreateTrainingEventSubmit(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $crawler = $client->request(Request::METHOD_GET, self::URL_CREATE . '/training');
+        $crawler = $client->request(Request::METHOD_GET, self::URL_CREATE.'/training');
         $this->assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Enregistrer')->form([
@@ -114,7 +114,7 @@ final class EventManagementControllerTest extends LoggedInTestCase
     public function testCreateContestEventSubmit(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $crawler = $client->request(Request::METHOD_GET, self::URL_CREATE . '/contest');
+        $crawler = $client->request(Request::METHOD_GET, self::URL_CREATE.'/contest');
         $this->assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Enregistrer')->form([
@@ -139,7 +139,7 @@ final class EventManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $eventId = $this->getFirstLabdEventId();
 
-        $client->request(Request::METHOD_GET, "/events/manage/{$eventId}/edit");
+        $client->request(Request::METHOD_GET, \sprintf('/events/manage/%d/edit', $eventId));
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
@@ -150,7 +150,7 @@ final class EventManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $eventId = $this->getFirstLabdEventId();
 
-        $crawler = $client->request(Request::METHOD_GET, "/events/manage/{$eventId}/edit");
+        $crawler = $client->request(Request::METHOD_GET, \sprintf('/events/manage/%d/edit', $eventId));
         $this->assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Enregistrer')->form([
@@ -170,7 +170,7 @@ final class EventManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $eventId = $this->getFirstLabdEventId();
 
-        $client->request(Request::METHOD_GET, "/events/manage/{$eventId}/delete");
+        $client->request(Request::METHOD_GET, \sprintf('/events/manage/%d/delete', $eventId));
 
         $this->assertResponseStatusCodeSame(405);
     }
@@ -195,7 +195,7 @@ final class EventManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $eventId = $this->getFirstLabdEventId();
 
-        $client->request(Request::METHOD_POST, "/events/manage/{$eventId}/delete", [
+        $client->request(Request::METHOD_POST, \sprintf('/events/manage/%d/delete', $eventId), [
             '_token' => 'invalid-token',
         ]);
 
@@ -208,12 +208,12 @@ final class EventManagementControllerTest extends LoggedInTestCase
     private function getFirstLabdEventId(): int
     {
         /** @var ClubRepository $clubRepo */
-        $clubRepo = static::getContainer()->get(ClubRepository::class);
+        $clubRepo = self::getContainer()->get(ClubRepository::class);
         $club = $clubRepo->findOneBy(['name' => 'Les Archers du Bosquet']);
         $this->assertInstanceOf(Club::class, $club, 'Club LADB not found in fixtures');
 
         /** @var EventRepository $eventRepo */
-        $eventRepo = static::getContainer()->get(EventRepository::class);
+        $eventRepo = self::getContainer()->get(EventRepository::class);
         $event = $eventRepo->findOneBy(['club' => $club]);
         $this->assertInstanceOf(Event::class, $event, 'No event found for club LADB');
 

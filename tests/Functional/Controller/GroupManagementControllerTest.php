@@ -326,7 +326,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
             }
         }
 
-        $this->fail('No licensee outside the group found for club ' . $group->getClub()->getName());
+        $this->fail('No licensee outside the group found for club '.$group->getClub()->getName());
     }
 
     private function getLicenseeInGroupId(int $groupId): int
