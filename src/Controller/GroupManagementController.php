@@ -75,6 +75,10 @@ class GroupManagementController extends BaseController
             return new JsonResponse(['error' => 'Accès refusé'], Response::HTTP_FORBIDDEN);
         }
 
+        if (!$this->isCsrfTokenValid('group_member', $request->request->get('_token'))) {
+            return new JsonResponse(['error' => 'Jeton CSRF invalide'], Response::HTTP_FORBIDDEN);
+        }
+
         $licenseeId = $request->request->get('licenseeId');
         $licensee = $this->licenseeRepository->find($licenseeId);
 
@@ -114,6 +118,10 @@ class GroupManagementController extends BaseController
         // Vérifier que le groupe appartient au club de l'utilisateur
         if ($group->getClub() !== $club) {
             return new JsonResponse(['error' => 'Accès refusé'], Response::HTTP_FORBIDDEN);
+        }
+
+        if (!$this->isCsrfTokenValid('group_member', $request->request->get('_token'))) {
+            return new JsonResponse(['error' => 'Jeton CSRF invalide'], Response::HTTP_FORBIDDEN);
         }
 
         $licenseeId = $request->request->get('licenseeId');

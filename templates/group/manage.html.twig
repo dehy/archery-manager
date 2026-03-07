@@ -156,6 +156,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const addMemberUrl = "{{ path('app_group_add_member', { id: group.id })|e('js') }}";
             const removeMemberUrl = "{{ path('app_group_remove_member', { id: group.id })|e('js') }}";
+            const csrfToken = "{{ csrf_token('group_member')|e('js') }}";
             const alertContainer = document.getElementById('alert-container');
 
             // Fonction pour afficher des alertes
@@ -201,7 +202,7 @@
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: `licenseeId=${licenseeId}`
+                        body: `licenseeId=${licenseeId}&_token=${encodeURIComponent(csrfToken)}`
                     })
                     .then(response => response.json())
                     .then(data => {
@@ -257,7 +258,7 @@
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: `licenseeId=${licenseeId}`
+                        body: `licenseeId=${licenseeId}&_token=${encodeURIComponent(csrfToken)}`
                     })
                     .then(response => response.json())
                     .then(data => {
