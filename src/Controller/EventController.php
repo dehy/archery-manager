@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\DBAL\Types\EventAttachmentType;
 use App\DBAL\Types\EventParticipationStateType;
+use App\DBAL\Types\EventType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\TargetTypeType;
 use App\Entity\ContestEvent;
@@ -17,15 +18,20 @@ use App\Entity\Result;
 use App\Entity\Season;
 use App\Entity\TrainingEvent;
 use App\Factory\IcsFactory;
+use App\Form\ContestEventType;
 use App\Form\EventMandateType;
 use App\Form\EventParticipationType;
 use App\Form\EventResultsType;
+use App\Form\FreeTrainingEventType;
+use App\Form\TrainingEventType;
+use App\Helper\ClubHelper;
 use App\Helper\EventHelper;
 use App\Helper\LicenseeHelper;
 use App\Repository\ContestEventRepository;
 use App\Repository\EventAttachmentRepository;
 use App\Repository\EventRepository;
 use App\Repository\ResultRepository;
+use App\Security\Voter\EventVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemOperator;
@@ -35,11 +41,20 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class EventController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly EventRepository $eventRepository, private readonly FilesystemOperator $eventsStorage, private readonly RouterInterface $router, private readonly EventHelper $eventHelper)
-    {
+    public function __construct(
+        LicenseeHelper $licenseeHelper,
+        \App\Helper\SeasonHelper $seasonHelper,
+        private readonly EventRepository $eventRepository,
+        private readonly FilesystemOperator $eventsStorage,
+        private readonly RouterInterface $router,
+        private readonly EventHelper $eventHelper,
+        private readonly ClubHelper $clubHelper,
+        private readonly EntityManagerInterface $entityManager,
+    ) {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
 
@@ -413,5 +428,155 @@ class EventController extends BaseController
 
             return $a->getLicensee()->getFullname() <=> $b->getLicensee()->getFullname();
         });
+    }
+
+    // -------------------------------------------------------------------------
+    // Event management (ROLE_CLUB_ADMIN)
+    // -------------------------------------------------------------------------
+
+    #[IsGranted('ROLE_CLUB_ADMIN')]
+    #[Route('/events/manage', name: 'app_event_manage_index')]
+    public function manageIndex(Request $request): Response
+    {
+        /** @var EventRepository $eventRepository */
+        $eventRepository = $this->entityManager->getRepository(Event::class);
+
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = 20;
+        $offset = ($page - 1) * $limit;
+
+        $events = $eventRepository->createQueryBuilder('e')
+            ->where('e.club = :club')
+            ->setParameter('club', $this->clubHelper->activeClub())
+            ->orderBy('e.startsAt', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        $totalEvents = $eventRepository->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->where('e.club = :club')
+            ->setParameter('club', $this->clubHelper->activeClub())
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $totalPages = ceil($totalEvents / $limit);
+
+        return $this->render('admin/events/index.html.twig', [
+            'events' => $events,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalEvents' => $totalEvents,
+        ]);
+    }
+
+    #[IsGranted('ROLE_CLUB_ADMIN')]
+    #[Route('/events/manage/create', name: 'app_event_manage_create')]
+    public function manageCreate(): Response
+    {
+        return $this->render('admin/events/create.html.twig', [
+            'eventTypes' => EventType::getChoices(),
+        ]);
+    }
+
+    #[IsGranted('ROLE_CLUB_ADMIN')]
+    #[Route('/events/manage/create/{type}', name: 'app_event_manage_create_type')]
+    public function manageCreateType(string $type, Request $request): Response
+    {
+        $event = $this->createEventInstance($type);
+        $event->setClub($this->clubHelper->activeClub());
+
+        $form = $this->createForm($this->getFormTypeForEvent($event), $event);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->entityManager->persist($event);
+            $this->entityManager->flush();
+
+            $this->addFlash('success', "L'événement a été créé avec succès.");
+
+            return $this->redirectToRoute('app_event_manage_index');
+        }
+
+        return $this->render('admin/events/form.html.twig', [
+            'form' => $form,
+            'event' => $event,
+            'eventType' => $type,
+            'isEdit' => false,
+        ]);
+    }
+
+    #[IsGranted('ROLE_CLUB_ADMIN')]
+    #[Route('/events/manage/{id}/edit', name: 'app_event_manage_edit')]
+    public function manageEdit(Event $event, Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(EventVoter::EDIT, $event);
+
+        $form = $this->createForm($this->getFormTypeForEvent($event), $event);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->entityManager->flush();
+
+            $this->addFlash('success', "L'événement a été modifié avec succès.");
+
+            return $this->redirectToRoute('app_event_manage_index');
+        }
+
+        return $this->render('admin/events/form.html.twig', [
+            'form' => $form,
+            'event' => $event,
+            'eventType' => $this->getEventTypeString($event),
+            'isEdit' => true,
+        ]);
+    }
+
+    #[IsGranted('ROLE_CLUB_ADMIN')]
+    #[Route('/events/manage/{id}/delete', name: 'app_event_manage_delete', methods: ['POST'])]
+    public function manageDelete(Event $event, Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(EventVoter::DELETE, $event);
+
+        if ($this->isCsrfTokenValid('delete'.$event->getId(), $request->request->get('_token'))) {
+            $this->entityManager->remove($event);
+            $this->entityManager->flush();
+
+            $this->addFlash('success', "L'événement a été supprimé avec succès.");
+        }
+
+        return $this->redirectToRoute('app_event_manage_index');
+    }
+
+    private function createEventInstance(string $type): Event
+    {
+        return match ($type) {
+            'contest' => new ContestEvent(),
+            'hobby_contest' => new HobbyContestEvent(),
+            'training' => new TrainingEvent(),
+            'free_training' => new FreeTrainingEvent(),
+            default => new Event(),
+        };
+    }
+
+    private function getFormTypeForEvent(Event $event): string
+    {
+        return match ($event::class) {
+            ContestEvent::class, HobbyContestEvent::class => ContestEventType::class,
+            TrainingEvent::class => TrainingEventType::class,
+            FreeTrainingEvent::class => FreeTrainingEventType::class,
+            default => TrainingEventType::class,
+        };
+    }
+
+    private function getEventTypeString(Event $event): string
+    {
+        return match ($event::class) {
+            ContestEvent::class => 'contest',
+            HobbyContestEvent::class => 'hobby_contest',
+            TrainingEvent::class => 'training',
+            FreeTrainingEvent::class => 'free_training',
+            default => 'other',
+        };
     }
 }

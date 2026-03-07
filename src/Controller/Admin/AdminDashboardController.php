@@ -107,7 +107,7 @@ class AdminDashboardController extends AbstractDashboardController
         yield MenuItem::linkToRoute(
             'Gestion des événements',
             'fa-solid fa-calendar-plus',
-            'app_admin_events_index',
+            'app_event_manage_index',
         );
 
         yield MenuItem::linkToCrud(
