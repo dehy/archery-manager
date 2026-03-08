@@ -15,16 +15,28 @@ This document contains important context and guidelines for AI coding assistants
 - **Results & Competitions**: Contest results tracking and imports
 - **FFTA Integration**: Synchronization with French Archery Federation (FFTA) system
 - **Practice Advice**: Training tips and attachments
-- **Pre-Registration**: Public form for new members
+- **Club Applications**: Membership application management (pending/validated/waiting_list/rejected/cancelled)
+- **GDPR Compliance**: Cookie consent tracking (ConsentLog entity with anonymized audit trail)
 - **Discord Integration**: Bot for club communication
 - **Season Management**: Multi-season support with automatic season detection
+
+## Scoped Instruction Files (VS Code Copilot)
+
+For language-specific patterns, refer to the scoped instruction files in `.github/instructions/`. These load automatically in VS Code based on the file you're editing:
+
+| File | Applies to | Content |
+|------|-----------|--------|
+| [backend.instructions.md](.github/instructions/backend.instructions.md) | `**/*.php` | Symfony/Doctrine patterns, entities, DBAL types, SonarQube PHP rules |
+| [frontend.instructions.md](.github/instructions/frontend.instructions.md) | `assets/**` | Font Awesome workflow, Stimulus controllers, Bootstrap, SCSS |
+| [testing.instructions.md](.github/instructions/testing.instructions.md) | `tests/**` | Test commands, DAMA, fixtures, patterns |
+| [templates.instructions.md](.github/instructions/templates.instructions.md) | `templates/**` | Twig forms, modals, Bootstrap components, auth |
 
 ## Technology Stack
 
 ### Backend
-- **Framework**: Symfony 6.4.* (LTS)
-- **PHP**: 8.3+ (with typed class constants, strict types)
-- **Database**: MariaDB 10.11+ with Doctrine ORM 2.x
+- **Framework**: Symfony 7.4.*
+- **PHP**: 8.4+ (with typed class constants, strict types)
+- **Database**: MariaDB 12.1 with Doctrine ORM 3.x
 - **API**: API Platform 3.x for REST APIs
 - **Authentication**: Symfony Security with form login, remember me, user switching
 - **Password Reset**: SymfonyCasts ResetPasswordBundle
@@ -40,7 +52,7 @@ This document contains important context and guidelines for AI coding assistants
 - **Templates**: Twig 3.x
 - **JavaScript**: TypeScript with Stimulus (Hotwired)
 - **CSS**: Bootstrap 5.3+ with custom SCSS
-- **Icons**: Font Awesome 7.1+ Pro (Solid, Light, Regular, Duotone, Thin)
+- **Icons**: Font Awesome 7.1+ Pro (Solid/Brands actively used; Light, Regular, Duotone, Thin available — see `assets/app.ts` for currently imported icons)
 - **Build Tool**: Webpack Encore 4.x
 - **Charts**: Chart.js 3.x with annotation and datalabels plugins
 - **Maps**: Leaflet 1.9+ with Geocoder (Mapbox provider)
@@ -113,6 +125,18 @@ This document contains important context and guidelines for AI coding assistants
   - **PracticeAdviceAttachment**: Files for training resources
 - **PracticeAdvice**: Training tips and guides
 
+#### GDPR & Club Management
+- **ConsentLog**: GDPR consent audit trail
+  - Properties: services (JSON array), action (accepted/declined/partial), policyVersion, ipAddressAnonymized, userAgent, createdAt
+  - Linked to User (nullable, CASCADE delete)
+- **ClubApplication**: Membership application (replaces old LicenseApplication)
+  - Properties: licensee, club, season, status (ClubApplicationStatusType), adminMessage, createdAt, updatedAt, processedBy
+  - Status flow: PENDING → VALIDATED / WAITING_LIST / REJECTED / CANCELLED
+- **ClubEquipment**: Club-owned gear inventory
+  - Properties: club, type (ClubEquipmentType), name, serialNumber, quantity, purchasePrice, purchaseDate, bowType, brand, model, arrowType
+- **EquipmentLoan**: Tracks gear loans from club to members
+  - Properties: equipment, borrower (Licensee), startDate, returnDate, quantity, notes, createdBy (User)
+
 ### DBAL Types (Enums)
 
 Custom Doctrine DBAL types for type-safe enumerations:
@@ -132,6 +156,10 @@ Custom Doctrine DBAL types for type-safe enumerations:
 - **PracticeLevelType**: Beginner, Intermediate, Advanced
 - **TargetTypeType**: Target face types (80cm, 122cm, etc.)
 - **UserRoleType**: User roles
+- **ClubApplicationStatusType**: PENDING, VALIDATED, WAITING_LIST, REJECTED, CANCELLED
+- **ClubEquipmentType**: Equipment type classification
+- **EventAttachmentType**: Event attachment categories
+- **PracticeAdviceAttachmentType**: Training advice attachment types
 
 ### Service Layer
 
@@ -189,6 +217,10 @@ Custom Doctrine DBAL types for type-safe enumerations:
 - **PdfController**: PDF generation
 - **MobileController**: Mobile-specific views
 - **Admin/***: EasyAdmin-based admin panel
+- **ClubApplicationController**: Membership application submissions and management
+- **ConsentController**: GDPR cookie consent recording (rate-limited, validates action/services)
+- **LicenseeManagementController**: Admin licensee management
+- **LegalController**: Legal pages (CGU, privacy policy)
 
 ### Authorization Model
 
@@ -223,7 +255,8 @@ Events can be assigned to specific groups via `assignedGroups` (ManyToMany):
 - **app**: Main Symfony application (FrankenPHP)
 - **messenger-async**: Async message consumer
 - **scheduler-ffta-licensees**: Scheduled FFTA sync
-- **database**: MariaDB 10.11.5
+- **database**: MariaDB 12.1
+- **redis**: Rate limiter backend
 - **adminer**: Database GUI (http://localhost:8081)
 
 #### Database Access
@@ -280,6 +313,34 @@ make shell  # Then run commands inside container
    ```
 
 **Important**: Always review migrations before applying in production!
+
+**Branch workflow — one migration per branch**:
+
+Goal: keep a single cumulative migration in a branch (not a chain of incremental ones) so merging to `main` produces a clean history.
+
+When you need to regenerate a migration while one already exists in the branch:
+
+```bash
+# 1. Find migrations added in this branch (not on main)
+BRANCH_MIGRATIONS=$(git diff main --name-only --diff-filter=A -- migrations/)
+
+# 2. Roll back each one and delete the file
+for f in $BRANCH_MIGRATIONS; do
+    VERSION=$(basename "$f" .php)
+    docker compose exec -u symfony -w /app app \
+        bin/console doctrine:migrations:execute --down \
+        "DoctrineMigrations\\${VERSION}" --no-interaction
+    rm "$f"
+done
+
+# 3. Generate a fresh, complete migration
+docker compose exec -u symfony -w /app app bin/console make:migration
+
+# 4. Review the generated SQL, then apply
+docker compose exec -u symfony -w /app app bin/console doctrine:migrations:migrate --no-interaction
+```
+
+Result: one migration file per branch, containing the full cumulative diff vs `main`.
 
 ### Code Quality Tools
 
@@ -400,6 +461,24 @@ docker compose exec -u symfony -w /app app bin/console encrypt:genkey
 - Feature branches: Descriptive names (e.g., `event-enhancement`)
 - Push early and often
 
+#### Creating Pull Requests
+
+Use the `gh` CLI with `--body-file`. **Never use heredoc** for either the PR body or the temp file — use the `create_file` tool to write `/tmp/pr-body.md`, then pass it to `gh`:
+
+```bash
+# 1. Use the create_file tool to write the PR body to /tmp/pr-body.md
+#    (do NOT use cat > /tmp/pr-body.md << 'EOF' ... EOF)
+
+# 2. Create the PR
+gh pr create \
+  --title "✨ Your PR title" \
+  --body-file /tmp/pr-body.md \
+  --base main
+
+# 3. Clean up
+rm /tmp/pr-body.md
+```
+
 ### Makefile Reference
 
 ```makefile
@@ -446,6 +525,8 @@ make migratedb       # Run database migrations
 - `src/ApiResource/` - API Platform resources
 - `src/Factory/` - Object factories
 - `src/Scheduler/` - Scheduled tasks
+- `src/Service/` - Service classes
+- `src/Validator/` - Custom validation constraints
 - `Kernel.php` - Application kernel
 
 ### Templates
@@ -463,7 +544,13 @@ make migratedb       # Run database migrations
 - `templates/licensee/` - Licensee views (profile, trombinoscope)
 - `templates/club/` - Club information
 - `templates/group/` - Group management
-- `templates/pre_registration/` - Public pre-registration form
+- `templates/club_application/` - Membership application views
+- `templates/club_equipment/` - Equipment inventory and loan management
+- `templates/email_notification/` - Notification email templates
+- `templates/legal/` - Legal pages (CGU, privacy policy)
+- `templates/licensee_management/` - Admin licensee management
+- `templates/management/` - General management views
+- `templates/user_management/` - Admin user management
 - `templates/admin/` - EasyAdmin customizations
 
 ### Frontend Assets
@@ -685,309 +772,11 @@ For training events, `EventHelper::getAllParticipantsForEvent()` returns:
 - CSS inliner for email client compatibility
 - Example: `templates/email/registration.html.twig`
 
-## UI/UX Patterns
-
-### Bootstrap 5 Conventions
-- **Layout**: Container, row, col-* grid
-- **Spacing**: Margin (`m-*`, `mb-*`, `mt-*`) and padding (`p-*`) utilities
-- **Flexbox**: `d-flex`, `justify-content-*`, `align-items-*`
-- **Colors**: `text-*`, `bg-*`, `btn-*` (primary, secondary, success, danger, warning, info)
-- **Display**: `d-none`, `d-block`, `d-md-block` (responsive)
-- **Components**: `card`, `modal`, `dropdown`, `navbar`, `badge`, `alert`, `btn`, `form-control`
-
-### Icon Usage
-- **Font Awesome 6.5+**: Solid icons (`fa-solid fa-*`)
-- Imported in `app.ts` and registered via `library.add()`
-- SVG rendering via `dom.watch()` for performance
-- Sizing: `fa-lg`, `fa-2x`, `fa-3x`, etc.
-- Spacing: `me-2` (margin-end), `ms-2` (margin-start)
-- **Recent pattern**: Inline icons with text using flexbox
-  ```html
-  <a class="btn d-flex align-items-center">
-      <i class="fa-solid fa-user fa-lg me-2"></i>
-      <span>Profile</span>
-  </a>
-  ```
-
-### Modal Pattern
-1. **Base modal** (`templates/_modal.html.twig`):
-   - Generic reusable structure
-   - Stimulus-controlled (`modal_controller.ts`)
-2. **Trigger**:
-   ```html
-   <a href="{{ path('...') }}"
-      data-action="modal#open"
-      data-title="Modal Title"
-      data-size="lg">
-   ```
-3. **Controller**:
-   - Fetches content via AJAX
-   - Injects into modal body
-   - Handles form submission
-   - Bootstrap Modal API for show/hide
-4. **Event-specific**: `_participation_modal.html.twig`
-   - Inline modal (not AJAX-loaded)
-   - Conditional rendering based on `isContest`
-
-### Form Themes
-- Default: `bootstrap_5_layout.html.twig`
-- Custom: `templates/app_form_layout.html.twig`
-- Usage: `{% form_theme form 'bootstrap_5_layout.html.twig' %}`
-- Rendering:
-  ```twig
-  {{ form_start(form) }}
-  {{ form_row(form.field) }}  {# Label + widget + errors #}
-  {{ form_widget(form.field) }}  {# Input only #}
-  {{ form_label(form.field) }}   {# Label only #}
-  {{ form_errors(form.field) }}  {# Errors only #}
-  {{ form_end(form) }}
-  ```
-
-### Tooltips
-- Bootstrap tooltips initialized in `app.ts`:
-  ```js
-  const tooltipTriggerList = Array.prototype.slice.call(
-      document.querySelectorAll('[data-bs-toggle="tooltip"]')
-  );
-  tooltipTriggerList.forEach(
-      (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
-  );
-  ```
-- Usage:
-  ```html
-  <button data-bs-toggle="tooltip" title="Explanation">...</button>
-  ```
-
-### Disabled States with Tooltips
-- Pattern for conveying why action is unavailable:
-  ```html
-  <button class="btn btn-secondary" disabled
-          data-bs-toggle="tooltip"
-          title="You cannot do this because...">
-      Action
-  </button>
-  ```
-- Use case: Event participation when user not in assigned group
-
-### Responsive Design
-- **Mobile-first**: Bootstrap breakpoints (sm, md, lg, xl)
-- **Mobile tab bar**: Fixed bottom nav for small screens
-  - Defined in `assets/styles/_mobile.scss`
-  - Hidden on desktop (`d-md-none`)
-- **Top navbar**: Fixed top nav for desktop
-  - Hidden on mobile
-- Body padding: `padding-top` and `padding-bottom` adjusted for fixed navs
-
-### Custom SCSS Organization
-- `assets/styles/app.scss` - Main import file
-- `_variables.scss` - Custom Bootstrap variable overrides
-- `_mobile.scss` - Mobile-specific styles
-- `_events.scss` - Event-related components
-- `_calendar.scss` - Calendar views
-- `_event_participation.scss` - Participation state colors (extends Bootstrap bg-* classes)
-- Pattern: Import Bootstrap functions/mixins first, then customize
-
-## Common Development Patterns
-
-### Template Includes
-```twig
-{# Reusable partial #}
-{{ include('path/to/_partial.html.twig', {
-    variable: value,
-    anotherVar: entity
-}) }}
-```
-
-### Conditional Rendering
-```twig
-{% if event is instanceof('App\\Entity\\ContestEvent') %}
-    {# Contest-specific content #}
-{% elseif event is instanceof('App\\Entity\\TrainingEvent') %}
-    {# Training-specific content #}
-{% else %}
-    {# Default content #}
-{% endif %}
-```
-
-### Authorization in Templates
-```twig
-{% if is_granted('ROLE_ADMIN') %}
-    <a href="{{ path('admin') }}">Admin Panel</a>
-{% endif %}
-```
-
-### Doctrine Query Patterns
-```php
-// In repository
-public function findUpcomingEvents(\DateTimeInterface $startDate): array
-{
-    return $this->createQueryBuilder('e')
-        ->where('e.startsAt >= :start')
-        ->setParameter('start', $startDate)
-        ->orderBy('e.startsAt', 'ASC')
-        ->getQuery()
-        ->getResult();
-}
-```
-
-### Form Type Patterns
-```php
-use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-
-class EventParticipationType extends AbstractType
-{
-    public function buildForm(FormBuilderInterface $builder, array $options): void
-    {
-        $isContest = $options['is_contest'] ?? false;
-        
-        $builder->add('participationState', ChoiceType::class, [
-            'choices' => $isContest 
-                ? [/* 3 choices */] 
-                : [/* 2 choices */],
-        ]);
-        
-        if ($isContest) {
-            $builder->add('targetType', /* ... */);
-        }
-    }
-    
-    public function configureOptions(OptionsResolver $resolver): void
-    {
-        $resolver->setDefaults([
-            'data_class' => EventParticipation::class,
-            'is_contest' => false,
-        ]);
-    }
-}
-```
-
-### Helper Service Injection
-```php
-// In controller
-public function __construct(
-    private readonly EventHelper $eventHelper,
-    private readonly LicenseHelper $licenseHelper
-) {}
-
-public function show(Event $event): Response
-{
-    $licensee = $this->licenseHelper->currentLicensee();
-    $canParticipate = $this->eventHelper->canLicenseeParticipateInEvent($licensee, $event);
-    // ...
-}
-```
-
-### Flash Messages
-```php
-// In controller
-$this->addFlash('success', 'Operation completed successfully!');
-$this->addFlash('danger', 'An error occurred.');
-$this->addFlash('warning', 'Please note...');
-```
-
-```twig
-{# In template #}
-{% for message in app.flashes('success') %}
-    <div class="alert alert-success">{{ message }}</div>
-{% endfor %}
-```
-
-## Testing Guidelines
-
-### Writing Tests
-- Place in `tests/` directory
-- Mirror `src/` structure
-- Use namespaces: `Tests\Integration\Helper\EventHelperTest`
-- Extend: `Symfony\Bundle\FrameworkBundle\Test\KernelTestCase`
-
-### Test Data
-- Use DataFixtures for complex scenarios
-- Use entity factories for simple object creation
-- Clean up after tests (transactions auto-rollback)
-
-### Critical Test Pattern (Cascade Persist)
-```php
-// Always persist related entities first!
-$club = new Club();
-$club->setName('Test Club');
-// ... set required fields
-$entityManager->persist($club);
-
-$license = new License();
-$license->setClub($club);  // Related entity already persisted
-$entityManager->persist($license);
-$entityManager->flush();
-```
-
-## Security Best Practices
-
-### Input Validation
-- Use Symfony Validator constraints on entities
-- Example:
-  ```php
-  #[Assert\NotBlank]
-  #[Assert\Length(min: 3, max: 255)]
-  private string $name;
-  ```
-
-### CSRF Protection
-- Enabled by default for forms
-- `enable_csrf: true` in `security.yaml` for login
-
-### SQL Injection Prevention
-- Use Doctrine Query Builder with parameter binding
-- Never concatenate user input into queries
-
-### XSS Prevention
-- Twig auto-escapes output by default
-- Use `|raw` filter only for trusted content
-- Sanitize HTML input if allowing rich text
-
-### File Upload Security
-- Validate MIME types
-- Limit file sizes
-- Use VichUploaderBundle for safe handling
-- Store files outside web root or with restricted access
-
-### Password Security
-- Symfony password hasher uses bcrypt/argon2 by default
-- `auto` algorithm selection in `security.yaml`
-- Never log or display passwords
-
-### Remember Me Security
-- Secret key from `%kernel.secret%`
-- 1 week lifetime (configurable)
-- Always use HTTPS in production
-
-## Performance Considerations
-
-### Doctrine Optimization
-- Use eager loading for related entities (avoid N+1):
-  ```php
-  $query = $repository->createQueryBuilder('e')
-      ->leftJoin('e.assignedGroups', 'g')
-      ->addSelect('g')
-      ->getQuery();
-  ```
-- Use pagination for large result sets
-- Index frequently queried columns
-
-### Asset Optimization
-- Production: `yarn run build` (minified, optimized)
-- Development: `yarn run dev` (source maps, fast)
-- Webpack Encore handles code splitting
-
-### Caching
-- Symfony cache pools available
-- HTTP caching headers for static assets
-- Doctrine query result cache for expensive queries
-
-### Database
-- Use connection pooling
-- Optimize indexes for common queries
-- Monitor slow query log
+> **Detailed coding patterns** for PHP, TypeScript, Twig, and testing are in the scoped instruction files:
+> - PHP/Symfony → [`.github/instructions/backend.instructions.md`](.github/instructions/backend.instructions.md)
+> - TypeScript/SCSS → [`.github/instructions/frontend.instructions.md`](.github/instructions/frontend.instructions.md)
+> - Testing → [`.github/instructions/testing.instructions.md`](.github/instructions/testing.instructions.md)
+> - Twig templates → [`.github/instructions/templates.instructions.md`](.github/instructions/templates.instructions.md)
 
 ## Troubleshooting
 
@@ -1166,7 +955,7 @@ $entityManager->flush();
 - **PHP best practices:**
   - PSR-12 coding standard (enforced by PHP CS Fixer)
   - Return type declarations on all methods
-  - Readonly properties where applicable (PHP 8.3+)
+  - Readonly properties where applicable (PHP 8.4+)
   - Null safety (avoid null where possible)
 
 ## Tips for AI Assistants
@@ -1221,100 +1010,9 @@ $entityManager->flush();
 
 ### SonarQube Code Quality Rules
 
-SonarCloud runs on every push. The following patterns have been flagged and must be followed proactively to avoid new issues.
-
-#### PHP
-
-**Extract repeated string literals into constants** (rule: `php:S1192`)
-Any string literal used 3+ times must be extracted to a `private const`:
-```php
-// ❌ Bad
-->setParameter('{{ score }}', $value)  // repeated 3 times
-
-// ✅ Good
-private const string PLACEHOLDER_SCORE = '{{ score }}';
-->setParameter(self::PLACEHOLDER_SCORE, $value)
-```
-Applied in: `StrongPasswordValidator`, `SecurityLogCrudController`, `SecurityLogRepository`, `SecurityNotificationService`.
-
-**Limit method return points to 3** (rule: `php:S1142`)
-Methods must have at most 3 `return` statements. Refactor using an intermediate variable or restructured conditionals:
-```php
-// ❌ Bad — 4 returns
-public function verify(string $solution): bool {
-    if (!$this->enabled) return true;
-    if ('' === $solution) return false;
-    if ($result->shouldAccept()) return true;
-    return false;
-}
-
-// ✅ Good — 2 returns (early exit + single outcome)
-public function verify(string $solution): bool {
-    if (!$this->enabled) return true;
-    $accepted = false;
-    if ('' !== $solution) {
-        $accepted = $result->shouldAccept();
-    }
-    return $accepted;
-}
-```
-Applied in: `FriendlyCaptchaService::verify()`, `ClubEquipmentController::loan()`, `PendingClubApplicationsExtension::getPendingClubApplicationsCount()`.
-
-**Remove useless statements** (rule: `php:S1854`)
-Do not create objects whose value is never used:
-```php
-// ❌ Bad
-new \DateTimeImmutable();  // result discarded
-
-// ✅ Good — just remove the line entirely
-```
-Applied in: `SecurityLogRepository::getCurrentlyLockedAccountsCount()`.
-
-**Remove commented-out code** (rule: `php:S125` / `css:S125`)
-Commented-out code blocks must be deleted, not left in source:
-```scss
-// ❌ Bad
-// .calendar-case .multi-day-event-start .event-name {
-//   border-radius: 0 4px 4px 0;
-// }
-
-// ✅ Good — delete it entirely
-```
-Applied in: `assets/styles/_calendar.scss`.
-
-#### TypeScript / JavaScript
-
-**Name all classes** (rule: `typescript:S4212`)
-Anonymous default-exported classes must have a name matching the filename:
-```typescript
-// ❌ Bad
-export default class extends Controller { ... }
-
-// ✅ Good
-export default class PasswordStrengthController extends Controller { ... }
-```
-
-**Use `readonly` for static properties that are never reassigned** (rule: `typescript:S3827`)
-```typescript
-// ❌ Bad
-static targets = ["..."]
-static values = { ... }
-
-// ✅ Good
-static readonly targets = ["..."]
-static readonly values = { ... }
-```
-
-**Use optional chaining instead of null guards** (rule: `typescript:S6582`)
-```typescript
-// ❌ Bad
-if (this.hasTargetTarget && this.targetTarget) this.targetTarget.textContent = x;
-
-// ✅ Good
-this.targetTarget?.textContent = x;
-```
-
-Applied in: `assets/controllers/password-strength_controller.ts`.
+SonarCloud runs on every push. Proactively follow rules to avoid new issues — full examples with code samples are in the scoped instruction files:
+- PHP rules (S1192, S1142, S1854, S125) → [`.github/instructions/backend.instructions.md`](.github/instructions/backend.instructions.md)
+- TypeScript rules (S4212, S3827, S6582) → [`.github/instructions/frontend.instructions.md`](.github/instructions/frontend.instructions.md)
 
 ### Project-Specific Vocabulary
 - **Licensee**: Club member (archer)
@@ -1330,7 +1028,7 @@ Applied in: `assets/controllers/password-strength_controller.ts`.
 ## Resources
 
 ### Official Documentation
-- **Symfony**: https://symfony.com/doc/6.4/index.html
+- **Symfony**: https://symfony.com/doc/7.4/index.html
 - **Doctrine ORM**: https://www.doctrine-project.org/projects/doctrine-orm/en/latest/
 - **Doctrine DBAL**: https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/
 - **Twig**: https://twig.symfony.com/doc/3.x/
@@ -1369,7 +1067,7 @@ Applied in: `assets/controllers/password-strength_controller.ts`.
 
 ---
 
-**Last Updated**: February 1, 2026  
+**Last Updated**: March 8, 2026  
 **Project Status**: Active Development  
 **License**: AGPL v3  
 **Maintainer**: dehy  
@@ -1377,217 +1075,4 @@ Applied in: `assets/controllers/password-strength_controller.ts`.
 
 ---
 
-## Frontend Development Guidelines
-
-### Font Awesome Icon Management
-
-**CRITICAL WORKFLOW**: Every time you add a Font Awesome icon to a template, you MUST:
-
-1. **Add icon to imports** in `assets/app.ts`:
-   ```typescript
-   import {
-     // ... existing imports
-     faYourNewIcon,  // Add here
-   } from "@fortawesome/free-solid-svg-icons";
-   ```
-
-2. **Add icon to library.add()** in `assets/app.ts`:
-   ```typescript
-   library.add(
-       // ... existing icons
-       faYourNewIcon,  // Add here
-   );
-   ```
-
-3. **Rebuild JavaScript assets**:
-   ```bash
-   docker compose exec -u symfony -w /app app yarn run encore dev
-   ```
-
-**Without rebuilding**, icons will not render! You'll see empty spaces where icons should be.
-
-**Available Icon Packs**:
-- `@fortawesome/pro-solid-svg-icons` - Solid weight icons (fa-solid)
-- `@fortawesome/pro-regular-svg-icons` - Regular weight icons (fa-regular)
-- `@fortawesome/pro-light-svg-icons` - Light weight icons (fa-light)
-- `@fortawesome/pro-thin-svg-icons` - Thin weight icons (fa-thin)
-- `@fortawesome/pro-duotone-svg-icons` - Duotone icons (fa-duotone)
-- `@fortawesome/free-brands-svg-icons` - Brand logos (fa-brands, like Discord, Google)
-
-**Template Usage**:
-```twig
-<em class="fa-solid fa-user me-2"></em>
-<em class="fa-light fa-user me-2"></em>
-<em class="fa-duotone fa-user me-2"></em>
-<em class="fa-brands fa-discord me-2"></em>
-```
-
-**Icon Naming Convention**:
-- Template: `fa-user-gear` → Import: `faUserGear` (camelCase)
-- Template: `fa-arrow-right` → Import: `faArrowRight`
-- Template: `fa-circle-info` → Import: `faCircleInfo`
-
-### Card-Based UI Pattern
-
-**Standard Card Structure**:
-```twig
-<div class="card">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">
-            <em class="fa-solid fa-icon me-2"></em>
-            Card Title
-        </h5>
-    </div>
-    <div class="card-body">
-        <!-- Content -->
-    </div>
-</div>
-```
-
-**Color Schemes**:
-- `bg-primary` - Main actions, personal info
-- `bg-success` - Positive content, results, licensees
-- `bg-warning` - Admin actions, important notices
-- `bg-info` - Help, informational content
-- `bg-danger` - Errors, deletions
-- `bg-ffta` - FFTA-branded sections (custom class)
-
-**Card Spacing**:
-- Use `mb-4` for card bottom margin
-- Use `h-100` for equal height cards in rows
-- Wrap cards in `col-lg-*` for responsive layout
-
-### Empty States
-
-**Always provide meaningful empty states**:
-```twig
-{% if items is empty %}
-    <div class="text-center text-muted py-4">
-        <em class="fa-solid fa-icon fa-3x mb-3"></em>
-        <p class="mb-0">No items found</p>
-    </div>
-{% endif %}
-```
-
-### Icon Sizing and Spacing
-
-**Common Patterns**:
-- Inline with text: `me-2` (margin-end 2)
-- Large standalone: `fa-lg`, `fa-2x`, `fa-3x`
-- Fixed width: All icons are fixed-width by default in Font Awesome 7+ (no need for `fa-fw`)
-- Alignment: `d-flex align-items-center` for parent
-
-**Button Icons**:
-```twig
-<button class="btn btn-primary">
-    <em class="fa-solid fa-save me-2"></em>
-    Save
-</button>
-```
-
-### Access Control in Templates
-
-**Three-Tier Permission Pattern** (User/Licensee pages):
-```twig
-{% if is_granted('ROLE_ADMIN') or (app.user and app.user.id == user.id) %}
-    {# Content visible to admin or owner #}
-{% endif %}
-```
-
-**Club Admin Pattern**:
-```twig
-{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_CLUB_ADMIN') %}
-    {# Content visible to admin or club admin #}
-{% endif %}
-```
-
-**Permission Checks in Controllers**:
-```php
-// Admin or self-access
-if (!$this->isGranted('ROLE_ADMIN') && $currentUser->getId() !== $user->getId()) {
-    throw $this->createAccessDeniedException();
-}
-
-// Club admin (check club membership)
-$hasAccess = false;
-foreach ($user->getLicensees() as $licensee) {
-    if ($license = $licensee->getLicenseForSeason($currentSeason)) {
-        if ($currentUserLicense && $currentUserLicense->getClub() === $license->getClub()) {
-            $hasAccess = true;
-            break;
-        }
-    }
-}
-```
-
-### Responsive Design Patterns
-
-**Column Breakpoints**:
-```twig
-<div class="row">
-    <div class="col-lg-4 col-12">  {# 4 cols desktop, full mobile #}
-        {# Sidebar content #}
-    </div>
-    <div class="col-lg-8 col-12">  {# 8 cols desktop, full mobile #}
-        {# Main content #}
-    </div>
-</div>
-```
-
-**Button Groups**:
-```twig
-<div class="d-flex flex-wrap gap-2">
-    <button class="btn btn-primary">Action 1</button>
-    <button class="btn btn-secondary">Action 2</button>
-</div>
-```
-
-### User-Licensee Relationship Pattern
-
-**Display User from Licensee**:
-```twig
-{# In licensee profile #}
-<a href="{{ path('app_user_show', {'id': licensee.user.id}) }}">
-    Voir le compte de {{ licensee.user.firstname }} {{ licensee.user.lastname }}
-</a>
-```
-
-**Display Licensees from User**:
-```twig
-{# In user account #}
-{% for licensee in user.licensees %}
-    <a href="{{ path('app_licensee_profile', {'fftaCode': licensee.fftaMemberCode}) }}">
-        {{ licensee_display_name(licensee) }}
-    </a>
-{% endfor %}
-```
-
-**Permission Context**:
-- User profile: Broader account management, authentication, contact info
-- Licensee profile: Archery-specific (licenses, results, equipment, FFTA integration)
-- Always link between them for easy navigation
-
-### Webpack Encore Commands
-
-**Development Build** (with source maps):
-```bash
-docker compose exec -u symfony -w /app app yarn run encore dev
-```
-
-**Watch Mode** (auto-rebuild on changes):
-```bash
-docker compose exec -u symfony -w /app app yarn run encore dev --watch
-```
-
-**Production Build** (minified, optimized):
-```bash
-docker compose exec -u symfony -w /app app yarn run encore production
-```
-
----
-
-**Last Updated**: February 1, 2026  
-**Project Status**: Active Development  
-**License**: AGPL v3  
-**Maintainer**: dehy  
-**GitHub**: https://github.com/dehy/archery-manager
+> The remainder of this file (Font Awesome workflow, card patterns, Bootstrap utilities, Twig patterns) has been moved to the scoped instruction files in [`.github/instructions/`](.github/instructions/). This footer marks the end of AGENTS.md.
