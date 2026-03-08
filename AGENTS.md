@@ -461,6 +461,24 @@ docker compose exec -u symfony -w /app app bin/console encrypt:genkey
 - Feature branches: Descriptive names (e.g., `event-enhancement`)
 - Push early and often
 
+#### Creating Pull Requests
+
+Use the `gh` CLI with `--body-file`. **Never use heredoc** for either the PR body or the temp file — use the `create_file` tool to write `/tmp/pr-body.md`, then pass it to `gh`:
+
+```bash
+# 1. Use the create_file tool to write the PR body to /tmp/pr-body.md
+#    (do NOT use cat > /tmp/pr-body.md << 'EOF' ... EOF)
+
+# 2. Create the PR
+gh pr create \
+  --title "✨ Your PR title" \
+  --body-file /tmp/pr-body.md \
+  --base main
+
+# 3. Clean up
+rm /tmp/pr-body.md
+```
+
 ### Makefile Reference
 
 ```makefile
