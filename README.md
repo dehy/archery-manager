@@ -4,7 +4,7 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=dehy_archery-manager&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=dehy_archery-manager)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdehy%2Farchery-manager.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdehy%2Farchery-manager?ref=badge_shield)
 
-A web application for managing an archery club — built for [Les Archers de Bordeaux Guyenne](https://archersdebordeaux-guyenne.com), free and open-source under the AGPL v3 licence.
+A web application for managing an archery club — originally built for [Les Archers de Bordeaux Guyenne](https://archersdebordeaux-guyenne.com) and designed to serve multiple clubs. Free and open-source under the AGPL v3 licence.
 
 ---
 

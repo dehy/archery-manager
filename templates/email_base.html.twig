@@ -52,25 +52,17 @@
                 <spacer size="16"></spacer>
                 <p class="text-center">{{ club.name }}<br/>
                     <a href="mailto:{{ club.contactEmail }}">{{ club.contactEmail }}</a></p>
+                {% if club.websiteUrl is defined and club.websiteUrl %}
                 <center>
                     <menu>
                         <item>
-                            <a href="https://www.facebook.com/LesArchersdeGuyenne/">
-                                <img src="{{ absolute_url(asset('build/facebook-square-brands.png')) }}" alt="Facebook">
-                            </a>
-                        </item>
-                        <item>
-                            <a href="https://www.instagram.com/archersdebordeaux/?hl=fr">
-                                <img src="{{ absolute_url(asset('build/instagram-square-brands.png')) }}" alt="Instagram">
-                            </a>
-                        </item>
-                        <item>
-                            <a href="https://www.archersdebordeaux-guyenne.com/">
+                            <a href="{{ club.websiteUrl }}">
                                 <img src="{{ absolute_url(asset('build/w-solid.png')) }}" alt="Site Internet">
                             </a>
                         </item>
                     </menu>
                 </center>
+                {% endif %}
             </columns>
         </row>
 
