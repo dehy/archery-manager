@@ -56,6 +56,7 @@ class LicenseeManagementController extends BaseController
 
             return $this->redirectToRoute('app_homepage');
         }
+
         $season = $this->seasonHelper->getSelectedSeason();
         $renewalDate = new \DateTimeImmutable($season.'-09-01');
         $threshold = $renewalDate->modify('-6 months');
