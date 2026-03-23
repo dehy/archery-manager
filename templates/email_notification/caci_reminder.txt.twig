@@ -1,0 +1,14 @@
+Bonjour {{ licensee.firstname }},
+
+Votre certificat d'absence de contre-indication à la pratique du tir à l'arc (CACI) arrivera bientôt à expiration.
+
+Pour vous réinscrire à partir du {{ renewalDate|date('d/m/Y') }}, votre CACI devra avoir été établi après le {{ renewalDate|date_modify('-6 months')|date('d/m/Y') }}.
+
+Nous vous conseillons de prendre rendez-vous avec votre médecin pour effectuer ce bilan à temps.
+
+À rappel, conformément à la loi n° 2022-296 du 2 mars 2022, le certificat médical n'est obligatoire que si votre questionnaire de santé comporte au moins une réponse affirmative. Dans le cas contraire, votre signature du questionnaire de santé est suffisante pour vous réinscrire.
+{% if club %}
+
+Cordialement,
+{{ club.name }}
+{% endif %}

@@ -37,6 +37,9 @@ class LicenseeAttachment extends Attachment
     #[ORM\Column(options: ['default' => false])]
     private bool $manualUpload = false;
 
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $lastCaciReminderSentAt = null;
+
     #[Vich\UploadableField(
         mapping: 'licensees',
         fileNameProperty: 'file.name',
@@ -108,6 +111,18 @@ class LicenseeAttachment extends Attachment
     public function setManualUpload(bool $manualUpload): self
     {
         $this->manualUpload = $manualUpload;
+
+        return $this;
+    }
+
+    public function getLastCaciReminderSentAt(): ?\DateTimeImmutable
+    {
+        return $this->lastCaciReminderSentAt;
+    }
+
+    public function setLastCaciReminderSentAt(?\DateTimeImmutable $lastCaciReminderSentAt): self
+    {
+        $this->lastCaciReminderSentAt = $lastCaciReminderSentAt;
 
         return $this;
     }

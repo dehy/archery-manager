@@ -68,6 +68,37 @@ class LicenseeAttachmentRepository extends ServiceEntityRepository
         }
     }
 
+    /**
+     * Returns LicenseeAttachment records of type MEDICAL_CERTIFICATE whose documentDate
+     * will be invalid at the next season renewal and that have not yet received a reminder
+     * during the current campaign window (June–August).
+     *
+     * @return LicenseeAttachment[]
+     */
+    public function findNeedingCaciReminder(
+        \DateTimeImmutable $threshold,
+        \DateTimeImmutable $campaignStart,
+        \DateTimeImmutable $campaignEnd,
+    ): array {
+        return $this->createQueryBuilder('a')
+            ->leftJoin('a.licensee', 'l')
+            ->addSelect('l')
+            ->where('a.type = :type')
+            ->andWhere('a.documentDate IS NOT NULL')
+            ->andWhere('a.documentDate < :threshold')
+            ->andWhere(
+                'a.lastCaciReminderSentAt IS NULL
+                 OR a.lastCaciReminderSentAt < :campaignStart
+                 OR a.lastCaciReminderSentAt > :campaignEnd'
+            )
+            ->setParameter('type', LicenseeAttachmentType::MEDICAL_CERTIFICATE)
+            ->setParameter('threshold', $threshold)
+            ->setParameter('campaignStart', $campaignStart)
+            ->setParameter('campaignEnd', $campaignEnd)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return LicenseeAttachment[] Returns an array of LicenseeAttachment objects
     //     */
