@@ -1,0 +1,171 @@
+{% extends 'base.html.twig' %}
+
+{% block return_link %}
+    {{ path('app_user_account') }}
+{% endblock %}
+
+{% block return_text %}
+    Mon compte
+{% endblock %}
+
+{% block title %}Comment s'abonner à son calendrier{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <em class="fa-solid fa-calendar-check me-2"></em>
+            Abonnement au calendrier
+        </h1>
+    </div>
+
+    <div class="alert alert-info mb-4">
+        <em class="fa-solid fa-circle-info me-2"></em>
+        Votre lien d'abonnement vous permet d'importer automatiquement vos inscriptions dans l'application
+        calendrier de votre choix. Le calendrier se met à jour régulièrement.
+    </div>
+
+    <!-- Étape 1 : Générer le lien -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <span class="badge bg-primary me-2">1</span>
+                Générer votre lien d'abonnement
+            </h5>
+        </div>
+        <div class="card-body">
+            <p>Rendez-vous dans <a href="{{ path('app_user_account') }}">Mon compte</a>, section
+            <strong>Abonnement au calendrier</strong>, et cliquez sur
+            <strong>Générer un lien d'abonnement</strong> pour le licencié souhaité.</p>
+            <p class="mb-0">Copiez ensuite le lien généré — vous en aurez besoin à l'étape suivante.</p>
+        </div>
+    </div>
+
+    <!-- Étape 2 : S'abonner dans son application -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <span class="badge bg-primary me-2">2</span>
+                Ajouter le calendrier à votre application
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="accordion accordion-flush" id="calendarInstructions">
+
+                <!-- Google Calendar -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#collapseGoogle"
+                                aria-expanded="false"
+                                aria-controls="collapseGoogle">
+                            <em class="fa-brands fa-google me-2 text-danger"></em>
+                            Google Calendar
+                        </button>
+                    </h2>
+                    <div id="collapseGoogle" class="accordion-collapse collapse" data-bs-parent="#calendarInstructions">
+                        <div class="accordion-body">
+                            <ol class="mb-0">
+                                <li>Ouvrez <strong>Google Calendar</strong> sur ordinateur (l'import via URL n'est pas disponible sur l'application mobile).</li>
+                                <li>Dans le panneau de gauche, cliquez sur le <strong>+</strong> à côté de <em>Autres agendas</em>.</li>
+                                <li>Sélectionnez <strong>À partir d'une URL</strong>.</li>
+                                <li>Collez votre lien d'abonnement et cliquez sur <strong>Ajouter un agenda</strong>.</li>
+                            </ol>
+                            <p class="mt-3 mb-0 text-muted small">
+                                <em class="fa-solid fa-triangle-exclamation me-1"></em>
+                                Google Calendar ne se met à jour qu'environ toutes les 24h pour les abonnements externes.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Apple Calendar (iPhone / Mac) -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#collapseApple"
+                                aria-expanded="false"
+                                aria-controls="collapseApple">
+                            <em class="fa-brands fa-apple me-2"></em>
+                            Apple Calendar (iPhone / iPad / Mac)
+                        </button>
+                    </h2>
+                    <div id="collapseApple" class="accordion-collapse collapse" data-bs-parent="#calendarInstructions">
+                        <div class="accordion-body">
+                            <p class="fw-semibold">Sur iPhone / iPad :</p>
+                            <ol>
+                                <li>Ouvrez <strong>Réglages</strong> &rsaquo; <strong>Calendrier</strong> &rsaquo; <strong>Comptes</strong>.</li>
+                                <li>Appuyez sur <strong>Ajouter un compte</strong> &rsaquo; <strong>Autre</strong>.</li>
+                                <li>Appuyez sur <strong>Ajouter un calendrier avec abonnement</strong>.</li>
+                                <li>Collez votre lien d'abonnement (remplacez <code>https://</code> par <code>webcal://</code>).</li>
+                            </ol>
+                            <p class="fw-semibold mt-3">Sur Mac :</p>
+                            <ol class="mb-0">
+                                <li>Ouvrez <strong>Calendrier</strong>.</li>
+                                <li>Dans le menu <strong>Fichier</strong>, choisissez <strong>Nouvel abonnement à un calendrier…</strong></li>
+                                <li>Collez votre lien d'abonnement et cliquez sur <strong>S'abonner</strong>.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Outlook -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#collapseOutlook"
+                                aria-expanded="false"
+                                aria-controls="collapseOutlook">
+                            <em class="fa-brands fa-microsoft me-2 text-primary"></em>
+                            Microsoft Outlook
+                        </button>
+                    </h2>
+                    <div id="collapseOutlook" class="accordion-collapse collapse" data-bs-parent="#calendarInstructions">
+                        <div class="accordion-body">
+                            <p class="fw-semibold">Outlook sur le web (Office 365) :</p>
+                            <ol>
+                                <li>Ouvrez <strong>Calendrier</strong> dans Outlook.</li>
+                                <li>Cliquez sur <strong>Ajouter un calendrier</strong>.</li>
+                                <li>Sélectionnez <strong>S'abonner via Internet</strong>.</li>
+                                <li>Collez votre lien d'abonnement et cliquez sur <strong>Importer</strong>.</li>
+                            </ol>
+                            <p class="fw-semibold mt-3">Outlook (application de bureau) :</p>
+                            <ol class="mb-0">
+                                <li>Ouvrez le <strong>Calendrier</strong>.</li>
+                                <li>Dans le ruban <strong>Accueil</strong>, cliquez sur <strong>Ouvrir le calendrier</strong> &rsaquo; <strong>Depuis Internet…</strong></li>
+                                <li>Collez votre lien d'abonnement et cliquez sur <strong>OK</strong>.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Révoquer -->
+    <div class="card border-warning mb-4">
+        <div class="card-body">
+            <h5 class="card-title">
+                <em class="fa-solid fa-shield-halved text-warning me-2"></em>
+                Révoquer ou regénérer un lien
+            </h5>
+            <p class="card-text mb-0">
+                Si vous souhaitez empêcher l'accès à votre calendrier (appareil perdu, lien partagé par
+                erreur…), rendez-vous dans
+                <a href="{{ path('app_user_account') }}#calendar">Mon compte</a> et cliquez sur
+                <strong>Révoquer</strong>. L'ancien lien cessera immédiatement de fonctionner.
+                Vous pouvez en générer un nouveau à tout moment.
+            </p>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="{{ path('app_user_account') }}" class="btn btn-primary">
+            <em class="fa-solid fa-arrow-left me-2"></em>
+            Retour à Mon compte
+        </a>
+    </div>
+{% endblock %}
