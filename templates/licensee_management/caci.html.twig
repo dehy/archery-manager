@@ -1,0 +1,130 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Suivi CACI — Saison {{ season }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>
+            <em class="fa-solid fa-file-medical me-2"></em>
+            Suivi CACI — Saison {{ season }}
+        </h2>
+        <a href="{{ path('app_licensee_index') }}" class="btn btn-outline-secondary btn-sm">
+            <em class="fa-solid fa-arrow-left me-1"></em>Retour
+        </a>
+    </div>
+
+    <div class="alert alert-info">
+        <em class="fa-solid fa-circle-info me-2"></em>
+        Pour la saison {{ season }}, le CACI doit avoir été établi <strong>après le {{ threshold|date('d/m/Y') }}</strong>
+        (moins de 6 mois avant la reprise du {{ renewalDate|date('d/m/Y') }}).
+        <br>
+        <small>Conformément à la loi 2022-296, le CACI n'est exigé que si le questionnaire de santé comporte au moins une réponse affirmative.</small>
+    </div>
+
+    {% set counts = {valid: 0, expired: 0, unknown: 0, none: 0} %}
+    {% for entry in caciData %}
+        {% set counts = counts|merge({(entry.status): counts[entry.status] + 1}) %}
+    {% endfor %}
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card text-center border-danger">
+                <div class="card-body py-2">
+                    <div class="fs-3 fw-bold text-danger">{{ counts.expired }}</div>
+                    <div class="small text-muted">À renouveler</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card text-center border-secondary">
+                <div class="card-body py-2">
+                    <div class="fs-3 fw-bold text-secondary">{{ counts.none }}</div>
+                    <div class="small text-muted">Aucun CACI</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card text-center border-warning">
+                <div class="card-body py-2">
+                    <div class="fs-3 fw-bold text-warning">{{ counts.unknown }}</div>
+                    <div class="small text-muted">Date inconnue</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card text-center border-success">
+                <div class="card-body py-2">
+                    <div class="fs-3 fw-bold text-success">{{ counts.valid }}</div>
+                    <div class="small text-muted">CACI valide</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Licencié(e)</th>
+                    <th>Statut CACI</th>
+                    <th>Date du CACI</th>
+                    <th>Dernier rappel</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in caciData %}
+                <tr>
+                    <td>
+                        <a href="{{ path('app_licensee_profile', {id: entry.licensee.id}) }}">
+                            {{ entry.licensee.fullname }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if entry.status == 'valid' %}
+                            <span class="badge bg-success">CACI valide</span>
+                        {% elseif entry.status == 'expired' %}
+                            <span class="badge bg-danger">À renouveler</span>
+                        {% elseif entry.status == 'unknown' %}
+                            <span class="badge bg-warning text-dark">Date inconnue</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Aucun CACI</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if entry.certificate and entry.certificate.documentDate %}
+                            {{ entry.certificate.documentDate|date('d/m/Y') }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if entry.certificate and entry.certificate.lastCaciReminderSentAt %}
+                            {{ entry.certificate.lastCaciReminderSentAt|date('d/m/Y') }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if entry.certificate %}
+                            <a href="{{ path('admin', {'crudAction': 'edit', 'crudControllerFqcn': 'App\\Controller\\Admin\\LicenseeAttachmentCrudController', 'entityId': entry.certificate.id}) }}"
+                               class="btn btn-outline-secondary btn-sm"
+                               title="Modifier le CACI">
+                                <em class="fa-solid fa-pen-to-square"></em>
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        Aucun licencié trouvé pour la saison {{ season }}.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
