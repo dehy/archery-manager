@@ -143,7 +143,7 @@ import {
   faVenusMars,
   faXmark,
 } from "@fortawesome/pro-solid-svg-icons";
-import {faApple, faDiscord, faGoogle, faWaze} from "@fortawesome/free-brands-svg-icons";
+import {faApple, faDiscord, faGoogle, faMicrosoft, faWaze} from "@fortawesome/free-brands-svg-icons";
 import {faFile} from "@fortawesome/pro-regular-svg-icons";
 
 import Chart from 'chart.js/auto';
@@ -234,6 +234,7 @@ library.add(
     faMap,
     faMapMarkerAlt,
     faMars,
+    faMicrosoft,
     faMinus,
     faNoteSticky,
     faPaperclip,
