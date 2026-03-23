@@ -18,6 +18,7 @@ use App\Form\Type\LicenseeGroupSelectionType;
 use App\Form\Type\LicenseeUserLinkType;
 use App\Form\Type\LicenseFormType;
 use App\Form\Type\LiceseeCaciUploadType;
+use App\Helper\CaciHelper;
 use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
@@ -35,7 +36,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CLUB_ADMIN')]
 class LicenseeManagementController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly EntityManagerInterface $entityManager)
+    public function __construct(LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly CaciHelper $caciHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseRepository $licenseRepository, private readonly EntityManagerInterface $entityManager)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -82,20 +83,7 @@ class LicenseeManagementController extends BaseController
             ];
         }
 
-        $certificate = null;
-        foreach ($licensee->getAttachments() as $attachment) {
-            if (LicenseeAttachmentType::MEDICAL_CERTIFICATE !== $attachment->getType()) {
-                continue;
-            }
-
-            if (
-                !$certificate instanceof LicenseeAttachment
-                || ($attachment->getDocumentDate() instanceof \DateTimeImmutable
-                    && $attachment->getDocumentDate() > $certificate->getDocumentDate())
-            ) {
-                $certificate = $attachment;
-            }
-        }
+        $certificate = $this->caciHelper->getMostRecentCertificate($licensee);
 
         $status = match (true) {
             !$certificate instanceof LicenseeAttachment => 'none',
@@ -160,21 +148,7 @@ class LicenseeManagementController extends BaseController
         $season = $this->seasonHelper->getSelectedSeason();
 
         // Reuse the most recent existing certificate if there is one, otherwise create a new one
-        $certificate = null;
-        foreach ($licensee->getAttachments() as $attachment) {
-            if (LicenseeAttachmentType::MEDICAL_CERTIFICATE !== $attachment->getType()) {
-                continue;
-            }
-
-            if (
-                !$certificate instanceof LicenseeAttachment
-                || ($attachment->getDocumentDate() instanceof \DateTimeImmutable
-                    && $attachment->getDocumentDate() > $certificate->getDocumentDate())
-            ) {
-                $certificate = $attachment;
-            }
-        }
-
+        $certificate = $this->caciHelper->getMostRecentCertificate($licensee);
         $isNew = !$certificate instanceof LicenseeAttachment;
         if ($isNew) {
             $certificate = new LicenseeAttachment();
