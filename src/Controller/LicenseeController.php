@@ -148,6 +148,7 @@ class LicenseeController extends BaseController
                     if (LicenseeAttachmentType::MEDICAL_CERTIFICATE !== $attachment->getType()) {
                         continue;
                     }
+
                     if (
                         !$certificate instanceof LicenseeAttachment
                         || ($attachment->getDocumentDate() instanceof \DateTimeImmutable
@@ -156,6 +157,7 @@ class LicenseeController extends BaseController
                         $certificate = $attachment;
                     }
                 }
+
                 $status = match (true) {
                     !$certificate instanceof LicenseeAttachment => 'none',
                     !$certificate->getDocumentDate() instanceof \DateTimeImmutable => 'unknown',

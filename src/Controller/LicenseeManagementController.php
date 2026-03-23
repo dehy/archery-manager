@@ -58,7 +58,7 @@ class LicenseeManagementController extends BaseController
             fn (Licensee $licensee): array => $this->buildCaciEntry($licensee, $threshold, $season),
             $licensees,
         );
-        usort($caciData, static fn (array $a, array $b): int => strcmp($a['licensee']->getFullname(), $b['licensee']->getFullname()));
+        usort($caciData, static fn (array $a, array $b): int => strcmp((string) $a['licensee']->getFullname(), (string) $b['licensee']->getFullname()));
 
         return $this->render('licensee_management/caci.html.twig', [
             'season' => $season,
@@ -165,6 +165,7 @@ class LicenseeManagementController extends BaseController
             if (LicenseeAttachmentType::MEDICAL_CERTIFICATE !== $attachment->getType()) {
                 continue;
             }
+
             if (
                 !$certificate instanceof LicenseeAttachment
                 || ($attachment->getDocumentDate() instanceof \DateTimeImmutable
@@ -189,6 +190,7 @@ class LicenseeManagementController extends BaseController
             if ($isNew) {
                 $this->entityManager->persist($certificate);
             }
+
             $this->entityManager->flush();
 
             $this->addFlash('success', \sprintf('CACI de %s enregistré avec succès.', $licensee->getFirstname()));
