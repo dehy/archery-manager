@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\DBAL\Types\LicenseeAttachmentType;
 use App\Entity\Club;
 use App\Entity\Group;
 use App\Entity\License;
@@ -33,6 +34,72 @@ class LicenseeManagementController extends BaseController
     public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly EntityManagerInterface $entityManager)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
+    }
+
+    #[Route('/licensees/manage/caci', name: 'app_licensee_caci', methods: ['GET'])]
+    public function caciOverview(): Response
+    {
+        $club = $this->clubHelper->getClubForUser($this->getUser());
+        if (!$club instanceof \App\Entity\Club) {
+            $this->addFlash('danger', 'Impossible de déterminer votre club.');
+
+            return $this->redirectToRoute('app_homepage');
+        }
+        $season = $this->seasonHelper->getSelectedSeason();
+        $renewalDate = new \DateTimeImmutable($season.'-09-01');
+        $threshold = $renewalDate->modify('-6 months');
+        $licensees = $this->licenseeRepository->findByLicenseYear($club, $season);
+        $caciData = array_map(
+            fn (Licensee $licensee): array => $this->buildCaciEntry($licensee, $threshold),
+            $licensees,
+        );
+        usort($caciData, static fn (array $a, array $b): int => $a['statusOrder'] <=> $b['statusOrder']);
+
+        return $this->render('licensee_management/caci.html.twig', [
+            'season' => $season,
+            'renewalDate' => $renewalDate,
+            'threshold' => $threshold,
+            'caciData' => $caciData,
+        ]);
+    }
+
+    private function buildCaciEntry(Licensee $licensee, \DateTimeImmutable $threshold): array
+    {
+        $certificate = null;
+        foreach ($licensee->getAttachments() as $attachment) {
+            if (LicenseeAttachmentType::MEDICAL_CERTIFICATE !== $attachment->getType()) {
+                continue;
+            }
+
+            if (
+                !$certificate instanceof \App\Entity\LicenseeAttachment
+                || ($attachment->getDocumentDate() instanceof \DateTimeImmutable
+                    && $attachment->getDocumentDate() > $certificate->getDocumentDate())
+            ) {
+                $certificate = $attachment;
+            }
+        }
+
+        $status = match (true) {
+            !$certificate instanceof \App\Entity\LicenseeAttachment => 'none',
+            !$certificate->getDocumentDate() instanceof \DateTimeImmutable => 'unknown',
+            $certificate->getDocumentDate() >= $threshold => 'valid',
+            default => 'expired',
+        };
+
+        $statusOrder = match ($status) {
+            'expired' => 0,
+            'none' => 1,
+            'unknown' => 2,
+            default => 3,
+        };
+
+        return [
+            'licensee' => $licensee,
+            'certificate' => $certificate,
+            'status' => $status,
+            'statusOrder' => $statusOrder,
+        ];
     }
 
     #[Route('/licensees/manage/new', name: 'app_licensee_new_choice', methods: ['GET', 'POST'])]
