@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\LicenseActivityType;
-use App\DBAL\Types\LicenseeAttachmentType;
 use App\DBAL\Types\UserRoleType;
 use App\Entity\License;
 use App\Entity\Licensee;
@@ -15,6 +14,7 @@ use App\Entity\Result;
 use App\Entity\Season;
 use App\Entity\User;
 use App\Form\Type\LicenseeFormType;
+use App\Helper\CaciHelper;
 use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
@@ -44,7 +44,7 @@ use Symfony\UX\Chartjs\Model\Chart;
 
 class LicenseeController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly FilesystemOperator $licenseesStorage, private readonly EntityManagerInterface $entityManager)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly EntityManagerInterface $entityManager, private readonly CaciHelper $caciHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly FilesystemOperator $licenseesStorage)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -143,20 +143,7 @@ class LicenseeController extends BaseController
             if ($caciLicense instanceof License && $caciLicense->isCaciExempt()) {
                 $caciEntry = ['status' => 'exempt', 'certificate' => null, 'threshold' => $threshold];
             } else {
-                $certificate = null;
-                foreach ($licensee->getAttachments() as $attachment) {
-                    if (LicenseeAttachmentType::MEDICAL_CERTIFICATE !== $attachment->getType()) {
-                        continue;
-                    }
-
-                    if (
-                        !$certificate instanceof LicenseeAttachment
-                        || ($attachment->getDocumentDate() instanceof \DateTimeImmutable
-                            && $attachment->getDocumentDate() > $certificate->getDocumentDate())
-                    ) {
-                        $certificate = $attachment;
-                    }
-                }
+                $certificate = $this->caciHelper->getMostRecentCertificate($licensee);
 
                 $status = match (true) {
                     !$certificate instanceof LicenseeAttachment => 'none',
