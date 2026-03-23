@@ -430,5 +430,4 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
 
         return $this;
     }
-
 }

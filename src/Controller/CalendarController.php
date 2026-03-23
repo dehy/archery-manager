@@ -113,4 +113,3 @@ class CalendarController extends AbstractController
         return $this->redirectToRoute('app_user_account');
     }
 }
-

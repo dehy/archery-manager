@@ -81,7 +81,7 @@ class LicenseeRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function findOneByCalendarToken(string $token): ?Licensee
     {

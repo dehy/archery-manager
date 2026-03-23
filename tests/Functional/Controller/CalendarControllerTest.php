@@ -27,10 +27,9 @@ final class CalendarControllerTest extends LoggedInTestCase
 
     private function getAdminLicensee(): Licensee
     {
-        /** @var LicenseeRepository $licenseeRepository */
-        $licenseeRepository = static::getContainer()->get(LicenseeRepository::class);
+        self::getContainer()->get(LicenseeRepository::class);
         /** @var UserRepository $userRepository */
-        $userRepository = static::getContainer()->get(UserRepository::class);
+        $userRepository = self::getContainer()->get(UserRepository::class);
         /** @var User $admin */
         $admin = $userRepository->findOneByEmail('admin@acme.org');
         $this->assertInstanceOf(User::class, $admin);
@@ -56,6 +55,7 @@ final class CalendarControllerTest extends LoggedInTestCase
 
         $licensee = $this->getAdminLicensee();
         $licensee->generateCalendarToken();
+
         $token = $licensee->getCalendarToken();
         $this->assertNotNull($token);
 
@@ -150,4 +150,3 @@ final class CalendarControllerTest extends LoggedInTestCase
         $this->assertResponseStatusCodeSame(403);
     }
 }
-
