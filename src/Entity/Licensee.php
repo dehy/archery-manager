@@ -112,6 +112,9 @@ class Licensee implements \Stringable
      */
     protected ArrayCollection $clubs;
 
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::GUID, unique: true, nullable: true)]
+    private ?string $calendarToken = null;
+
     public function __construct()
     {
         $this->updatedAt = new \DateTimeImmutable();
@@ -130,6 +133,25 @@ class Licensee implements \Stringable
     public function __toString(): string
     {
         return $this->getFullname();
+    }
+
+    public function getCalendarToken(): ?string
+    {
+        return $this->calendarToken;
+    }
+
+    public function generateCalendarToken(): self
+    {
+        $this->calendarToken = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
+
+        return $this;
+    }
+
+    public function revokeCalendarToken(): self
+    {
+        $this->calendarToken = null;
+
+        return $this;
     }
 
     public function getId(): ?int

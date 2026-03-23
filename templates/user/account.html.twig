@@ -149,6 +149,90 @@
         </div>
     </div>
 
+    <!-- Abonnement au calendrier -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <em class="fa-solid fa-calendar me-2"></em>
+                        Abonnement au calendrier
+                    </h4>
+                    <a href="{{ path('app_help_calendar') }}" class="btn btn-sm btn-outline-light">
+                        <em class="fa-solid fa-circle-question me-1"></em>
+                        Comment s'abonner ?
+                    </a>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        Chaque licencié dispose de son propre lien d'abonnement. Abonnez-vous pour voir
+                        les inscriptions directement dans Google Calendar, Apple Calendar ou Outlook.
+                    </p>
+
+                    {% if user.licensees is empty %}
+                        <p class="text-muted">Aucun licencié associé à ce compte.</p>
+                    {% else %}
+                        {% for licensee in user.licensees %}
+                            <div class="border rounded p-3 {% if not loop.last %}mb-3{% endif %}">
+                                <div class="d-flex align-items-center mb-3">
+                                    <img src="{{ licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}"
+                                         class="rounded-circle me-2"
+                                         style="width: 36px; height: 36px; object-fit: cover;"
+                                         alt="{{ licensee_display_name(licensee) }}">
+                                    <strong>{{ licensee_display_name(licensee) }}</strong>
+                                </div>
+
+                                {% if licensee.calendarToken %}
+                                    {% set feed_url = url('app_calendar_feed', {token: licensee.calendarToken}) %}
+                                    <div class="mb-2">
+                                        <div class="input-group input-group-sm">
+                                            <input type="text"
+                                                   class="form-control font-monospace"
+                                                   id="calendar-feed-url-{{ licensee.id }}"
+                                                   value="{{ feed_url }}"
+                                                   readonly>
+                                            <button class="btn btn-outline-secondary"
+                                                    type="button"
+                                                    onclick="navigator.clipboard.writeText('{{ feed_url }}').then(() => { this.innerHTML = '<em class=\'fa-solid fa-check\'></em> Copié'; setTimeout(() => { this.innerHTML = '<em class=\'fa-solid fa-copy\'></em> Copier'; }, 2000); })"
+                                                    title="Copier le lien">
+                                                <em class="fa-solid fa-copy"></em> Copier
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <form method="post" action="{{ path('app_calendar_generate_token', {id: licensee.id}) }}">
+                                            <button type="submit" class="btn btn-warning btn-sm"
+                                                    onclick="return confirm('Êtes-vous sûr ? L\'ancien lien cessera de fonctionner.')"
+                                                    title="Générer un nouveau lien (l'ancien ne fonctionnera plus)">
+                                                <em class="fa-solid fa-rotate-right me-1"></em>
+                                                Regénérer
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{{ path('app_calendar_revoke_token', {id: licensee.id}) }}">
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Êtes-vous sûr ? Le lien cessera de fonctionner immédiatement.')"
+                                                    title="Révoquer le lien d'abonnement">
+                                                <em class="fa-solid fa-xmark me-1"></em>
+                                                Révoquer
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% else %}
+                                    <form method="post" action="{{ path('app_calendar_generate_token', {id: licensee.id}) }}">
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            <em class="fa-solid fa-calendar-plus me-1"></em>
+                                            Générer un lien d'abonnement
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Aide et contact -->
     <div class="row">
         <div class="col-12">

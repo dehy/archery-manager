@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\DBAL\Types\EventParticipationStateType;
 use App\Entity\EventParticipation;
+use App\Entity\Licensee;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -39,6 +41,25 @@ class EventParticipationRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    /**
+     * Returns all REGISTERED participations for a licensee,
+     * ordered by event start date ascending.
+     *
+     * @return EventParticipation[]
+     */
+    public function findRegisteredForLicensee(Licensee $licensee): array
+    {
+        return $this->createQueryBuilder('ep')
+            ->join('ep.event', 'e')
+            ->where('ep.participant = :licensee')
+            ->andWhere('ep.participationState = :state')
+            ->setParameter('licensee', $licensee)
+            ->setParameter('state', EventParticipationStateType::REGISTERED)
+            ->orderBy('e.startsAt', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     // /**

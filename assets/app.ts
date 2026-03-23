@@ -59,6 +59,7 @@ import {
   faCog,
   faCogs,
   faComment,
+  faCopy,
   faCrosshairs,
   faDoorClosed,
   faDoorOpen,
@@ -108,9 +109,11 @@ import {
   faQuestion,
   faQuestionCircle,
   faRightFromBracket,
+  faRotateRight,
   faSave,
   faScrewdriverWrench,
   faShare,
+  faShieldHalved,
   faSpinner,
   faSquarePollVertical,
   faStar,
@@ -141,7 +144,7 @@ import {
   faVenusMars,
   faXmark,
 } from "@fortawesome/pro-solid-svg-icons";
-import {faApple, faDiscord, faGoogle, faWaze} from "@fortawesome/free-brands-svg-icons";
+import {faApple, faDiscord, faGoogle, faMicrosoft, faWaze} from "@fortawesome/free-brands-svg-icons";
 import {faFile} from "@fortawesome/pro-regular-svg-icons";
 
 import Chart from 'chart.js/auto';
@@ -192,6 +195,7 @@ library.add(
     faCog,
     faCogs,
     faComment,
+    faCopy,
     faCrosshairs,
     faDiscord,
     faDoorClosed,
@@ -231,6 +235,7 @@ library.add(
     faMap,
     faMapMarkerAlt,
     faMars,
+    faMicrosoft,
     faMinus,
     faNoteSticky,
     faPaperclip,
@@ -244,9 +249,11 @@ library.add(
     faQuestion,
     faQuestionCircle,
     faRightFromBracket,
+    faRotateRight,
     faSave,
     faScrewdriverWrench,
     faShare,
+    faShieldHalved,
     faSpinner,
     faSquarePollVertical,
     faStar,

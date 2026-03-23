@@ -461,22 +461,33 @@ docker compose exec -u symfony -w /app app bin/console encrypt:genkey
 - Feature branches: Descriptive names (e.g., `event-enhancement`)
 - Push early and often
 
-#### Creating Pull Requests
+#### Using `gh` CLI with Body Content
 
-Use the `gh` CLI with `--body-file`. **Never use heredoc** for either the PR body or the temp file — use the `create_file` tool to write `/tmp/pr-body.md`, then pass it to `gh`:
+**NEVER pass multi-line body content as a CLI argument** — shell escaping always fails. This applies to ALL `gh` commands that accept body content: `gh issue create`, `gh pr create`, `gh issue comment`, etc.
+
+Always use the `create_file` tool to write the body to a temp file, then pass it with `--body-file`:
 
 ```bash
-# 1. Use the create_file tool to write the PR body to /tmp/pr-body.md
-#    (do NOT use cat > /tmp/pr-body.md << 'EOF' ... EOF)
+# 1. Use the create_file tool to write content to a temp file
+#    (do NOT use cat > /tmp/... << 'EOF' ... EOF or --body "..." with multi-line strings)
 
-# 2. Create the PR
+# 2a. Create a PR
 gh pr create \
   --title "✨ Your PR title" \
-  --body-file /tmp/pr-body.md \
+  --body-file /tmp/gh-body.md \
   --base main
 
+# 2b. Create an issue
+gh issue create \
+  --title "✨ Your issue title" \
+  --body-file /tmp/gh-body.md \
+  --label "enhancement"
+
+# 2c. Add a comment
+gh issue comment 42 --body-file /tmp/gh-body.md
+
 # 3. Clean up
-rm /tmp/pr-body.md
+rm /tmp/gh-body.md
 ```
 
 ### Makefile Reference
