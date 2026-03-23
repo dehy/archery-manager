@@ -87,9 +87,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $suspiciousActivityNotifiedAt = null;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::GUID, unique: true, nullable: true)]
-    private ?string $calendarToken = null;
-
     public function __construct()
     {
         $this->licensees = new ArrayCollection();
@@ -434,22 +431,4 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         return $this;
     }
 
-    public function getCalendarToken(): ?string
-    {
-        return $this->calendarToken;
-    }
-
-    public function generateCalendarToken(): self
-    {
-        $this->calendarToken = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
-
-        return $this;
-    }
-
-    public function revokeCalendarToken(): self
-    {
-        $this->calendarToken = null;
-
-        return $this;
-    }
 }

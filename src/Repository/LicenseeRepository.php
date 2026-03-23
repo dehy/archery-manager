@@ -80,32 +80,15 @@ class LicenseeRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // /**
-    //  * @return Licensee[] Returns an array of Licensee objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findOneByCalendarToken(string $token): ?Licensee
     {
         return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('l.id', 'ASC')
-            ->setMaxResults(10)
+            ->andWhere('l.calendarToken = :token')
+            ->setParameter('token', $token)
             ->getQuery()
-            ->getResult()
-        ;
+            ->getOneOrNullResult();
     }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Licensee
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

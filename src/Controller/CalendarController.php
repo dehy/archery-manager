@@ -7,10 +7,11 @@ namespace App\Controller;
 use App\DBAL\Types\EventParticipationStateType;
 use App\Entity\ContestEvent;
 use App\Entity\EventParticipation;
+use App\Entity\Licensee;
 use App\Entity\User;
 use App\Factory\IcsFactory;
 use App\Repository\EventParticipationRepository;
-use App\Repository\UserRepository;
+use App\Repository\LicenseeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,7 +23,7 @@ class CalendarController extends AbstractController
     private const string PRODID = '-//Les Archers de Bordeaux Guyenne//Archery Manager//FR';
 
     public function __construct(
-        private readonly UserRepository $userRepository,
+        private readonly LicenseeRepository $licenseeRepository,
         private readonly EventParticipationRepository $eventParticipationRepository,
         private readonly EntityManagerInterface $entityManager,
     ) {
@@ -34,13 +35,13 @@ class CalendarController extends AbstractController
     #[Route('/calendar/{token}.ics', name: 'app_calendar_feed', methods: ['GET'])]
     public function feed(string $token): Response
     {
-        $user = $this->userRepository->findOneByCalendarToken($token);
+        $licensee = $this->licenseeRepository->findOneByCalendarToken($token);
 
-        if (!$user instanceof User) {
+        if (!$licensee instanceof Licensee) {
             throw $this->createNotFoundException();
         }
 
-        $participations = $this->eventParticipationRepository->findRegisteredForUser($user);
+        $participations = $this->eventParticipationRepository->findRegisteredForLicensee($licensee);
 
         $events = array_map(static function (EventParticipation $participation): IcsFactory {
             $event = $participation->getEvent();
@@ -67,15 +68,20 @@ class CalendarController extends AbstractController
     }
 
     /**
-     * Generate (or regenerate) the personal calendar token for the current user.
+     * Generate (or regenerate) the personal calendar token for a licensee owned by the current user.
      */
-    #[Route('/my-account/calendar/generate-token', name: 'app_calendar_generate_token', methods: ['POST'])]
+    #[Route('/my-account/calendar/{id}/generate-token', name: 'app_calendar_generate_token', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function generateToken(): Response
+    public function generateToken(Licensee $licensee): Response
     {
         /** @var User $user */
         $user = $this->getUser();
-        $user->generateCalendarToken();
+
+        if (!$user->getLicensees()->contains($licensee)) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $licensee->generateCalendarToken();
 
         $this->entityManager->flush();
 
@@ -85,15 +91,20 @@ class CalendarController extends AbstractController
     }
 
     /**
-     * Revoke the personal calendar token for the current user.
+     * Revoke the personal calendar token for a licensee owned by the current user.
      */
-    #[Route('/my-account/calendar/revoke-token', name: 'app_calendar_revoke_token', methods: ['POST'])]
+    #[Route('/my-account/calendar/{id}/revoke-token', name: 'app_calendar_revoke_token', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function revokeToken(): Response
+    public function revokeToken(Licensee $licensee): Response
     {
         /** @var User $user */
         $user = $this->getUser();
-        $user->revokeCalendarToken();
+
+        if (!$user->getLicensees()->contains($licensee)) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $licensee->revokeCalendarToken();
 
         $this->entityManager->flush();
 
@@ -102,3 +113,4 @@ class CalendarController extends AbstractController
         return $this->redirectToRoute('app_user_account');
     }
 }
+
