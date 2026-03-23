@@ -9,6 +9,7 @@ use App\Entity\Club;
 use App\Entity\Group;
 use App\Entity\License;
 use App\Entity\Licensee;
+use App\Entity\LicenseeAttachment;
 use App\Entity\Season;
 use App\Entity\User;
 use App\Exception\UserNotFoundException;
@@ -16,6 +17,7 @@ use App\Form\Type\LicenseeFormType;
 use App\Form\Type\LicenseeGroupSelectionType;
 use App\Form\Type\LicenseeUserLinkType;
 use App\Form\Type\LicenseFormType;
+use App\Form\Type\LiceseeCaciUploadType;
 use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
@@ -87,7 +89,7 @@ class LicenseeManagementController extends BaseController
             }
 
             if (
-                !$certificate instanceof \App\Entity\LicenseeAttachment
+                !$certificate instanceof LicenseeAttachment
                 || ($attachment->getDocumentDate() instanceof \DateTimeImmutable
                     && $attachment->getDocumentDate() > $certificate->getDocumentDate())
             ) {
@@ -96,7 +98,7 @@ class LicenseeManagementController extends BaseController
         }
 
         $status = match (true) {
-            !$certificate instanceof \App\Entity\LicenseeAttachment => 'none',
+            !$certificate instanceof LicenseeAttachment => 'none',
             !$certificate->getDocumentDate() instanceof \DateTimeImmutable => 'unknown',
             $certificate->getDocumentDate() >= $threshold => 'valid',
             default => 'expired',
@@ -145,6 +147,61 @@ class LicenseeManagementController extends BaseController
         $this->entityManager->flush();
 
         return $this->redirectToRoute('app_licensee_caci');
+    }
+
+    #[Route('/licensees/manage/caci/{licenseeId}/upload', name: 'app_licensee_caci_upload', methods: ['GET', 'POST'])]
+    public function uploadCaci(int $licenseeId, Request $request): Response
+    {
+        $licensee = $this->licenseeRepository->find($licenseeId);
+        if (!$licensee instanceof Licensee) {
+            throw $this->createNotFoundException();
+        }
+
+        $season = $this->seasonHelper->getSelectedSeason();
+
+        // Reuse the most recent existing certificate if there is one, otherwise create a new one
+        $certificate = null;
+        foreach ($licensee->getAttachments() as $attachment) {
+            if (LicenseeAttachmentType::MEDICAL_CERTIFICATE !== $attachment->getType()) {
+                continue;
+            }
+            if (
+                !$certificate instanceof LicenseeAttachment
+                || ($attachment->getDocumentDate() instanceof \DateTimeImmutable
+                    && $attachment->getDocumentDate() > $certificate->getDocumentDate())
+            ) {
+                $certificate = $attachment;
+            }
+        }
+
+        $isNew = !$certificate instanceof LicenseeAttachment;
+        if ($isNew) {
+            $certificate = new LicenseeAttachment();
+            $certificate->setLicensee($licensee);
+            $certificate->setType(LicenseeAttachmentType::MEDICAL_CERTIFICATE);
+            $certificate->setSeason($season);
+        }
+
+        $form = $this->createForm(LiceseeCaciUploadType::class, $certificate);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($isNew) {
+                $this->entityManager->persist($certificate);
+            }
+            $this->entityManager->flush();
+
+            $this->addFlash('success', \sprintf('CACI de %s enregistré avec succès.', $licensee->getFirstname()));
+
+            return $this->redirectToRoute('app_licensee_caci');
+        }
+
+        return $this->render('licensee_management/caci_upload.html.twig', [
+            'form' => $form->createView(),
+            'licensee' => $licensee,
+            'isNew' => $isNew,
+            'season' => $season,
+        ]);
     }
 
     #[Route('/licensees/manage/new', name: 'app_licensee_new_choice', methods: ['GET', 'POST'])]
