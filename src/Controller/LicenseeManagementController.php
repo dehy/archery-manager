@@ -30,6 +30,7 @@ use App\Repository\UserRepository;
 use App\Security\Voter\LicenseeVoter;
 use App\Service\FftaLicenseeCsvImportService;
 use App\Service\LicenseeImportNotificationEmailSender;
+use App\Repository\LicenseRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -58,11 +59,11 @@ class LicenseeManagementController extends BaseController
         }
 
         $season = $this->seasonHelper->getSelectedSeason();
-        $renewalDate = new \DateTimeImmutable($season.'-09-01');
+        $renewalDate = new \DateTimeImmutable(($season - 1).'-09-01');
         $threshold = $renewalDate->modify('-6 months');
         $licensees = $this->licenseeRepository->findByLicenseYear($club, $season);
         $caciData = array_map(
-            fn (Licensee $licensee): array => $this->buildCaciEntry($licensee, $threshold),
+            fn (Licensee $licensee): array => $this->buildCaciEntry($licensee, $threshold, $season),
             $licensees,
         );
         usort($caciData, static fn (array $a, array $b): int => $a['statusOrder'] <=> $b['statusOrder']);
@@ -75,8 +76,20 @@ class LicenseeManagementController extends BaseController
         ]);
     }
 
-    private function buildCaciEntry(Licensee $licensee, \DateTimeImmutable $threshold): array
+    private function buildCaciEntry(Licensee $licensee, \DateTimeImmutable $threshold, int $season): array
     {
+        $license = $licensee->getLicenseForSeason($season);
+
+        if ($license instanceof License && $license->isCaciExempt()) {
+            return [
+                'licensee' => $licensee,
+                'license' => $license,
+                'certificate' => null,
+                'status' => 'exempt',
+                'statusOrder' => 4,
+            ];
+        }
+
         $certificate = null;
         foreach ($licensee->getAttachments() as $attachment) {
             if (LicenseeAttachmentType::MEDICAL_CERTIFICATE !== $attachment->getType()) {
@@ -108,10 +121,40 @@ class LicenseeManagementController extends BaseController
 
         return [
             'licensee' => $licensee,
+            'license' => $license,
             'certificate' => $certificate,
             'status' => $status,
             'statusOrder' => $statusOrder,
         ];
+    }
+
+    #[Route('/licensees/manage/caci/{licenseeId}/toggle-exempt', name: 'app_licensee_caci_toggle_exempt', methods: ['POST'])]
+    public function toggleCaciExempt(int $licenseeId): Response
+    {
+        $licensee = $this->licenseeRepository->find($licenseeId);
+        if (!$licensee instanceof Licensee) {
+            throw $this->createNotFoundException();
+        }
+
+        $club = $this->clubHelper->getClubForUser($this->getUser());
+        if (!$club instanceof \App\Entity\Club) {
+            $this->addFlash('danger', 'Impossible de déterminer votre club.');
+
+            return $this->redirectToRoute('app_homepage');
+        }
+
+        $season = $this->seasonHelper->getSelectedSeason();
+        $license = $licensee->getLicenseForSeason($season);
+        if (!$license instanceof License) {
+            $this->addFlash('warning', 'Aucune licence trouvée pour ce licencié cette saison.');
+
+            return $this->redirectToRoute('app_licensee_caci');
+        }
+
+        $license->setCaciExempt(!$license->isCaciExempt());
+        $this->entityManager->flush();
+
+        return $this->redirectToRoute('app_licensee_caci');
     }
 
     /**

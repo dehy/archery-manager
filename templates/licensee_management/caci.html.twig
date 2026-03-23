@@ -19,16 +19,16 @@
         Pour la saison {{ season }}, le CACI doit avoir été établi <strong>après le {{ threshold|date('d/m/Y') }}</strong>
         (moins de 6 mois avant la reprise du {{ renewalDate|date('d/m/Y') }}).
         <br>
-        <small>Conformément à la loi 2022-296, le CACI n'est exigé que si le questionnaire de santé comporte au moins une réponse affirmative.</small>
+        <small>Conformément à la loi 2022-296, le CACI n'est exigé que si le questionnaire de santé comporte au moins une réponse affirmative. Les licenciés ayant répondu non à toutes les questions peuvent être marqués <strong>Questionnaire seul</strong>.</small>
     </div>
 
-    {% set counts = {valid: 0, expired: 0, unknown: 0, none: 0} %}
+    {% set counts = {valid: 0, expired: 0, unknown: 0, none: 0, exempt: 0} %}
     {% for entry in caciData %}
         {% set counts = counts|merge({(entry.status): counts[entry.status] + 1}) %}
     {% endfor %}
 
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
             <div class="card text-center border-danger">
                 <div class="card-body py-2">
                     <div class="fs-3 fw-bold text-danger">{{ counts.expired }}</div>
@@ -36,7 +36,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
             <div class="card text-center border-secondary">
                 <div class="card-body py-2">
                     <div class="fs-3 fw-bold text-secondary">{{ counts.none }}</div>
@@ -44,7 +44,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
             <div class="card text-center border-warning">
                 <div class="card-body py-2">
                     <div class="fs-3 fw-bold text-warning">{{ counts.unknown }}</div>
@@ -52,11 +52,19 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
             <div class="card text-center border-success">
                 <div class="card-body py-2">
                     <div class="fs-3 fw-bold text-success">{{ counts.valid }}</div>
                     <div class="small text-muted">CACI valide</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card text-center border-info">
+                <div class="card-body py-2">
+                    <div class="fs-3 fw-bold text-info">{{ counts.exempt }}</div>
+                    <div class="small text-muted">Questionnaire seul</div>
                 </div>
             </div>
         </div>
@@ -88,6 +96,8 @@
                             <span class="badge bg-danger">À renouveler</span>
                         {% elseif entry.status == 'unknown' %}
                             <span class="badge bg-warning text-dark">Date inconnue</span>
+                        {% elseif entry.status == 'exempt' %}
+                            <span class="badge bg-info text-dark">Questionnaire seul</span>
                         {% else %}
                             <span class="badge bg-secondary">Aucun CACI</span>
                         {% endif %}
@@ -107,13 +117,22 @@
                         {% endif %}
                     </td>
                     <td class="text-end">
-                        {% if entry.certificate %}
-                            <a href="{{ path('admin', {'crudAction': 'edit', 'crudControllerFqcn': 'App\\Controller\\Admin\\LicenseeAttachmentCrudController', 'entityId': entry.certificate.id}) }}"
-                               class="btn btn-outline-secondary btn-sm"
-                               title="Modifier le CACI">
-                                <em class="fa-solid fa-pen-to-square"></em>
-                            </a>
-                        {% endif %}
+                        <div class="d-flex gap-1 justify-content-end">
+                            {% if entry.certificate %}
+                                <a href="{{ path('admin', {'crudAction': 'edit', 'crudControllerFqcn': 'App\\Controller\\Admin\\LicenseeAttachmentCrudController', 'entityId': entry.certificate.id}) }}"
+                                   class="btn btn-outline-secondary btn-sm"
+                                   title="Modifier le CACI">
+                                    <em class="fa-solid fa-pen-to-square"></em>
+                                </a>
+                            {% endif %}
+                            <form method="post" action="{{ path('app_licensee_caci_toggle_exempt', {licenseeId: entry.licensee.id}) }}">
+                                <button type="submit"
+                                        class="btn btn-sm {{ entry.status == 'exempt' ? 'btn-info' : 'btn-outline-info' }}"
+                                        title="{{ entry.status == 'exempt' ? 'Retirer l\'exemption (CACI requis)' : 'Marquer comme questionnaire seul (pas de CACI)' }}">
+                                    <em class="fa-solid fa-clipboard-check"></em>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% else %}
