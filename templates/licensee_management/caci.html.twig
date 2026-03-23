@@ -118,13 +118,11 @@
                     </td>
                     <td class="text-end">
                         <div class="d-flex gap-1 justify-content-end">
-                            {% if entry.certificate %}
-                                <a href="{{ path('admin', {'crudAction': 'edit', 'crudControllerFqcn': 'App\\Controller\\Admin\\LicenseeAttachmentCrudController', 'entityId': entry.certificate.id}) }}"
-                                   class="btn btn-outline-secondary btn-sm"
-                                   title="Modifier le CACI">
-                                    <em class="fa-solid fa-pen-to-square"></em>
-                                </a>
-                            {% endif %}
+                            <a href="{{ path('app_licensee_caci_upload', {licenseeId: entry.licensee.id}) }}"
+                               class="btn btn-sm {{ entry.certificate ? 'btn-outline-secondary' : 'btn-outline-primary' }}"
+                               title="{{ entry.certificate ? 'Modifier le CACI' : 'Enregistrer un CACI' }}">
+                                <em class="fa-solid {{ entry.certificate ? 'fa-pen-to-square' : 'fa-file-medical' }}"></em>
+                            </a>
                             <form method="post" action="{{ path('app_licensee_caci_toggle_exempt', {licenseeId: entry.licensee.id}) }}">
                                 <button type="submit"
                                         class="btn btn-sm {{ entry.status == 'exempt' ? 'btn-info' : 'btn-outline-info' }}"
