@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\LicenseActivityType;
+use App\DBAL\Types\LicenseeAttachmentType;
 use App\DBAL\Types\UserRoleType;
 use App\Entity\License;
 use App\Entity\Licensee;
@@ -144,6 +145,38 @@ class LicenseeController extends BaseController
             $pictureForm = $this->createPictureForm($licensee);
         }
 
+        $caciEntry = null;
+        if ($this->isGranted('ROLE_CLUB_ADMIN')) {
+            $caciSeason = $this->seasonHelper->getSelectedSeason();
+            $renewalDate = new \DateTimeImmutable(($caciSeason - 1).'-09-01');
+            $threshold = $renewalDate->modify('-6 months');
+            $caciLicense = $licensee->getLicenseForSeason($caciSeason);
+            if ($caciLicense instanceof License && $caciLicense->isCaciExempt()) {
+                $caciEntry = ['status' => 'exempt', 'certificate' => null, 'threshold' => $threshold];
+            } else {
+                $certificate = null;
+                foreach ($licensee->getAttachments() as $attachment) {
+                    if (LicenseeAttachmentType::MEDICAL_CERTIFICATE !== $attachment->getType()) {
+                        continue;
+                    }
+                    if (
+                        !$certificate instanceof LicenseeAttachment
+                        || ($attachment->getDocumentDate() instanceof \DateTimeImmutable
+                            && $attachment->getDocumentDate() > $certificate->getDocumentDate())
+                    ) {
+                        $certificate = $attachment;
+                    }
+                }
+                $status = match (true) {
+                    !$certificate instanceof LicenseeAttachment => 'none',
+                    !$certificate->getDocumentDate() instanceof \DateTimeImmutable => 'unknown',
+                    $certificate->getDocumentDate() >= $threshold => 'valid',
+                    default => 'expired',
+                };
+                $caciEntry = ['status' => $status, 'certificate' => $certificate, 'threshold' => $threshold];
+            }
+        }
+
         return $this->render('licensee/show.html.twig', [
             'licensee' => $licensee,
             'seasons' => $seasons,
@@ -151,6 +184,7 @@ class LicenseeController extends BaseController
             'licensee_sync_form' => $licenseeSyncForm?->createView(),
             'picture_form' => $pictureForm?->createView(),
             'activeLoans' => $activeLoans,
+            'caciEntry' => $caciEntry,
         ]);
     }
 
