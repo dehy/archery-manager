@@ -56,7 +56,7 @@ class LicenseeManagementController extends BaseController
             fn (Licensee $licensee): array => $this->buildCaciEntry($licensee, $threshold, $season),
             $licensees,
         );
-        usort($caciData, static fn (array $a, array $b): int => $a['statusOrder'] <=> $b['statusOrder']);
+        usort($caciData, static fn (array $a, array $b): int => strcmp($a['licensee']->getFullname(), $b['licensee']->getFullname()));
 
         return $this->render('licensee_management/caci.html.twig', [
             'season' => $season,
