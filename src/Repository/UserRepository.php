@@ -91,4 +91,16 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @throws NonUniqueResultException
+     */
+    public function findOneByCalendarToken(string $token): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.calendarToken = :token')
+            ->setParameter('token', $token)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

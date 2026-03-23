@@ -151,6 +151,71 @@
 
     <!-- Aide et contact -->
     <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0">
+                        <em class="fa-solid fa-calendar me-2"></em>
+                        Abonnement au calendrier
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        Abonnez-vous à votre calendrier personnel pour voir vos inscriptions directement dans
+                        Google Calendar, Apple Calendar ou Outlook. Le lien se met à jour automatiquement.
+                    </p>
+
+                    {% if user.calendarToken %}
+                        {% set feed_url = url('app_calendar_feed', {token: user.calendarToken}) %}
+                        <div class="mb-3">
+                            <label class="text-muted small mb-1">Votre lien d'abonnement</label>
+                            <div class="input-group">
+                                <input type="text"
+                                       class="form-control form-control-sm font-monospace"
+                                       id="calendar-feed-url"
+                                       value="{{ feed_url }}"
+                                       readonly>
+                                <button class="btn btn-outline-secondary btn-sm"
+                                        type="button"
+                                        onclick="navigator.clipboard.writeText('{{ feed_url }}').then(() => { this.innerHTML = '<em class=\'fa-solid fa-check\'></em> Copié'; setTimeout(() => { this.innerHTML = '<em class=\'fa-solid fa-copy\'></em> Copier'; }, 2000); })"
+                                        title="Copier le lien">
+                                    <em class="fa-solid fa-copy"></em> Copier
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <form method="post" action="{{ path('app_calendar_generate_token') }}">
+                                <button type="submit" class="btn btn-warning btn-sm"
+                                        onclick="return confirm('Êtes-vous sûr ? L\'ancien lien cessera de fonctionner.')"
+                                        title="Générer un nouveau lien (l'ancien ne fonctionnera plus)">
+                                    <em class="fa-solid fa-rotate-right me-1"></em>
+                                    Regénérer le lien
+                                </button>
+                            </form>
+                            <form method="post" action="{{ path('app_calendar_revoke_token') }}">
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Êtes-vous sûr ? Le lien cessera de fonctionner immédiatement.')"
+                                        title="Révoquer le lien d'abonnement">
+                                    <em class="fa-solid fa-xmark me-1"></em>
+                                    Révoquer le lien
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <form method="post" action="{{ path('app_calendar_generate_token') }}">
+                            <button type="submit" class="btn btn-primary">
+                                <em class="fa-solid fa-calendar-plus me-2"></em>
+                                Générer mon lien d'abonnement
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aide et contact -->
+    <div class="row">
         <div class="col-12">
             <div class="card border-info">
                 <div class="card-body">

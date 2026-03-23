@@ -167,6 +167,56 @@ class IcsFactory
     }
 
     /**
+     * Returns the VEVENT block lines (without VCALENDAR wrapping).
+     *
+     * @return string[]
+     *
+     * @throws \Exception
+     */
+    public function getVEVENTLines(): array
+    {
+        $rows = $this->buildProps();
+
+        // Strip the VCALENDAR wrapper — keep only lines between BEGIN:VEVENT and END:VEVENT (inclusive)
+        $start = array_search('BEGIN:VEVENT', $rows, true);
+        $end = array_search('END:VEVENT', $rows, true);
+
+        if (false === $start || false === $end) {
+            return [];
+        }
+
+        return \array_slice($rows, (int) $start, (int) $end - (int) $start + 1);
+    }
+
+    /**
+     * Compose multiple IcsFactory events into a single VCALENDAR feed.
+     *
+     * @param IcsFactory[] $events
+     *
+     * @throws \Exception
+     */
+    public static function buildFeed(string $prodId, array $events): string
+    {
+        $lines = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            \sprintf('PRODID:%s', $prodId),
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+        ];
+
+        foreach ($events as $event) {
+            foreach ($event->getVEVENTLines() as $line) {
+                $lines[] = $line;
+            }
+        }
+
+        $lines[] = 'END:VCALENDAR';
+
+        return implode("\r\n", $lines);
+    }
+
+    /**
      * @throws \Exception
      */
     private function buildProps(): array
@@ -175,7 +225,7 @@ class IcsFactory
         $icsProps = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
-            'PRODID:-//hacksw/handcal//NONSGML v1.0//EN',
+            'PRODID:-//Les Archers de Bordeaux Guyenne//Archery Manager//FR',
             'CALSCALE:GREGORIAN',
             'BEGIN:VEVENT',
         ];
