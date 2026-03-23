@@ -188,9 +188,16 @@
                             Matériel du club
                         </a>
                         
-                        {% if is_granted('ROLE_ADMIN') %}
+                        {% if is_granted('ROLE_CLUB_ADMIN') %}
                             <hr>
-                            <a href="{{ path('admin') }}" class="btn btn-warning">
+                            <a href="{{ path('app_licensee_caci') }}" class="btn btn-outline-warning">
+                                <em class="fa-solid fa-file-medical me-2"></em>
+                                Suivi CACI
+                            </a>
+                        {% endif %}
+
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <a href="{{ path('admin') }}" class="btn btn-warning mt-2">
                                 <em class="fa-solid fa-screwdriver-wrench me-2"></em>
                                 Administration
                             </a>
