@@ -276,7 +276,7 @@ make start
 make deps
 # This runs:
 # - composer install
-# - npm install
+# - npm ci
 # - npm run dev
 
 # Access shell

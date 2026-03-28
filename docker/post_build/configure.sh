@@ -31,9 +31,9 @@ if [ "${BUILD_TARGET}" = "prod" ]; then
     ${GOSU} /usr/bin/npm run build
     ${GOSU} rm -rf /app/{node_modules,.bash*,.cache,.config,.local,.npm}
 else
-    # Development build: install composer deps with dev, skip npm (run on host)
+    # Development build: install composer deps with dev, skip npm install/build
     ${GOSU} /usr/local/bin/composer install --prefer-dist --no-interaction
-    echo "Development build: skipping npm install/build (run 'npm ci' and 'npm run dev' on host)"
+    echo "Development build: skipping npm install/build (run 'make deps' or 'docker compose exec -u symfony -w /app app npm ci && docker compose exec -u symfony -w /app app npm run dev')"
 fi
 
 apt purge -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev

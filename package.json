@@ -1,4 +1,7 @@
 {
+  "engines": {
+    "node": "^22.13.0 || >=24.0.0"
+  },
   "devDependencies": {
     "@babel/core": "^7.23.5",
     "@babel/preset-env": "^7.23.5",
