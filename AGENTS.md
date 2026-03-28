@@ -888,6 +888,20 @@ For training events, `EventHelper::getAllParticipantsForEvent()` returns:
 
 ## AI Agent Workflow Guidelines
 
+### Standard Delivery Loop (Issue → PR)
+Use this loop for every non-trivial change so work is traceable and reviewable.
+
+1. Create or confirm the tracking issue (link external source such as Aikido/Sonar when relevant).
+2. Sync from `main` and create a dedicated feature branch.
+3. Implement the smallest complete fix.
+4. Run required checks in Docker: `make qa` then `docker compose exec -u symfony -w /app app bin/phpunit --exclude-group=disabled`.
+5. Commit atomically with a one-line gitmoji message.
+6. Push branch and open PR linked to the issue.
+7. Check CI status and investigate failed checks immediately.
+8. Read PR comments (human + bot), apply focused fixes, and push.
+9. If available, trigger Copilot review and address actionable feedback.
+10. Repeat steps 7-9 until CI is green and review feedback is resolved.
+
 ### Test-Driven Development
 - **ALWAYS run tests** after adding, updating, or removing features
 - Execute full test suite: `bin/phpunit --exclude-group=disabled`
