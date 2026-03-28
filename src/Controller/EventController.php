@@ -178,7 +178,6 @@ class EventController extends BaseController
 
         EventAttachmentType::assertValidChoice($attachmentType);
 
-        $this->entityManager->getRepository(Event::class);
         $event = $this->eventRepository->findBySlug($slug);
 
         if (!$event instanceof Event) {
@@ -231,7 +230,6 @@ class EventController extends BaseController
     ): Response {
         $this->assertHasValidLicense();
 
-        $this->entityManager->getRepository(Event::class);
         $event = $this->eventRepository->findBySlug($slug);
 
         if (!$event instanceof Event) {

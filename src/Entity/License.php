@@ -21,7 +21,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 #[ORM\Entity(repositoryClass: LicenseRepository::class)]
 #[UniqueEntity(
     fields: ['licensee', 'season'],
-    message: 'There is already an license for this season for this licensee',
+    message: 'There is already a license for this season for this licensee',
 ),]
 #[ValidLicenseCombination]
 #[Auditable]
