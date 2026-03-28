@@ -12,11 +12,12 @@ jobs:
   php-cs-fixer:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ github.head_ref }}
       - name: Setup PHP with PECL extension
-        uses: shivammathur/setup-php@v2
+        # 2.37.0
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f
         with:
           php-version: '8.4'
           extensions: ctype, gd, iconv, mbstring
@@ -30,11 +31,12 @@ jobs:
   phpstan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ github.head_ref }}
       - name: Setup PHP with PECL extension
-        uses: shivammathur/setup-php@v2
+        # 2.37.0
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f
         with:
           php-version: '8.4'
           extensions: ctype, gd, iconv, mbstring
@@ -46,11 +48,12 @@ jobs:
   rector:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ github.head_ref }}
       - name: Setup PHP with PECL extension
-        uses: shivammathur/setup-php@v2
+        # 2.37.0
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f
         with:
           php-version: '8.4'
           extensions: ctype, gd, iconv, mbstring

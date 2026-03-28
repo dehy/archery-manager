@@ -12,22 +12,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
       - run: env
       - name: Docker Compose Setup
-        uses: ndeloof/install-compose-action@v0.0.1
+        # v0.0.1
+        uses: ndeloof/install-compose-action@4a33bc31f327b8231c4f343f6fba704fedc0fa23
         with:
           version: latest
           legacy: false
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4.0.0
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4.0.0
       - name: Build
         id: docker_build
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7.0.0
         with:
           file: docker/Dockerfile
           push: false
@@ -49,7 +50,7 @@ jobs:
         id: docker_tag
         run: echo "tag=$(bash ./docker/tag_from_branch.sh)" >> $GITHUB_OUTPUT
       - name: Login to Scaleway Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4.0.0
         with:
           registry: rg.fr-par.scw.cloud/archery-manager
           username: nologin
