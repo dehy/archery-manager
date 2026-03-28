@@ -26,7 +26,7 @@ library.add(
 
 **Step 3** — Rebuild:
 ```bash
-docker compose exec -u symfony -w /app app yarn run encore dev
+docker compose exec -u symfony -w /app app npm run dev
 ```
 
 **Icons will not render without the rebuild.** You will see empty spaces where icons should appear.
@@ -176,13 +176,13 @@ Always import Bootstrap functions/variables/mixins before using them in custom f
 
 ```bash
 # Development (with source maps)
-docker compose exec -u symfony -w /app app yarn run encore dev
+docker compose exec -u symfony -w /app app npm run dev
 
 # Watch mode (auto-rebuild on save)
-docker compose exec -u symfony -w /app app yarn run encore dev --watch
+docker compose exec -u symfony -w /app app npm run watch
 
 # Production (minified, optimized)
-docker compose exec -u symfony -w /app app yarn run encore production
+docker compose exec -u symfony -w /app app npm run build
 ```
 
 ## General Rules

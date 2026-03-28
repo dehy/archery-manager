@@ -47,8 +47,6 @@ apt-get install -y --no-install-recommends \
     vim \
     wget
 
-npm install -g yarn
-
 # Composer
 EXPECTED_CHECKSUM="$(php -r 'copy("https://composer.github.io/installer.sig", "php://stdout");')"
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
