@@ -17,7 +17,7 @@ use Wohali\OAuth2\Client\Provider\DiscordResourceOwner;
 
 class DiscordController extends AbstractController
 {
-    public function __construct(private readonly ClientRegistry $clientRegistry)
+    public function __construct(private readonly ClientRegistry $clientRegistry, private readonly EntityManagerInterface $entityManager)
     {
     }
 
@@ -42,7 +42,6 @@ class DiscordController extends AbstractController
     #[Route('/connect/discord/check', name: 'connect_discord_check')]
     public function connectCheck(
         Request $request,
-        EntityManagerInterface $entityManager,
     ): RedirectResponse {
         if ($request->query->get('error')) {
             $description = $request->query->get('error_description');
@@ -63,7 +62,7 @@ class DiscordController extends AbstractController
             $user = $this->getUser();
             $user->setDiscordId($discordUser->getId());
             $user->setDiscordAccessToken(json_encode($accessToken->jsonSerialize(), \JSON_THROW_ON_ERROR));
-            $entityManager->flush();
+            $this->entityManager->flush();
 
             $this->addFlash('success', 'Association à Discord réussie !');
 
@@ -76,14 +75,14 @@ class DiscordController extends AbstractController
     }
 
     #[Route('/connect/discord/logout', name: 'connect_discord_logout')]
-    public function logout(EntityManagerInterface $entityManager): RedirectResponse
+    public function logout(): RedirectResponse
     {
         /** @var User $user */
         $user = $this->getUser();
         $user->setDiscordId(null);
         $user->setDiscordAccessToken(null);
 
-        $entityManager->flush();
+        $this->entityManager->flush();
 
         return $this->redirectToRoute('app_user_account');
     }

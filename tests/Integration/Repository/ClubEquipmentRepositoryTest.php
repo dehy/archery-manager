@@ -267,11 +267,9 @@ final class ClubEquipmentRepositoryTest extends KernelTestCase
         }
     }
 
-    #[\Override]
     protected function tearDown(): void
     {
         parent::tearDown();
-
         $this->entityManager->close();
         $this->entityManager = null;
     }

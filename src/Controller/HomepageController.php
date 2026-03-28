@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Event;
+use App\Entity\License;
+use App\Entity\Licensee;
 use App\Entity\Result;
 use App\Helper\LicenseeHelper;
 use App\Helper\SeasonHelper;
@@ -18,15 +20,14 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class HomepageController extends AbstractController
 {
-    public function __construct(private readonly LicenseeHelper $licenseeHelper, private readonly SeasonHelper $seasonHelper, private readonly ClubApplicationRepository $applicationRepository)
+    public function __construct(private readonly LicenseeHelper $licenseeHelper, private readonly SeasonHelper $seasonHelper, private readonly ClubApplicationRepository $applicationRepository, private readonly EntityManagerInterface $entityManager)
     {
     }
 
     #[Route('/', name: 'app_homepage')]
-    public function index(
-        EntityManagerInterface $entityManager,
-    ): Response {
-        if (!$this->licenseeHelper->getLicenseeFromSession() instanceof \App\Entity\Licensee) {
+    public function index(): Response
+    {
+        if (!$this->licenseeHelper->getLicenseeFromSession() instanceof Licensee) {
             return $this->render('homepage/blank_account.html.twig', [
                 'user' => $this->getUser(),
             ]);
@@ -34,11 +35,9 @@ class HomepageController extends AbstractController
 
         $licensee = $this->licenseeHelper->getLicenseeFromSession();
         $currentSeason = $this->seasonHelper->getSelectedSeason();
-
         // Check if user has a valid license for current season
         $currentLicense = $licensee->getLicenseForSeason($currentSeason);
-
-        if (!$currentLicense instanceof \App\Entity\License) {
+        if (!$currentLicense instanceof License) {
             // User has no valid license - show application-focused homepage
             $applications = $this->applicationRepository->findByLicenseeAndSeason($licensee, $currentSeason);
 
@@ -50,14 +49,13 @@ class HomepageController extends AbstractController
         }
 
         /** @var EventRepository $eventRepository */
-        $eventRepository = $entityManager->getRepository(Event::class);
+        $eventRepository = $this->entityManager->getRepository(Event::class);
         $events = $eventRepository->findNextForLicensee(
             $this->licenseeHelper->getLicenseeFromSession(),
             5,
         );
-
         /** @var ResultRepository $resultRepository */
-        $resultRepository = $entityManager->getRepository(Result::class);
+        $resultRepository = $this->entityManager->getRepository(Result::class);
         $results = $resultRepository->findLastForLicensee($this->licenseeHelper->getLicenseeFromSession());
 
         return $this->render('homepage/index.html.twig', [

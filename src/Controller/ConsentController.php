@@ -41,11 +41,12 @@ final class ConsentController extends AbstractController
     public function __construct(
         private readonly RateLimiterFactory $consentLimiter,
         private readonly IpAnonymizer $ipAnonymizer,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     #[Route('/api/consent', name: 'app_api_consent', methods: ['POST'])]
-    public function store(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function store(Request $request): JsonResponse
     {
         $rateLimitError = $this->checkRateLimit($request);
         if ($rateLimitError instanceof JsonResponse) {
@@ -74,8 +75,8 @@ final class ConsentController extends AbstractController
             ->setIpAddressAnonymized($this->ipAnonymizer->anonymize($request->getClientIp() ?? ''))
             ->setUserAgent($userAgent);
 
-        $entityManager->persist($consentLog);
-        $entityManager->flush();
+        $this->entityManager->persist($consentLog);
+        $this->entityManager->flush();
 
         return new JsonResponse(null, Response::HTTP_CREATED);
     }

@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\UserRoleType;
+use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\LicenseeAttachment;
 use App\Entity\Result;
@@ -15,8 +16,10 @@ use App\Entity\User;
 use App\Form\Type\LicenseeFormType;
 use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
+use App\Helper\LicenseeHelper;
 use App\Helper\LicenseHelper;
 use App\Helper\ResultHelper;
+use App\Helper\SeasonHelper;
 use App\Repository\EquipmentLoanRepository;
 use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
@@ -40,7 +43,7 @@ use Symfony\UX\Chartjs\Model\Chart;
 
 class LicenseeController extends BaseController
 {
-    public function __construct(\App\Helper\LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly FilesystemOperator $licenseesStorage)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly FilesystemOperator $licenseesStorage, private readonly EntityManagerInterface $entityManager)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -103,9 +106,7 @@ class LicenseeController extends BaseController
     }
 
     #[Route('/my-profile', name: 'app_licensee_my_profile', methods: ['GET'])]
-    #[
-        Route('/licensee/{id}', name: 'app_licensee_profile', requirements: ['id' => '\d+'], methods: ['GET']),
-    ]
+    #[Route('/licensee/{id}', name: 'app_licensee_profile', requirements: ['id' => '\d+'], methods: ['GET']),]
     public function show(
         ?int $id = null,
     ): Response {
@@ -285,7 +286,7 @@ class LicenseeController extends BaseController
     }
 
     #[Route('/licensee/{id}/edit', name: 'app_licensee_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
-    public function edit(Licensee $licensee, Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(Licensee $licensee, Request $request): Response
     {
         $this->assertHasValidLicense();
 
@@ -298,7 +299,7 @@ class LicenseeController extends BaseController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            $this->entityManager->flush();
 
             $this->addFlash('success', 'Licencié modifié avec succès.');
 
@@ -348,7 +349,7 @@ class LicenseeController extends BaseController
                 continue;
             }
 
-            if (!($targetLicense = $licensee->getLicenseForSeason($currentSeason)) instanceof \App\Entity\License) {
+            if (!($targetLicense = $licensee->getLicenseForSeason($currentSeason)) instanceof License) {
                 continue;
             }
 

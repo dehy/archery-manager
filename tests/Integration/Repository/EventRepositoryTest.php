@@ -244,11 +244,9 @@ final class EventRepositoryTest extends KernelTestCase
         $this->assertNotInstanceOf(Event::class, $foundEvent);
     }
 
-    #[\Override]
     protected function tearDown(): void
     {
         parent::tearDown();
-
         $this->entityManager->close();
         $this->entityManager = null;
     }

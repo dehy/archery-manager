@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\DBAL\Types\ClubEquipmentType as ClubEquipmentTypeEnum;
+use App\Entity\Club;
 use App\Entity\ClubEquipment;
 use App\Entity\EquipmentLoan;
 use App\Form\ClubEquipmentType;
@@ -32,6 +33,7 @@ class ClubEquipmentController extends BaseController
         protected readonly ClubHelper $clubHelper,
         private readonly ClubEquipmentRepository $equipmentRepository,
         private readonly EquipmentLoanRepository $loanRepository,
+        private readonly EntityManagerInterface $em,
     ) {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -41,7 +43,7 @@ class ClubEquipmentController extends BaseController
     {
         $this->assertHasValidLicense();
         $club = $this->clubHelper->activeClub();
-        if (!$club instanceof \App\Entity\Club) {
+        if (!$club instanceof Club) {
             throw $this->createNotFoundException(self::NO_ACTIVE_CLUB_ERROR);
         }
 
@@ -54,12 +56,12 @@ class ClubEquipmentController extends BaseController
     }
 
     #[Route('/club-equipment/new', name: 'app_club_equipment_new')]
-    public function new(Request $request, EntityManagerInterface $em): Response
+    public function new(Request $request): Response
     {
         $this->assertHasValidLicense();
 
         $club = $this->clubHelper->activeClub();
-        if (!$club instanceof \App\Entity\Club) {
+        if (!$club instanceof Club) {
             throw $this->createNotFoundException(self::NO_ACTIVE_CLUB_ERROR);
         }
 
@@ -70,8 +72,8 @@ class ClubEquipmentController extends BaseController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($equipment);
-            $em->flush();
+            $this->em->persist($equipment);
+            $this->em->flush();
 
             $this->addFlash('success', 'Équipement ajouté avec succès');
 
@@ -91,7 +93,7 @@ class ClubEquipmentController extends BaseController
 
         // Verify equipment belongs to user's club
         $club = $this->clubHelper->activeClub();
-        if (!$club instanceof \App\Entity\Club || $equipment->getClub() !== $club) {
+        if (!$club instanceof Club || $equipment->getClub() !== $club) {
             throw $this->createAccessDeniedException();
         }
 
@@ -104,13 +106,13 @@ class ClubEquipmentController extends BaseController
     }
 
     #[Route('/club-equipment/{id}/edit', name: 'app_club_equipment_edit', requirements: ['id' => '\d+'])]
-    public function edit(ClubEquipment $equipment, Request $request, EntityManagerInterface $em): Response
+    public function edit(ClubEquipment $equipment, Request $request): Response
     {
         $this->assertHasValidLicense();
 
         // Verify equipment belongs to user's club
         $club = $this->clubHelper->activeClub();
-        if (!$club instanceof \App\Entity\Club || $equipment->getClub() !== $club) {
+        if (!$club instanceof Club || $equipment->getClub() !== $club) {
             throw $this->createAccessDeniedException();
         }
 
@@ -118,7 +120,7 @@ class ClubEquipmentController extends BaseController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
+            $this->em->flush();
 
             $this->addFlash('success', 'Équipement modifié avec succès');
 
@@ -132,13 +134,13 @@ class ClubEquipmentController extends BaseController
     }
 
     #[Route('/club-equipment/{id}/delete', name: 'app_club_equipment_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function delete(ClubEquipment $equipment, EntityManagerInterface $em): Response
+    public function delete(ClubEquipment $equipment): Response
     {
         $this->assertHasValidLicense();
 
         // Verify equipment belongs to user's club
         $club = $this->clubHelper->activeClub();
-        if (!$club instanceof \App\Entity\Club || $equipment->getClub() !== $club) {
+        if (!$club instanceof Club || $equipment->getClub() !== $club) {
             throw $this->createAccessDeniedException();
         }
 
@@ -149,8 +151,8 @@ class ClubEquipmentController extends BaseController
             return $this->redirectToRoute('app_club_equipment_show', ['id' => $equipment->getId()]);
         }
 
-        $em->remove($equipment);
-        $em->flush();
+        $this->em->remove($equipment);
+        $this->em->flush();
 
         $this->addFlash('success', 'Équipement supprimé avec succès');
 
@@ -158,13 +160,13 @@ class ClubEquipmentController extends BaseController
     }
 
     #[Route('/club-equipment/{id}/loan', name: 'app_club_equipment_loan', requirements: ['id' => '\d+'])]
-    public function loan(ClubEquipment $equipment, Request $request, EntityManagerInterface $em): Response
+    public function loan(ClubEquipment $equipment, Request $request): Response
     {
         $this->assertHasValidLicense();
 
         // Verify equipment belongs to user's club
         $club = $this->clubHelper->activeClub();
-        if (!$club instanceof \App\Entity\Club || $equipment->getClub() !== $club) {
+        if (!$club instanceof Club || $equipment->getClub() !== $club) {
             throw $this->createAccessDeniedException();
         }
 
@@ -195,8 +197,8 @@ class ClubEquipmentController extends BaseController
                     ),
                 );
             } else {
-                $em->persist($loan);
-                $em->flush();
+                $this->em->persist($loan);
+                $this->em->flush();
 
                 $this->addFlash('success', 'Équipement prêté avec succès');
 
@@ -211,13 +213,13 @@ class ClubEquipmentController extends BaseController
     }
 
     #[Route('/club-equipment/{id}/return', name: 'app_club_equipment_return', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function returnEquipment(ClubEquipment $equipment, EntityManagerInterface $em): Response
+    public function returnEquipment(ClubEquipment $equipment): Response
     {
         $this->assertHasValidLicense();
 
         // Verify equipment belongs to user's club
         $club = $this->clubHelper->activeClub();
-        if (!$club instanceof \App\Entity\Club || $equipment->getClub() !== $club) {
+        if (!$club instanceof Club || $equipment->getClub() !== $club) {
             throw $this->createAccessDeniedException();
         }
 
@@ -230,7 +232,7 @@ class ClubEquipmentController extends BaseController
 
         // Return the first active loan (legacy single-loan behaviour)
         $activeLoans->first()->setReturnDate(new \DateTimeImmutable());
-        $em->flush();
+        $this->em->flush();
 
         $this->addFlash('success', 'Prêt clôturé avec succès');
 
@@ -241,7 +243,6 @@ class ClubEquipmentController extends BaseController
     public function returnLoan(
         #[MapEntity(id: 'loanId')]
         EquipmentLoan $loan,
-        EntityManagerInterface $em,
     ): Response {
         $this->assertHasValidLicense();
 
@@ -249,7 +250,7 @@ class ClubEquipmentController extends BaseController
 
         // Verify equipment belongs to user's club
         $club = $this->clubHelper->activeClub();
-        if (!$club instanceof \App\Entity\Club || $equipment->getClub() !== $club) {
+        if (!$club instanceof Club || $equipment->getClub() !== $club) {
             throw $this->createAccessDeniedException();
         }
 
@@ -260,7 +261,7 @@ class ClubEquipmentController extends BaseController
         }
 
         $loan->setReturnDate(new \DateTimeImmutable());
-        $em->flush();
+        $this->em->flush();
 
         $this->addFlash('success', 'Prêt clôturé avec succès');
 
@@ -272,7 +273,7 @@ class ClubEquipmentController extends BaseController
     {
         $this->assertHasValidLicense();
         $club = $this->clubHelper->activeClub();
-        if (!$club instanceof \App\Entity\Club) {
+        if (!$club instanceof Club) {
             throw $this->createNotFoundException(self::NO_ACTIVE_CLUB_ERROR);
         }
 

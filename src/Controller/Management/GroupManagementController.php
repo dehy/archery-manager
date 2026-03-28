@@ -24,7 +24,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CLUB_ADMIN')]
 class GroupManagementController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly EntityManagerInterface $entityManager)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -70,7 +70,7 @@ class GroupManagementController extends BaseController
     }
 
     #[Route('/groups/{id}/add-member', name: 'app_group_add_member', methods: ['POST'])]
-    public function addMember(Group $group, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function addMember(Group $group, Request $request): JsonResponse
     {
         $licenseeOrError = $this->resolveMemberAction($group, $request);
         if ($licenseeOrError instanceof JsonResponse) {
@@ -88,7 +88,7 @@ class GroupManagementController extends BaseController
         }
 
         $group->addLicensee($licensee);
-        $entityManager->flush();
+        $this->entityManager->flush();
 
         return new JsonResponse([
             'success' => true,
@@ -97,7 +97,7 @@ class GroupManagementController extends BaseController
     }
 
     #[Route('/groups/{id}/remove-member', name: 'app_group_remove_member', methods: ['POST'])]
-    public function removeMember(Group $group, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function removeMember(Group $group, Request $request): JsonResponse
     {
         $licenseeOrError = $this->resolveMemberAction($group, $request);
         if ($licenseeOrError instanceof JsonResponse) {
@@ -111,7 +111,7 @@ class GroupManagementController extends BaseController
         }
 
         $group->removeLicensee($licensee);
-        $entityManager->flush();
+        $this->entityManager->flush();
 
         return new JsonResponse([
             'success' => true,
@@ -120,7 +120,7 @@ class GroupManagementController extends BaseController
     }
 
     #[Route('/groups/create', name: 'app_group_create')]
-    public function create(Request $request, EntityManagerInterface $entityManager): Response
+    public function create(Request $request): Response
     {
         $club = $this->currentClub();
 
@@ -131,8 +131,8 @@ class GroupManagementController extends BaseController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($group);
-            $entityManager->flush();
+            $this->entityManager->persist($group);
+            $this->entityManager->flush();
 
             $this->addFlash('success', \sprintf('Le groupe "%s" a été créé avec succès.', $group->getName()));
 

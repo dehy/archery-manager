@@ -13,17 +13,16 @@ use App\Helper\SyncReturnValues;
 use App\Repository\LicenseRepository;
 use App\Validator\Constraints\ValidLicenseCombination;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: LicenseRepository::class)]
-#[
-    UniqueEntity(
-        fields: ['licensee', 'season'],
-        message: 'There is already an license for this season for this licensee',
-    ),
-]
+#[UniqueEntity(
+    fields: ['licensee', 'season'],
+    message: 'There is already an license for this season for this licensee',
+),]
 #[ValidLicenseCombination]
 #[Auditable]
 #[ApiResource]
@@ -31,10 +30,10 @@ class License
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $season = null;
 
     #[ORM\Column(type: 'LicenseType')]
@@ -53,7 +52,7 @@ class License
     #[ORM\JoinColumn(nullable: false)]
     private ?Licensee $licensee = null;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::SIMPLE_ARRAY)]
+    #[ORM\Column(type: Types::SIMPLE_ARRAY)]
     private array $activities = [];
 
     #[ORM\ManyToOne(inversedBy: 'licenses')]

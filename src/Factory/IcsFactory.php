@@ -239,7 +239,7 @@ class IcsFactory
                 'url' => 'URL;VALUE=URI',
                 default => $k,
             };
-            if (\in_array($k, ['dtstart', 'dtend'])) {
+            if (\in_array($k, ['dtstart', 'dtend'], true)) {
                 if ($this->isAllDay && 'dtend' === $k) {
                     $v = \DateTime::createFromInterface($v);
                     $v = $v->add(new \DateInterval('P1D'));
