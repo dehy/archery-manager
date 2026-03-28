@@ -18,7 +18,7 @@ COPY ./docker/config /etc
 COPY --chown=symfony:symfony . /app
 
 COPY ./docker/post_build/configure.sh /docker/post_build/configure.sh
-RUN --mount=type=secret,id=fontawesome_npm_auth_token /bin/bash /docker/post_build/configure.sh && rm -rf /docker
+RUN /bin/bash /docker/post_build/configure.sh && rm -rf /docker
 
 COPY ./docker/post_build/entrypoint.sh /entrypoint.sh
 RUN echo $VCS_REF > /app/REVISION

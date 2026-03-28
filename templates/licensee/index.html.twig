@@ -117,7 +117,7 @@
                         {% else  %}
                             <em>Dans aucun groupe</em>
                         {% endfor %}<br>
-                        <em class="fa-solid fa-bow-arrow"></em>
+                        <em class="fa-solid fa-bullseye"></em>
                         {{ license.activities|map(a => a|readable_enum('LicenseActivityType'))|join(', ') }}
                     </p>
                 </div>

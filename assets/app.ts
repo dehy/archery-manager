@@ -31,7 +31,6 @@ import {
   faBan,
   faBell,
   faBolt,
-  faBowArrow,
   faBox,
   faBoxes,
   faBuilding,
@@ -143,9 +142,9 @@ import {
   faVenus,
   faVenusMars,
   faXmark,
-} from "@fortawesome/pro-solid-svg-icons";
+} from "@fortawesome/free-solid-svg-icons";
 import {faApple, faDiscord, faGoogle, faMicrosoft, faWaze} from "@fortawesome/free-brands-svg-icons";
-import {faFile} from "@fortawesome/pro-regular-svg-icons";
+import {faFile} from "@fortawesome/free-regular-svg-icons";
 
 import Chart from 'chart.js/auto';
 import annotationPlugin from "chartjs-plugin-annotation";
@@ -167,7 +166,6 @@ library.add(
     faBan,
     faBell,
     faBolt,
-    faBowArrow,
     faBox,
     faBoxes,
     faBuilding,

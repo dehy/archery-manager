@@ -377,9 +377,6 @@ make qa
 This mirrors what the GitHub Actions workflow does:
 
 ```bash
-# Export the Font Awesome token from .env.local first (required to build frontend assets)
-export $(grep FONTAWESOME_NPM_AUTH_TOKEN .env.local | xargs)
-
 # Run the full test suite via docker-compose.test.yml
 make test
 ```
@@ -390,8 +387,6 @@ The `sut` entrypoint inside the container automatically:
 2. Migrates the `app_test` database (`APP_ENV=test`)
 3. Loads fixtures (`hautelook:fixtures:load`)
 4. Executes `bin/phpunit` with clover/JUnit coverage output
-
-**FONTAWESOME_NPM_AUTH_TOKEN** must be available in the shell environment (or `.env.local`) so the image build can install the Font Awesome Pro npm packages.
 
 ##### Quick local loop (inside running dev container)
 

@@ -13,7 +13,7 @@ Every time you add a Font Awesome icon to a template, you MUST do all 3 steps:
 import {
     // ... existing imports ...
     faYourNewIcon,
-} from "@fortawesome/pro-solid-svg-icons";
+} from "@fortawesome/free-solid-svg-icons";
 ```
 
 **Step 2** — Add to `library.add()` in `assets/app.ts`:
@@ -35,14 +35,11 @@ docker compose exec -u symfony -w /app app yarn run encore dev
 
 | Package | Weight | Template class | Currently imported? |
 |---------|--------|---------------|-------------------|
-| `@fortawesome/pro-solid-svg-icons` | Solid | `fa-solid` | ✅ Yes (143 icons) |
+| `@fortawesome/free-solid-svg-icons` | Solid | `fa-solid` | ✅ Yes |
 | `@fortawesome/free-brands-svg-icons` | Brands | `fa-brands` | ✅ Yes (4 icons: Apple, Discord, Google, Waze) |
-| `@fortawesome/pro-regular-svg-icons` | Regular | `fa-regular` | ⚠️ Minimal (1 icon: faFile) |
-| `@fortawesome/pro-light-svg-icons` | Light | `fa-light` | ❌ Not currently imported |
-| `@fortawesome/pro-thin-svg-icons` | Thin | `fa-thin` | ❌ Not currently imported |
-| `@fortawesome/pro-duotone-svg-icons` | Duotone | `fa-duotone` | ❌ Not currently imported |
+| `@fortawesome/free-regular-svg-icons` | Regular | `fa-regular` | ⚠️ Minimal (1 icon: faFile) |
 
-To use a new pack (e.g., Duotone), add the import to `assets/app.ts` first.
+To use additional free packs, add the import to `assets/app.ts` first.
 
 ### Icon Naming Convention
 

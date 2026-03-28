@@ -32,9 +32,6 @@ docker compose exec -u symfony -w /app app bin/phpunit tests/Functional/Controll
 Mirrors the GitHub Actions workflow exactly:
 
 ```bash
-# Export Font Awesome token first (required to install Pro npm packages)
-export $(grep FONTAWESOME_NPM_AUTH_TOKEN .env.local | xargs)
-
 # Full build + test in Docker
 make test
 ```
