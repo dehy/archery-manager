@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class ResponseHeadersSubscriberTest extends LoggedInTestCase
 {
+    private const string LOGIN_URL = '/login';
+
     private const string HEADER_CSP = 'Content-Security-Policy';
 
     private const string HEADER_X_CONTENT_TYPE_OPTIONS = 'X-Content-Type-Options';
@@ -21,7 +23,7 @@ final class ResponseHeadersSubscriberTest extends LoggedInTestCase
     public function testHeadersArePresentOnPublicRoute(): void
     {
         $client = self::createClient();
-        $client->request(Request::METHOD_GET, '/login');
+        $client->request(Request::METHOD_GET, self::LOGIN_URL);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
         $response = $client->getResponse();
@@ -57,11 +59,22 @@ final class ResponseHeadersSubscriberTest extends LoggedInTestCase
     public function testHstsHeaderIsPresentOnSecureRequests(): void
     {
         $client = self::createClient();
-        $client->request(Request::METHOD_GET, '/login', server: ['HTTPS' => 'on']);
+        $client->request(Request::METHOD_GET, self::LOGIN_URL, server: ['HTTPS' => 'on']);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
         $response = $client->getResponse();
 
         $this->assertSame('max-age=31536000; includeSubDomains', $response->headers->get(self::HEADER_HSTS));
+    }
+
+    public function testHstsHeaderIsAbsentOnNonSecureRequests(): void
+    {
+        $client = self::createClient();
+        $client->request(Request::METHOD_GET, self::LOGIN_URL);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+        $response = $client->getResponse();
+
+        $this->assertFalse($response->headers->has(self::HEADER_HSTS));
     }
 }
