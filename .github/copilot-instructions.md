@@ -61,12 +61,14 @@ These files load automatically in VS Code based on the file you're editing:
 
 | File | Applies to | Content |
 |------|-----------|---------|
-| [backend.instructions.md](.github/instructions/backend.instructions.md) | `**/*.php` | Symfony/Doctrine patterns, entities, DBAL types, SonarQube PHP rules, security |
-| [frontend.instructions.md](.github/instructions/frontend.instructions.md) | `assets/**` | Font Awesome workflow, Stimulus controllers, Bootstrap, SCSS, SonarQube TS rules |
-| [testing.instructions.md](.github/instructions/testing.instructions.md) | `tests/**` | Test commands, DAMA bundle, fixtures, test patterns |
-| [templates.instructions.md](.github/instructions/templates.instructions.md) | `templates/**` | Twig forms, modals, Bootstrap components, authorization patterns |
+| [backend.instructions.md](instructions/backend.instructions.md) | `**/*.php` | Symfony/Doctrine patterns, entities, DBAL types, SonarQube PHP rules, security |
+| [frontend.instructions.md](instructions/frontend.instructions.md) | `assets/**` | Font Awesome workflow, Stimulus controllers, Bootstrap, SCSS, SonarQube TS rules |
+| [testing.instructions.md](instructions/testing.instructions.md) | `tests/**` | Test commands, DAMA bundle, fixtures, test patterns |
+| [templates.instructions.md](instructions/templates.instructions.md) | `templates/**` | Twig forms, modals, Bootstrap components, authorization patterns |
 
-For full architecture, domain model, and business logic details see [AGENTS.md](../../AGENTS.md).
+For full architecture, domain model, and business logic details see [AGENTS.md](../AGENTS.md).
+
+For the standard AI-agent delivery loop (issue -> branch -> work -> test -> PR -> CI/comments -> fix -> repeat), see `AI Agent Workflow Guidelines` in [AGENTS.md](../AGENTS.md).
 
 ## Domain Vocabulary
 
