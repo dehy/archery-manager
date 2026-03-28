@@ -36,7 +36,7 @@ docker compose exec -u symfony -w /app app yarn run encore dev
 | Package | Weight | Template class | Currently imported? |
 |---------|--------|---------------|-------------------|
 | `@fortawesome/free-solid-svg-icons` | Solid | `fa-solid` | ✅ Yes |
-| `@fortawesome/free-brands-svg-icons` | Brands | `fa-brands` | ✅ Yes (4 icons: Apple, Discord, Google, Waze) |
+| `@fortawesome/free-brands-svg-icons` | Brands | `fa-brands` | ✅ Yes (5 icons: Apple, Discord, Google, Microsoft, Waze) |
 | `@fortawesome/free-regular-svg-icons` | Regular | `fa-regular` | ⚠️ Minimal (1 icon: faFile) |
 
 To use additional free packs, add the import to `assets/app.ts` first.
