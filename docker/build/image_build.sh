@@ -9,11 +9,10 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y --no-install-recommends ca-certificates gnupg2
 
-echo 'deb http://ppa.launchpad.net/ondrej/nginx/ubuntu jammy main' | tee /etc/apt/sources.list.d/nginx.list
-echo 'deb http://ppa.launchpad.net/ondrej/php/ubuntu jammy main' | tee /etc/apt/sources.list.d/php.list
-apt-key --keyring /etc/apt/trusted.gpg.d/ondrej.gpg add /docker/build/E5267A6C.gpg
-
 mkdir -p /etc/apt/keyrings
+install -o root -g root -m 644 /docker/build/ondrej.gpg /etc/apt/keyrings/ondrej.gpg
+echo 'deb [signed-by=/etc/apt/keyrings/ondrej.gpg] https://ppa.launchpadcontent.net/ondrej/nginx/ubuntu noble main' | tee /etc/apt/sources.list.d/nginx.list
+echo 'deb [signed-by=/etc/apt/keyrings/ondrej.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu noble main' | tee /etc/apt/sources.list.d/php.list
 install -o root -g root -m 644 /docker/build/nodesource.gpg /etc/apt/keyrings/nodesource.gpg
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 
@@ -26,7 +25,7 @@ apt-get install -y --no-install-recommends \
     git \
     gosu \
     jq \
-    netcat \
+    netcat-openbsd \
     nginx-light \
     nodejs \
     php8.4-apcu \
