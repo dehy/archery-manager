@@ -2033,11 +2033,8 @@ __metadata:
 
 "@symfony/ux-chartjs@file:vendor/symfony/ux-chartjs/assets::locator=root-workspace-0b6124%40workspace%3A.":
   version: 2.33.0
-  resolution: "@symfony/ux-chartjs@file:vendor/symfony/ux-chartjs/assets#vendor/symfony/ux-chartjs/assets::hash=444916&locator=root-workspace-0b6124%40workspace%3A."
-  peerDependencies:
-    "@hotwired/stimulus": ^3.0.0
-    chart.js: ^3.4.1 || ^4.0
-  checksum: 10/b439e7bf4277504874f514ab673bbf111baa5cb6b5498ace4abfa72fbac515c86121797d0724cea9dc990d0ab66d11418a1fa91e23e155f8e94b615da00fe723
+  resolution: "@symfony/ux-chartjs@file:vendor/symfony/ux-chartjs/assets#vendor/symfony/ux-chartjs/assets::hash=408d03&locator=root-workspace-0b6124%40workspace%3A."
+  checksum: 10/b9838356314bffa911852177351558a9f147a6c14b7aa207baf14b075b6ca01c130364e70e0e1ca9aeb70c6231902b086bf14991aafd95f05ff091f395fd116a
   languageName: node
   linkType: hard
 
@@ -6472,9 +6469,9 @@ __metadata:
   linkType: hard
 
 "picomatch@npm:^2.0.4, picomatch@npm:^2.2.1, picomatch@npm:^2.2.3, picomatch@npm:^2.3.1":
-  version: 2.3.1
-  resolution: "picomatch@npm:2.3.1"
-  checksum: 10/60c2595003b05e4535394d1da94850f5372c9427ca4413b71210f437f7b2ca091dbd611c45e8b37d10036fa8eade25c1b8951654f9d3973bfa66a2ff4d3b08bc
+  version: 2.3.2
+  resolution: "picomatch@npm:2.3.2"
+  checksum: 10/b788ef8148a2415b9dec12f0bb350ae6a5830f8f1950e472abc2f5225494debf7d1b75eb031df0ceaea9e8ec3e7bad599e8dbf3c60d61b42be429ba41bff4426
   languageName: node
   linkType: hard
 
