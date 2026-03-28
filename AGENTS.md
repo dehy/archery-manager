@@ -52,7 +52,7 @@ For language-specific patterns, refer to the scoped instruction files in `.githu
 - **Templates**: Twig 3.x
 - **JavaScript**: TypeScript with Stimulus (Hotwired)
 - **CSS**: Bootstrap 5.3+ with custom SCSS
-- **Icons**: Font Awesome 7.1+ Pro (Solid/Brands actively used; Light, Regular, Duotone, Thin available — see `assets/app.ts` for currently imported icons)
+- **Icons**: Font Awesome 7.2+ Free (Solid/Brands actively used; Regular minimally used — see `assets/app.ts` for currently imported icons)
 - **Build Tool**: Webpack Encore 4.x
 - **Charts**: Chart.js 3.x with annotation and datalabels plugins
 - **Maps**: Leaflet 1.9+ with Geocoder (Mapbox provider)
