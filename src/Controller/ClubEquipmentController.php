@@ -33,7 +33,7 @@ class ClubEquipmentController extends BaseController
         protected readonly ClubHelper $clubHelper,
         private readonly ClubEquipmentRepository $equipmentRepository,
         private readonly EquipmentLoanRepository $loanRepository,
-        private readonly EntityManagerInterface $em,
+        private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -72,8 +72,8 @@ class ClubEquipmentController extends BaseController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->em->persist($equipment);
-            $this->em->flush();
+            $this->entityManager->persist($equipment);
+            $this->entityManager->flush();
 
             $this->addFlash('success', 'Équipement ajouté avec succès');
 
@@ -120,7 +120,7 @@ class ClubEquipmentController extends BaseController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->em->flush();
+            $this->entityManager->flush();
 
             $this->addFlash('success', 'Équipement modifié avec succès');
 
@@ -151,8 +151,8 @@ class ClubEquipmentController extends BaseController
             return $this->redirectToRoute('app_club_equipment_show', ['id' => $equipment->getId()]);
         }
 
-        $this->em->remove($equipment);
-        $this->em->flush();
+        $this->entityManager->remove($equipment);
+        $this->entityManager->flush();
 
         $this->addFlash('success', 'Équipement supprimé avec succès');
 
@@ -197,8 +197,8 @@ class ClubEquipmentController extends BaseController
                     ),
                 );
             } else {
-                $this->em->persist($loan);
-                $this->em->flush();
+                $this->entityManager->persist($loan);
+                $this->entityManager->flush();
 
                 $this->addFlash('success', 'Équipement prêté avec succès');
 
@@ -232,7 +232,7 @@ class ClubEquipmentController extends BaseController
 
         // Return the first active loan (legacy single-loan behaviour)
         $activeLoans->first()->setReturnDate(new \DateTimeImmutable());
-        $this->em->flush();
+        $this->entityManager->flush();
 
         $this->addFlash('success', 'Prêt clôturé avec succès');
 
@@ -261,7 +261,7 @@ class ClubEquipmentController extends BaseController
         }
 
         $loan->setReturnDate(new \DateTimeImmutable());
-        $this->em->flush();
+        $this->entityManager->flush();
 
         $this->addFlash('success', 'Prêt clôturé avec succès');
 
