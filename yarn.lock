@@ -2032,12 +2032,12 @@ __metadata:
   linkType: hard
 
 "@symfony/ux-chartjs@file:vendor/symfony/ux-chartjs/assets::locator=root-workspace-0b6124%40workspace%3A.":
-  version: 2.31.0
-  resolution: "@symfony/ux-chartjs@file:vendor/symfony/ux-chartjs/assets#vendor/symfony/ux-chartjs/assets::hash=c9167b&locator=root-workspace-0b6124%40workspace%3A."
+  version: 2.33.0
+  resolution: "@symfony/ux-chartjs@file:vendor/symfony/ux-chartjs/assets#vendor/symfony/ux-chartjs/assets::hash=444916&locator=root-workspace-0b6124%40workspace%3A."
   peerDependencies:
     "@hotwired/stimulus": ^3.0.0
     chart.js: ^3.4.1 || ^4.0
-  checksum: 10/53c10b13b18034f62fda3df11e634cd20e1996a4380537630f90882ffd7adfd76e133483ff52b570f557090e18ed72918cfac739f5cfaf702e45fa9d29793f8d
+  checksum: 10/b439e7bf4277504874f514ab673bbf111baa5cb6b5498ace4abfa72fbac515c86121797d0724cea9dc990d0ab66d11418a1fa91e23e155f8e94b615da00fe723
   languageName: node
   linkType: hard
 

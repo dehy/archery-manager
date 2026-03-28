@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\Club;
 use App\Entity\Group;
 use App\Entity\License;
 use App\Entity\Licensee;
@@ -16,7 +17,9 @@ use App\Form\Type\LicenseeUserLinkType;
 use App\Form\Type\LicenseFormType;
 use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
+use App\Helper\LicenseeHelper;
 use App\Helper\LicenseHelper;
+use App\Helper\SeasonHelper;
 use App\Repository\GroupRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,7 +30,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CLUB_ADMIN')]
 class LicenseeManagementController extends BaseController
 {
-    public function __construct(\App\Helper\LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly EntityManagerInterface $entityManager)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -57,7 +60,7 @@ class LicenseeManagementController extends BaseController
         Request $request,
     ): Response {
         $club = $this->clubHelper->getClubForUser($this->getUser());
-        if (!$club instanceof \App\Entity\Club) {
+        if (!$club instanceof Club) {
             $this->addFlash('danger', 'Impossible de déterminer votre club.');
 
             return $this->redirectToRoute('app_licensee_new_choice');
@@ -73,7 +76,7 @@ class LicenseeManagementController extends BaseController
     }
 
     private function processFftaImport(
-        \App\Entity\Club $club,
+        Club $club,
         string $fftaMemberCode,
         Request $request,
     ): Response {
@@ -120,7 +123,6 @@ class LicenseeManagementController extends BaseController
     #[Route('/licensees/manage/new/step1', name: 'app_licensee_new_step1', methods: ['GET', 'POST'])]
     public function step1Licensee(
         Request $request,
-        EntityManagerInterface $entityManager,
     ): Response {
         $session = $request->getSession();
         $creationData = $session->get('licensee_creation', []);
@@ -253,7 +255,6 @@ class LicenseeManagementController extends BaseController
     #[Route('/licensees/manage/new/step4', name: 'app_licensee_new_step4', methods: ['GET', 'POST'])]
     public function step4User(
         Request $request,
-        EntityManagerInterface $entityManager,
     ): Response {
         $session = $request->getSession();
         $creationData = $session->get('licensee_creation', []);
@@ -276,7 +277,7 @@ class LicenseeManagementController extends BaseController
                     $userChoice,
                     $existingUser,
                     $email,
-                    $entityManager
+                    $this->entityManager
                 );
 
                 // Clear session

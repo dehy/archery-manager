@@ -22,6 +22,7 @@ use App\Form\EventParticipationType;
 use App\Form\EventResultsType;
 use App\Helper\EventHelper;
 use App\Helper\LicenseeHelper;
+use App\Helper\SeasonHelper;
 use App\Repository\ContestEventRepository;
 use App\Repository\EventAttachmentRepository;
 use App\Repository\EventRepository;
@@ -40,11 +41,12 @@ class EventController extends BaseController
 {
     public function __construct(
         LicenseeHelper $licenseeHelper,
-        \App\Helper\SeasonHelper $seasonHelper,
+        SeasonHelper $seasonHelper,
         private readonly EventRepository $eventRepository,
         private readonly FilesystemOperator $eventsStorage,
         private readonly RouterInterface $router,
         private readonly EventHelper $eventHelper,
+        private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -170,14 +172,12 @@ class EventController extends BaseController
     public function attachmentEdit(
         string $slug,
         string $attachmentType,
-        Request $request,
-        EntityManagerInterface $entityManager
+        Request $request
     ): Response {
         $this->assertHasValidLicense();
 
         EventAttachmentType::assertValidChoice($attachmentType);
 
-        $entityManager->getRepository(Event::class);
         $event = $this->eventRepository->findBySlug($slug);
 
         if (!$event instanceof Event) {
@@ -185,14 +185,14 @@ class EventController extends BaseController
         }
 
         /** @var EventAttachmentRepository $eventAttachmentRepository */
-        $eventAttachmentRepository = $entityManager->getRepository(EventAttachment::class);
+        $eventAttachmentRepository = $this->entityManager->getRepository(EventAttachment::class);
         $attachment = $eventAttachmentRepository->findAttachmentForEvent($event, $attachmentType);
         if (!$attachment) {
             $attachment = new EventAttachment();
             $attachment
                 ->setEvent($event)
                 ->setType($attachmentType);
-            $entityManager->persist($attachment);
+            $this->entityManager->persist($attachment);
         }
 
         $form = $this->createForm(EventMandateType::class, $attachment, [
@@ -205,15 +205,15 @@ class EventController extends BaseController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             if (null === $attachment->getUploadedFile()) {
-                $entityManager->remove($attachment);
+                $this->entityManager->remove($attachment);
             }
 
             if (null === $attachment->getId()) {
-                $entityManager->flush();
+                $this->entityManager->flush();
                 $attachment->setUpdatedAt(new \DateTimeImmutable());
             }
 
-            $entityManager->flush();
+            $this->entityManager->flush();
 
             return $this->redirectToRoute('app_event_show', ['slug' => $event->getSlug()]);
         }
@@ -226,12 +226,10 @@ class EventController extends BaseController
     #[Route('/events/{slug}')]
     public function show(
         string $slug,
-        EntityManagerInterface $entityManager,
         Request $request,
     ): Response {
         $this->assertHasValidLicense();
 
-        $entityManager->getRepository(Event::class);
         $event = $this->eventRepository->findBySlug($slug);
 
         if (!$event instanceof Event) {
@@ -266,10 +264,10 @@ class EventController extends BaseController
             }
 
             if (null === $eventParticipation->getId() || 0 === $eventParticipation->getId()) {
-                $entityManager->persist($eventParticipation);
+                $this->entityManager->persist($eventParticipation);
             }
 
-            $entityManager->flush();
+            $this->entityManager->flush();
 
             return $this->redirectToRoute('app_event_show', ['slug' => $event->getSlug()]);
         }
@@ -293,12 +291,11 @@ class EventController extends BaseController
     #[Route('/events/{slug}/results', name: 'app_event_results')]
     public function resultsShow(
         string $slug,
-        EntityManagerInterface $entityManager,
     ): Response {
         $this->assertHasValidLicense();
 
         /** @var ContestEventRepository $contestEventRepository */
-        $contestEventRepository = $entityManager->getRepository(ContestEvent::class);
+        $contestEventRepository = $this->entityManager->getRepository(ContestEvent::class);
         $event = $contestEventRepository->findBySlug($slug);
 
         if (!$event instanceof ContestEvent) {
@@ -306,7 +303,7 @@ class EventController extends BaseController
         }
 
         /** @var ResultRepository $resultRepository */
-        $resultRepository = $entityManager->getRepository(Result::class);
+        $resultRepository = $this->entityManager->getRepository(Result::class);
         $results = $resultRepository->findBy(['event' => $event]);
 
         $this->sortResults($results);
@@ -321,12 +318,11 @@ class EventController extends BaseController
     public function resultsEdit(
         string $slug,
         Request $request,
-        EntityManagerInterface $entityManager,
     ): Response {
         $this->assertHasValidLicense();
 
         /** @var ContestEventRepository $contestEventRepository */
-        $contestEventRepository = $entityManager->getRepository(ContestEvent::class);
+        $contestEventRepository = $this->entityManager->getRepository(ContestEvent::class);
         $event = $contestEventRepository->findBySlug($slug);
 
         if (!$event instanceof ContestEvent) {
@@ -334,7 +330,7 @@ class EventController extends BaseController
         }
 
         /** @var ResultRepository $resultRepository */
-        $resultRepository = $entityManager->getRepository(Result::class);
+        $resultRepository = $this->entityManager->getRepository(Result::class);
         $results = $resultRepository->findBy([
             'event' => $event,
         ]);
@@ -372,7 +368,7 @@ class EventController extends BaseController
                     ->setDistance($distance)
                     ->setTargetSize($size)
                     ->setTargetType(TargetTypeType::MONOSPOT);
-                $entityManager->persist($result);
+                $this->entityManager->persist($result);
 
                 $results[] = $result;
             }
@@ -388,7 +384,7 @@ class EventController extends BaseController
         $resultsForm->handleRequest($request);
 
         if ($resultsForm->isSubmitted() && $resultsForm->isValid()) {
-            $entityManager->flush();
+            $this->entityManager->flush();
             $this->addFlash('success', _('Résultats enregistrés'));
 
             return $this->redirectToRoute('app_event_show', ['slug' => $event->getSlug()]);

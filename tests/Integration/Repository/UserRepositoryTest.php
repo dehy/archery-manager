@@ -54,11 +54,9 @@ final class UserRepositoryTest extends KernelTestCase
         $this->assertSame('clubadmin@ladg.com', $users[0]->getEmail());
     }
 
-    #[\Override]
     protected function tearDown(): void
     {
         parent::tearDown();
-
         // doing this is recommended to avoid memory leaks
         $this->entityManager->close();
         $this->entityManager = null;

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\Club;
 use App\Entity\User;
 use App\Form\Type\UserFormType;
+use App\Helper\LicenseeHelper;
+use App\Helper\SeasonHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,6 +17,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class UserController extends BaseController
 {
+    public function __construct(
+        LicenseeHelper $licenseeHelper,
+        SeasonHelper $seasonHelper,
+        private readonly EntityManagerInterface $entityManager,
+    ) {
+        parent::__construct($licenseeHelper, $seasonHelper);
+    }
+
     #[Route('/my-account', name: 'app_user_account', methods: ['GET'])]
     public function account(): Response
     {
@@ -43,7 +54,7 @@ class UserController extends BaseController
 
     #[Route('/user/{id}/edit', name: 'app_user_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_CLUB_ADMIN')]
-    public function edit(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(User $user, Request $request): Response
     {
         $this->assertHasValidLicense();
 
@@ -58,7 +69,7 @@ class UserController extends BaseController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            $this->entityManager->flush();
 
             $this->addFlash('success', 'Utilisateur modifié avec succès.');
 
@@ -99,7 +110,7 @@ class UserController extends BaseController
         $currentSeason = $this->seasonHelper->getSelectedSeason();
         $currentClub = $this->getCurrentUserClub($currentUser, $currentSeason);
 
-        if (!$currentClub instanceof \App\Entity\Club) {
+        if (!$currentClub instanceof Club) {
             return false;
         }
 
@@ -116,7 +127,7 @@ class UserController extends BaseController
     /**
      * Get current user's club for given season.
      */
-    private function getCurrentUserClub(User $user, int $season): ?\App\Entity\Club
+    private function getCurrentUserClub(User $user, int $season): ?Club
     {
         foreach ($user->getLicensees() as $licensee) {
             if ($license = $licensee->getLicenseForSeason($season)) {

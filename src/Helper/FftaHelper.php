@@ -21,18 +21,16 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToProvideChecksum;
-use Mimey\MimeTypes;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\MimeTypeGuesserInterface;
+use Symfony\Component\Mime\MimeTypesInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class FftaHelper
 {
-    protected MimeTypes $mimeTypes;
-
     protected array $scrappers = [];
 
     public function __construct(
@@ -41,11 +39,11 @@ class FftaHelper
         protected LoggerInterface $logger,
         protected FilesystemOperator $licenseesStorage,
         protected MimeTypeGuesserInterface $mimeTypeGuesser,
+        protected MimeTypesInterface $mimeTypes,
         protected EmailHelper $emailHelper,
         protected UserRepository $userRepository,
         protected HttpClientInterface $httpClient,
     ) {
-        $this->mimeTypes = new MimeTypes();
     }
 
     public function setHttpClient(HttpClientInterface $httpClient): void
@@ -257,7 +255,7 @@ class FftaHelper
                 throw new \Exception('Cannot guess mimetype for profile picture');
             }
 
-            $extension = $this->mimeTypes->getExtension($mimetype);
+            $extension = $this->mimeTypes->getExtensions($mimetype)[0] ?? null;
             if (!$extension) {
                 throw new \Exception('Cannot find a corresponding extension for mimetype '.$mimetype);
             }

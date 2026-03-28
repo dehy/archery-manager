@@ -23,14 +23,13 @@ use SymfonyCasts\Bundle\VerifyEmail\Exception\VerifyEmailExceptionInterface;
 
 class RegistrationController extends AbstractController
 {
-    public function __construct(private readonly EmailVerifier $emailVerifier, private readonly UserPasswordHasherInterface $userPasswordHasher, private readonly TranslatorInterface $translator, private readonly UserRepository $userRepository, private readonly AuthenticationSuccessListener $successListener, private readonly RateLimiterFactory $registrationLimiter)
+    public function __construct(private readonly EmailVerifier $emailVerifier, private readonly UserPasswordHasherInterface $userPasswordHasher, private readonly TranslatorInterface $translator, private readonly UserRepository $userRepository, private readonly AuthenticationSuccessListener $successListener, private readonly RateLimiterFactory $registrationLimiter, private readonly EntityManagerInterface $entityManager)
     {
     }
 
     #[Route('/register', name: 'app_register')]
     public function register(
         Request $request,
-        EntityManagerInterface $entityManager,
     ): Response {
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
@@ -53,8 +52,8 @@ class RegistrationController extends AbstractController
                 ),
             );
 
-            $entityManager->persist($user);
-            $entityManager->flush();
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
 
             // Log successful registration
             $this->successListener->logSuccessfulRegistration(
