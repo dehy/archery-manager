@@ -37,8 +37,6 @@ jobs:
             BUILD_DATE=${{ github.event.repository.updated_at}}
             VCS_REF=${{ github.sha }}
             BUILD_TARGET=prod
-          secrets: |
-            fontawesome_npm_auth_token=${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
           cache-from: type=gha, scope=${{ github.workflow }}
           cache-to: type=gha, scope=${{ github.workflow }}
       - name: Image digest
@@ -47,7 +45,6 @@ jobs:
         run: docker compose -p archery_test -f docker-compose.test.yml up --build --abort-on-container-exit --force-recreate
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
       - name: Generate Docker Image Tag
         id: docker_tag
         run: echo "tag=$(bash ./docker/tag_from_branch.sh)" >> $GITHUB_OUTPUT

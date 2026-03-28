@@ -26,15 +26,7 @@ if [ "${BUILD_TARGET}" = "prod" ]; then
     ${GOSU} /usr/local/bin/composer install --prefer-dist --no-interaction --no-dev --optimize-autoloader
     ${GOSU} /usr/local/bin/composer dump-autoload --no-dev --classmap-authoritative
     ${GOSU} /usr/local/bin/composer clear-cache --no-interaction
-    
-    # Yarn install requires FONTAWESOME_NPM_AUTH_TOKEN in production
-    # Read from BuildKit secret mount (never stored as an ARG/ENV to avoid leaking in image history)
-    FONTAWESOME_SECRET_FILE="/run/secrets/fontawesome_npm_auth_token"
-    if [ ! -r "${FONTAWESOME_SECRET_FILE}" ]; then
-        echo "ERROR: BuildKit secret 'fontawesome_npm_auth_token' is required for production builds"
-        exit 1
-    fi
-    { set +x; export FONTAWESOME_NPM_AUTH_TOKEN=$(cat "${FONTAWESOME_SECRET_FILE}"); set -x; } 2>/dev/null
+
     ${GOSU} /usr/bin/yarn install --immutable
     ${GOSU} /usr/bin/yarn build
     ${GOSU} rm -rf /app/{node_modules,.bash*,.cache,.config,.local,.npm,.yarn,.yarnrc}

@@ -13,7 +13,7 @@
 | Templates | Twig 3.x |
 | CSS | Bootstrap 5.3 + custom SCSS |
 | JavaScript | TypeScript + Stimulus (Hotwired) |
-| Icons | Font Awesome 7.1+ Pro |
+| Icons | Font Awesome 7.2+ Free |
 | Build | Webpack Encore 4.x |
 | Auth | Symfony Security (form login, remember me, impersonation) |
 | Messaging | Symfony Messenger + Scheduler |
