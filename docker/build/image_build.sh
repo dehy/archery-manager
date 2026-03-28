@@ -13,8 +13,9 @@ echo 'deb http://ppa.launchpad.net/ondrej/nginx/ubuntu jammy main' | tee /etc/ap
 echo 'deb http://ppa.launchpad.net/ondrej/php/ubuntu jammy main' | tee /etc/apt/sources.list.d/php.list
 apt-key --keyring /etc/apt/trusted.gpg.d/ondrej.gpg add /docker/build/E5267A6C.gpg
 
-echo "deb https://deb.nodesource.com/node_24.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-apt-key --keyring /etc/apt/trusted.gpg.d/2F59B5F99B1BE0B4.gpg add /docker/build/2F59B5F99B1BE0B4.gpg.key
+mkdir -p /etc/apt/keyrings
+gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg < /docker/build/2F59B5F99B1BE0B4.gpg.key
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 
 apt-get update
 apt-get upgrade -y
