@@ -44,27 +44,33 @@ export default class ModalController extends Controller {
         }
     }
 
-    submit() {
+    async submit() {
         const modalForm = this.#getForm(this.bodyTarget);
-        if (modalForm !== null) {
-            fetch(modalForm.action, {
+        if (modalForm === null) {
+            return;
+        }
+
+        try {
+            const response = await fetch(modalForm.action, {
                 method: modalForm.method,
-                body: new FormData(modalForm)
-            })
-                .then(response => {
-                    if (response.redirected) {
-                        if (this.#isSafeRedirectUrl(response.url)) {
-                            window.location.href = response.url;
-                        } else {
-                            console.warn('Blocked unsafe redirect URL:', response.url);
-                        }
-                        throw new Error('Redirecting...');
-                    }
-                    return response.text();
-                })
-                .then(html => this.#setBody(html))
-        } else {
-            console.log("No form in the modal");
+                body: new FormData(modalForm),
+            });
+
+            if (response.redirected) {
+                if (this.#isSafeRedirectUrl(response.url)) {
+                    window.location.href = response.url;
+                    return;
+                }
+                console.warn('Blocked unsafe redirect URL:', response.url);
+                this.#setBody(this.#renderBlockedRedirectError());
+                return;
+            }
+
+            const html = await response.text();
+            this.#setBody(html);
+        } catch (error) {
+            console.error('Modal submit failed', error);
+            this.#setBody(this.#renderSubmitError());
         }
     }
 
@@ -93,5 +99,13 @@ export default class ModalController extends Controller {
         } catch {
             return false;
         }
+    }
+
+    #renderBlockedRedirectError(): string {
+        return '<div class="alert alert-danger mb-0" role="alert">Redirection bloquée pour des raisons de sécurité. Merci de réessayer depuis la page principale.</div>';
+    }
+
+    #renderSubmitError(): string {
+        return '<div class="alert alert-danger mb-0" role="alert">Une erreur est survenue pendant la soumission du formulaire. Merci de réessayer.</div>';
     }
 }
