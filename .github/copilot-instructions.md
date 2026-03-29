@@ -50,7 +50,7 @@ docker compose exec -u symfony -w /app app vendor/bin/phpunit
 4. Use DBAL types (e.g., `EventParticipationStateType`) — never raw strings for enums
 5. Use service layer for business logic (EventHelper, LicenseHelper, SeasonHelper …) — not controllers
 6. Always check group-based event authorization via `EventHelper::canLicenseeParticipateInEvent()`
-7. Font Awesome icons: import in `assets/app.ts` → `library.add()` → `yarn run encore dev` (icons won't render without rebuild)
+7. Font Awesome icons: import in `assets/app.ts` → `library.add()` → `npm run dev` (icons won't render without rebuild)
 8. Prefer frontend controllers/templates over EasyAdmin pages
 9. Use Bootstrap utilities before writing custom CSS
 10. Specify `bootstrap_5_layout.html.twig` form theme for consistency

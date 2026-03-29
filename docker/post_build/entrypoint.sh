@@ -64,8 +64,6 @@ if [[ -z "${1:-}" && ("${APP_ENV}" == "dev" || "${APP_ENV}" == "test") ]]; then
     fi
 
     ${GOSU} composer install --prefer-dist
-    # Yarn is run on host in dev mode, not in container
-    # [[ "${APP_ENV}" == "dev" ]] && ${GOSU} yarn
 fi
 
 DATABASE_URL_PARTS=$(php -r "echo json_encode(parse_url('${DATABASE_URL}'));")
@@ -87,8 +85,8 @@ if [[ "${1:-}" == "sut" ]]; then
     ${GOSU} composer install --prefer-dist
 
     # Build frontend assets for tests
-    ${GOSU} yarn install --immutable
-    ${GOSU} yarn run encore dev
+    ${GOSU} npm ci
+    ${GOSU} npm run dev
 
     # Executing migrations
     ${GOSU} php bin/console doctrine:migrations:migrate --no-interaction

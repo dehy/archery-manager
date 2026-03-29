@@ -66,7 +66,7 @@ For language-specific patterns, refer to the scoped instruction files in `.githu
 - **Static Analysis**: SonarCloud
 - **Error Tracking**: Sentry
 - **Observability**: Grafana Faro (web SDK + tracing)
-- **Package Manager**: Yarn 3.4+
+- **Package Manager**: npm
 
 ## Architecture
 
@@ -276,8 +276,8 @@ make start
 make deps
 # This runs:
 # - composer install
-# - yarn install
-# - yarn run encore dev
+# - npm ci
+# - npm run dev
 
 # Access shell
 make shell        # As symfony user
@@ -383,7 +383,7 @@ make test
 
 `make test` runs `docker compose -p archery_test -f docker-compose.test.yml up --build --abort-on-container-exit --force-recreate`.  
 The `sut` entrypoint inside the container automatically:
-1. Runs `composer install` and `yarn install && yarn run encore dev`
+1. Runs `composer install` and `npm install && npm run dev`
 2. Migrates the `app_test` database (`APP_ENV=test`)
 3. Loads fixtures (`hautelook:fixtures:load`)
 4. Executes `bin/phpunit` with clover/JUnit coverage output
@@ -797,9 +797,9 @@ For training events, `EventHelper::getAllParticipantsForEvent()` returns:
 - **Symptom**: Webpack compilation errors
 - **Solution**: 
   ```bash
-  rm -rf node_modules yarn.lock
-  yarn install
-  yarn run encore dev
+  rm -rf node_modules package-lock.json
+  npm install
+  npm run dev
   ```
 
 #### Database Connection Refused
@@ -868,7 +868,7 @@ For training events, `EventHelper::getAllParticipantsForEvent()` returns:
 ### Pre-Deployment Steps
 1. Run tests: `bin/phpunit`
 2. Run QA tools: `make qa`
-3. Build production assets: `yarn run build`
+3. Build production assets: `npm run build`
 4. Clear cache: `bin/console cache:clear --env=prod`
 5. Warm up cache: `bin/console cache:warmup --env=prod`
 6. Run migrations: `bin/console doctrine:migrations:migrate --no-interaction`
@@ -952,7 +952,7 @@ Use this loop for every non-trivial change so work is traceable and reviewable.
 - **When adding icons to templates:**
   1. Add icon import in `assets/app.ts`: `import { faIconName } from '@fortawesome/...';`
   2. Add to library: `library.add(faIconName);`
-  3. Rebuild JavaScript: `yarn run encore dev`
+  3. Rebuild JavaScript: `npm run dev`
 - **When removing icons:** Remove from imports, library.add(), and rebuild
 - Icons won't render without proper TypeScript registration
 - Use Font Awesome 7+ naming conventions (camelCase in TypeScript)

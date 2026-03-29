@@ -15,25 +15,25 @@ echo ${VERSION:-""} > version
 # Make the PHP-FPM php.ini same as fpm
 ln -sf /etc/php/8.4/fpm/php.ini /etc/php/8.4/cli/php.ini
 
-mkdir -p /app/{.yarn,node_modules,public/build,var/log,var/cache}
+mkdir -p /app/{node_modules,public/build,var/log,var/cache}
 chown -R symfony: /app/{node_modules,public/build,var}
 
 apt update
 apt install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
 
 if [ "${BUILD_TARGET}" = "prod" ]; then
-    # Production build: install composer deps without dev, run yarn build
+    # Production build: install composer deps without dev, run npm build
     ${GOSU} /usr/local/bin/composer install --prefer-dist --no-interaction --no-dev --optimize-autoloader
     ${GOSU} /usr/local/bin/composer dump-autoload --no-dev --classmap-authoritative
     ${GOSU} /usr/local/bin/composer clear-cache --no-interaction
 
-    ${GOSU} /usr/bin/yarn install --immutable
-    ${GOSU} /usr/bin/yarn build
-    ${GOSU} rm -rf /app/{node_modules,.bash*,.cache,.config,.local,.npm,.yarn,.yarnrc}
+    ${GOSU} /usr/bin/npm ci
+    ${GOSU} /usr/bin/npm run build
+    ${GOSU} rm -rf /app/{node_modules,.bash*,.cache,.config,.local,.npm}
 else
-    # Development build: install composer deps with dev, skip yarn (run on host)
+    # Development build: install composer deps with dev, skip npm install/build
     ${GOSU} /usr/local/bin/composer install --prefer-dist --no-interaction
-    echo "Development build: skipping yarn install/build (run 'yarn install' and 'yarn dev' on host)"
+    echo "Development build: skipping npm install/build (run 'make deps' or 'docker compose exec -u symfony -w /app app npm ci && docker compose exec -u symfony -w /app app npm run dev')"
 fi
 
 apt purge -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev

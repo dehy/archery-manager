@@ -26,8 +26,8 @@ shell-root: start
 
 deps: start
 	$(BASE_EXEC) composer install
-	$(BASE_EXEC) yarn install
-	$(BASE_EXEC) yarn run encore dev
+	$(BASE_EXEC) npm ci
+	$(BASE_EXEC) npm run dev
 
 migratedb: start
 	$(BASE_EXEC) php bin/console doctrine:migrations:migrate -n
