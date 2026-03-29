@@ -1,8 +1,8 @@
 import {ActionEvent, Controller} from "@hotwired/stimulus";
 import {Modal} from 'bootstrap';
 
-export default class extends Controller {
-    static targets = ["modal", "title", "body", "submit"];
+export default class ModalController extends Controller {
+    static readonly targets = ["modal", "title", "body", "submit"];
 
     declare readonly modalTarget: HTMLDivElement;
     declare readonly titleTarget: HTMLHeadingElement;
@@ -53,7 +53,11 @@ export default class extends Controller {
             })
                 .then(response => {
                     if (response.redirected) {
-                        window.location.href = response.url;
+                        if (this.#isSafeRedirectUrl(response.url)) {
+                            window.location.href = response.url;
+                        } else {
+                            console.warn('Blocked unsafe redirect URL:', response.url);
+                        }
                         throw new Error('Redirecting...');
                     }
                     return response.text();
@@ -80,5 +84,14 @@ export default class extends Controller {
     #getForm(element: HTMLElement|Document): HTMLFormElement | null {
         const forms = element.getElementsByTagName('form');
         return forms.length > 0 ? forms.item(0) : null;
+    }
+
+    #isSafeRedirectUrl(url: string): boolean {
+        try {
+            const redirectUrl = new URL(url, window.location.href);
+            return redirectUrl.origin === window.location.origin;
+        } catch {
+            return false;
+        }
     }
 }
