@@ -49,7 +49,7 @@ class UserCrudController extends AbstractCrudController
     {
         /** @var User $user */
         $user = parent::createEntity($entityFqcn);
-        $user->setPassword(Uuid::v4());
+        $user->setPassword(Uuid::v4()->toRfc4122());
         $user->setRoles(['ROLE_USER']);
 
         return $user;
