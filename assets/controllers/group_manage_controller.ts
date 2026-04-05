@@ -85,7 +85,7 @@ export default class GroupManageController extends Controller {
 
             const groupMembersContainer = this.getGroupMembersContainer();
             if (!groupMembersContainer) {
-                this.showAlert('Impossible de mettre a jour la liste des membres.', 'danger');
+                this.showAlert('Impossible de mettre à jour la liste des membres.', 'danger');
                 this.setButtonState(button, false, 'fa-plus', 'Ajouter');
                 return;
             }
@@ -137,7 +137,7 @@ export default class GroupManageController extends Controller {
 
             const availableContainer = this.getAvailableLicenseesContainer();
             if (!availableContainer) {
-                this.showAlert('Impossible de mettre a jour la liste des licencies.', 'danger');
+                this.showAlert('Impossible de mettre à jour la liste des licenciés.', 'danger');
                 this.setButtonState(button, false, 'fa-minus', 'Retirer');
                 return;
             }

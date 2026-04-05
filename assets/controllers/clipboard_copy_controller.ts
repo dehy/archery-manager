@@ -16,12 +16,20 @@ export default class ClipboardCopyController extends Controller {
     }
 
     async copy(): Promise<void> {
-        await navigator.clipboard.writeText(this.sourceTarget.value);
-
-        this.labelTarget.textContent = 'Copie';
-        this.resetTimeoutId = globalThis.setTimeout(() => {
-            this.labelTarget.textContent = 'Copier';
+        if (this.resetTimeoutId !== undefined) {
+            globalThis.clearTimeout(this.resetTimeoutId);
             this.resetTimeoutId = undefined;
-        }, 2000);
+        }
+
+        try {
+            await navigator.clipboard.writeText(this.sourceTarget.value);
+            this.labelTarget.textContent = 'Copié';
+            this.resetTimeoutId = globalThis.setTimeout(() => {
+                this.labelTarget.textContent = 'Copier';
+                this.resetTimeoutId = undefined;
+            }, 2000);
+        } catch {
+            this.labelTarget.textContent = 'Copier';
+        }
     }
 }
