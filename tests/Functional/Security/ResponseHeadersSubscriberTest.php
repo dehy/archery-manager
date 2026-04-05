@@ -34,7 +34,8 @@ final class ResponseHeadersSubscriberTest extends LoggedInTestCase
 
         $csp = $response->headers->get(self::HEADER_CSP, '');
         $this->assertStringContainsString("default-src 'self'", (string) $csp);
-        $this->assertStringContainsString("script-src 'self' 'unsafe-inline'", (string) $csp);
+        $this->assertStringContainsString("script-src 'self'", (string) $csp);
+        $this->assertStringNotContainsString("script-src 'self' 'unsafe-inline'", (string) $csp);
         $this->assertStringContainsString("frame-ancestors 'none'", (string) $csp);
     }
 

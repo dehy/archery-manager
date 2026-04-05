@@ -25,18 +25,18 @@
                         <strong>Licencié :</strong> {{ licensee_data.firstname }} {{ licensee_data.lastname }}
                     </div>
 
-                    {{ form_start(form) }}
+                    {{ form_start(form, {attr: {'data-controller': 'user-choice', 'data-action': 'change->user-choice#update'}}) }}
                         <div class="mb-4">
                             {{ form_row(form.user_choice) }}
                         </div>
 
-                        <div id="existing_user_field" style="display: none;">
+                        <div id="existing_user_field" class="d-none" data-user-choice-target="existingField">
                             <div class="mb-3">
                                 {{ form_row(form.existing_user) }}
                             </div>
                         </div>
 
-                        <div id="new_user_field" style="display: none;">
+                        <div id="new_user_field" class="d-none" data-user-choice-target="newField">
                             <div class="mb-3">
                                 {{ form_row(form.email) }}
                                 <small class="form-text text-muted">
@@ -68,26 +68,4 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const existingRadio = document.querySelector('input[value="existing"]');
-    const newRadio = document.querySelector('input[value="new"]');
-    const existingField = document.getElementById('existing_user_field');
-    const newField = document.getElementById('new_user_field');
-
-    function updateFields() {
-        if (existingRadio && existingRadio.checked) {
-            existingField.style.display = 'block';
-            newField.style.display = 'none';
-        } else if (newRadio && newRadio.checked) {
-            existingField.style.display = 'none';
-            newField.style.display = 'block';
-        }
-    }
-
-    if (existingRadio) existingRadio.addEventListener('change', updateFields);
-    if (newRadio) newRadio.addEventListener('change', updateFields);
-    updateFields();
-});
-</script>
 {% endblock %}

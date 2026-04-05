@@ -25,7 +25,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        {{ form_start(form) }}
+                        {{ form_start(form, {attr: {'data-controller': 'equipment-type-toggle'}}) }}
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     {{ form_row(form.type) }}
@@ -143,28 +143,4 @@
             </div>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const typeField = document.querySelector('[name="club_equipment[type]"]');
-            const bowFields = document.getElementById('bow-fields');
-            const arrowFields = document.getElementById('arrow-fields');
-
-            function updateFields() {
-                const selectedType = typeField.value;
-                
-                if (bowFields) {
-                    bowFields.classList.toggle('d-none', selectedType !== 'bow');
-                }
-                if (arrowFields) {
-                    arrowFields.classList.toggle('d-none', selectedType !== 'arrows');
-                }
-            }
-
-            if (typeField) {
-                typeField.addEventListener('change', updateFields);
-                updateFields(); // Initial state
-            }
-        });
-    </script>
 {% endblock %}

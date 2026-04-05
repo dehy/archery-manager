@@ -185,24 +185,28 @@
                                 {% if licensee.calendarToken %}
                                     {% set feed_url = url('app_calendar_feed', {token: licensee.calendarToken}) %}
                                     <div class="mb-2">
-                                        <div class="input-group input-group-sm">
+                                        <div class="input-group input-group-sm" data-controller="clipboard-copy">
                                             <input type="text"
                                                    class="form-control font-monospace"
                                                    id="calendar-feed-url-{{ licensee.id }}"
+                                                   data-clipboard-copy-target="source"
                                                    value="{{ feed_url }}"
                                                    readonly>
                                             <button class="btn btn-outline-secondary"
                                                     type="button"
-                                                    onclick="navigator.clipboard.writeText('{{ feed_url }}').then(() => { this.innerHTML = '<em class=\'fa-solid fa-check\'></em> Copié'; setTimeout(() => { this.innerHTML = '<em class=\'fa-solid fa-copy\'></em> Copier'; }, 2000); })"
+                                                    data-action="clipboard-copy#copy"
                                                     title="Copier le lien">
-                                                <em class="fa-solid fa-copy"></em> Copier
+                                                <em class="fa-solid fa-copy"></em>
+                                                <span data-clipboard-copy-target="label">Copier</span>
                                             </button>
                                         </div>
                                     </div>
                                     <div class="d-flex gap-2">
                                         <form method="post" action="{{ path('app_calendar_generate_token', {id: licensee.id}) }}">
                                             <button type="submit" class="btn btn-warning btn-sm"
-                                                    onclick="return confirm('Êtes-vous sûr ? L\'ancien lien cessera de fonctionner.')"
+                                                    data-controller="confirm-action"
+                                                    data-action="click->confirm-action#confirm"
+                                                    data-confirm-action-message-value="Êtes-vous sûr ? L'ancien lien cessera de fonctionner."
                                                     title="Générer un nouveau lien (l'ancien ne fonctionnera plus)">
                                                 <em class="fa-solid fa-rotate-right me-1"></em>
                                                 Regénérer
@@ -210,7 +214,9 @@
                                         </form>
                                         <form method="post" action="{{ path('app_calendar_revoke_token', {id: licensee.id}) }}">
                                             <button type="submit" class="btn btn-danger btn-sm"
-                                                    onclick="return confirm('Êtes-vous sûr ? Le lien cessera de fonctionner immédiatement.')"
+                                                    data-controller="confirm-action"
+                                                    data-action="click->confirm-action#confirm"
+                                                    data-confirm-action-message-value="Êtes-vous sûr ? Le lien cessera de fonctionner immédiatement."
                                                     title="Révoquer le lien d'abonnement">
                                                 <em class="fa-solid fa-xmark me-1"></em>
                                                 Révoquer
