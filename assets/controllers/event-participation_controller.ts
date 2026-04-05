@@ -2,6 +2,38 @@ import {ActionEvent, Controller} from "@hotwired/stimulus";
 import api from "../api";
 import axios from "axios";
 
+/**
+ * Manages an archer's participation state for a single event via the REST API.
+ *
+ * On connect the controller reads `data-event-id`, `data-licensee-id`, and
+ * optionally `data-participation-id` from its root element. If a participation
+ * already exists, its current state is fetched from the API and reflected in
+ * the UI immediately.
+ *
+ * Targets:
+ *   - `stateButtons` (HTMLButtonElement[]) — one button per possible state
+ *     (e.g. NOT_GOING / INTERESTED / REGISTERED). Each button carries a
+ *     `data-state` attribute with the state value it represents.
+ *
+ * Flow for state changes:
+ *   1. User clicks a state button → `updateParticipationState()` is called.
+ *   2. If a participation record exists → PATCH via `api.update()`.
+ *      Otherwise → POST via `api.create()` and store the new ID.
+ *   3. `updateUIFromEventParticipation()` updates button styles:
+ *      the active state gets a filled button, others get an outline variant.
+ *
+ * Usage (Twig):
+ *   <div data-controller="event-participation"
+ *        data-event-id="{{ event.id }}"
+ *        data-licensee-id="{{ licensee.id }}"
+ *        data-participation-id="{{ participation.id }}">
+ *     <button data-event-participation-target="stateButtons"
+ *             data-state="REGISTERED"
+ *             data-action="click->event-participation#updateParticipationState"
+ *             class="btn btn-success">Inscrit</button>
+ *     …
+ *   </div>
+ */
 export default class extends Controller<HTMLElement> {
     eventId?: string;
     participationId?: string;

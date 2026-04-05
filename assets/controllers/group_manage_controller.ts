@@ -20,6 +20,32 @@ type MemberTransferConfig = {
     defaultSuccessMessage: string;
 };
 
+/**
+ * Handles the interactive group-membership management page.
+ *
+ * The page shows two lists side-by-side:
+ *   - **Group members** (`#group-members`) — licensees currently in the group
+ *   - **Available licensees** (`#available-licensees`) — licensees not yet in
+ *     the group
+ *
+ * Users can move licensees between the two lists by clicking "Ajouter" /
+ * "Retirer" buttons. Each click submits a hidden Symfony form via `fetch` and,
+ * on success, moves the list item in the DOM without a full page reload.
+ *
+ * Targets:
+ *   - `alertContainer` — where dismissible alert messages are injected
+ *   - `addForm`        — hidden `<form>` that POSTs the add-member endpoint
+ *   - `removeForm`     — hidden `<form>` that POSTs the remove-member endpoint
+ *
+ * Public actions (bound via `data-action`):
+ *   - `handleClick`     — event-delegation entry point on the lists container;
+ *                         detects whether an add or remove button was clicked
+ *   - `filterAvailable` — live-search filter on the available licensees list
+ *
+ * The shared `transferMember()` private method drives both add and remove
+ * flows; directional differences are supplied via a `MemberTransferConfig`
+ * object so there is no duplicated logic.
+ */
 export default class GroupManageController extends Controller {
     static readonly targets = [
         'alertContainer',
