@@ -34,7 +34,7 @@ import axios from "axios";
  *     …
  *   </div>
  */
-export default class extends Controller<HTMLElement> {
+export default class EventParticipationController extends Controller<HTMLElement> {
     eventId?: string;
     participationId?: string;
     licenseeId?: string;

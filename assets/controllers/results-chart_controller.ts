@@ -16,7 +16,7 @@ import { Controller } from '@hotwired/stimulus';
  * Use on a `<canvas>` element rendered by the `chart()` Twig helper:
  *   {{ render_chart(chart, {'data-controller': 'results-chart'}) }}
  */
-export default class extends Controller<HTMLCanvasElement> {
+export default class ResultsChartController extends Controller<HTMLCanvasElement> {
     connect() {
         this.element.addEventListener('chartjs:pre-connect', this._onPreConnect);
         this.element.addEventListener('chartjs:connect', this._onConnect);

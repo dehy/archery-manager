@@ -199,7 +199,7 @@ export default class GroupManageController extends Controller {
         closeButton.type = 'button';
         closeButton.className = 'btn-close';
         closeButton.dataset.bsDismiss = 'alert';
-        closeButton.setAttribute('aria-label', 'Close');
+        closeButton.setAttribute('aria-label', 'Fermer');
 
         alert.appendChild(messageNode);
         alert.appendChild(closeButton);
