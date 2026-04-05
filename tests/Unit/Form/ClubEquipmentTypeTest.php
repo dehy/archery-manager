@@ -80,7 +80,7 @@ final class ClubEquipmentTypeTest extends TypeTestCase
         $this->assertSame('Test Arrows', $equipment->getName());
     }
 
-    public function testSubmitOtherTypeDoesNotHaveBowOrArrowFields(): void
+    public function testBowAndArrowFieldsAlwaysPresentForJsToggle(): void
     {
         $formData = [
             'type' => ClubEquipmentTypeEnum::OTHER,
@@ -94,23 +94,25 @@ final class ClubEquipmentTypeTest extends TypeTestCase
 
         $this->assertTrue($form->isSynchronized());
         $this->assertSame(ClubEquipmentTypeEnum::OTHER, $equipment->getType());
-        $this->assertFalse($form->has('bowType'));
-        $this->assertFalse($form->has('arrowType'));
+        // Bow and arrow fields are always added so the JS toggle can show/hide them
+        $this->assertTrue($form->has('bowType'));
+        $this->assertTrue($form->has('arrowType'));
     }
 
-    public function testPreSetDataAddsFieldsForExistingBow(): void
+    public function testFormAlwaysHasBowAndArrowFields(): void
     {
-        $equipment = new ClubEquipment();
-        $equipment->setType(ClubEquipmentTypeEnum::BOW);
-        $equipment->setName('Existing Bow');
-
-        $form = $this->factory->create(ClubEquipmentType::class, $equipment);
+        // Fields are always present regardless of equipment type, so JS can toggle visibility
+        $form = $this->factory->create(ClubEquipmentType::class);
 
         $this->assertTrue($form->has('bowType'));
         $this->assertTrue($form->has('brand'));
         $this->assertTrue($form->has('model'));
         $this->assertTrue($form->has('limbSize'));
         $this->assertTrue($form->has('limbStrength'));
+        $this->assertTrue($form->has('arrowType'));
+        $this->assertTrue($form->has('arrowLength'));
+        $this->assertTrue($form->has('arrowSpine'));
+        $this->assertTrue($form->has('fletchingType'));
     }
 
     public function testFormHasBaseFields(): void
@@ -122,6 +124,8 @@ final class ClubEquipmentTypeTest extends TypeTestCase
         $this->assertTrue($form->has('serialNumber'));
         $this->assertTrue($form->has('quantity'));
         $this->assertTrue($form->has('notes'));
+        $this->assertTrue($form->has('purchasePrice'));
+        $this->assertTrue($form->has('purchaseDate'));
     }
 
     public function testAllEquipmentTypesAreSubmittable(): void
