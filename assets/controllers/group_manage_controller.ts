@@ -6,6 +6,20 @@ type GroupActionResponse = {
     error?: string;
 };
 
+type MemberTransferConfig = {
+    form: HTMLFormElement;
+    loadingLabel: string;
+    loadingIcon: string;
+    idleLabel: string;
+    idleIcon: string;
+    nextLabel: string;
+    nextIcon: string;
+    nextButtonClass: string;
+    targetContainer: () => HTMLElement | null;
+    targetContainerError: string;
+    defaultSuccessMessage: string;
+};
+
 export default class GroupManageController extends Controller {
     static readonly targets = [
         'alertContainer',
@@ -55,102 +69,98 @@ export default class GroupManageController extends Controller {
     }
 
     private async addMember(button: HTMLButtonElement): Promise<void> {
-        const licenseeId = button.dataset.licenseeId;
-        const listItem = button.closest<HTMLElement>('.list-group-item');
-
-        if (!licenseeId || !listItem) {
-            return;
-        }
-
-        this.setButtonState(button, true, 'fa-spinner fa-spin', 'Ajout...');
-
-        try {
-            this.setFormLicenseeId(this.addFormTarget, licenseeId);
-            const response = await this.postForm(this.addFormTarget);
-
-            if (!response.success) {
-                this.showAlert(response.error ?? 'Une erreur est survenue', 'danger');
-                this.setButtonState(button, false, 'fa-plus', 'Ajouter');
-                return;
-            }
-
-            const movedItem = listItem.cloneNode(true) as HTMLElement;
-            const movedButton = movedItem.querySelector<HTMLButtonElement>('button');
-            if (movedButton) {
-                movedButton.className = 'btn btn-sm btn-outline-danger remove-member-btn';
-                movedButton.dataset.licenseeId = button.dataset.licenseeId;
-                movedButton.dataset.licenseeName = button.dataset.licenseeName;
-                this.setButtonLabel(movedButton, 'fa-minus', 'Retirer');
-            }
-
-            const groupMembersContainer = this.getGroupMembersContainer();
-            if (!groupMembersContainer) {
-                this.showAlert('Impossible de mettre à jour la liste des membres.', 'danger');
-                this.setButtonState(button, false, 'fa-plus', 'Ajouter');
-                return;
-            }
-
-            groupMembersContainer.appendChild(movedItem);
-            listItem.remove();
-            this.showAlert(response.message ?? 'Membre ajouté.');
-            this.updateCounts();
-        } catch (error) {
-            console.error('Erreur:', error);
-            this.showAlert('Une erreur est survenue', 'danger');
-            this.setButtonState(button, false, 'fa-plus', 'Ajouter');
-        }
+        await this.transferMember(button, {
+            form: this.addFormTarget,
+            loadingLabel: 'Ajout...',
+            loadingIcon: 'fa-spinner fa-spin',
+            idleLabel: 'Ajouter',
+            idleIcon: 'fa-plus',
+            nextLabel: 'Retirer',
+            nextIcon: 'fa-minus',
+            nextButtonClass: 'btn btn-sm btn-outline-danger remove-member-btn',
+            targetContainer: () => this.getGroupMembersContainer(),
+            targetContainerError: 'Impossible de mettre à jour la liste des membres.',
+            defaultSuccessMessage: 'Membre ajouté.',
+        });
     }
 
     private async removeMember(button: HTMLButtonElement): Promise<void> {
-        const licenseeId = button.dataset.licenseeId;
         const licenseeName = button.dataset.licenseeName ?? '';
-        const listItem = button.closest<HTMLElement>('.list-group-item');
-
-        if (!licenseeId || !listItem) {
-            return;
-        }
-
         if (!globalThis.confirm(`Êtes-vous sûr de vouloir retirer ${licenseeName} du groupe ?`)) {
             return;
         }
 
-        this.setButtonState(button, true, 'fa-spinner fa-spin', 'Suppression...');
+        await this.transferMember(button, {
+            form: this.removeFormTarget,
+            loadingLabel: 'Suppression...',
+            loadingIcon: 'fa-spinner fa-spin',
+            idleLabel: 'Retirer',
+            idleIcon: 'fa-minus',
+            nextLabel: 'Ajouter',
+            nextIcon: 'fa-plus',
+            nextButtonClass: 'btn btn-sm btn-outline-success add-member-btn',
+            targetContainer: () => this.getAvailableLicenseesContainer(),
+            targetContainerError: 'Impossible de mettre à jour la liste des licenciés.',
+            defaultSuccessMessage: 'Membre retiré.',
+        });
+    }
+
+    private async transferMember(button: HTMLButtonElement, config: MemberTransferConfig): Promise<void> {
+        const licenseeId = button.dataset.licenseeId;
+        const listItem = button.closest<HTMLElement>('.list-group-item');
+
+        if (!licenseeId || !listItem) {
+            return;
+        }
+
+        this.setButtonState(button, true, config.loadingIcon, config.loadingLabel);
 
         try {
-            this.setFormLicenseeId(this.removeFormTarget, licenseeId);
-            const response = await this.postForm(this.removeFormTarget);
+            this.setFormLicenseeId(config.form, licenseeId);
+            const response = await this.postForm(config.form);
 
             if (!response.success) {
                 this.showAlert(response.error ?? 'Une erreur est survenue', 'danger');
-                this.setButtonState(button, false, 'fa-minus', 'Retirer');
+                this.setButtonState(button, false, config.idleIcon, config.idleLabel);
                 return;
             }
 
-            const movedItem = listItem.cloneNode(true) as HTMLElement;
-            const movedButton = movedItem.querySelector<HTMLButtonElement>('button');
-            if (movedButton) {
-                movedButton.className = 'btn btn-sm btn-outline-success add-member-btn';
-                movedButton.dataset.licenseeId = button.dataset.licenseeId;
-                movedButton.dataset.licenseeName = button.dataset.licenseeName;
-                this.setButtonLabel(movedButton, 'fa-plus', 'Ajouter');
-            }
-
-            const availableContainer = this.getAvailableLicenseesContainer();
-            if (!availableContainer) {
-                this.showAlert('Impossible de mettre à jour la liste des licenciés.', 'danger');
-                this.setButtonState(button, false, 'fa-minus', 'Retirer');
+            const targetContainer = config.targetContainer();
+            if (!targetContainer) {
+                this.showAlert(config.targetContainerError, 'danger');
+                this.setButtonState(button, false, config.idleIcon, config.idleLabel);
                 return;
             }
 
-            availableContainer.appendChild(movedItem);
+            const movedItem = this.buildMovedItem(listItem, button, config);
+            targetContainer.appendChild(movedItem);
+
             listItem.remove();
-            this.showAlert(response.message ?? 'Membre retiré.');
+            this.showAlert(response.message ?? config.defaultSuccessMessage);
             this.updateCounts();
         } catch (error) {
             console.error('Erreur:', error);
             this.showAlert('Une erreur est survenue', 'danger');
-            this.setButtonState(button, false, 'fa-minus', 'Retirer');
+            this.setButtonState(button, false, config.idleIcon, config.idleLabel);
         }
+    }
+
+    private buildMovedItem(
+        listItem: HTMLElement,
+        sourceButton: HTMLButtonElement,
+        config: MemberTransferConfig,
+    ): HTMLElement {
+        const movedItem = listItem.cloneNode(true) as HTMLElement;
+        const movedButton = movedItem.querySelector<HTMLButtonElement>('button');
+
+        if (movedButton) {
+            movedButton.className = config.nextButtonClass;
+            movedButton.dataset.licenseeId = sourceButton.dataset.licenseeId;
+            movedButton.dataset.licenseeName = sourceButton.dataset.licenseeName;
+            this.setButtonLabel(movedButton, config.nextIcon, config.nextLabel);
+        }
+
+        return movedItem;
     }
 
     private showAlert(message: string, type: 'success' | 'danger' = 'success'): void {
