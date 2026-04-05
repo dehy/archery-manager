@@ -91,7 +91,7 @@ export default class ModalController extends Controller {
 
             if (response.redirected) {
                 if (this.#isSafeRedirectUrl(response.url)) {
-                    window.location.href = response.url;
+                    globalThis.location.href = response.url;
                     return;
                 }
                 console.warn('Blocked unsafe redirect URL:', response.url);
@@ -127,8 +127,8 @@ export default class ModalController extends Controller {
 
     #isSafeRedirectUrl(url: string): boolean {
         try {
-            const redirectUrl = new URL(url, window.location.href);
-            return redirectUrl.origin === window.location.origin;
+            const redirectUrl = new URL(url, globalThis.location.href);
+            return redirectUrl.origin === globalThis.location.origin;
         } catch {
             return false;
         }

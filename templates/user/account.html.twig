@@ -202,21 +202,21 @@
                                         </div>
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <form method="post" action="{{ path('app_calendar_generate_token', {id: licensee.id}) }}">
+                                        <form method="post" action="{{ path('app_calendar_generate_token', {id: licensee.id}) }}"
+                                              data-controller="confirm-action"
+                                              data-action="submit->confirm-action#confirm"
+                                              data-confirm-action-message-value="Êtes-vous sûr ? L'ancien lien cessera de fonctionner.">
                                             <button type="submit" class="btn btn-warning btn-sm"
-                                                    data-controller="confirm-action"
-                                                    data-action="click->confirm-action#confirm"
-                                                    data-confirm-action-message-value="Êtes-vous sûr ? L'ancien lien cessera de fonctionner."
                                                     title="Générer un nouveau lien (l'ancien ne fonctionnera plus)">
                                                 <em class="fa-solid fa-rotate-right me-1"></em>
                                                 Regénérer
                                             </button>
                                         </form>
-                                        <form method="post" action="{{ path('app_calendar_revoke_token', {id: licensee.id}) }}">
+                                        <form method="post" action="{{ path('app_calendar_revoke_token', {id: licensee.id}) }}"
+                                              data-controller="confirm-action"
+                                              data-action="submit->confirm-action#confirm"
+                                              data-confirm-action-message-value="Êtes-vous sûr ? Le lien cessera de fonctionner immédiatement.">
                                             <button type="submit" class="btn btn-danger btn-sm"
-                                                    data-controller="confirm-action"
-                                                    data-action="click->confirm-action#confirm"
-                                                    data-confirm-action-message-value="Êtes-vous sûr ? Le lien cessera de fonctionner immédiatement."
                                                     title="Révoquer le lien d'abonnement">
                                                 <em class="fa-solid fa-xmark me-1"></em>
                                                 Révoquer
