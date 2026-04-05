@@ -27,7 +27,7 @@ export default class ConfirmActionController extends Controller {
     declare readonly messageValue: string;
 
     confirm(event: Event): void {
-        if (window.confirm(this.messageValue)) {
+        if (globalThis.confirm(this.messageValue)) {
             return;
         }
 
