@@ -88,7 +88,9 @@
                                                 <td>
                                                     {% if application.isPending %}
                                                         <form method="post" action="{{ path('app_club_application_cancel', { id: application.id }) }}"
-                                                              onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette demande ?')">
+                                                              data-controller="confirm-action"
+                                                              data-action="submit->confirm-action#confirm"
+                                                              data-confirm-action-message-value="Êtes-vous sûr de vouloir annuler cette demande ?">
                                                             <input type="hidden" name="_token" value="{{ csrf_token('cancel_application_' ~ application.id) }}">
                                                             <button type="submit" class="btn btn-outline-danger btn-sm">
                                                                 <em class="fa-solid fa-ban me-1"></em>

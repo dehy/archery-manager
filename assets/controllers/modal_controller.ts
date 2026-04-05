@@ -1,6 +1,39 @@
 import {ActionEvent, Controller} from "@hotwired/stimulus";
 import {Modal} from 'bootstrap';
 
+/**
+ * Generic Bootstrap modal that loads its content from a remote URL and
+ * optionally submits an embedded form without leaving the page.
+ *
+ * Targets:
+ *   - `modal`  (HTMLDivElement)    — the Bootstrap `.modal` root element
+ *   - `title`  (HTMLHeadingElement)— the modal title (`<h5>` inside `.modal-header`)
+ *   - `body`   (HTMLDivElement)    — the modal body where remote HTML is injected
+ *   - `submit` (HTMLButtonElement) — the footer "Submit" button (hidden when the
+ *               loaded content contains no `<form>`)
+ *
+ * Usage on a trigger element:
+ *   <a href="/event/42/participation"
+ *      data-action="click->modal#open"
+ *      data-title="Participation"
+ *      data-size="lg">       ← optional: sm | lg | xl
+ *     Modifier
+ *   </a>
+ *
+ * Open flow:
+ *   1. `open()` prevents the default navigation, sets the title, and shows the
+ *      Bootstrap modal with a "Chargement…" placeholder.
+ *   2. The URL from `href` is fetched; the response HTML is injected into the
+ *      body via `#setBody()`, which also parses and finds any embedded form.
+ *   3. If a form is found, the Submit button is shown.
+ *
+ * Submit flow:
+ *   1. `submit()` serialises the embedded form as `FormData` and POSTs it.
+ *   2. If the server responds with a redirect, the origin is validated
+ *      (SSRF / open-redirect guard) and the browser navigates there.
+ *   3. If the server returns HTML (e.g. validation errors), it replaces the
+ *      modal body so the user can correct the form inline.
+ */
 export default class ModalController extends Controller {
     static readonly targets = ["modal", "title", "body", "submit"];
 
@@ -58,7 +91,7 @@ export default class ModalController extends Controller {
 
             if (response.redirected) {
                 if (this.#isSafeRedirectUrl(response.url)) {
-                    window.location.href = response.url;
+                    globalThis.location.href = response.url;
                     return;
                 }
                 console.warn('Blocked unsafe redirect URL:', response.url);
@@ -94,8 +127,8 @@ export default class ModalController extends Controller {
 
     #isSafeRedirectUrl(url: string): boolean {
         try {
-            const redirectUrl = new URL(url, window.location.href);
-            return redirectUrl.origin === window.location.origin;
+            const redirectUrl = new URL(url, globalThis.location.href);
+            return redirectUrl.origin === globalThis.location.origin;
         } catch {
             return false;
         }

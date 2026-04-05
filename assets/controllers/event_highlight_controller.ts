@@ -1,5 +1,35 @@
 import { Controller } from "@hotwired/stimulus";
 
+/**
+ * Synchronises hover highlights between the event list and the calendar grid
+ * on the homepage/dashboard view.
+ *
+ * When the user hovers over a list item, the matching calendar event gains the
+ * `highlight` CSS class, and vice-versa. Both directions work independently.
+ *
+ * Matching is done via `data-event-id` attributes; an event can appear more
+ * than once in the calendar (e.g. multi-day), so the controller handles
+ * multiple calendar elements sharing the same ID.
+ *
+ * Targets:
+ *   - `listItem`      (HTMLElement[]) — rows in the upcoming-events list
+ *   - `calendarEvent` (HTMLElement[]) — cells in the calendar grid
+ *
+ * Bound handler references are stored as instance properties so that the same
+ * function objects can be passed to both `addEventListener` and
+ * `removeEventListener`, ensuring proper cleanup on `disconnect`.
+ *
+ * Usage:
+ *   <div data-controller="event-highlight">
+ *     <!-- list -->
+ *     <div class="event-list-item"
+ *          data-event-highlight-target="listItem"
+ *          data-event-id="42">…</div>
+ *     <!-- calendar -->
+ *     <div data-event-highlight-target="calendarEvent"
+ *          data-event-id="42">…</div>
+ *   </div>
+ */
 export default class EventHighlightController extends Controller {
     static readonly targets = ["listItem", "calendarEvent"];
 

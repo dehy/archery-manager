@@ -17,8 +17,6 @@ use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ClubEquipmentType extends AbstractType
@@ -34,9 +32,6 @@ class ClubEquipmentType extends AbstractType
                 'choices' => ClubEquipmentTypeEnum::getChoices(),
                 'choice_label' => ClubEquipmentTypeEnum::getReadableValue(...),
                 'placeholder' => self::PLACEHOLDER_SELECT_TYPE,
-                'attr' => [
-                    'data-equipment-type-target' => 'equipmentType',
-                ],
             ])
             ->add('name', TextType::class, [
                 'label' => 'Nom / Identification',
@@ -81,35 +76,12 @@ class ClubEquipmentType extends AbstractType
             ])
         ;
 
-        // Add type-specific fields conditionally
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
-            $equipment = $event->getData();
-            $form = $event->getForm();
-
-            if ($equipment instanceof ClubEquipment && ClubEquipmentTypeEnum::BOW === $equipment->getType()) {
-                $this->addBowFields($form);
-            } elseif ($equipment instanceof ClubEquipment && ClubEquipmentTypeEnum::ARROWS === $equipment->getType()) {
-                $this->addArrowFields($form);
-            }
-        });
-
-        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event): void {
-            $data = $event->getData();
-            $form = $event->getForm();
-
-            // Add bow-specific fields if type is bow
-            if (isset($data['type']) && ClubEquipmentTypeEnum::BOW === $data['type']) {
-                $this->addBowFields($form);
-            }
-
-            // Add arrow-specific fields if type is arrows
-            if (isset($data['type']) && ClubEquipmentTypeEnum::ARROWS === $data['type']) {
-                $this->addArrowFields($form);
-            }
-        });
+        // Always add all type-specific fields; JS (equipment-type-toggle controller) handles visibility
+        $this->addBowFields($builder);
+        $this->addArrowFields($builder);
     }
 
-    private function addBowFields(\Symfony\Component\Form\FormInterface $form): void
+    private function addBowFields(FormBuilderInterface $form): void
     {
         $form
             ->add('bowType', ChoiceType::class, [
@@ -140,7 +112,7 @@ class ClubEquipmentType extends AbstractType
         ;
     }
 
-    private function addArrowFields(\Symfony\Component\Form\FormInterface $form): void
+    private function addArrowFields(FormBuilderInterface $form): void
     {
         $form
             ->add('arrowType', ChoiceType::class, [

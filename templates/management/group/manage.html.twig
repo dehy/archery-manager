@@ -3,6 +3,7 @@
 {% block title %}Gestion du groupe {{ group.name }}{% endblock %}
 
 {% block body %}
+    <div data-controller="group-manage" data-action="click->group-manage#handleClick">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1>Gestion du groupe</h1>
@@ -20,7 +21,7 @@
     </div>
 
     <!-- Messages d'alerte -->
-    <div id="alert-container"></div>
+    <div id="alert-container" data-group-manage-target="alertContainer"></div>
 
     <div class="row">
         <!-- Membres actuels du groupe -->
@@ -41,7 +42,9 @@
                     {% else %}
                         <div class="list-group list-group-flush" id="group-members">
                             {% for licensee in groupMembers %}
-                                <div class="list-group-item d-flex justify-content-between align-items-center" data-licensee-id="{{ licensee.id }}">
+                                <div class="list-group-item d-flex justify-content-between align-items-center licensee-item"
+                                     data-licensee-id="{{ licensee.id }}"
+                                     data-search-text="{{ licensee.fullname|lower }} {{ licensee.fftaMemberCode|default('')|lower }}">
                                     <div class="d-flex align-items-center">
                                         <img src="{{ licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}"
                                              class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;" alt="">
@@ -86,6 +89,7 @@
                             <input type="text" 
                                    class="form-control" 
                                    id="search-available" 
+                                data-action="input->group-manage#filterAvailable"
                                    placeholder="Rechercher un licencié...">
                         </div>
                         <div class="list-group list-group-flush" id="available-licensees" style="max-height: 400px; overflow-y: auto;">
@@ -151,172 +155,13 @@
 
     {# Hidden Symfony forms — provide automatic CSRF token for AJAX member actions #}
     <div class="d-none">
-        {{ form_start(addMemberForm, {attr: {id: 'add-member-form'}}) }}
+        {{ form_start(addMemberForm, {attr: {id: 'add-member-form', 'data-group-manage-target': 'addForm'}}) }}
         {{ form_widget(addMemberForm.licenseeId) }}
         {{ form_end(addMemberForm) }}
 
-        {{ form_start(removeMemberForm, {attr: {id: 'remove-member-form'}}) }}
+        {{ form_start(removeMemberForm, {attr: {id: 'remove-member-form', 'data-group-manage-target': 'removeForm'}}) }}
         {{ form_widget(removeMemberForm.licenseeId) }}
         {{ form_end(removeMemberForm) }}
     </div>
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const addForm = document.getElementById('add-member-form');
-            const removeForm = document.getElementById('remove-member-form');
-            const alertContainer = document.getElementById('alert-container');
-
-            // Fonction pour afficher des alertes
-            function showAlert(message, type = 'success') {
-                const alert = document.createElement('div');
-                alert.className = `alert alert-${type} alert-dismissible fade show`;
-                alert.innerHTML = `
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                `;
-                alertContainer.appendChild(alert);
-                
-                // Auto-dismiss après 5 secondes
-                setTimeout(() => {
-                    if (alert.parentNode) {
-                        alert.remove();
-                    }
-                }, 5000);
-            }
-
-            // Fonction pour mettre à jour les compteurs
-            function updateCounts() {
-                const membersCount = document.querySelectorAll('#group-members .list-group-item').length;
-                const availableCount = document.querySelectorAll('#available-licensees .list-group-item:not(.d-none)').length;
-                
-                document.getElementById('members-count').textContent = membersCount;
-                document.getElementById('available-count').textContent = availableCount;
-            }
-
-            // Ajouter un membre au groupe
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.add-member-btn')) {
-                    const btn = e.target.closest('.add-member-btn');
-                    const licenseeId = btn.dataset.licenseeId;
-                    const licenseeName = btn.dataset.licenseeName;
-                    const listItem = btn.closest('.list-group-item');
-
-                    btn.disabled = true;
-                    btn.innerHTML = '<em class="fa-solid fa-spinner fa-spin"></em> Ajout...';
-
-                    addForm.querySelector('[name="group_member_action[licenseeId]"]').value = licenseeId;
-                    fetch(addForm.action, {
-                        method: 'POST',
-                        body: new FormData(addForm),
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Déplacer l'élément vers la liste des membres
-                            const groupMembers = document.getElementById('group-members');
-                            const newItem = listItem.cloneNode(true);
-                            
-                            // Changer le bouton pour "Retirer"
-                            const newBtn = newItem.querySelector('button');
-                            newBtn.className = 'btn btn-sm btn-outline-danger remove-member-btn';
-                            newBtn.innerHTML = '<em class="fa-solid fa-minus"></em> Retirer';
-                            newBtn.dataset.licenseeId = licenseeId;
-                            newBtn.dataset.licenseeName = licenseeName;
-                            
-                            groupMembers.appendChild(newItem);
-                            listItem.remove();
-                            
-                            showAlert(data.message);
-                            updateCounts();
-                        } else {
-                            showAlert(data.error, 'danger');
-                            btn.disabled = false;
-                            btn.innerHTML = '<em class="fa-solid fa-plus"></em> Ajouter';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erreur:', error);
-                        showAlert('Une erreur est survenue', 'danger');
-                        btn.disabled = false;
-                        btn.innerHTML = '<em class="fa-solid fa-plus"></em> Ajouter';
-                    });
-                }
-            });
-
-            // Retirer un membre du groupe
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.remove-member-btn')) {
-                    const btn = e.target.closest('.remove-member-btn');
-                    const licenseeId = btn.dataset.licenseeId;
-                    const licenseeName = btn.dataset.licenseeName;
-                    const listItem = btn.closest('.list-group-item');
-
-                    if (!confirm(`Êtes-vous sûr de vouloir retirer ${licenseeName} du groupe ?`)) {
-                        return;
-                    }
-
-                    btn.disabled = true;
-                    btn.innerHTML = '<em class="fa-solid fa-spinner fa-spin"></em> Suppression...';
-
-                    removeForm.querySelector('[name="group_member_action[licenseeId]"]').value = licenseeId;
-                    fetch(removeForm.action, {
-                        method: 'POST',
-                        body: new FormData(removeForm),
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Déplacer l'élément vers la liste des disponibles
-                            const availableLicensees = document.getElementById('available-licensees');
-                            const newItem = listItem.cloneNode(true);
-                            
-                            // Changer le bouton pour "Ajouter"
-                            const newBtn = newItem.querySelector('button');
-                            newBtn.className = 'btn btn-sm btn-outline-success add-member-btn';
-                            newBtn.innerHTML = '<em class="fa-solid fa-plus"></em> Ajouter';
-                            newBtn.dataset.licenseeId = licenseeId;
-                            newBtn.dataset.licenseeName = licenseeName;
-                            
-                            availableLicensees.appendChild(newItem);
-                            listItem.remove();
-                            
-                            showAlert(data.message);
-                            updateCounts();
-                        } else {
-                            showAlert(data.error, 'danger');
-                            btn.disabled = false;
-                            btn.innerHTML = '<em class="fa-solid fa-minus"></em> Retirer';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erreur:', error);
-                        showAlert('Une erreur est survenue', 'danger');
-                        btn.disabled = false;
-                        btn.innerHTML = '<em class="fa-solid fa-minus"></em> Retirer';
-                    });
-                }
-            });
-
-            // Fonction de recherche
-            const searchInput = document.getElementById('search-available');
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    const licenseeItems = document.querySelectorAll('#available-licensees .licensee-item');
-                    
-                    licenseeItems.forEach(item => {
-                        const searchText = item.dataset.searchText;
-                        if (searchText.includes(searchTerm)) {
-                            item.classList.remove('d-none');
-                        } else {
-                            item.classList.add('d-none');
-                        }
-                    });
-                });
-            }
-        });
-    </script>
+    </div>
 {% endblock %}

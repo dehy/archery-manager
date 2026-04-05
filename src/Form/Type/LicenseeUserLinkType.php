@@ -35,6 +35,9 @@ class LicenseeUserLinkType extends AbstractType
                     'Lier à un utilisateur existant' => 'existing',
                     'Créer un nouveau compte' => 'new',
                 ],
+                'choice_attr' => static fn (string $value): array => 'existing' === $value
+                    ? ['data-user-choice-target' => 'existingRadio']
+                    : [],
                 'expanded' => true,
                 'required' => true,
                 'data' => 'new',

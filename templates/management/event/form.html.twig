@@ -41,7 +41,7 @@
                 {% endif %}
             </div>
 
-            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'data-controller': 'event-all-day'}}) }}
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
@@ -97,7 +97,7 @@
                         <!-- Événement toute la journée -->
                         <div class="col-12">
                             <div class="form-check form-switch">
-                                {{ form_widget(form.allDay) }}
+                                {{ form_widget(form.allDay, {'attr': {'data-event-all-day-target': 'allDay', 'data-action': 'change->event-all-day#updateTimes'}}) }}
                                 {{ form_label(form.allDay, null, {'label_attr': {'class': 'form-check-label'}}) }}
                             </div>
                         </div>
@@ -106,7 +106,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 {{ form_label(form.startsAt, null, {'label_attr': {'class': 'form-label fw-medium'}}) }}
-                                {{ form_widget(form.startsAt) }}
+                                {{ form_widget(form.startsAt, {'attr': {'data-event-all-day-target': 'startsAt'}}) }}
                                 {{ form_errors(form.startsAt) }}
                             </div>
                         </div>
@@ -115,7 +115,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 {{ form_label(form.endsAt, null, {'label_attr': {'class': 'form-label fw-medium'}}) }}
-                                {{ form_widget(form.endsAt) }}
+                                {{ form_widget(form.endsAt, {'attr': {'data-event-all-day-target': 'endsAt'}}) }}
                                 {{ form_errors(form.endsAt) }}
                             </div>
                         </div>
@@ -283,26 +283,4 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Gestion de l'option "Toute la journée"
-    const allDayCheckbox = document.querySelector('#{{ form.allDay.vars.id }}');
-    const startDateInput = document.querySelector('#{{ form.startsAt.vars.id }}');
-    const endDateInput = document.querySelector('#{{ form.endsAt.vars.id }}');
-    
-    if (allDayCheckbox) {
-        allDayCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                // Si toute la journée, on met les heures à 00:00 et 23:59
-                if (startDateInput.value) {
-                    startDateInput.value = startDateInput.value.substring(0, 10) + 'T00:00';
-                }
-                if (endDateInput.value) {
-                    endDateInput.value = endDateInput.value.substring(0, 10) + 'T23:59';
-                }
-            }
-        });
-    }
-});
-</script>
 {% endblock %}

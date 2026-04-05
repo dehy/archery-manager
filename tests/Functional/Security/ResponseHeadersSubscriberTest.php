@@ -34,7 +34,9 @@ final class ResponseHeadersSubscriberTest extends LoggedInTestCase
 
         $csp = $response->headers->get(self::HEADER_CSP, '');
         $this->assertStringContainsString("default-src 'self'", (string) $csp);
-        $this->assertStringContainsString("script-src 'self' 'unsafe-inline'", (string) $csp);
+        $this->assertStringContainsString("script-src 'self'", (string) $csp);
+        // Assert that unsafe-inline is absent from the script-src directive regardless of other tokens
+        $this->assertDoesNotMatchRegularExpression("/script-src[^;]*'unsafe-inline'/", (string) $csp);
         $this->assertStringContainsString("frame-ancestors 'none'", (string) $csp);
     }
 

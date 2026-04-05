@@ -134,7 +134,9 @@
                                             <td>
                                                 <form method="post"
                                                       action="{{ path('app_club_equipment_return_loan', {loanId: loan.id}) }}"
-                                                      onsubmit="return confirm('Confirmer le retour de cet équipement ?');"
+                                                      data-controller="confirm-action"
+                                                      data-action="submit->confirm-action#confirm"
+                                                      data-confirm-action-message-value="Confirmer le retour de cet équipement ?"
                                                       class="d-inline">
                                                     <button type="submit" class="btn btn-sm btn-success">
                                                         <em class="fa-solid fa-check me-1"></em>

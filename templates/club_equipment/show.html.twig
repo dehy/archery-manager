@@ -213,7 +213,9 @@
                                                 <td>
                                                     <form method="post"
                                                           action="{{ path('app_club_equipment_return_loan', {loanId: loan.id}) }}"
-                                                          onsubmit="return confirm('Confirmer le retour ?');">
+                                                          data-controller="confirm-action"
+                                                          data-action="submit->confirm-action#confirm"
+                                                          data-confirm-action-message-value="Confirmer le retour ?">
                                                         <button type="submit" class="btn btn-sm btn-success">
                                                             <em class="fa-solid fa-check me-1"></em>
                                                             Retourné
@@ -260,7 +262,9 @@
                         {% endif %}
                         <form method="post" 
                               action="{{ path('app_club_equipment_delete', {id: equipment.id}) }}"
-                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet équipement ?');"
+                            data-controller="confirm-action"
+                            data-action="submit->confirm-action#confirm"
+                            data-confirm-action-message-value="Êtes-vous sûr de vouloir supprimer cet équipement ?"
                               class="d-inline">
                             <button type="submit" class="btn btn-danger" {{ equipment.isCurrentlyLoaned ? 'disabled' : '' }}>
                                 <em class="fa-solid fa-trash me-2"></em>

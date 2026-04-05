@@ -16,19 +16,20 @@
                 <div class="card-body">
                     <p class="lead">Comment souhaitez-vous créer le licencié ?</p>
 
-                    <form method="post" action="{{ path('app_licensee_new_choice') }}">
+                    <form method="post" action="{{ path('app_licensee_new_choice') }}" data-controller="licensee-choice" data-action="change->licensee-choice#update">
                         <div class="mb-4">
                             <div class="form-check mb-3">
-                                <input class="form-check-input" type="radio" name="choice" id="choice_sync" value="sync" disabled>
+                                <input class="form-check-input" type="radio" name="choice" id="choice_sync" value="sync" disabled data-licensee-choice-target="syncRadio">
                                 <label class="form-check-label text-muted" for="choice_sync">
                                     <strong>Synchroniser depuis la FFTA</strong>
                                     <small class="d-block text-muted">Temporairement désactivé (fonctionnalité en maintenance)</small>
                                 </label>
                             </div>
 
-                            <div id="ffta_code_field" class="ms-4 mb-3" style="display: none;">
+                            <div id="ffta_code_field" class="ms-4 mb-3 d-none" data-licensee-choice-target="field">
                                 <label for="ffta_member_code" class="form-label">Code licence FFTA</label>
                                 <input type="text" class="form-control" id="ffta_member_code" name="ffta_member_code" 
+                                       data-licensee-choice-target="input"
                                        placeholder="8 caractères" maxlength="8" pattern="[A-Z0-9]{8}">
                             </div>
 
@@ -58,26 +59,4 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const syncRadio = document.getElementById('choice_sync');
-    const manualRadio = document.getElementById('choice_manual');
-    const fftaField = document.getElementById('ffta_code_field');
-    const fftaInput = document.getElementById('ffta_member_code');
-
-    function updateFftaField() {
-        if (syncRadio.checked) {
-            fftaField.style.display = 'block';
-            fftaInput.required = true;
-        } else {
-            fftaField.style.display = 'none';
-            fftaInput.required = false;
-        }
-    }
-
-    syncRadio.addEventListener('change', updateFftaField);
-    manualRadio.addEventListener('change', updateFftaField);
-    updateFftaField();
-});
-</script>
 {% endblock %}
