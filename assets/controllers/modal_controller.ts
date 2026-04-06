@@ -113,7 +113,7 @@ export default class ModalController extends Controller {
         const form = this.#getForm(clean);
         if (form !== null) {
             this.form = form;
-            this.submitTarget?.classList.remove('d-none');
+            this.submitTarget.classList.remove('d-none');
         } else {
             this.form = null;
             this.submitTarget.classList.add('d-none');
