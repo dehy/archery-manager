@@ -1,5 +1,6 @@
 import {ActionEvent, Controller} from "@hotwired/stimulus";
 import {Modal} from 'bootstrap';
+import DOMPurify from 'dompurify';
 
 /**
  * Generic Bootstrap modal that loads its content from a remote URL and
@@ -108,8 +109,8 @@ export default class ModalController extends Controller {
     }
 
     #setBody(html: string) {
-        const doc = new DOMParser().parseFromString(html, "text/html");
-        const form = this.#getForm(doc);
+        const clean = DOMPurify.sanitize(html, {RETURN_DOM_FRAGMENT: true});
+        const form = this.#getForm(clean);
         if (form !== null) {
             this.form = form;
             this.submitTarget?.classList.remove('d-none');
@@ -118,11 +119,11 @@ export default class ModalController extends Controller {
             this.submitTarget.classList.add('d-none');
         }
         this.bodyTarget.replaceChildren(
-            ...Array.from(doc.body.childNodes).map(node => document.adoptNode(node)),
+            ...Array.from(clean.childNodes).map(node => document.adoptNode(node)),
         );
     }
 
-    #getForm(element: HTMLElement|Document): HTMLFormElement | null {
+    #getForm(element: HTMLElement|Document|DocumentFragment): HTMLFormElement | null {
         const forms = element.getElementsByTagName('form');
         return forms.length > 0 ? forms.item(0) : null;
     }
