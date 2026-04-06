@@ -124,8 +124,7 @@ export default class ModalController extends Controller {
     }
 
     #getForm(element: HTMLElement|Document|DocumentFragment): HTMLFormElement | null {
-        const forms = element.getElementsByTagName('form');
-        return forms.length > 0 ? forms.item(0) : null;
+        return element.querySelector('form');
     }
 
     #isSafeRedirectUrl(url: string): boolean {
