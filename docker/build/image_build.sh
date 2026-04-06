@@ -23,7 +23,6 @@ apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     git \
-    gosu \
     jq \
     netcat-openbsd \
     nginx-light \

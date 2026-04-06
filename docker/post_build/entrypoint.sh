@@ -6,7 +6,7 @@ APP_ROOT_PATH=/app
 
 export DEBIAN_FRONTEND=noninteractive
 export FORCE_COLOR=0
-GOSU="/usr/sbin/gosu symfony"
+SETPRIV="setpriv --reuid=symfony --regid=symfony --init-groups --"
 
 for dir in $(mount | grep "${APP_ROOT_PATH}" | grep 'rw' | awk '{ print $3 }')
 do
@@ -63,7 +63,7 @@ if [[ -z "${1:-}" && ("${APP_ENV}" == "dev" || "${APP_ENV}" == "test") ]]; then
         apt-get autoremove -y
     fi
 
-    ${GOSU} composer install --prefer-dist
+    ${SETPRIV} composer install --prefer-dist
 fi
 
 DATABASE_URL_PARTS=$(php -r "echo json_encode(parse_url('${DATABASE_URL}'));")
@@ -77,37 +77,37 @@ done
 
 if [[ -z "${1:-}" ]]; then
     # Executing migrations
-    ${GOSU} php bin/console doctrine:migrations:migrate --no-interaction
+    ${SETPRIV} php bin/console doctrine:migrations:migrate --no-interaction
 fi
 
 # System Under Test
 if [[ "${1:-}" == "sut" ]]; then
-    ${GOSU} composer install --prefer-dist
+    ${SETPRIV} composer install --prefer-dist
 
     # Build frontend assets for tests
-    ${GOSU} npm ci
-    ${GOSU} npm run dev
+    ${SETPRIV} npm ci
+    ${SETPRIV} npm run dev
 
     # Executing migrations
-    ${GOSU} php bin/console doctrine:migrations:migrate --no-interaction
+    ${SETPRIV} php bin/console doctrine:migrations:migrate --no-interaction
 
     CLOVER_FILEPATH="${APP_ROOT_PATH}/tests/logs/clover.xml"
     JUNIT_FILEPATH="${APP_ROOT_PATH}/tests/logs/report.xml"
-    ${GOSU} mkdir -p "$(dirname ${CLOVER_FILEPATH})"
+    ${SETPRIV} mkdir -p "$(dirname ${CLOVER_FILEPATH})"
 
-    PATH=$PATH:$(${GOSU} composer global config bin-dir --absolute)
+    PATH=$PATH:$(${SETPRIV} composer global config bin-dir --absolute)
     export PATH
     GIT_DISCOVERY_ACROSS_FILESYSTEM=1
     export GIT_DISCOVERY_ACROSS_FILESYSTEM
 
     # Prepare test environment
-    ${GOSU} php bin/console hautelook:fixtures:load -e "${APP_ENV}" --no-interaction
+    ${SETPRIV} php bin/console hautelook:fixtures:load -e "${APP_ENV}" --no-interaction
 
     # Install phpunit environment by executing a dummy command
-    ${GOSU} php bin/phpunit --version
+    ${SETPRIV} php bin/phpunit --version
 
     # Run tests
-    ${GOSU} php bin/phpunit --coverage-clover "${CLOVER_FILEPATH}" --log-junit "${JUNIT_FILEPATH}" && TEST_RESULT=0 || TEST_RESULT=$?
+    ${SETPRIV} php bin/phpunit --coverage-clover "${CLOVER_FILEPATH}" --log-junit "${JUNIT_FILEPATH}" && TEST_RESULT=0 || TEST_RESULT=$?
 
     # Execute sonar-scanner only on CI
     if [[ "${CI:-}" == "true" && -n "${SONAR_TOKEN}" ]]; then
