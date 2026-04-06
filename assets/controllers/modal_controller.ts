@@ -1,5 +1,6 @@
 import {ActionEvent, Controller} from "@hotwired/stimulus";
 import {Modal} from 'bootstrap';
+import DOMPurify from 'dompurify';
 
 /**
  * Generic Bootstrap modal that loads its content from a remote URL and
@@ -51,8 +52,8 @@ export default class ModalController extends Controller {
         const clickedElement = event.currentTarget as HTMLAnchorElement;
         this.form = null;
 
-        this.titleTarget.innerHTML = clickedElement.dataset.title ?? '';
-        this.bodyTarget.innerHTML = 'Chargement...';
+        this.titleTarget.textContent = clickedElement.dataset.title ?? '';
+        this.bodyTarget.textContent = 'Chargement...';
         this.submitTarget.classList.add('d-none');
 
         const modalSize: string|null = clickedElement.dataset.size ?? null;
@@ -108,21 +109,22 @@ export default class ModalController extends Controller {
     }
 
     #setBody(html: string) {
-        const doc = new DOMParser().parseFromString(html, "text/html");
-        const form = this.#getForm(doc);
+        const clean = DOMPurify.sanitize(html, {RETURN_DOM_FRAGMENT: true});
+        const form = this.#getForm(clean);
         if (form !== null) {
             this.form = form;
-            this.submitTarget?.classList.remove('d-none');
+            this.submitTarget.classList.remove('d-none');
         } else {
             this.form = null;
             this.submitTarget.classList.add('d-none');
         }
-        this.bodyTarget.innerHTML = doc.documentElement.outerHTML;
+        this.bodyTarget.replaceChildren(
+            ...Array.from(clean.childNodes).map(node => document.adoptNode(node)),
+        );
     }
 
-    #getForm(element: HTMLElement|Document): HTMLFormElement | null {
-        const forms = element.getElementsByTagName('form');
-        return forms.length > 0 ? forms.item(0) : null;
+    #getForm(element: HTMLElement|Document|DocumentFragment): HTMLFormElement | null {
+        return element.querySelector('form');
     }
 
     #isSafeRedirectUrl(url: string): boolean {
