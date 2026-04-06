@@ -51,8 +51,8 @@ export default class ModalController extends Controller {
         const clickedElement = event.currentTarget as HTMLAnchorElement;
         this.form = null;
 
-        this.titleTarget.innerHTML = clickedElement.dataset.title ?? '';
-        this.bodyTarget.innerHTML = 'Chargement...';
+        this.titleTarget.textContent = clickedElement.dataset.title ?? '';
+        this.bodyTarget.textContent = 'Chargement...';
         this.submitTarget.classList.add('d-none');
 
         const modalSize: string|null = clickedElement.dataset.size ?? null;
@@ -117,7 +117,9 @@ export default class ModalController extends Controller {
             this.form = null;
             this.submitTarget.classList.add('d-none');
         }
-        this.bodyTarget.innerHTML = doc.documentElement.outerHTML;
+        this.bodyTarget.replaceChildren(
+            ...Array.from(doc.body.childNodes).map(node => document.adoptNode(node)),
+        );
     }
 
     #getForm(element: HTMLElement|Document): HTMLFormElement | null {
