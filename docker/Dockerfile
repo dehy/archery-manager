@@ -57,6 +57,10 @@ RUN ln -sf /etc/php/8.4/fpm/php.ini /etc/php/8.4/cli/php.ini
 
 # Pre-populate /app with source + vendor (overridden by bind-mount at dev runtime)
 COPY . /app
+WORKDIR /app
+# Pre-create symfony-writable dirs (COPY sets /app as root:root)
+RUN mkdir -p /app/vendor /app/node_modules /app/.npm /app/public/bundles /app/var/log /app/var/cache /app/tests/logs && \
+    chown -R symfony:symfony /app/vendor /app/node_modules /app/.npm /app/public /app/var /app/tests
 RUN setpriv --reuid=symfony --regid=symfony --init-groups -- \
     /usr/local/bin/composer install --prefer-dist --no-interaction
 

@@ -16,8 +16,9 @@ cd /app
 ln -sf /etc/php/8.4/fpm/php.ini /etc/php/8.4/cli/php.ini
 
 # Ensure build output directories exist and are writable by symfony
-mkdir -p /app/{public/build,var/log,var/cache}
-chown -R symfony:symfony /app/{public/build,var}
+# HOME=/app, so npm's cache lands at /app/.npm — pre-create it
+mkdir -p /app/{vendor,node_modules,.npm,public/build,public/bundles,var/log,var/cache}
+chown -R symfony:symfony /app/{vendor,node_modules,.npm,public/build,public/bundles,var}
 
 # PHP: install production deps and optimise the autoloader
 "${SETPRIV[@]}" /usr/local/bin/composer install \
@@ -34,5 +35,6 @@ chown -R symfony:symfony /app/{public/build,var}
 "${SETPRIV[@]}" bin/console assets:install public --symlink --relative
 
 # Tidy up artefacts that must not ship in the runtime image
-"${SETPRIV[@]}" rm -rf /app/node_modules
-rm -rf /root/.npm /root/.cache
+# node_modules is symfony-owned but /app (parent) is root-owned, so only root
+# can unlink the directory entry — run without setpriv.
+rm -rf /app/node_modules /root/.npm /root/.cache

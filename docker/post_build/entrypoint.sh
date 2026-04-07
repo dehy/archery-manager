@@ -84,6 +84,13 @@ fi
 
 # System Under Test
 if [[ "${1:-}" == "sut" ]]; then
+    mkdir -p "${APP_ROOT_PATH}/node_modules" "${APP_ROOT_PATH}/.npm" "${APP_ROOT_PATH}/tests/logs"
+    if [[ "$(id -u)" == "0" ]]; then
+        chown symfony: "${APP_ROOT_PATH}/node_modules"
+        chown -R symfony: "${APP_ROOT_PATH}/.npm"
+        chown -R symfony: "${APP_ROOT_PATH}/tests"
+    fi
+
     "${SETPRIV[@]}" composer install --prefer-dist
 
     # Build frontend assets for tests
