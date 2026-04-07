@@ -9,11 +9,14 @@ export FORCE_COLOR=0
 SETPRIV=(setpriv --reuid=symfony --regid=symfony --init-groups --)
 export HOME=/app
 
-# Fix ownership of any rw-mounted volumes under /app (needed in dev with bind-mounts)
-for dir in $(mount | grep "${APP_ROOT_PATH}" | grep 'rw' | awk '{ print $3 }')
-do
-  chown symfony: "${dir}"
-done
+# Fix ownership of any rw-mounted volumes under /app (needed in dev with bind-mounts).
+# Only possible when running as root (dev stage); skip silently in the runtime stage.
+if [[ "$(id -u)" == "0" ]]; then
+    for dir in $(mount | grep "${APP_ROOT_PATH}" | grep 'rw' | awk '{ print $3 }')
+    do
+      chown symfony: "${dir}"
+    done
+fi
 
 cd "${APP_ROOT_PATH}"
 
@@ -108,8 +111,7 @@ if [[ "${1:-}" == "sut" ]]; then
 
     # Execute sonar-scanner only on CI
     if [[ "${CI:-}" == "true" && -n "${SONAR_TOKEN}" ]]; then
-      # Install dependencies for sonar-scanner: JRE, unzip, sha256sum
-      apt-get install -y --no-install-recommends curl unzip
+      # curl, unzip and sha256sum are pre-installed in the base image
 
       # Install sonar-scanner
       SONAR_CLI_VERSION="8.0.1.6346-linux-x64"
