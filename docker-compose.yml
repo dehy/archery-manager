@@ -3,8 +3,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-      args:
-        BUILD_TARGET: dev
+      target: dev
     environment:
       - APP_ENV=dev
 
@@ -12,6 +11,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+      target: dev
     command: messenger-async
     environment:
       - APP_ENV=dev
@@ -22,6 +22,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+      target: dev
     command: scheduler-ffta_licensees
     environment:
       - APP_ENV=dev

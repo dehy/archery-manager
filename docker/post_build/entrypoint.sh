@@ -6,13 +6,23 @@ APP_ROOT_PATH=/app
 
 export DEBIAN_FRONTEND=noninteractive
 export FORCE_COLOR=0
-SETPRIV=(setpriv --reuid=symfony --regid=symfony --init-groups --)
-export HOME=/app  # ensure symfony user's home is used for npm/composer caches
+# When already running as symfony (e.g. runtime stage), setpriv would fail;
+# make SETPRIV a no-op in that case.
+if [[ "$(id -u)" == "0" ]]; then
+    SETPRIV=(setpriv --reuid=symfony --regid=symfony --init-groups --)
+else
+    SETPRIV=()
+fi
+export HOME=/app
 
-for dir in $(mount | grep "${APP_ROOT_PATH}" | grep 'rw' | awk '{ print $3 }')
-do
-  chown symfony: "${dir}"
-done
+# Fix ownership of any rw-mounted volumes under /app (needed in dev with bind-mounts).
+# Only possible when running as root (dev stage); skip silently in the runtime stage.
+if [[ "$(id -u)" == "0" ]]; then
+    for dir in $(mount | grep "${APP_ROOT_PATH}" | grep 'rw' | awk '{ print $3 }')
+    do
+      chown symfony: "${dir}"
+    done
+fi
 
 cd "${APP_ROOT_PATH}"
 
@@ -47,9 +57,11 @@ export APP_ENV=${ORIGINAL_APP_ENV}
 
 if [[ -z "${1:-}" && ("${APP_ENV}" == "dev" || "${APP_ENV}" == "test") ]]; then
     mkdir -p ${APP_ROOT_PATH}/{vendor,node_modules,var/log}
-    chown symfony: ${APP_ROOT_PATH}/node_modules
-    chown symfony: ${APP_ROOT_PATH}/vendor
-    chown symfony: ${APP_ROOT_PATH}/var/log
+    if [[ "$(id -u)" == "0" ]]; then
+        chown symfony: ${APP_ROOT_PATH}/node_modules
+        chown symfony: ${APP_ROOT_PATH}/vendor
+        chown symfony: ${APP_ROOT_PATH}/var/log
+    fi
 
     if [[ "${APP_ENV}" == "dev" ]]; then
         sed -i \
@@ -57,11 +69,6 @@ if [[ -z "${1:-}" && ("${APP_ENV}" == "dev" || "${APP_ENV}" == "test") ]]; then
             -e 's!\(display_errors\) = off!\1 = on!' \
             -e 's!\(display_startup_errors\) = off!\1 = on!' \
             /etc/php/8.4/fpm/conf.d/99-symfony.ini
-
-        apt-get update
-        apt-get install -y --no-install-recommends php8.4-xdebug
-        apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
-        apt-get autoremove -y
     fi
 
     "${SETPRIV[@]}" composer install --prefer-dist
@@ -83,6 +90,13 @@ fi
 
 # System Under Test
 if [[ "${1:-}" == "sut" ]]; then
+    mkdir -p "${APP_ROOT_PATH}/node_modules" "${APP_ROOT_PATH}/.npm" "${APP_ROOT_PATH}/tests/logs"
+    if [[ "$(id -u)" == "0" ]]; then
+        chown symfony: "${APP_ROOT_PATH}/node_modules"
+        chown -R symfony: "${APP_ROOT_PATH}/.npm"
+        chown -R symfony: "${APP_ROOT_PATH}/tests/logs"
+    fi
+
     "${SETPRIV[@]}" composer install --prefer-dist
 
     # Build frontend assets for tests
@@ -96,8 +110,6 @@ if [[ "${1:-}" == "sut" ]]; then
     JUNIT_FILEPATH="${APP_ROOT_PATH}/tests/logs/report.xml"
     "${SETPRIV[@]}" mkdir -p "$(dirname ${CLOVER_FILEPATH})"
 
-    PATH=$PATH:$("${SETPRIV[@]}" composer global config bin-dir --absolute)
-    export PATH
     GIT_DISCOVERY_ACROSS_FILESYSTEM=1
     export GIT_DISCOVERY_ACROSS_FILESYSTEM
 
@@ -111,9 +123,8 @@ if [[ "${1:-}" == "sut" ]]; then
     "${SETPRIV[@]}" php bin/phpunit --coverage-clover "${CLOVER_FILEPATH}" --log-junit "${JUNIT_FILEPATH}" && TEST_RESULT=0 || TEST_RESULT=$?
 
     # Execute sonar-scanner only on CI
-    if [[ "${CI:-}" == "true" && -n "${SONAR_TOKEN}" ]]; then
-      # Install dependencies for sonar-scanner: Java Runtime Engine (JRE), unzip and sha256sum
-      apt-get install -y --no-install-recommends curl unzip
+    if [[ "${CI:-}" == "true" && -n "${SONAR_TOKEN:-}" ]]; then
+      # curl, unzip and sha256sum are pre-installed in the base image
 
       # Install sonar-scanner
       SONAR_CLI_VERSION="8.0.1.6346-linux-x64"
@@ -139,12 +150,15 @@ if [[ "${1:-}" == "sut" ]]; then
         SONAR_PARAMETERS="-Dsonar.branch.name=${BRANCH}"
       fi
 
-      # Scan project
+      # Scan project (non-blocking — Quality Gate failure does not break the build)
       # shellcheck disable=SC2086
       ./sonar-scanner-${SONAR_CLI_VERSION}/bin/sonar-scanner \
           -Dsonar.token="${SONAR_TOKEN}" \
           -Dsonar.qualitygate.wait=true \
-          ${SONAR_PARAMETERS} || true # Do not fail on Quality Gate is not PASSED
+          ${SONAR_PARAMETERS} || true
+
+      # Clean up sonar-scanner directory
+      rm -rf "./sonar-scanner-${SONAR_CLI_VERSION}"
     fi
 
     exit $TEST_RESULT
@@ -152,10 +166,10 @@ fi
 
 if [[ "${1:-}" == "messenger-async" ]]; then
   echo "+ Launch bin/console messenger:consume async"
-  exec /usr/bin/php /app/bin/console messenger:consume async
+  exec "${SETPRIV[@]}" php /app/bin/console messenger:consume async
 elif [[ "${1:-}" == "scheduler-ffta_licensees" ]]; then
   echo "+ Launch bin/console messenger:consume scheduler_ffta_licensees"
-  exec /usr/bin/php /app/bin/console messenger:consume scheduler_ffta_licensees
+  exec "${SETPRIV[@]}" php /app/bin/console messenger:consume scheduler_ffta_licensees
 else
   echo "+ Launching services..."
   exec supervisord -c /etc/supervisor/supervisord.conf

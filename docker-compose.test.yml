@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+      target: dev
     environment:
       - APP_ENV=test
       - SONAR_TOKEN
