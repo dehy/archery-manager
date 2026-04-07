@@ -51,9 +51,11 @@ export APP_ENV=${ORIGINAL_APP_ENV}
 
 if [[ -z "${1:-}" && ("${APP_ENV}" == "dev" || "${APP_ENV}" == "test") ]]; then
     mkdir -p ${APP_ROOT_PATH}/{vendor,node_modules,var/log}
-    chown symfony: ${APP_ROOT_PATH}/node_modules
-    chown symfony: ${APP_ROOT_PATH}/vendor
-    chown symfony: ${APP_ROOT_PATH}/var/log
+    if [[ "$(id -u)" == "0" ]]; then
+        chown symfony: ${APP_ROOT_PATH}/node_modules
+        chown symfony: ${APP_ROOT_PATH}/vendor
+        chown symfony: ${APP_ROOT_PATH}/var/log
+    fi
 
     if [[ "${APP_ENV}" == "dev" ]]; then
         sed -i \
@@ -95,8 +97,6 @@ if [[ "${1:-}" == "sut" ]]; then
     JUNIT_FILEPATH="${APP_ROOT_PATH}/tests/logs/report.xml"
     "${SETPRIV[@]}" mkdir -p "$(dirname ${CLOVER_FILEPATH})"
 
-    PATH=$PATH:$("${SETPRIV[@]}" composer global config bin-dir --absolute)
-    export PATH
     GIT_DISCOVERY_ACROSS_FILESYSTEM=1
     export GIT_DISCOVERY_ACROSS_FILESYSTEM
 
@@ -110,7 +110,7 @@ if [[ "${1:-}" == "sut" ]]; then
     "${SETPRIV[@]}" php bin/phpunit --coverage-clover "${CLOVER_FILEPATH}" --log-junit "${JUNIT_FILEPATH}" && TEST_RESULT=0 || TEST_RESULT=$?
 
     # Execute sonar-scanner only on CI
-    if [[ "${CI:-}" == "true" && -n "${SONAR_TOKEN}" ]]; then
+    if [[ "${CI:-}" == "true" && -n "${SONAR_TOKEN:-}" ]]; then
       # curl, unzip and sha256sum are pre-installed in the base image
 
       # Install sonar-scanner
@@ -143,6 +143,9 @@ if [[ "${1:-}" == "sut" ]]; then
           -Dsonar.token="${SONAR_TOKEN}" \
           -Dsonar.qualitygate.wait=true \
           ${SONAR_PARAMETERS} || true
+
+      # Clean up sonar-scanner directory
+      rm -rf "./sonar-scanner-${SONAR_CLI_VERSION}"
     fi
 
     exit $TEST_RESULT
