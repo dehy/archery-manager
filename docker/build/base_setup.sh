@@ -47,8 +47,9 @@ apt-get install -y --no-install-recommends \
     unzip
 
 # --- symfony user (UID/GID 1000) ---
-groupadd -r -g 1000 symfony
-useradd -r -u 1000 -g symfony -s /bin/bash -d /app symfony
+# Ubuntu 24.04 ships a built-in 'ubuntu' user/group at UID/GID 1000; rename it.
+groupmod -n symfony ubuntu
+usermod -l symfony -d /app -s /bin/bash ubuntu
 
 # --- App directory skeleton (only var/ writable by symfony) ---
 mkdir -p /app/var/cache /app/var/log /app/var/sessions
