@@ -77,10 +77,11 @@ ENV HOME=/app APP_ENV=prod
 # Source code — root:root (var/, vendor/, public/build/, public/bundles/ excluded by .dockerignore)
 COPY . /app
 
-# Production-built artefacts from the builder stage
-COPY --from=builder /app/vendor /app/vendor
-COPY --from=builder /app/public/build /app/public/build
-COPY --from=builder /app/public/bundles /app/public/bundles
+# Production-built artefacts from the builder stage — force root:root so the
+# symfony runtime user cannot modify vendor code or compiled assets.
+COPY --chown=root:root --from=builder /app/vendor /app/vendor
+COPY --chown=root:root --from=builder /app/public/build /app/public/build
+COPY --chown=root:root --from=builder /app/public/bundles /app/public/bundles
 
 # Link PHP-FPM php.ini for CLI and stamp the revision
 RUN ln -sf /etc/php/8.4/fpm/php.ini /etc/php/8.4/cli/php.ini && \
