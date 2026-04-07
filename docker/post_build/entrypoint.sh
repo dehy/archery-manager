@@ -7,8 +7,9 @@ APP_ROOT_PATH=/app
 export DEBIAN_FRONTEND=noninteractive
 export FORCE_COLOR=0
 SETPRIV=(setpriv --reuid=symfony --regid=symfony --init-groups --)
-export HOME=/app  # ensure symfony user's home is used for npm/composer caches
+export HOME=/app
 
+# Fix ownership of any rw-mounted volumes under /app (needed in dev with bind-mounts)
 for dir in $(mount | grep "${APP_ROOT_PATH}" | grep 'rw' | awk '{ print $3 }')
 do
   chown symfony: "${dir}"
@@ -57,11 +58,6 @@ if [[ -z "${1:-}" && ("${APP_ENV}" == "dev" || "${APP_ENV}" == "test") ]]; then
             -e 's!\(display_errors\) = off!\1 = on!' \
             -e 's!\(display_startup_errors\) = off!\1 = on!' \
             /etc/php/8.4/fpm/conf.d/99-symfony.ini
-
-        apt-get update
-        apt-get install -y --no-install-recommends php8.4-xdebug
-        apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
-        apt-get autoremove -y
     fi
 
     "${SETPRIV[@]}" composer install --prefer-dist
@@ -112,7 +108,7 @@ if [[ "${1:-}" == "sut" ]]; then
 
     # Execute sonar-scanner only on CI
     if [[ "${CI:-}" == "true" && -n "${SONAR_TOKEN}" ]]; then
-      # Install dependencies for sonar-scanner: Java Runtime Engine (JRE), unzip and sha256sum
+      # Install dependencies for sonar-scanner: JRE, unzip, sha256sum
       apt-get install -y --no-install-recommends curl unzip
 
       # Install sonar-scanner
@@ -139,12 +135,12 @@ if [[ "${1:-}" == "sut" ]]; then
         SONAR_PARAMETERS="-Dsonar.branch.name=${BRANCH}"
       fi
 
-      # Scan project
+      # Scan project (non-blocking — Quality Gate failure does not break the build)
       # shellcheck disable=SC2086
       ./sonar-scanner-${SONAR_CLI_VERSION}/bin/sonar-scanner \
           -Dsonar.token="${SONAR_TOKEN}" \
           -Dsonar.qualitygate.wait=true \
-          ${SONAR_PARAMETERS} || true # Do not fail on Quality Gate is not PASSED
+          ${SONAR_PARAMETERS} || true
     fi
 
     exit $TEST_RESULT
@@ -152,10 +148,10 @@ fi
 
 if [[ "${1:-}" == "messenger-async" ]]; then
   echo "+ Launch bin/console messenger:consume async"
-  exec /usr/bin/php /app/bin/console messenger:consume async
+  exec "${SETPRIV[@]}" php /app/bin/console messenger:consume async
 elif [[ "${1:-}" == "scheduler-ffta_licensees" ]]; then
   echo "+ Launch bin/console messenger:consume scheduler_ffta_licensees"
-  exec /usr/bin/php /app/bin/console messenger:consume scheduler_ffta_licensees
+  exec "${SETPRIV[@]}" php /app/bin/console messenger:consume scheduler_ffta_licensees
 else
   echo "+ Launching services..."
   exec supervisord -c /etc/supervisor/supervisord.conf
