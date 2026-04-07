@@ -2,17 +2,19 @@ services:
   app:
     volumes:
       - .:/app
+      - app-var:/app/var
     ports:
       - "8080:80"
 
   messenger-async:
     volumes:
       - .:/app
+      - app-var:/app/var
 
   scheduler-ffta-licensees:
     volumes:
       - .:/app
-        
+      - app-var:/app/var
 
 ###> doctrine/doctrine-bundle ###
   database:
@@ -27,3 +29,6 @@ services:
       - "1025:1025"
       - "1080:1080"
 ###< symfony/mailer ###
+
+volumes:
+  app-var:
