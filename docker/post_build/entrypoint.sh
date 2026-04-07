@@ -6,7 +6,13 @@ APP_ROOT_PATH=/app
 
 export DEBIAN_FRONTEND=noninteractive
 export FORCE_COLOR=0
-SETPRIV=(setpriv --reuid=symfony --regid=symfony --init-groups --)
+# When already running as symfony (e.g. runtime stage), setpriv would fail;
+# make SETPRIV a no-op in that case.
+if [[ "$(id -u)" == "0" ]]; then
+    SETPRIV=(setpriv --reuid=symfony --regid=symfony --init-groups --)
+else
+    SETPRIV=()
+fi
 export HOME=/app
 
 # Fix ownership of any rw-mounted volumes under /app (needed in dev with bind-mounts).
@@ -88,7 +94,7 @@ if [[ "${1:-}" == "sut" ]]; then
     if [[ "$(id -u)" == "0" ]]; then
         chown symfony: "${APP_ROOT_PATH}/node_modules"
         chown -R symfony: "${APP_ROOT_PATH}/.npm"
-        chown -R symfony: "${APP_ROOT_PATH}/tests"
+        chown -R symfony: "${APP_ROOT_PATH}/tests/logs"
     fi
 
     "${SETPRIV[@]}" composer install --prefer-dist
