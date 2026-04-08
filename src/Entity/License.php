@@ -59,6 +59,9 @@ class License
     #[ORM\JoinColumn(nullable: false)]
     private ?Club $club = null;
 
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::BOOLEAN, options: ['default' => false])]
+    private bool $caciExempt = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -159,6 +162,18 @@ class License
     public function setClub(?Club $club): self
     {
         $this->club = $club;
+
+        return $this;
+    }
+
+    public function isCaciExempt(): bool
+    {
+        return $this->caciExempt;
+    }
+
+    public function setCaciExempt(bool $caciExempt): self
+    {
+        $this->caciExempt = $caciExempt;
 
         return $this;
     }
