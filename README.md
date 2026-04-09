@@ -10,7 +10,7 @@ Un outil de gestion pour les clubs de tir à l'arc
 - Gestion de l'équipement
 - Gestion des évènements : entraînements, compétitions, autre
 
-Cet outil est réalisé pour [Les Archers de Bordeaux Guyenne](https://archersdebordeaux-guyenne.com).
+Initialement réalisé pour [Les Archers de Bordeaux Guyenne](https://archersdebordeaux-guyenne.com), cet outil est conçu pour devenir un outil multi-clubs.
 
 ## Exécution locale
 
