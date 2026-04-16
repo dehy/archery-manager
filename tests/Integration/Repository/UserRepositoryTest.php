@@ -35,7 +35,7 @@ final class UserRepositoryTest extends KernelTestCase
         $this->assertInstanceOf(Club::class, $club);
         $users = $userRepository->findByClubAndRole($club, 'ROLE_USER');
 
-        $this->assertCount(13, $users);
+        $this->assertCount(14, $users);
     }
 
     public function testFindByClubAndRoleClubAdmin(): void

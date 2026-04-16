@@ -348,9 +348,11 @@ final class LicenseeManagementMoveUserControllerTest extends LoggedInTestCase
             if (!str_ends_with($userEmail, '@ladg.com')) {
                 continue;
             }
+
             if (str_contains($userEmail, 'clubadmin')) {
                 continue;
             }
+
             if (str_contains($userEmail, 'coach')) {
                 continue;
             }

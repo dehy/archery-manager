@@ -26,15 +26,24 @@ App\Entity\User:
         firstname: <firstname()>
         phoneNumber: <e164PhoneNumber()>
         birthdate: '<dateTimeImmutableBetween("-75 years", "-22 years")>'
-    user_ladg_solo_1:
-        email: 'solo1@ladg.com'
+    user_ladg_parent_1:
+        email: 'parent1@ladg.com'
         roles: ['ROLE_USER']
         password: '\$2y\$13\$CGDD6CfkN8pHT/hKhml2RuA28Ba48QE86SlrjPssIcfXmRsNrzh1W' # user
         gender: '<enum("GenderType")>'
         lastname: <lastname()>
         firstname: <firstname()>
         phoneNumber: <e164PhoneNumber()>
-        birthdate: '<dateTimeImmutableBetween("-75 years", "-22 years")>'
+        birthdate: '<dateTimeImmutableBetween("-50 years", "-30 years")>'
+    user_ladg_parent_2:
+        email: 'parent2@ladg.com'
+        roles: ['ROLE_USER']
+        password: '\$2y\$13\$CGDD6CfkN8pHT/hKhml2RuA28Ba48QE86SlrjPssIcfXmRsNrzh1W' # user
+        gender: '<enum("GenderType")>'
+        lastname: <lastname()>
+        firstname: <firstname()>
+        phoneNumber: <e164PhoneNumber()>
+        birthdate: '<dateTimeImmutableBetween("-50 years", "-30 years")>'
     user_ladb_{1..10}:
         email: 'user<current()>\@ladb.com'
         roles: [ 'ROLE_USER' ]
@@ -76,20 +85,42 @@ App\Entity\Licensee:
         fftaMemberCode (unique): '<fftaCode($fftaId)>'
         groups:
             - '@group_ladg_competiteurs'
-    licensee_ladg_{11..20}:
-        user: '@user_ladg_<($current-10)>'
-        gender: '<enum("GenderType")>'
-        lastname: '<lastname()>'
-        firstname: '<firstname()>'
-        birthdate: '<dateTimeBetween("-75 years", "-10 years")>'
+    licensee_ladg_parent_1:
+        user: '@user_ladg_parent_1'
+        gender: '@user_ladg_parent_1->gender'
+        lastname: '@user_ladg_parent_1->lastname'
+        firstname: '@user_ladg_parent_1->firstname'
+        birthdate: '<dateTimeBetween("-50 years", "-30 years")>'
         fftaId (unique): '<fftaId()>'
         fftaMemberCode (unique): '<fftaCode($fftaId)>'
-    licensee_ladg_solo_1:
-        user: '@user_ladg_solo_1'
-        gender: '@user_ladg_solo_1->gender'
-        lastname: '@user_ladg_solo_1->lastname'
-        firstname: '@user_ladg_solo_1->firstname'
-        birthdate: '<dateTimeBetween("-75 years", "-10 years")>'
+        groups:
+            - '@group_ladg_competiteurs'
+    licensee_ladg_child_1:
+        user: '@user_ladg_parent_1'
+        gender: '<enum("GenderType")>'
+        lastname: '@user_ladg_parent_1->lastname'
+        firstname: '<firstname()>'
+        birthdate: '<dateTimeBetween("-13 years", "-11 years")>'
+        fftaId (unique): '<fftaId()>'
+        fftaMemberCode (unique): '<fftaCode($fftaId)>'
+        groups:
+            - '@group_ladg_competiteurs'
+    licensee_ladg_parent_2:
+        user: '@user_ladg_parent_2'
+        gender: '@user_ladg_parent_2->gender'
+        lastname: '@user_ladg_parent_2->lastname'
+        firstname: '@user_ladg_parent_2->firstname'
+        birthdate: '<dateTimeBetween("-50 years", "-30 years")>'
+        fftaId (unique): '<fftaId()>'
+        fftaMemberCode (unique): '<fftaCode($fftaId)>'
+        groups:
+            - '@group_ladg_competiteurs'
+    licensee_ladg_child_2:
+        user: '@user_ladg_parent_2'
+        gender: '<enum("GenderType")>'
+        lastname: '@user_ladg_parent_2->lastname'
+        firstname: '<firstname()>'
+        birthdate: '<dateTimeBetween("-16 years", "-13 years")>'
         fftaId (unique): '<fftaId()>'
         fftaMemberCode (unique): '<fftaCode($fftaId)>'
         groups:
@@ -112,7 +143,7 @@ App\Entity\License:
         licensee: '@licensee_ladg_club_admin_1'
         activities: ['CL']
         club: '@club_ladg'
-    license_licensee_ladg_{1..20}:
+    license_licensee_ladg_{1..10}:
         season: 2026
         type: 'A'
         category: 'A'
@@ -120,11 +151,35 @@ App\Entity\License:
         licensee: '@licensee_ladg_<current()>'
         activities: ['CL']
         club: '@club_ladg'
-    license_licensee_ladg_solo_1:
+    license_licensee_ladg_parent_1:
         season: 2026
         type: 'A'
         category: 'A'
         ageCategory: 'S1'
-        licensee: '@licensee_ladg_solo_1'
+        licensee: '@licensee_ladg_parent_1'
+        activities: ['CL']
+        club: '@club_ladg'
+    license_licensee_ladg_child_1:
+        season: 2026
+        type: 'A'
+        category: 'A'
+        ageCategory: 'U13'
+        licensee: '@licensee_ladg_child_1'
+        activities: ['CL']
+        club: '@club_ladg'
+    license_licensee_ladg_parent_2:
+        season: 2026
+        type: 'A'
+        category: 'A'
+        ageCategory: 'S1'
+        licensee: '@licensee_ladg_parent_2'
+        activities: ['CL']
+        club: '@club_ladg'
+    license_licensee_ladg_child_2:
+        season: 2026
+        type: 'A'
+        category: 'A'
+        ageCategory: 'U15'
+        licensee: '@licensee_ladg_child_2'
         activities: ['CL']
         club: '@club_ladg'
