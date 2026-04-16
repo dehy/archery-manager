@@ -23,6 +23,7 @@ use App\Helper\LicenseHelper;
 use App\Helper\SeasonHelper;
 use App\Repository\GroupRepository;
 use App\Repository\UserRepository;
+use App\Validator\Constraints\ValidMoveUserDestination;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -453,7 +454,9 @@ class LicenseeManagementController extends BaseController
 
         $currentUserId = $licensee->getUser()?->getId();
 
-        $form = $this->createFormBuilder()
+        $form = $this->createFormBuilder(null, [
+            'constraints' => [new ValidMoveUserDestination()],
+        ])
             ->add('user_choice', ChoiceType::class, [
                 'label' => 'Destination',
                 'choices' => [
@@ -497,44 +500,15 @@ class LicenseeManagementController extends BaseController
             $session = $request->getSession();
 
             if ('new' === $userChoice) {
-                $email = (string) $form->get('email')->getData();
-
-                if ('' === $email) {
-                    $this->addFlash('danger', 'Veuillez saisir une adresse email.');
-
-                    return $this->render('licensee_management/move_user_step1.html.twig', [
-                        'form' => $form,
-                        'licensee' => $licensee,
-                    ]);
-                }
-
-                if ($this->userRepository->findOneByEmail($email) instanceof User) {
-                    $this->addFlash('danger', 'Cette adresse email est déjà utilisée par un autre compte.');
-
-                    return $this->render('licensee_management/move_user_step1.html.twig', [
-                        'form' => $form,
-                        'licensee' => $licensee,
-                    ]);
-                }
-
                 $session->set('licensee_move_user', [
                     'licensee_id' => $licensee->getId(),
                     'choice' => 'new',
-                    'email' => $email,
+                    'email' => (string) $form->get('email')->getData(),
                     'target_user_id' => null,
                 ]);
             } else {
+                /** @var User $targetUser */
                 $targetUser = $form->get('existing_user')->getData();
-
-                if (!$targetUser instanceof User) {
-                    $this->addFlash('danger', 'Veuillez sélectionner un compte existant.');
-
-                    return $this->render('licensee_management/move_user_step1.html.twig', [
-                        'form' => $form,
-                        'licensee' => $licensee,
-                    ]);
-                }
-
                 $session->set('licensee_move_user', [
                     'licensee_id' => $licensee->getId(),
                     'choice' => 'existing',
