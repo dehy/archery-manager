@@ -78,16 +78,18 @@
                                 Un email avec un lien de création de mot de passe sera envoyé à <strong>{{ move_data.email }}</strong>.
                             </li>
                         {% endif %}
-                        {% if source_user_will_be_deleted %}
-                            <li class="list-group-item list-group-item-danger">
-                                <em class="fa-solid fa-trash me-2"></em>
-                                Le compte source <strong>{{ source_user.email }}</strong> sera <strong>supprimé</strong> car il ne contient plus aucun licencié.
-                            </li>
-                        {% else %}
-                            <li class="list-group-item list-group-item-secondary">
-                                <em class="fa-solid fa-user me-2"></em>
-                                Le compte source <strong>{{ source_user.email }}</strong> sera conservé (il contient d'autres licenciés).
-                            </li>
+                        {% if source_user %}
+                            {% if source_user_will_be_deleted %}
+                                <li class="list-group-item list-group-item-danger">
+                                    <em class="fa-solid fa-trash me-2"></em>
+                                    Le compte source <strong>{{ source_user.email }}</strong> sera <strong>supprimé</strong> car il ne contient plus aucun licencié.
+                                </li>
+                            {% else %}
+                                <li class="list-group-item list-group-item-secondary">
+                                    <em class="fa-solid fa-user me-2"></em>
+                                    Le compte source <strong>{{ source_user.email }}</strong> sera conservé (il contient d'autres licenciés).
+                                </li>
+                            {% endif %}
                         {% endif %}
                     </ul>
 

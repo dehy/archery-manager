@@ -24,6 +24,7 @@ use App\Helper\SeasonHelper;
 use App\Repository\GroupRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -40,7 +41,7 @@ use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
 #[IsGranted('ROLE_CLUB_ADMIN')]
 class LicenseeManagementController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly EntityManagerInterface $entityManager, private readonly UserRepository $userRepository, private readonly ResetPasswordHelperInterface $resetPasswordHelper, private readonly MailerInterface $mailer)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly EntityManagerInterface $entityManager, private readonly UserRepository $userRepository, private readonly ResetPasswordHelperInterface $resetPasswordHelper, private readonly MailerInterface $mailer, private readonly LoggerInterface $logger)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -609,7 +610,7 @@ class LicenseeManagementController extends BaseController
                     // Detach licensee from the source user's collection before removing
                     // the user, to prevent cascade: ['remove'] from also deleting the
                     // (now-reassigned) licensee.
-                    $sourceUser->getLicensees()->removeElement($licensee);
+                    $sourceUser->removeLicensee($licensee);
                     $this->entityManager->remove($sourceUser);
                 }
 
@@ -625,7 +626,7 @@ class LicenseeManagementController extends BaseController
                             ->htmlTemplate('reset_password/email.html.twig')
                             ->context(['resetToken' => $resetToken]);
                         $this->mailer->send($resetEmail);
-                    } catch (ResetPasswordExceptionInterface) {
+                    } catch (ResetPasswordExceptionInterface|\Throwable) {
                         $this->addFlash('warning', 'Le compte a été créé mais l\'email d\'invitation n\'a pas pu être envoyé.');
                     }
                 }
@@ -635,7 +636,13 @@ class LicenseeManagementController extends BaseController
 
                 return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
             } catch (\Exception $e) {
-                $this->addFlash('danger', 'Une erreur est survenue : '.$e->getMessage());
+                $errorReference = bin2hex(random_bytes(8));
+                $this->logger->error('Failed to move licensee user', [
+                    'reference' => $errorReference,
+                    'licensee_id' => $licensee->getId(),
+                    'exception' => $e,
+                ]);
+                $this->addFlash('danger', \sprintf('Une erreur est survenue (réf. : %s).', $errorReference));
             }
         }
 
