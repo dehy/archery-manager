@@ -1,0 +1,111 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Déplacer le licencié — Étape 2 : Confirmation{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_licensee_index') }}">Licenciés</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_licensee_profile', {id: licensee.id}) }}">{{ licensee.fullname }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_licensee_move_user_step1', {id: licensee.id}) }}">Déplacer</a></li>
+                    <li class="breadcrumb-item active">Confirmation</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0">
+                        <em class="fa-solid fa-right-left me-2"></em>
+                        Confirmation du déplacement
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <em class="fa-solid fa-triangle-exclamation me-2"></em>
+                        <strong>Attention :</strong> Cette opération est irréversible. Veuillez vérifier les informations ci-dessous avant de confirmer.
+                    </div>
+
+                    <h5 class="mb-3">Récapitulatif</h5>
+
+                    <table class="table table-bordered mb-4">
+                        <tbody>
+                            <tr>
+                                <th class="table-light" style="width: 35%">Licencié déplacé</th>
+                                <td><strong>{{ licensee.fullname }}</strong></td>
+                            </tr>
+                            <tr>
+                                <th class="table-light">Compte source</th>
+                                <td>
+                                    {% if source_user %}
+                                        {{ source_user.firstname }} {{ source_user.lastname }}<br>
+                                        <small class="text-muted">{{ source_user.email }}</small>
+                                    {% else %}
+                                        <em class="text-muted">Aucun compte</em>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="table-light">Compte destination</th>
+                                <td>
+                                    {% if move_data.choice == 'new' %}
+                                        <span class="badge bg-success me-2">Nouveau compte</span>
+                                        {{ move_data.email }}
+                                    {% else %}
+                                        <span class="badge bg-primary me-2">Compte existant</span>
+                                        {% if target_user %}
+                                            {{ target_user.firstname }} {{ target_user.lastname }}<br>
+                                            <small class="text-muted">{{ target_user.email }}</small>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h5 class="mb-3">Conséquences</h5>
+
+                    <ul class="list-group mb-4">
+                        <li class="list-group-item list-group-item-info">
+                            <em class="fa-solid fa-circle-check me-2"></em>
+                            Le licencié <strong>{{ licensee.fullname }}</strong> sera rattaché au compte destination.
+                        </li>
+                        {% if move_data.choice == 'new' %}
+                            <li class="list-group-item list-group-item-success">
+                                <em class="fa-solid fa-envelope me-2"></em>
+                                Un email avec un lien de création de mot de passe sera envoyé à <strong>{{ move_data.email }}</strong>.
+                            </li>
+                        {% endif %}
+                        {% if source_user_will_be_deleted %}
+                            <li class="list-group-item list-group-item-danger">
+                                <em class="fa-solid fa-trash me-2"></em>
+                                Le compte source <strong>{{ source_user.email }}</strong> sera <strong>supprimé</strong> car il ne contient plus aucun licencié.
+                            </li>
+                        {% else %}
+                            <li class="list-group-item list-group-item-secondary">
+                                <em class="fa-solid fa-user me-2"></em>
+                                Le compte source <strong>{{ source_user.email }}</strong> sera conservé (il contient d'autres licenciés).
+                            </li>
+                        {% endif %}
+                    </ul>
+
+                    {{ form_start(form) }}
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{{ path('app_licensee_move_user_step1', {id: licensee.id}) }}" class="btn btn-secondary">
+                                <em class="fa-solid fa-arrow-left me-2"></em>
+                                Retour
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <em class="fa-solid fa-right-left me-2"></em>
+                                Confirmer le déplacement
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
