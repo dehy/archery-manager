@@ -589,6 +589,11 @@ class LicenseeManagementController extends BaseController
                     $newUser->setEmail((string) $moveData['email']);
                     $newUser->setFirstname($licensee->getFirstname());
                     $newUser->setLastname($licensee->getLastname());
+                    $newUser->setGender($licensee->getGender());
+                    if ($licensee->getBirthdate() instanceof \DateTimeInterface) {
+                        $newUser->setBirthdate(\DateTimeImmutable::createFromInterface($licensee->getBirthdate()));
+                    }
+
                     $newUser->setRoles(['ROLE_USER']);
                     $this->entityManager->persist($newUser);
                     $licensee->setUser($newUser);
