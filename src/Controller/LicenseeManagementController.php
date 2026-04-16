@@ -626,7 +626,8 @@ class LicenseeManagementController extends BaseController
                             ->htmlTemplate('reset_password/email.html.twig')
                             ->context(['resetToken' => $resetToken]);
                         $this->mailer->send($resetEmail);
-                    } catch (ResetPasswordExceptionInterface|\Throwable) {
+                    } catch (ResetPasswordExceptionInterface|\Throwable $e) {
+                        \Sentry\captureException($e);
                         $this->addFlash('warning', 'Le compte a été créé mais l\'email d\'invitation n\'a pas pu être envoyé.');
                     }
                 }
@@ -642,6 +643,7 @@ class LicenseeManagementController extends BaseController
                     'licensee_id' => $licensee->getId(),
                     'exception' => $e,
                 ]);
+                \Sentry\captureException($e);
                 $this->addFlash('danger', \sprintf('Une erreur est survenue (réf. : %s).', $errorReference));
             }
         }
