@@ -23,6 +23,7 @@ use App\Helper\LicenseHelper;
 use App\Helper\SeasonHelper;
 use App\Repository\GroupRepository;
 use App\Repository\UserRepository;
+use App\Validator\Constraints\UniqueUserEmail;
 use App\Validator\Constraints\ValidMoveUserDestination;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -36,6 +37,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Validator\Constraints as Assert;
 use SymfonyCasts\Bundle\ResetPassword\Exception\ResetPasswordExceptionInterface;
 use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
 
@@ -474,6 +476,10 @@ class LicenseeManagementController extends BaseController
                 'label' => 'Email du nouveau compte',
                 'required' => false,
                 'attr' => ['placeholder' => 'prenom.nom@exemple.fr'],
+                'constraints' => [
+                    new Assert\Email(),
+                    new UniqueUserEmail(),
+                ],
             ])
             ->add('existing_user', EntityType::class, [
                 'label' => 'Compte existant',
