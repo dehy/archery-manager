@@ -606,6 +606,10 @@ class LicenseeManagementController extends BaseController
                 }
 
                 if ($sourceUserWillBeDeleted && $sourceUser instanceof User) {
+                    // Detach licensee from the source user's collection before removing
+                    // the user, to prevent cascade: ['remove'] from also deleting the
+                    // (now-reassigned) licensee.
+                    $sourceUser->getLicensees()->removeElement($licensee);
                     $this->entityManager->remove($sourceUser);
                 }
 
