@@ -433,25 +433,9 @@ class LicenseeManagementController extends BaseController
     #[Route('/licensees/manage/{id}/move-user/step1', name: 'app_licensee_move_user_step1', methods: ['GET', 'POST'])]
     public function moveUserStep1(Request $request, Licensee $licensee): Response
     {
-        $adminClub = $this->clubHelper->getClubForUser($this->getUser());
-        if (!$adminClub instanceof Club) {
-            $this->addFlash('danger', 'Impossible de déterminer votre club.');
-
-            return $this->redirectToRoute('app_licensee_index');
-        }
-
-        try {
-            $licenseeClub = $this->clubHelper->activeClubFor($licensee);
-        } catch (NoActiveClubException) {
-            $this->addFlash('danger', 'Ce licencié n\'appartient à aucun club actif.');
-
-            return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
-        }
-
-        if ($adminClub !== $licenseeClub) {
-            $this->addFlash('danger', 'Vous ne pouvez pas gérer ce licencié.');
-
-            return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
+        $guardResponse = $this->assertMoveUserStep1Access($licensee);
+        if (null !== $guardResponse) {
+            return $guardResponse;
         }
 
         $currentUserId = $licensee->getUser()?->getId();
@@ -535,84 +519,23 @@ class LicenseeManagementController extends BaseController
     #[Route('/licensees/manage/{id}/move-user/step2', name: 'app_licensee_move_user_step2', methods: ['GET', 'POST'])]
     public function moveUserStep2(Request $request, Licensee $licensee): Response
     {
-        $session = $request->getSession();
-        $moveData = $session->get('licensee_move_user', []);
-
-        if (empty($moveData) || ($moveData['licensee_id'] ?? null) !== $licensee->getId()) {
-            return $this->redirectToRoute('app_licensee_move_user_step1', ['id' => $licensee->getId()]);
+        [$guardResponse, $moveData, $targetUser] = $this->initMoveUserStep2($request, $licensee);
+        if (null !== $guardResponse) {
+            return $guardResponse;
         }
 
         $sourceUser = $licensee->getUser();
         $sourceUserLicenseeCount = $sourceUser?->getLicensees()->count() ?? 0;
         $sourceUserWillBeDeleted = 1 === $sourceUserLicenseeCount;
 
-        $targetUser = null;
-        if ('existing' === $moveData['choice']) {
-            $targetUser = $this->userRepository->find((int) $moveData['target_user_id']);
-
-            if (!$targetUser instanceof User) {
-                $this->addFlash('danger', "Le compte cible n'existe plus. Veuillez recommencer.");
-                $session->remove('licensee_move_user');
-
-                return $this->redirectToRoute('app_licensee_move_user_step1', ['id' => $licensee->getId()]);
-            }
-        }
-
         $form = $this->createFormBuilder()->getForm();
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $newUser = null;
-
-                if ('new' === $moveData['choice']) {
-                    $newUser = new User();
-                    $newUser->setEmail((string) $moveData['email']);
-                    $newUser->setFirstname($licensee->getFirstname());
-                    $newUser->setLastname($licensee->getLastname());
-                    $newUser->setGender($licensee->getGender());
-                    if ($licensee->getBirthdate() instanceof \DateTimeInterface) {
-                        $newUser->setBirthdate(\DateTimeImmutable::createFromInterface($licensee->getBirthdate()));
-                    }
-
-                    $newUser->setRoles(['ROLE_USER']);
-                    $this->entityManager->persist($newUser);
-                    $licensee->setUser($newUser);
-                } else {
-                    if (!$targetUser instanceof User) {
-                        throw new \RuntimeException('Le compte cible est introuvable.');
-                    }
-
-                    $licensee->setUser($targetUser);
-                }
-
-                if ($sourceUserWillBeDeleted && $sourceUser instanceof User) {
-                    // Detach licensee from the source user's collection before removing
-                    // the user, to prevent cascade: ['remove'] from also deleting the
-                    // (now-reassigned) licensee.
-                    $sourceUser->removeLicensee($licensee);
-                    $this->entityManager->remove($sourceUser);
-                }
-
-                $this->entityManager->flush();
-
-                if ($newUser instanceof User) {
-                    try {
-                        $resetToken = $this->resetPasswordHelper->generateResetToken($newUser);
-                        $resetEmail = new TemplatedEmail()
-                            ->from(new Address('noreply@admds.net', 'Les Archers de Guyenne'))
-                            ->to($newUser->getEmail())
-                            ->subject('Créez votre mot de passe — Archery Manager')
-                            ->htmlTemplate('reset_password/email.html.twig')
-                            ->context(['resetToken' => $resetToken]);
-                        $this->mailer->send($resetEmail);
-                    } catch (ResetPasswordExceptionInterface|\Throwable $e) {
-                        \Sentry\captureException($e);
-                        $this->addFlash('warning', 'Le compte a été créé mais l\'email d\'invitation n\'a pas pu être envoyé.');
-                    }
-                }
-
-                $session->remove('licensee_move_user');
+                $newUser = $this->executeMoveUserAction($licensee, $moveData, $sourceUser, $sourceUserWillBeDeleted, $targetUser);
+                $this->sendMoveUserWelcomeEmail($newUser);
+                $request->getSession()->remove('licensee_move_user');
                 $this->addFlash('success', \sprintf('Le licencié %s a été déplacé avec succès.', $licensee->getFullname()));
 
                 return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
@@ -636,5 +559,125 @@ class LicenseeManagementController extends BaseController
             'target_user' => $targetUser,
             'source_user_will_be_deleted' => $sourceUserWillBeDeleted,
         ]);
+    }
+
+    private function assertMoveUserStep1Access(Licensee $licensee): ?Response
+    {
+        $adminClub = $this->clubHelper->getClubForUser($this->getUser());
+        if (!$adminClub instanceof Club) {
+            $this->addFlash('danger', 'Impossible de déterminer votre club.');
+
+            return $this->redirectToRoute('app_licensee_index');
+        }
+
+        try {
+            $licenseeClub = $this->clubHelper->activeClubFor($licensee);
+        } catch (NoActiveClubException) {
+            $this->addFlash('danger', 'Ce licencié n\'appartient à aucun club actif.');
+
+            return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
+        }
+
+        if ($adminClub !== $licenseeClub) {
+            $this->addFlash('danger', 'Vous ne pouvez pas gérer ce licencié.');
+
+            return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{0: Response|null, 1: array<string, mixed>, 2: User|null}
+     */
+    private function initMoveUserStep2(Request $request, Licensee $licensee): array
+    {
+        $session = $request->getSession();
+        $moveData = $session->get('licensee_move_user', []);
+
+        if (empty($moveData) || ($moveData['licensee_id'] ?? null) !== $licensee->getId()) {
+            return [$this->redirectToRoute('app_licensee_move_user_step1', ['id' => $licensee->getId()]), [], null];
+        }
+
+        $targetUser = null;
+        if ('existing' === $moveData['choice']) {
+            $targetUser = $this->userRepository->find((int) $moveData['target_user_id']);
+
+            if (!$targetUser instanceof User) {
+                $this->addFlash('danger', "Le compte cible n'existe plus. Veuillez recommencer.");
+                $session->remove('licensee_move_user');
+
+                return [$this->redirectToRoute('app_licensee_move_user_step1', ['id' => $licensee->getId()]), [], null];
+            }
+        }
+
+        return [null, $moveData, $targetUser];
+    }
+
+    /**
+     * @param array<string, mixed> $moveData
+     */
+    private function executeMoveUserAction(
+        Licensee $licensee,
+        array $moveData,
+        ?User $sourceUser,
+        bool $sourceUserWillBeDeleted,
+        ?User $targetUser,
+    ): ?User {
+        $newUser = null;
+
+        if ('new' === $moveData['choice']) {
+            $newUser = new User();
+            $newUser->setEmail((string) $moveData['email']);
+            $newUser->setFirstname($licensee->getFirstname());
+            $newUser->setLastname($licensee->getLastname());
+            $newUser->setGender($licensee->getGender());
+            if ($licensee->getBirthdate() instanceof \DateTimeInterface) {
+                $newUser->setBirthdate(\DateTimeImmutable::createFromInterface($licensee->getBirthdate()));
+            }
+
+            $newUser->setRoles(['ROLE_USER']);
+            $this->entityManager->persist($newUser);
+            $licensee->setUser($newUser);
+        } else {
+            if (!$targetUser instanceof User) {
+                throw new UserNotFoundException('Le compte cible est introuvable.');
+            }
+
+            $licensee->setUser($targetUser);
+        }
+
+        if ($sourceUserWillBeDeleted && $sourceUser instanceof User) {
+            // Detach licensee from the source user's collection before removing
+            // the user, to prevent cascade: ['remove'] from also deleting the
+            // (now-reassigned) licensee.
+            $sourceUser->removeLicensee($licensee);
+            $this->entityManager->remove($sourceUser);
+        }
+
+        $this->entityManager->flush();
+
+        return $newUser;
+    }
+
+    private function sendMoveUserWelcomeEmail(?User $newUser): void
+    {
+        if (!$newUser instanceof User) {
+            return;
+        }
+
+        try {
+            $resetToken = $this->resetPasswordHelper->generateResetToken($newUser);
+            $resetEmail = new TemplatedEmail()
+                ->from(new Address('noreply@admds.net', 'Les Archers de Guyenne'))
+                ->to($newUser->getEmail())
+                ->subject('Créez votre mot de passe — Archery Manager')
+                ->htmlTemplate('reset_password/email.html.twig')
+                ->context(['resetToken' => $resetToken]);
+            $this->mailer->send($resetEmail);
+        } catch (ResetPasswordExceptionInterface|\Throwable $e) {
+            \Sentry\captureException($e);
+            $this->addFlash('warning', 'Le compte a été créé mais l\'email d\'invitation n\'a pas pu être envoyé.');
+        }
     }
 }
