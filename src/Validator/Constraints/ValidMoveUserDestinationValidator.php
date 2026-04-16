@@ -37,6 +37,11 @@ class ValidMoveUserDestinationValidator extends ConstraintValidator
                 $this->context->buildViolation($constraint->emptyEmailMessage)
                     ->atPath('[email]')
                     ->addViolation();
+            } elseif (false === filter_var($email, \FILTER_VALIDATE_EMAIL)) {
+                $this->context->buildViolation($constraint->invalidEmailFormatMessage)
+                    ->setParameter('{{ email }}', $email)
+                    ->atPath('[email]')
+                    ->addViolation();
             } elseif ($this->userRepository->findOneByEmail($email) instanceof User) {
                 $this->context->buildViolation($constraint->duplicateEmailMessage)
                     ->atPath('[email]')

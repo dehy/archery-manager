@@ -96,7 +96,7 @@ final class LicenseeManagementMoveUserControllerTest extends LoggedInTestCase
         ]);
         $client->submit($form);
 
-        $this->assertResponseIsSuccessful();
+        $this->assertResponseStatusCodeSame(422);
     }
 
     public function testStep1PostWithNewChoiceAndAlreadyUsedEmailShowsError(): void
@@ -114,7 +114,7 @@ final class LicenseeManagementMoveUserControllerTest extends LoggedInTestCase
         ]);
         $client->submit($form);
 
-        $this->assertResponseIsSuccessful();
+        $this->assertResponseStatusCodeSame(422);
     }
 
     public function testStep1PostWithExistingChoiceAndValidUserRedirectsToStep2(): void

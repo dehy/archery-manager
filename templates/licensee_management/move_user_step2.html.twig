@@ -69,7 +69,7 @@
 
                     <ul class="list-group mb-4">
                         <li class="list-group-item list-group-item-info">
-                            <em class="fa-solid fa-circle-check me-2"></em>
+                            <em class="fa-solid fa-check-circle me-2"></em>
                             Le licencié <strong>{{ licensee.fullname }}</strong> sera rattaché au compte destination.
                         </li>
                         {% if move_data.choice == 'new' %}
@@ -93,6 +93,7 @@
                         {% endif %}
                     </ul>
 
+                    {% form_theme form 'bootstrap_5_layout.html.twig' %}
                     {{ form_start(form) }}
                         <div class="d-flex gap-2 justify-content-end">
                             <a href="{{ path('app_licensee_move_user_step1', {id: licensee.id}) }}" class="btn btn-secondary">
