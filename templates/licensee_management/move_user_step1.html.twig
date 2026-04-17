@@ -32,7 +32,8 @@
                             <em class="text-muted">Aucun compte</em>
                         {% endif %}
                     </div>
-                    {% form_theme form 'bootstrap_5_layout.html.twig' %}                    {{ form_start(form, {attr: {'data-controller': 'user-choice', 'data-action': 'change->user-choice#update'}}) }}
+                    {% form_theme form 'bootstrap_5_layout.html.twig' %}
+                    {{ form_start(form, {attr: {'data-controller': 'user-choice', 'data-action': 'change->user-choice#update'}}) }}
                         <div class="mb-4">
                             {{ form_row(form.user_choice) }}
                         </div>
