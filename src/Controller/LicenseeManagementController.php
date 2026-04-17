@@ -434,7 +434,7 @@ class LicenseeManagementController extends BaseController
     public function moveUserStep1(Request $request, Licensee $licensee): Response
     {
         $guardResponse = $this->assertMoveUserStep1Access($licensee);
-        if (null !== $guardResponse) {
+        if ($guardResponse instanceof Response) {
             return $guardResponse;
         }
 

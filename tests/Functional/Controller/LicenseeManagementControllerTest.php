@@ -670,7 +670,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $this->assertResponseRedirects('/licensee/'.$licensee->getId());
 
         // Verify the new user was created
-        $userRepo = static::getContainer()->get(UserRepository::class);
+        $userRepo = self::getContainer()->get(UserRepository::class);
         $createdUser = $userRepo->findOneByEmail($newEmail);
         $this->assertInstanceOf(User::class, $createdUser);
     }
@@ -696,7 +696,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $this->assertResponseRedirects('/licensee/'.$licensee->getId());
 
         // Verify the licensee is now linked to the target user
-        $licenseeRepo = static::getContainer()->get(LicenseeRepository::class);
+        $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
         $updatedLicensee = $licenseeRepo->find($licensee->getId());
         $this->assertSame((int) $targetUserId, $updatedLicensee?->getUser()?->getId());
     }
@@ -724,7 +724,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $this->assertResponseRedirects('/licensee/'.$licensee->getId());
 
         // The source user should have been deleted (had only 1 licensee)
-        $userRepo = static::getContainer()->get(UserRepository::class);
+        $userRepo = self::getContainer()->get(UserRepository::class);
         $this->assertNull($userRepo->find($sourceUserId));
     }
 
@@ -753,7 +753,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $this->assertResponseRedirects('/licensee/'.$childLicensee->getId());
 
         // The source user should still exist (has another licensee)
-        $userRepo = static::getContainer()->get(UserRepository::class);
+        $userRepo = self::getContainer()->get(UserRepository::class);
         $this->assertInstanceOf(User::class, $userRepo->find($sourceUserId));
     }
 
@@ -765,28 +765,28 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
      */
     private function getLicenseeByUserEmail(string $email, bool $second = false): Licensee
     {
-        $userRepo = static::getContainer()->get(UserRepository::class);
-        $licenseeRepo = static::getContainer()->get(LicenseeRepository::class);
+        $userRepo = self::getContainer()->get(UserRepository::class);
+        $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
 
         $user = $userRepo->findOneByEmail($email);
-        self::assertInstanceOf(User::class, $user, "User fixture '{$email}' not found.");
+        $this->assertInstanceOf(User::class, $user, \sprintf("User fixture '%s' not found.", $email));
 
         $licensees = $licenseeRepo->findBy(['user' => $user]);
-        self::assertNotEmpty($licensees, "No licensees found for user '{$email}'.");
+        $this->assertNotEmpty($licensees, \sprintf("No licensees found for user '%s'.", $email));
 
         $index = $second ? 1 : 0;
-        self::assertArrayHasKey($index, $licensees, "Licensee index {$index} not found for user '{$email}'.");
+        $this->assertArrayHasKey($index, $licensees, \sprintf("Licensee index %s not found for user '%s'.", $index, $email));
 
         return $licensees[$index];
     }
 
     private function moveStep1Url(int $licenseeId): string
     {
-        return "/licensees/manage/{$licenseeId}/move-user/step1";
+        return \sprintf('/licensees/manage/%d/move-user/step1', $licenseeId);
     }
 
     private function moveStep2Url(int $licenseeId): string
     {
-        return "/licensees/manage/{$licenseeId}/move-user/step2";
+        return \sprintf('/licensees/manage/%d/move-user/step2', $licenseeId);
     }
 }
