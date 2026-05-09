@@ -137,6 +137,28 @@ final class LicenseeManagementMoveUserControllerTest extends LoggedInTestCase
 
     // ── Step 2 — Auth & session guard ─────────────────────────────────
 
+    public function testStep2AdminFromDifferentClubIsRedirected(): void
+    {
+        // Use the LADG club admin to go through step1 and populate the session
+        $ladgClient = self::createLoggedInAsClubAdminClient();
+        $licenseeId = $this->getLadgLicenseeId();
+
+        $crawler = $ladgClient->request(Request::METHOD_GET, '/licensees/manage/'.$licenseeId.'/move-user/step1');
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'new',
+            'form[email]' => 'step2.wrongclub.test@exemple.fr',
+        ]);
+        $ladgClient->submit($form);
+
+        // Now switch to the wrong-club admin (ACME admin) and try to reach step2 directly
+        $wrongClubClient = self::createLoggedInAsAdminClient();
+        $wrongClubClient->request(Request::METHOD_GET, '/licensees/manage/'.$licenseeId.'/move-user/step2');
+
+        // Club-match guard must redirect away before executing anything
+        $this->assertResponseRedirects();
+        $this->assertStringNotContainsString('/move-user/step2', (string) $wrongClubClient->getResponse()->headers->get('Location'));
+    }
+
     public function testStep2WithoutSessionRedirectsToStep1(): void
     {
         $client = self::createLoggedInAsClubAdminClient();

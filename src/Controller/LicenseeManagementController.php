@@ -519,6 +519,11 @@ class LicenseeManagementController extends BaseController
     #[Route('/licensees/manage/{id}/move-user/step2', name: 'app_licensee_move_user_step2', methods: ['GET', 'POST'])]
     public function moveUserStep2(Request $request, Licensee $licensee): Response
     {
+        $guardResponse = $this->assertMoveUserStep1Access($licensee);
+        if (null !== $guardResponse) {
+            return $guardResponse;
+        }
+
         [$guardResponse, $moveData, $targetUser] = $this->initMoveUserStep2($request, $licensee);
         if (null !== $guardResponse) {
             return $guardResponse;
