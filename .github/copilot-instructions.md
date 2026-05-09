@@ -1,6 +1,6 @@
 # Archery Manager — GitHub Copilot Instructions
 
-**Archery Manager** is a Symfony 7.4 web application for managing an archery club (Les Archers de Bordeaux Guyenne, AGPL v3). It handles member management, event scheduling, FFTA federation synchronization, equipment tracking, club applications, and GDPR consent.
+**Archery Manager** is a Symfony 7.4 multi-club web application for managing archery clubs (AGPL v3). Originally built for Les Archers de Bordeaux Guyenne, it is designed to support multiple clubs. It handles member management, event scheduling, FFTA federation synchronization, equipment tracking, club applications, and GDPR consent.
 
 ## Tech Stack
 
