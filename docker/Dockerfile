@@ -1,8 +1,8 @@
 # =============================================================================
-# Stage 1: base — Ubuntu 24.04 + runtime packages + symfony user (UID 1000)
+# Stage 1: base — Ubuntu 26.04 + runtime packages + symfony user (UID 1000)
 # Contains only what is needed to RUN the application; no build tools.
 # =============================================================================
-FROM ubuntu:24.04 AS base
+FROM ubuntu:26.04 AS base
 
 ARG BUILD_DATE
 ARG VCS_REF
@@ -50,10 +50,10 @@ ENV HOME=/app BUILD_TARGET=dev
 COPY ./docker/build/builder_setup.sh /docker/build/builder_setup.sh
 RUN /bin/bash /docker/build/builder_setup.sh && \
     apt-get update && \
-    apt-get install -y --no-install-recommends php8.4-xdebug vim wget && \
+    apt-get install -y --no-install-recommends php8.5-xdebug vim wget && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN ln -sf /etc/php/8.4/fpm/php.ini /etc/php/8.4/cli/php.ini
+RUN ln -sf /etc/php/8.5/fpm/php.ini /etc/php/8.5/cli/php.ini
 
 # Pre-populate /app with source + vendor (overridden by bind-mount at dev runtime)
 COPY . /app
@@ -88,7 +88,7 @@ COPY --chown=root:root --from=builder /app/public/build /app/public/build
 COPY --chown=root:root --from=builder /app/public/bundles /app/public/bundles
 
 # Link PHP-FPM php.ini for CLI and stamp the revision
-RUN ln -sf /etc/php/8.4/fpm/php.ini /etc/php/8.4/cli/php.ini && \
+RUN ln -sf /etc/php/8.5/fpm/php.ini /etc/php/8.5/cli/php.ini && \
     echo "${VCS_REF:-}" > /app/REVISION
 
 # Drop privileges — all runtime processes run as symfony (UID 1000)

@@ -13,7 +13,7 @@ export HOME=/app APP_ENV=prod
 cd /app
 
 # Use the same PHP INI for CLI as for FPM
-ln -sf /etc/php/8.4/fpm/php.ini /etc/php/8.4/cli/php.ini
+ln -sf /etc/php/8.5/fpm/php.ini /etc/php/8.5/cli/php.ini
 
 # Ensure build output directories exist and are writable by symfony
 # HOME=/app, so npm's cache lands at /app/.npm — pre-create it
