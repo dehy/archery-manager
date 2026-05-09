@@ -77,6 +77,7 @@ services:
     App\EventListener\ResponseHeadersSubscriber:
         arguments:
             $cspDirectives: '%app.security.csp_directives%'
+            $matomoUrl: '%env(default::MATOMO_URL)%'
 
 when@test:
     services:

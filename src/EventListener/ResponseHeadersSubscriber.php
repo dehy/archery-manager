@@ -33,6 +33,7 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
      */
     public function __construct(
         private readonly array $cspDirectives,
+        private readonly ?string $matomoUrl = null,
     ) {
     }
 
@@ -64,8 +65,19 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
 
     private function buildCspHeaderValue(): string
     {
+        $directives = $this->cspDirectives;
+
+        if (null !== $this->matomoUrl && '' !== $this->matomoUrl) {
+            $scheme = parse_url($this->matomoUrl, PHP_URL_SCHEME);
+            $host = parse_url($this->matomoUrl, PHP_URL_HOST);
+            if (is_string($scheme) && is_string($host)) {
+                $origin = $scheme . '://' . $host;
+                $directives['script-src'] = ($directives['script-src'] ?? "'self'") . ' ' . $origin;
+            }
+        }
+
         $parts = [];
-        foreach ($this->cspDirectives as $directive => $value) {
+        foreach ($directives as $directive => $value) {
             $normalizedValue = trim((string) preg_replace('/\s+/', ' ', trim($value)));
             if ('' === $normalizedValue) {
                 continue;
