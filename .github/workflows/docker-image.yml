@@ -1,6 +1,8 @@
 name: Docker Image CI
 
 on:
+  schedule:
+    - cron: '0 4 * * 1'  # Every Monday 04:00 UTC — rebuilds against latest ubuntu:26.04 base
   push:
     branches:
       - main
