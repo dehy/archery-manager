@@ -51,7 +51,7 @@
                     <i class="fa-solid fa-calendar-plus"></i>
                     Ajouter au calendrier
                 </a>
-                {% if is_granted('ROLE_CLUB_ADMIN') and not is_granted('ROLE_ADMIN') %}
+                {% if is_granted('ROLE_CLUB_ADMIN') %}
                 <a href="{{ path('app_event_manage_edit', {id: event.id}) }}" class="btn btn-outline-warning btn-sm me-2">
                     <i class="fa-solid fa-edit me-1"></i>
                     Modifier
