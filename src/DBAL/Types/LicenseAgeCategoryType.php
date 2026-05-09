@@ -44,6 +44,7 @@ final class LicenseAgeCategoryType extends AbstractEnumType
 
     public const string SUPER_VETERAN = 'SV';
 
+    #[\Override]
     protected static array $choices = [
         self::U11 => 'U11',
         self::U13 => 'U13',

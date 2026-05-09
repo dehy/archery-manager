@@ -46,13 +46,12 @@ class AttachmentTemporaryUrlExtension
                     $uploadableField = $reflectionAttribute->newInstance();
                     $storageName = $uploadableField->getMapping().'Storage';
 
-                    /** @var FilesystemOperator|null $operator */
                     $operator = match ($storageName) {
                         'licenseesStorage' => $this->licenseesStorage,
                         'eventsStorage' => $this->eventsStorage,
                         default => null,
                     };
-                    if (null === $operator) {
+                    if (!$operator instanceof \League\Flysystem\FilesystemOperator) {
                         throw new \LogicException(\sprintf('Storage "%s" is not supported', $storageName));
                     }
 

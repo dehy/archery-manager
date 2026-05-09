@@ -15,6 +15,7 @@ final class GenderType extends AbstractEnumType
 
     public const string FEMALE = 'F';
 
+    #[\Override]
     protected static array $choices = [
         self::MALE => 'Homme',
         self::FEMALE => 'Femme',

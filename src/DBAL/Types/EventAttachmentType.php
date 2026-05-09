@@ -17,6 +17,7 @@ final class EventAttachmentType extends AbstractEnumType
 
     public const string MISC = 'misc';
 
+    #[\Override]
     protected static array $choices = [
         self::MANDATE => 'Mandat',
         self::RESULTS => 'Résultats',

@@ -21,6 +21,7 @@ final class ClubApplicationStatusType extends AbstractEnumType
 
     public const string CANCELLED = 'cancelled';
 
+    #[\Override]
     protected static array $choices = [
         self::PENDING => 'En attente',
         self::VALIDATED => 'Validée',

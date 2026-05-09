@@ -13,6 +13,7 @@ final class PracticeAdviceAttachmentType extends AbstractEnumType
 {
     public const string MISC = 'misc';
 
+    #[\Override]
     protected static array $choices = [
         self::MISC => 'Autre',
     ];

@@ -19,6 +19,7 @@ final class UserRoleType extends AbstractEnumType
 
     public const string ADMIN = 'ROLE_ADMIN';
 
+    #[\Override]
     protected static array $choices = [
         self::USER => 'Utilisateur',
         self::COACH => 'Entraîneur',

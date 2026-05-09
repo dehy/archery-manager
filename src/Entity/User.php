@@ -108,7 +108,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         ];
     }
 
-    public function __unserialize(array $data)
+    public function __unserialize(array $data): void
     {
         $this->id = $data['id'];
         $this->setEmail($data['email'])

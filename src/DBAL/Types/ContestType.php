@@ -15,6 +15,7 @@ final class ContestType extends AbstractEnumType
 
     public const string TEAM = 'team';
 
+    #[\Override]
     protected static array $choices = [
         self::INDIVIDUAL => 'Individuel',
         self::TEAM => 'Par équipe',

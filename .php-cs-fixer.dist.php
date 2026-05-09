@@ -7,15 +7,16 @@ $finder = (new PhpCsFixer\Finder())
     ->exclude('var')
     ->exclude('vendor')
     ->notPath('config/reference.php')
+    ->notPath('config/bundles.php')
+    ->notPath('config/preload.php')
+    ->notPath('public/index.php')
 ;
 
 return (new PhpCsFixer\Config())
     ->setParallelConfig(ParallelConfigFactory::detect())
     ->setRiskyAllowed(true)
     ->setRules([
-        '@Symfony' => true,
-        '@Symfony:risky' => true,
-        '@PHP84Migration' => true,
+        '@auto:risky' => true,
     ])
     ->setFinder($finder)
     ;

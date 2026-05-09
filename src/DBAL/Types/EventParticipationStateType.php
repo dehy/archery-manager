@@ -17,6 +17,7 @@ final class EventParticipationStateType extends AbstractEnumType
 
     public const string REGISTERED = 'registered';
 
+    #[\Override]
     protected static array $choices = [
         self::NOT_GOING => "N'y va pas",
         self::INTERESTED => 'Intéressé',

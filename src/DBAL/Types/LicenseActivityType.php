@@ -23,6 +23,7 @@ final class LicenseActivityType extends AbstractEnumType
 
     public const string TL = 'TL';
 
+    #[\Override]
     protected static array $choices = [
         self::AC => 'Chasse',
         self::AD => 'Droit',

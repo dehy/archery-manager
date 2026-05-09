@@ -25,6 +25,7 @@ final class ClubEquipmentType extends AbstractEnumType
 
     public const string OTHER = 'other';
 
+    #[\Override]
     protected static array $choices = [
         self::BOW => 'Arc',
         self::ARROWS => 'Flèches',

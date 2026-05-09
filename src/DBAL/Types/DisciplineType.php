@@ -25,6 +25,7 @@ final class DisciplineType extends AbstractEnumType
 
     public const string RUN = 'run';
 
+    #[\Override]
     protected static array $choices = [
         self::TARGET => 'Extérieur',
         self::INDOOR => 'Salle',

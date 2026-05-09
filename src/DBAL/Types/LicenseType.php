@@ -29,6 +29,7 @@ final class LicenseType extends AbstractEnumType
 
     public const string DECOUVERTE = 'D';
 
+    #[\Override]
     protected static array $choices = [
         self::POUSSINS => 'Poussin',
         self::JEUNES => 'Jeune',

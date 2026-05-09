@@ -19,6 +19,7 @@ final class ArrowType extends AbstractEnumType
 
     public const string ALUMINUM_CARBON = 'aluminum_carbon';
 
+    #[\Override]
     protected static array $choices = [
         self::WOOD => 'Bois',
         self::ALUMINUM => 'Aluminium',

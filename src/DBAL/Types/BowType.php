@@ -21,6 +21,7 @@ final class BowType extends AbstractEnumType
 
     public const string LONGBOW = 'longbow';
 
+    #[\Override]
     protected static array $choices = [
         self::INITIATION => 'Initiation',
         self::CLASSIQUE_COMPETITION => 'Classique compétition',

@@ -15,6 +15,7 @@ final class FletchingType extends AbstractEnumType
 
     public const string SPINWINGS = 'spinwings';
 
+    #[\Override]
     protected static array $choices = [
         self::PLASTIC => 'Plastique',
         self::SPINWINGS => 'Spinwings',

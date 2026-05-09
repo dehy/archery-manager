@@ -26,6 +26,7 @@ final class EventType extends AbstractEnumType
 
     public const string OTHER = Event::class;
 
+    #[\Override]
     protected static array $choices = [
         self::TRAINING => 'Entraînement',
         self::FREE_TRAINING => 'Entraînement libre',

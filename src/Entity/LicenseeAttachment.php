@@ -131,7 +131,7 @@ class LicenseeAttachment extends Attachment
         return ['id' => $this->getId()];
     }
 
-    public function __unserialize(array $data)
+    public function __unserialize(array $data): void
     {
         $this->id = $data['id'];
     }

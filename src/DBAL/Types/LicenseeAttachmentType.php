@@ -19,6 +19,7 @@ final class LicenseeAttachmentType extends AbstractEnumType
 
     public const string MISC = 'misc';
 
+    #[\Override]
     protected static array $choices = [
         self::PROFILE_PICTURE => 'Photo de profil',
         self::LICENSE_APPLICATION => 'Demande de license',

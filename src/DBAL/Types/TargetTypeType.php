@@ -21,6 +21,7 @@ final class TargetTypeType extends AbstractEnumType
 
     public const string BEURSAULT = 'beursault';
 
+    #[\Override]
     protected static array $choices = [
         self::MONOSPOT => 'Monospot',
         self::TRISPOT => 'Trispot',

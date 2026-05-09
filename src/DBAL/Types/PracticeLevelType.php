@@ -17,6 +17,7 @@ final class PracticeLevelType extends AbstractEnumType
 
     public const string ADVANCED = 'advanced';
 
+    #[\Override]
     protected static array $choices = [
         self::BEGINNER => 'Débutant',
         self::INTERMEDIATE => 'Intermédiaire',

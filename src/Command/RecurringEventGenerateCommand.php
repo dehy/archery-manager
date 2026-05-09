@@ -85,8 +85,7 @@ class RecurringEventGenerateCommand extends Command
         $recurrence = $helper->ask($input, $output, $recurringQuestion);
 
         $stopsAtQuestion = new Question("S'arrêter après le : ");
-        $stopsAt = new \DateTimeImmutable($helper->ask($input, $output, $stopsAtQuestion));
-        $stopsAt->setTime(23, 59, 59);
+        $stopsAt = new \DateTimeImmutable($helper->ask($input, $output, $stopsAtQuestion))->setTime(23, 59, 59);
 
         while ($startsAt <= $stopsAt) {
             $eventClass = match ($kind) {
