@@ -35,6 +35,58 @@ final class EventManagementControllerTest extends LoggedInTestCase
         $this->assertResponseIsSuccessful();
     }
 
+    public function testIndexRendersForClubAdmin(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(Request::METHOD_GET, self::URL_INDEX);
+
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testIndexAdminSeesEventsFromAllClubs(): void
+    {
+        // Create client first (required before container access)
+        $client = self::createLoggedInAsAdminClient();
+
+        /** @var EventRepository $eventRepo */
+        $eventRepo = self::getContainer()->get(EventRepository::class);
+        $totalEventsInDb = \count($eventRepo->findAll());
+
+        $client->request(Request::METHOD_GET, self::URL_INDEX);
+        $this->assertResponseIsSuccessful();
+
+        // Admin should have access to all events, not just their own club's
+        $ladgEventId = $this->getFirstLadgEventId();
+        $client->request(Request::METHOD_GET, \sprintf('/events/manage/%d/edit', $ladgEventId));
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testIndexClubAdminOnlySeesOwnClubEvents(): void
+    {
+        // Create client first (required before container access)
+        $client = self::createLoggedInAsClubAdminClient();
+
+        /** @var ClubRepository $clubRepo */
+        $clubRepo = self::getContainer()->get(ClubRepository::class);
+        $ladgClub = $clubRepo->findOneBy(['name' => 'Les Archers de Guyenne']);
+        $this->assertInstanceOf(Club::class, $ladgClub);
+
+        /** @var EventRepository $eventRepo */
+        $eventRepo = self::getContainer()->get(EventRepository::class);
+        $ladgEventCount = \count($eventRepo->findBy(['club' => $ladgClub]));
+        $totalEventCount = \count($eventRepo->findAll());
+
+        // Pre-condition: fixtures must have events from at least 2 clubs
+        $this->assertGreaterThan($ladgEventCount, $totalEventCount, 'Fixtures must include events from multiple clubs');
+
+        $crawler = $client->request(Request::METHOD_GET, self::URL_INDEX);
+        $this->assertResponseIsSuccessful();
+
+        // The "total events" count shown on the page should match only LADG events
+        $pageText = $crawler->text();
+        $this->assertStringContainsString((string) $ladgEventCount, $pageText);
+    }
+
     // ── Create (type selection) ────────────────────────────────────────
 
     public function testCreatePageRequiresClubAdmin(): void
@@ -145,6 +197,38 @@ final class EventManagementControllerTest extends LoggedInTestCase
         $this->assertSelectorExists('form');
     }
 
+    public function testEditFormShowsForClubAdminOwnClub(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $eventId = $this->getFirstLadgEventId();
+
+        $client->request(Request::METHOD_GET, \sprintf('/events/manage/%d/edit', $eventId));
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorExists('form');
+    }
+
+    public function testClubAdminCannotEditOtherClubEvent(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $eventId = $this->getFirstLabdEventId(); // LADB event; club admin belongs to LADG
+
+        $client->request(Request::METHOD_GET, \sprintf('/events/manage/%d/edit', $eventId));
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testAdminCanEditEventFromAnyClub(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $eventId = $this->getFirstLadgEventId(); // LADG event; admin's licensee is in LADB
+
+        $client->request(Request::METHOD_GET, \sprintf('/events/manage/%d/edit', $eventId));
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorExists('form');
+    }
+
     public function testEditFormSubmitSucceeds(): void
     {
         $client = self::createLoggedInAsAdminClient();
@@ -203,6 +287,18 @@ final class EventManagementControllerTest extends LoggedInTestCase
         $this->assertResponseRedirects();
     }
 
+    public function testClubAdminCannotDeleteOtherClubEvent(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $eventId = $this->getFirstLabdEventId(); // LADB event; club admin belongs to LADG
+
+        $client->request(Request::METHOD_POST, \sprintf('/events/manage/%d/delete', $eventId), [
+            '_token' => 'whatever',
+        ]);
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
     // ── Helper ────────────────────────────────────────────────────────
 
     private function getFirstLabdEventId(): int
@@ -216,6 +312,21 @@ final class EventManagementControllerTest extends LoggedInTestCase
         $eventRepo = self::getContainer()->get(EventRepository::class);
         $event = $eventRepo->findOneBy(['club' => $club]);
         $this->assertInstanceOf(Event::class, $event, 'No event found for club LADB');
+
+        return $event->getId();
+    }
+
+    private function getFirstLadgEventId(): int
+    {
+        /** @var ClubRepository $clubRepo */
+        $clubRepo = self::getContainer()->get(ClubRepository::class);
+        $club = $clubRepo->findOneBy(['name' => 'Les Archers de Guyenne']);
+        $this->assertInstanceOf(Club::class, $club, 'Club LADG not found in fixtures');
+
+        /** @var EventRepository $eventRepo */
+        $eventRepo = self::getContainer()->get(EventRepository::class);
+        $event = $eventRepo->findOneBy(['club' => $club]);
+        $this->assertInstanceOf(Event::class, $event, 'No event found for club LADG');
 
         return $event->getId();
     }

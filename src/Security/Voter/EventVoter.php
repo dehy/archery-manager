@@ -55,13 +55,16 @@ class EventVoter extends Voter
             $clubs[] = $licensee->getLicenseForSeason($eventSeason)?->getClub();
         }
 
-        array_filter($clubs);
+        $clubs = array_filter($clubs);
+
+        $isClubAdmin = $this->security->isGranted(UserRoleType::CLUB_ADMIN, $user);
+        $isAdmin = $this->security->isGranted(UserRoleType::ADMIN, $user);
+        $eventBelongsToUsersClub = \in_array($event->getClub(), $clubs, true);
 
         // ... (check conditions and return true to grant permission) ...
         return match ($attribute) {
-            self::EDIT => $this->security->isGranted(UserRoleType::CLUB_ADMIN, $user),
-            self::DELETE => $this->security->isGranted(UserRoleType::CLUB_ADMIN, $user),
-            self::VIEW => \in_array($event->getClub(), $clubs),
+            self::EDIT, self::DELETE => $isAdmin || ($isClubAdmin && $eventBelongsToUsersClub),
+            self::VIEW => $eventBelongsToUsersClub,
             default => false,
         };
     }
