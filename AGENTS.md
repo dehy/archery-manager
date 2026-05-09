@@ -35,7 +35,7 @@ For language-specific patterns, refer to the scoped instruction files in `.githu
 
 ### Backend
 - **Framework**: Symfony 7.4.*
-- **PHP**: 8.4+ (with typed class constants, strict types)
+- **PHP**: 8.5+ (with typed class constants, strict types)
 - **Database**: MariaDB 12.1 with Doctrine ORM 3.x
 - **API**: API Platform 3.x for REST APIs
 - **Authentication**: Symfony Security with form login, remember me, user switching
@@ -975,7 +975,7 @@ Use this loop for every non-trivial change so work is traceable and reviewable.
 - **PHP best practices:**
   - PSR-12 coding standard (enforced by PHP CS Fixer)
   - Return type declarations on all methods
-  - Readonly properties where applicable (PHP 8.4+)
+  - Readonly properties where applicable (PHP 8.5+)
   - Null safety (avoid null where possible)
 
 ## Tips for AI Assistants

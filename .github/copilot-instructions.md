@@ -6,7 +6,7 @@
 
 | Layer | Technology |
 |-------|-----------|
-| PHP | 8.4+ (strict_types, readonly properties, typed constants) |
+| PHP | 8.5+ (strict_types, readonly properties, typed constants) |
 | Framework | Symfony 7.4.* |
 | Database | MariaDB 12.1 + Doctrine ORM 3.x |
 | API | API Platform 3.x |
