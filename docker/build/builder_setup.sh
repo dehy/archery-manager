@@ -15,6 +15,7 @@ apt-get update
 apt-get install -y --no-install-recommends \
     git \
     nodejs \
+    npm \
     build-essential \
     libcairo2-dev \
     libpango1.0-dev \
