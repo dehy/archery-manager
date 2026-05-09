@@ -48,10 +48,6 @@ final class EventManagementControllerTest extends LoggedInTestCase
         // Create client first (required before container access)
         $client = self::createLoggedInAsAdminClient();
 
-        /** @var EventRepository $eventRepo */
-        $eventRepo = self::getContainer()->get(EventRepository::class);
-        $totalEventsInDb = \count($eventRepo->findAll());
-
         $client->request(Request::METHOD_GET, self::URL_INDEX);
         $this->assertResponseIsSuccessful();
 
