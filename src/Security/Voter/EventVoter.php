@@ -59,8 +59,8 @@ class EventVoter extends Voter
 
         // ... (check conditions and return true to grant permission) ...
         return match ($attribute) {
-            self::EDIT => $this->security->isGranted(UserRoleType::ADMIN, $user),
-            self::DELETE => $this->security->isGranted(UserRoleType::ADMIN, $user),
+            self::EDIT => $this->security->isGranted(UserRoleType::CLUB_ADMIN, $user),
+            self::DELETE => $this->security->isGranted(UserRoleType::CLUB_ADMIN, $user),
             self::VIEW => \in_array($event->getClub(), $clubs),
             default => false,
         };
