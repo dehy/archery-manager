@@ -3,20 +3,17 @@
 # builder_setup.sh — installs build tools (Node.js, Composer, native canvas deps).
 # Runs as root during the 'builder' and 'dev' Docker stages.
 # These tools are NOT present in the 'base' runtime stage.
+# Node.js 22 LTS is provided by the Ubuntu 26.04 native repo (no external PPA needed).
 
-COMPOSER_VERSION=2.8.1
+COMPOSER_VERSION=2.9.7
 
 set -eu
 
 export DEBIAN_FRONTEND=noninteractive
 
-# --- Node.js APT source ---
-install -o root -g root -m 644 /docker/build/nodesource.gpg /etc/apt/keyrings/nodesource.gpg
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" \
-    | tee /etc/apt/sources.list.d/nodesource.list
-
 apt-get update
 apt-get install -y --no-install-recommends \
+    git \
     nodejs \
     build-essential \
     libcairo2-dev \

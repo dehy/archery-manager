@@ -14,7 +14,6 @@ apt-get install -y --no-install-recommends \
     tzdata \
     ca-certificates \
     curl \
-    git \
     jq \
     netcat-openbsd \
     nginx-light \
