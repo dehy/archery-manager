@@ -35,7 +35,7 @@ apt-get install -y --no-install-recommends \
     unzip
 
 # --- symfony user (UID/GID 1000) ---
-# Official ubuntu:24.04 images ship a built-in 'ubuntu' user/group at UID/GID 1000;
+# Official ubuntu:26.04 images ship a built-in 'ubuntu' user/group at UID/GID 1000;
 # rename it when present, otherwise create symfony explicitly.
 if getent group ubuntu >/dev/null 2>&1; then
     groupmod -n symfony ubuntu

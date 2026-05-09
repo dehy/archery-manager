@@ -3,7 +3,7 @@
 # builder_setup.sh — installs build tools (Node.js, Composer, native canvas deps).
 # Runs as root during the 'builder' and 'dev' Docker stages.
 # These tools are NOT present in the 'base' runtime stage.
-# Node.js 22 LTS is provided by the Ubuntu 26.04 native repo (no external PPA needed).
+# Node.js is provided by the Ubuntu 26.04 native repo (no external PPA needed).
 
 COMPOSER_VERSION=2.9.7
 

@@ -15,12 +15,15 @@ else
 fi
 export HOME=/app
 
-# Fix ownership of any rw-mounted volumes under /app (needed in dev with bind-mounts).
+# Fix ownership of known writable directories (needed in dev with bind-mounts).
 # Only possible when running as root (dev stage); skip silently in the runtime stage.
 if [[ "$(id -u)" == "0" ]]; then
-    for dir in $(mount | grep "${APP_ROOT_PATH}" | grep 'rw' | awk '{ print $3 }')
-    do
-      chown symfony: "${dir}"
+    for dir in \
+        "${APP_ROOT_PATH}/var" \
+        "${APP_ROOT_PATH}/vendor" \
+        "${APP_ROOT_PATH}/node_modules" \
+        "${APP_ROOT_PATH}/.npm"; do
+        [ -d "$dir" ] && chown symfony: "$dir"
     done
 fi
 
