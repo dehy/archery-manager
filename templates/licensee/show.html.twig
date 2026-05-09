@@ -25,11 +25,17 @@
             {{ licenseeHelper.licenseeFromSession.id is same as licensee.id ? licensee.fullname : licensee_display_name(licensee) }}
         </h1>
         {% if is_granted('ROLE_COACH') or is_granted('ROLE_CLUB_ADMIN') %}
-            <div>
+            <div class="d-flex gap-2">
                 <a href="{{ path('app_licensee_edit', {'id': licensee.id}) }}" class="btn btn-warning">
                     <em class="fa-solid fa-pen-to-square me-2"></em>
                     Modifier
                 </a>
+                {% if is_granted('ROLE_CLUB_ADMIN') %}
+                    <a href="{{ path('app_licensee_move_user_step1', {'id': licensee.id}) }}" class="btn btn-outline-secondary">
+                        <em class="fa-solid fa-right-left me-2"></em>
+                        Déplacer
+                    </a>
+                {% endif %}
             </div>
         {% endif %}
     </div>
