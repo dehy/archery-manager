@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Management;
 
 use App\DBAL\Types\EventType;
+use App\DBAL\Types\UserRoleType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\FreeTrainingEvent;
@@ -18,6 +19,7 @@ use App\Repository\EventRepository;
 use App\Security\Voter\EventVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -29,6 +31,7 @@ class EventManagementController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ClubHelper $clubHelper,
+        private readonly Security $security,
     ) {
     }
 
@@ -41,22 +44,23 @@ class EventManagementController extends AbstractController
         $page = max(1, $request->query->getInt('page', 1));
         $limit = 20;
         $offset = ($page - 1) * $limit;
+        $isFullAdmin = $this->security->isGranted(UserRoleType::ADMIN);
 
-        $events = $eventRepository->createQueryBuilder('e')
-            ->where('e.club = :club')
-            ->setParameter('club', $this->clubHelper->activeClub())
+        $listQb = $eventRepository->createQueryBuilder('e');
+        $countQb = $eventRepository->createQueryBuilder('e')->select('COUNT(e.id)');
+        if (!$isFullAdmin) {
+            $listQb->where('e.club = :club')->setParameter('club', $this->clubHelper->activeClub());
+            $countQb->where('e.club = :club')->setParameter('club', $this->clubHelper->activeClub());
+        }
+
+        $events = $listQb
             ->orderBy('e.startsAt', 'DESC')
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
 
-        $totalEvents = $eventRepository->createQueryBuilder('e')
-            ->select('COUNT(e.id)')
-            ->where('e.club = :club')
-            ->setParameter('club', $this->clubHelper->activeClub())
-            ->getQuery()
-            ->getSingleScalarResult();
+        $totalEvents = $countQb->getQuery()->getSingleScalarResult();
 
         $totalPages = ceil($totalEvents / $limit);
 
