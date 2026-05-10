@@ -102,11 +102,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     {
         return [
             'id' => $this->getId(),
-            'email' => isset($this->email) ? $this->email : null,
+            'email' => $this->email ?? null,
             'roles' => $this->getRoles(),
             'password' => $this->getPassword(),
-            'firstname' => isset($this->firstname) ? $this->firstname : null,
-            'lastname' => isset($this->lastname) ? $this->lastname : null,
+            'firstname' => $this->firstname ?? null,
+            'lastname' => $this->lastname ?? null,
         ];
     }
 
