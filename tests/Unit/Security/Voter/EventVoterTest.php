@@ -21,12 +21,10 @@ final class EventVoterTest extends TestCase
     {
         $security = $this->createMock(Security::class);
         $security->method('isGranted')->willReturnCallback(
-            static function (string $attribute) use ($isAdmin, $isClubAdmin): bool {
-                return match ($attribute) {
-                    'ROLE_ADMIN' => $isAdmin,
-                    'ROLE_CLUB_ADMIN' => $isClubAdmin,
-                    default => false,
-                };
+            static fn(string $attribute): bool => match ($attribute) {
+                'ROLE_ADMIN' => $isAdmin,
+                'ROLE_CLUB_ADMIN' => $isClubAdmin,
+                default => false,
             },
         );
 
@@ -65,7 +63,7 @@ final class EventVoterTest extends TestCase
         $license->method('getClub')->willReturn($club);
 
         $licensee = $this->createMock(Licensee::class);
-        $licensee->method('getLicenseForSeason')->with($season)->willReturn($club ? $license : null);
+        $licensee->method('getLicenseForSeason')->with($season)->willReturn($club instanceof \App\Entity\Club ? $license : null);
 
         $user->addLicensee($licensee);
     }

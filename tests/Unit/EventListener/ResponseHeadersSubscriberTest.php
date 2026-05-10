@@ -28,7 +28,7 @@ final class ResponseHeadersSubscriberTest extends TestCase
     {
         $kernel = $this->createMock(HttpKernelInterface::class);
         $server = $isSecure ? ['HTTPS' => 'on'] : [];
-        $request = Request::create('/', 'GET', [], [], [], $server);
+        $request = Request::create('/', \Symfony\Component\HttpFoundation\Request::METHOD_GET, [], [], [], $server);
         $response = new Response();
 
         return new ResponseEvent(
@@ -103,7 +103,6 @@ final class ResponseHeadersSubscriberTest extends TestCase
     {
         $subscriber = $this->createSubscriber(
             cspDirectives: ["script-src" => "'self'"],
-            matomoUrl: null,
         );
         $event = $this->createResponseEvent();
 
