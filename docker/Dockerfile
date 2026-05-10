@@ -9,7 +9,7 @@ ARG VCS_REF
 
 ENV TZ="Europe/Paris"
 
-VOLUME /var/lib/php/sessions
+VOLUME /app/var/sessions
 EXPOSE 80
 
 COPY ./docker/build /docker/build

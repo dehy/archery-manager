@@ -53,9 +53,6 @@ fi
 mkdir -p /app/var/cache /app/var/log /app/var/sessions
 chown -R symfony:symfony /app/var
 
-# /var/lib/php/sessions must be writable by symfony (used as session.save_path)
-mkdir -p /var/lib/php/sessions
-chown symfony:symfony /var/lib/php/sessions
 
 # --- Allow nginx to bind port 80 without root ---
 apt-get install -y --no-install-recommends libcap2-bin

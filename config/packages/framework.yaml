@@ -15,6 +15,7 @@ framework:
         handler_id: null
         cookie_secure: auto
         cookie_samesite: lax
+        save_path: '%kernel.project_dir%/var/sessions'
 
     #esi: true
     #fragments: true
