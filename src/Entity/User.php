@@ -98,15 +98,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         return $this->getFullname();
     }
 
-    public function __serialize()
+    public function __serialize(): array
     {
         return [
             'id' => $this->getId(),
-            'email' => $this->getEmail(),
+            'email' => isset($this->email) ? $this->email : null,
             'roles' => $this->getRoles(),
             'password' => $this->getPassword(),
-            'firstname' => $this->getFirstname(),
-            'lastname' => $this->getLastname(),
+            'firstname' => isset($this->firstname) ? $this->firstname : null,
+            'lastname' => isset($this->lastname) ? $this->lastname : null,
         ];
     }
 
@@ -425,6 +425,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     public function lockAccount(int $minutes = 30): self
     {
         $this->accountLockedUntil = new \DateTimeImmutable()->modify(\sprintf('+%d minutes', $minutes));
+
+        return $this;
+    }
+
+    public function lockPermanently(): self
+    {
+        $this->accountLockedUntil = new \DateTimeImmutable('9999-12-31 23:59:59');
+
+        return $this;
+    }
+
+    public function unlockAccount(): self
+    {
+        $this->accountLockedUntil = null;
+        $this->resetFailedAttempts();
 
         return $this;
     }

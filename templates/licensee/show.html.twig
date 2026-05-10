@@ -25,14 +25,75 @@
             {{ licenseeHelper.licenseeFromSession.id is same as licensee.id ? licensee.fullname : licensee_display_name(licensee) }}
         </h1>
         {% if is_granted('ROLE_COACH') or is_granted('ROLE_CLUB_ADMIN') %}
-            <div>
-                <a href="{{ path('app_licensee_edit', {'id': licensee.id}) }}" class="btn btn-warning">
-                    <em class="fa-solid fa-pen-to-square me-2"></em>
-                    Modifier
-                </a>
+            <div class="dropdown">
+                <button class="btn btn-warning dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <em class="fa-solid fa-screwdriver-wrench me-2"></em>
+                    Actions
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a href="{{ path('app_licensee_edit', {'id': licensee.id}) }}" class="dropdown-item">
+                            <em class="fa-solid fa-pen-to-square me-2"></em>
+                            Modifier
+                        </a>
+                    </li>
+                    {% if is_granted('ROLE_CLUB_ADMIN') and licensee.user is not null %}
+                        <li><hr class="dropdown-divider"></li>
+                        {% if licensee.user.accountLocked %}
+                            <li>
+                                <form method="post" action="{{ path('app_licensee_unlock', {'id': licensee.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('licensee_unlock_' ~ licensee.id) }}">
+                                    <button type="submit" class="dropdown-item text-success">
+                                        <em class="fa-solid fa-lock-open me-2"></em>
+                                        Déverrouiller le compte
+                                    </button>
+                                </form>
+                            </li>
+                        {% else %}
+                            <li>
+                                <form method="post" action="{{ path('app_licensee_lock', {'id': licensee.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('licensee_lock_' ~ licensee.id) }}">
+                                    <button type="submit" class="dropdown-item text-danger"
+                                            onclick="return confirm('Verrouiller le compte de {{ licensee.fullname|e('js') }} ? Cette action empêchera toute connexion.')">
+                                        <em class="fa-solid fa-lock me-2"></em>
+                                        Verrouiller le compte
+                                    </button>
+                                </form>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
             </div>
         {% endif %}
     </div>
+
+    {# Club admin alerts #}
+    {% if is_granted('ROLE_CLUB_ADMIN') and licensee.user is not null %}
+        {% if licensee.user.accountLocked %}
+            <div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+                <em class="fa-solid fa-lock fa-lg me-3 flex-shrink-0"></em>
+                <div>
+                    <strong>Compte verrouillé</strong> —
+                    Le compte utilisateur de ce licencié est actuellement verrouillé.
+                    {% if licensee.user.accountLockedUntil|date('Y') != '9999' %}
+                    Il sera déverrouillé automatiquement le {{ licensee.user.accountLockedUntil|date('d/m/Y à H:i') }}.
+                    {% else %}
+                        Le verrou a été posé manuellement et ne se lèvera pas automatiquement.
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+        {% if licensee.user.licensees|length > 1 %}
+            <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+                <em class="fa-solid fa-triangle-exclamation fa-lg me-3 flex-shrink-0"></em>
+                <div>
+                    <strong>Compte partagé</strong> —
+                    Ce compte utilisateur est lié à {{ licensee.user.licensees|length }} profils licenciés.
+                    <a href="{{ path('app_user_show', {'id': licensee.user.id}) }}" class="alert-link">Voir le compte</a>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
 
     <div class="row">
         <div class="col-lg-4 col-12 mb-4">
