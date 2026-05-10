@@ -132,8 +132,8 @@ if [[ "${1:-}" == "sut" ]]; then
       # curl, unzip and sha256sum are pre-installed in the base image
 
       # Install sonar-scanner
-      SONAR_CLI_VERSION="8.0.1.6346-linux-x64"
-      SONAR_CLI_SHA256_SUM="4bd40bf8411ed104853e94a3746ec92bc92845fde2b27dbf5c33fb5cfa8ecbe9"
+      SONAR_CLI_VERSION="8.1.0.6389-linux-x64"
+      SONAR_CLI_SHA256_SUM="bb8f709f9cb73352f8d1260a3b3c506c0f41146754bc630762c126d795499d0b"
       SONAR_CLI_DIRNAME="sonar-scanner-cli-${SONAR_CLI_VERSION}"
       SONAR_CLI_FILENAME="${SONAR_CLI_DIRNAME}.zip"
       SONAR_CLI_FILEPATH="/tmp/${SONAR_CLI_FILENAME}"
