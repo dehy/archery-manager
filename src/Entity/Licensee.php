@@ -583,7 +583,7 @@ class Licensee implements \Stringable
      */
     public function getClubs(): ArrayCollection
     {
-        if (null === !$this->clubs) {
+        if (!isset($this->clubs)) {
             $this->clubs = new ArrayCollection();
             foreach ($this->getLicenses() as $license) {
                 $club = $license->getClub();

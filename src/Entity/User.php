@@ -105,6 +105,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
             'email' => $this->getEmail(),
             'roles' => $this->getRoles(),
             'password' => $this->getPassword(),
+            'firstname' => $this->getFirstname(),
+            'lastname' => $this->getLastname(),
         ];
     }
 
@@ -114,6 +116,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         $this->setEmail($data['email'])
             ->setRoles($data['roles'])
             ->setPassword($data['password']);
+
+        if (isset($data['firstname'])) {
+            $this->setFirstname($data['firstname']);
+        }
+
+        if (isset($data['lastname'])) {
+            $this->setLastname($data['lastname']);
+        }
     }
 
     public function getId(): ?int
