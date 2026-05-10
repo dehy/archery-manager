@@ -909,4 +909,146 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $em->persist($license);
         $em->flush();
     }
+
+    // ── Account Lock / Unlock ────────────────────────────────────────
+
+    public function testLockRequiresAuthentication(): void
+    {
+        $client = self::createClient();
+        /** @var LicenseeRepository $licenseeRepo */
+        $licenseeRepo = static::getContainer()->get(LicenseeRepository::class);
+        $licensee = $licenseeRepo->findOneBy([]);
+        self::assertNotNull($licensee);
+
+        $client->request(
+            \Symfony\Component\HttpFoundation\Request::METHOD_POST,
+            \sprintf('/licensee/%d/lock', $licensee->getId()),
+        );
+
+        $this->assertResponseRedirects();
+        $this->assertStringContainsString('/login', (string) $client->getResponse()->headers->get('Location'));
+    }
+
+    public function testLockRequiresClubAdminRole(): void
+    {
+        $client = self::createLoggedInAsUserClient();
+        /** @var LicenseeRepository $licenseeRepo */
+        $licenseeRepo = static::getContainer()->get(LicenseeRepository::class);
+        $licensee = $licenseeRepo->findOneBy([]);
+        self::assertNotNull($licensee);
+
+        $client->request(
+            \Symfony\Component\HttpFoundation\Request::METHOD_POST,
+            \sprintf('/licensee/%d/lock', $licensee->getId()),
+        );
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testLockSetsAccountLockedUntil(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+
+        /** @var UserRepository $userRepo */
+        $userRepo = static::getContainer()->get(UserRepository::class);
+        /** @var LicenseeRepository $licenseeRepo */
+        $licenseeRepo = static::getContainer()->get(LicenseeRepository::class);
+
+        // Find a licensee that is NOT the club admin (avoid self-lock)
+        $clubAdmin = $userRepo->findOneByEmail('clubadmin@ladg.com');
+        self::assertNotNull($clubAdmin);
+        $licensee = null;
+        foreach ($licenseeRepo->findAll() as $l) {
+            if ($l->getUser()?->getId() !== $clubAdmin->getId()) {
+                $licensee = $l;
+                break;
+            }
+        }
+        self::assertNotNull($licensee, 'Could not find a non-admin licensee.');
+        self::assertNotNull($licensee->getUser(), 'Licensee must have a user account.');
+
+        $client->request(
+            \Symfony\Component\HttpFoundation\Request::METHOD_POST,
+            \sprintf('/licensee/%d/lock', $licensee->getId()),
+        );
+
+        $this->assertResponseRedirects(\sprintf('/licensee/%d', $licensee->getId()));
+
+        // Refresh entity from DB
+        self::getContainer()->get(EntityManagerInterface::class)->clear();
+        $updatedUser = $userRepo->find($licensee->getUser()->getId());
+        self::assertNotNull($updatedUser?->getAccountLockedUntil());
+    }
+
+    public function testLockPreventsSelfLock(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+
+        /** @var UserRepository $userRepo */
+        $userRepo = static::getContainer()->get(UserRepository::class);
+        /** @var LicenseeRepository $licenseeRepo */
+        $licenseeRepo = static::getContainer()->get(LicenseeRepository::class);
+
+        $clubAdmin = $userRepo->findOneByEmail('clubadmin@ladg.com');
+        self::assertNotNull($clubAdmin);
+
+        $licensee = null;
+        foreach ($licenseeRepo->findAll() as $l) {
+            if ($l->getUser()?->getId() === $clubAdmin->getId()) {
+                $licensee = $l;
+                break;
+            }
+        }
+        self::assertNotNull($licensee, 'Club admin must have a linked licensee.');
+
+        $client->request(
+            \Symfony\Component\HttpFoundation\Request::METHOD_POST,
+            \sprintf('/licensee/%d/lock', $licensee->getId()),
+        );
+
+        $this->assertResponseRedirects(\sprintf('/licensee/%d', $licensee->getId()));
+
+        // Account must NOT be locked
+        self::getContainer()->get(EntityManagerInterface::class)->clear();
+        $updatedUser = $userRepo->find($clubAdmin->getId());
+        self::assertNull($updatedUser?->getAccountLockedUntil());
+    }
+
+    public function testUnlockClearsAccountLockedUntil(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+
+        /** @var UserRepository $userRepo */
+        $userRepo = static::getContainer()->get(UserRepository::class);
+        /** @var LicenseeRepository $licenseeRepo */
+        $licenseeRepo = static::getContainer()->get(LicenseeRepository::class);
+
+        $clubAdmin = $userRepo->findOneByEmail('clubadmin@ladg.com');
+        self::assertNotNull($clubAdmin);
+
+        $licensee = null;
+        foreach ($licenseeRepo->findAll() as $l) {
+            if ($l->getUser()?->getId() !== $clubAdmin->getId()) {
+                $licensee = $l;
+                break;
+            }
+        }
+        self::assertNotNull($licensee, 'Could not find a non-admin licensee.');
+        self::assertNotNull($licensee->getUser());
+
+        // Lock the account first
+        $licensee->getUser()->lockPermanently();
+        self::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $client->request(
+            \Symfony\Component\HttpFoundation\Request::METHOD_POST,
+            \sprintf('/licensee/%d/unlock', $licensee->getId()),
+        );
+
+        $this->assertResponseRedirects(\sprintf('/licensee/%d', $licensee->getId()));
+
+        self::getContainer()->get(EntityManagerInterface::class)->clear();
+        $updatedUser = $userRepo->find($licensee->getUser()->getId());
+        self::assertNull($updatedUser?->getAccountLockedUntil());
+    }
 }

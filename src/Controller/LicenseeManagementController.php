@@ -32,6 +32,7 @@ use App\Service\LicenseeImportNotificationEmailSender;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -851,5 +852,59 @@ class LicenseeManagementController extends BaseController
         $entityManager->flush();
 
         return $licensee;
+    }
+
+    #[Route('/licensee/{id}/lock', name: 'app_licensee_lock', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function lock(int $id): RedirectResponse
+    {
+        $licensee = $this->licenseeRepository->find($id);
+        if (!$licensee instanceof Licensee) {
+            throw $this->createNotFoundException();
+        }
+
+        $user = $licensee->getUser();
+        if (!$user instanceof User) {
+            $this->addFlash('danger', 'Ce licencié ne possède pas de compte utilisateur.');
+
+            return $this->redirectToRoute('app_licensee_profile', ['id' => $id]);
+        }
+
+        /** @var User $currentUser */
+        $currentUser = $this->getUser();
+        if ($currentUser->getId() === $user->getId()) {
+            $this->addFlash('danger', 'Vous ne pouvez pas verrouiller votre propre compte.');
+
+            return $this->redirectToRoute('app_licensee_profile', ['id' => $id]);
+        }
+
+        $user->lockPermanently();
+        $this->entityManager->flush();
+
+        $this->addFlash('success', \sprintf('Le compte de %s a été verrouillé.', $licensee->getFullname()));
+
+        return $this->redirectToRoute('app_licensee_profile', ['id' => $id]);
+    }
+
+    #[Route('/licensee/{id}/unlock', name: 'app_licensee_unlock', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function unlock(int $id): RedirectResponse
+    {
+        $licensee = $this->licenseeRepository->find($id);
+        if (!$licensee instanceof Licensee) {
+            throw $this->createNotFoundException();
+        }
+
+        $user = $licensee->getUser();
+        if (!$user instanceof User) {
+            $this->addFlash('danger', 'Ce licencié ne possède pas de compte utilisateur.');
+
+            return $this->redirectToRoute('app_licensee_profile', ['id' => $id]);
+        }
+
+        $user->unlockAccount();
+        $this->entityManager->flush();
+
+        $this->addFlash('success', \sprintf('Le compte de %s a été déverrouillé.', $licensee->getFullname()));
+
+        return $this->redirectToRoute('app_licensee_profile', ['id' => $id]);
     }
 }
