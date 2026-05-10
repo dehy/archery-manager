@@ -28,6 +28,14 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
 
     private const string HEADER_PERMISSIONS_POLICY = 'Permissions-Policy';
 
+    private const string HEADER_COEP_REPORT_ONLY = 'Cross-Origin-Embedder-Policy-Report-Only';
+
+    private const string HEADER_COOP_REPORT_ONLY = 'Cross-Origin-Opener-Policy-Report-Only';
+
+    private const string COEP_REPORT_ONLY_VALUE = 'require-corp; report-to="' . self::REPORTING_GROUP . '"';
+
+    private const string COOP_REPORT_ONLY_VALUE = 'same-origin; report-to="' . self::REPORTING_GROUP . '"';
+
     private const array PERMISSIONS_POLICY_DIRECTIVES = [
         'accelerometer',
         'ambient-light-sensor',
@@ -101,6 +109,8 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
         $response->headers->set(self::HEADER_X_FRAME_OPTIONS, self::X_FRAME_OPTIONS_VALUE);
         $response->headers->set(self::HEADER_REFERRER_POLICY, self::REFERRER_POLICY_VALUE);
         $response->headers->set(self::HEADER_PERMISSIONS_POLICY, $this->buildPermissionsPolicyValue());
+        $response->headers->set(self::HEADER_COEP_REPORT_ONLY, self::COEP_REPORT_ONLY_VALUE);
+        $response->headers->set(self::HEADER_COOP_REPORT_ONLY, self::COOP_REPORT_ONLY_VALUE);
 
         if ($request->isSecure()) {
             $response->headers->set(self::HEADER_HSTS, self::HSTS_VALUE);

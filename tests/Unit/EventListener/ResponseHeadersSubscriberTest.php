@@ -281,4 +281,20 @@ final class ResponseHeadersSubscriberTest extends TestCase
         $this->assertStringNotContainsString('cross-origin-isolated=()', $policy);
         $this->assertStringNotContainsString('navigation-override=()', $policy);
     }
+
+    public function testCoepAndCoopReportOnlyHeadersAreAlwaysSet(): void
+    {
+        $subscriber = $this->createSubscriber();
+        $event = $this->createResponseEvent();
+
+        $subscriber->onKernelResponse($event);
+
+        $coep = (string) $event->getResponse()->headers->get('Cross-Origin-Embedder-Policy-Report-Only');
+        $this->assertStringContainsString('require-corp', $coep);
+        $this->assertStringContainsString('report-to="default"', $coep);
+
+        $coop = (string) $event->getResponse()->headers->get('Cross-Origin-Opener-Policy-Report-Only');
+        $this->assertStringContainsString('same-origin', $coop);
+        $this->assertStringContainsString('report-to="default"', $coop);
+    }
 }
