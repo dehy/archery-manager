@@ -26,6 +26,10 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
 
     private const string HEADER_NEL = 'NEL';
 
+    private const string HEADER_PERMISSIONS_POLICY = 'Permissions-Policy';
+
+    private const string PERMISSIONS_POLICY_VALUE = 'accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), gamepad=(), speaker-selection=()';
+
     private const string HSTS_VALUE = 'max-age=31536000; includeSubDomains';
 
     private const string REFERRER_POLICY_VALUE = 'strict-origin-when-cross-origin';
@@ -67,6 +71,7 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
         $response->headers->set(self::HEADER_X_CONTENT_TYPE_OPTIONS, self::X_CONTENT_TYPE_OPTIONS_VALUE);
         $response->headers->set(self::HEADER_X_FRAME_OPTIONS, self::X_FRAME_OPTIONS_VALUE);
         $response->headers->set(self::HEADER_REFERRER_POLICY, self::REFERRER_POLICY_VALUE);
+        $response->headers->set(self::HEADER_PERMISSIONS_POLICY, self::PERMISSIONS_POLICY_VALUE);
 
         if ($request->isSecure()) {
             $response->headers->set(self::HEADER_HSTS, self::HSTS_VALUE);

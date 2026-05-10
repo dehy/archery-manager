@@ -263,4 +263,21 @@ final class ResponseHeadersSubscriberTest extends TestCase
         $this->assertStringContainsString('report-to default', $csp);
         $this->assertStringNotContainsString('report-uri', $csp);
     }
+
+    public function testPermissionsPolicyHeaderIsAlwaysSet(): void
+    {
+        $subscriber = $this->createSubscriber();
+        $event = $this->createResponseEvent();
+
+        $subscriber->onKernelResponse($event);
+
+        $policy = (string) $event->getResponse()->headers->get('Permissions-Policy');
+        $this->assertStringContainsString('geolocation=()', $policy);
+        $this->assertStringContainsString('camera=()', $policy);
+        $this->assertStringContainsString('microphone=()', $policy);
+        $this->assertStringContainsString('clipboard-read=()', $policy);
+        $this->assertStringNotContainsString('clipboard-write=()', $policy);
+        $this->assertStringNotContainsString('cross-origin-isolated=()', $policy);
+        $this->assertStringNotContainsString('navigation-override=()', $policy);
+    }
 }
