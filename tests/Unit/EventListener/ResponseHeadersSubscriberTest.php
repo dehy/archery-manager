@@ -276,6 +276,7 @@ final class ResponseHeadersSubscriberTest extends TestCase
         $this->assertStringContainsString('camera=()', $policy);
         $this->assertStringContainsString('microphone=()', $policy);
         $this->assertStringContainsString('clipboard-read=()', $policy);
+        $this->assertStringContainsString('report-to=default', $policy);
         $this->assertStringNotContainsString('clipboard-write=()', $policy);
         $this->assertStringNotContainsString('cross-origin-isolated=()', $policy);
         $this->assertStringNotContainsString('navigation-override=()', $policy);
