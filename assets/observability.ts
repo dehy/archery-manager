@@ -16,6 +16,12 @@ initializeFaro({
     ...getWebInstrumentations(),
 
     // Tracing package to get end-to-end visibility for HTTP requests.
-    new TracingInstrumentation(),
+    // Restrict trace header propagation to same-origin requests only to avoid
+    // CORS preflight failures on cross-origin endpoints (e.g. the Faro collector).
+    new TracingInstrumentation({
+      instrumentationOptions: {
+        propagateTraceHeaderCorsUrls: [new RegExp(`^${window.location.origin}`)],
+      },
+    }),
   ],
 });
