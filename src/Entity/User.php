@@ -117,7 +117,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
             ->setPassword($data['password']);
 
         if (isset($data['email'])) {
-             $this->setPassword($data['email']);
+            $this->setEmail($data['email']);
         }
 
         if (isset($data['firstname'])) {

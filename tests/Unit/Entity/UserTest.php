@@ -273,6 +273,44 @@ final class UserTest extends TestCase
         $this->assertContains('ROLE_ADMIN', $newUser->getRoles());
     }
 
+    public function testUnserializeWithOptionalFieldsSet(): void
+    {
+        $user = new User();
+        $user->setEmail('test@example.com')
+            ->setPassword('hashedPassword')
+            ->setRoles(['ROLE_USER'])
+            ->setFirstname('Alice')
+            ->setLastname('Smith');
+
+        $newUser = new User();
+        $newUser->__unserialize($user->__serialize());
+
+        $this->assertSame('Alice', $newUser->getFirstname());
+        $this->assertSame('Smith', $newUser->getLastname());
+    }
+
+    public function testUnserializeSkipsNullOptionalFields(): void
+    {
+        // Null values in serialized data trigger the isset() false branches in __unserialize().
+        // This covers the case where firstname/lastname were uninitialized at serialize time.
+        $data = [
+            'id' => null,
+            'email' => 'test@example.com',
+            'roles' => ['ROLE_USER'],
+            'password' => 'hashedPassword',
+            'firstname' => null,
+            'lastname' => null,
+        ];
+
+        $user = new User();
+        $user->__unserialize($data);
+
+        // Only assert the fields that were actually set by __unserialize
+        $this->assertSame('test@example.com', $user->getEmail());
+        $this->assertSame('hashedPassword', $user->getPassword());
+        $this->assertContains('ROLE_USER', $user->getRoles());
+    }
+
     public function testFluentInterface(): void
     {
         $user = new User();
