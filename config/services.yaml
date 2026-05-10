@@ -76,6 +76,7 @@ services:
 
     App\EventListener\ResponseHeadersSubscriber:
         arguments:
+            $environment: '%kernel.environment%'
             $cspDirectives: '%app.security.csp_directives%'
             $matomoUrl: '%env(default::MATOMO_URL)%'
             $reportingUrl: '%env(default::REPORTING_URL)%'
@@ -83,6 +84,10 @@ services:
 
 when@test:
     services:
+        App\EventListener\ResponseHeadersSubscriber:
+            arguments:
+                $environment: 'prod'
+
         App\Security\TokenStorageDecorator:
             decorates: 'security.token_storage'
             arguments:

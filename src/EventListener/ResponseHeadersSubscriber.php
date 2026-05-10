@@ -46,7 +46,6 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
         'autoplay',
         'battery',
         'camera',
-        'clipboard-read',
         'display-capture',
         'document-domain',
         'encrypted-media',
@@ -64,7 +63,6 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
         'picture-in-picture',
         'publickey-credentials-get',
         'screen-wake-lock',
-        'speaker-selection',
         'sync-xhr',
         'usb',
         'web-share',
@@ -85,6 +83,7 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
      * @param array<string, string> $cspDirectives
      */
     public function __construct(
+        private readonly string $environment,
         private readonly array $cspDirectives,
         private readonly ?string $matomoUrl = null,
         private readonly ?string $reportingUrl = null,
@@ -102,6 +101,10 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
     public function onKernelResponse(ResponseEvent $event): void
     {
         if (!$event->isMainRequest()) {
+            return;
+        }
+
+        if ('prod' !== $this->environment) {
             return;
         }
 

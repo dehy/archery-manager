@@ -22,8 +22,9 @@ final class ResponseHeadersSubscriberTest extends TestCase
         ?string $matomoUrl = null,
         ?string $reportingUrl = null,
         ?string $cspReportUrl = null,
+        string $environment = 'prod',
     ): ResponseHeadersSubscriber {
-        return new ResponseHeadersSubscriber($cspDirectives, $matomoUrl, $reportingUrl, $cspReportUrl);
+        return new ResponseHeadersSubscriber($environment, $cspDirectives, $matomoUrl, $reportingUrl, $cspReportUrl);
     }
 
     private function createResponseEvent(bool $isMainRequest = true, bool $isSecure = false): ResponseEvent
@@ -275,8 +276,8 @@ final class ResponseHeadersSubscriberTest extends TestCase
         $this->assertStringContainsString('geolocation=()', $policy);
         $this->assertStringContainsString('camera=()', $policy);
         $this->assertStringContainsString('microphone=()', $policy);
-        $this->assertStringContainsString('clipboard-read=()', $policy);
         $this->assertStringContainsString('report-to=default', $policy);
+        $this->assertStringNotContainsString('clipboard-read=()', $policy);
         $this->assertStringNotContainsString('clipboard-write=()', $policy);
         $this->assertStringNotContainsString('cross-origin-isolated=()', $policy);
         $this->assertStringNotContainsString('navigation-override=()', $policy);
@@ -308,5 +309,38 @@ final class ResponseHeadersSubscriberTest extends TestCase
         $policy = (string) $event->getResponse()->headers->get('Integrity-Policy-Report-Only');
         $this->assertStringContainsString('blocked-destinations=(script style)', $policy);
         $this->assertStringContainsString('endpoints=(default)', $policy);
+    }
+
+    /**
+     * @dataProvider nonProductionEnvironmentProvider
+     */
+    public function testNoSecurityHeadersAreSetOutsideProduction(string $environment): void
+    {
+        $subscriber = $this->createSubscriber(environment: $environment);
+        $event = $this->createResponseEvent(isSecure: true);
+
+        $subscriber->onKernelResponse($event);
+
+        $headers = $event->getResponse()->headers;
+        $this->assertFalse($headers->has('Content-Security-Policy'));
+        $this->assertFalse($headers->has('X-Content-Type-Options'));
+        $this->assertFalse($headers->has('X-Frame-Options'));
+        $this->assertFalse($headers->has('Referrer-Policy'));
+        $this->assertFalse($headers->has('Strict-Transport-Security'));
+        $this->assertFalse($headers->has('Permissions-Policy'));
+        $this->assertFalse($headers->has('Cross-Origin-Embedder-Policy-Report-Only'));
+        $this->assertFalse($headers->has('Cross-Origin-Opener-Policy-Report-Only'));
+        $this->assertFalse($headers->has('Integrity-Policy-Report-Only'));
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function nonProductionEnvironmentProvider(): array
+    {
+        return [
+            'dev' => ['dev'],
+            'test' => ['test'],
+        ];
     }
 }
