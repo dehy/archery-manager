@@ -20,8 +20,10 @@ final class ResponseHeadersSubscriberTest extends TestCase
     private function createSubscriber(
         array $cspDirectives = ["default-src" => "'self'", "script-src" => "'self'"],
         ?string $matomoUrl = null,
+        ?string $reportingUrl = null,
+        ?string $cspReportUrl = null,
     ): ResponseHeadersSubscriber {
-        return new ResponseHeadersSubscriber($cspDirectives, $matomoUrl);
+        return new ResponseHeadersSubscriber($cspDirectives, $matomoUrl, $reportingUrl, $cspReportUrl);
     }
 
     private function createResponseEvent(bool $isMainRequest = true, bool $isSecure = false): ResponseEvent
@@ -161,5 +163,104 @@ final class ResponseHeadersSubscriberTest extends TestCase
         $subscriber->onKernelResponse($event);
 
         $this->assertFalse($event->getResponse()->headers->has('Strict-Transport-Security'));
+    }
+
+    public function testReportingUrlAddsReportingHeaders(): void
+    {
+        $subscriber = $this->createSubscriber(
+            reportingUrl: 'https://reporting.example.com/reports',
+        );
+        $event = $this->createResponseEvent();
+
+        $subscriber->onKernelResponse($event);
+
+        $headers = $event->getResponse()->headers;
+        $this->assertSame(
+            'default="https://reporting.example.com/reports"',
+            $headers->get('Reporting-Endpoints'),
+        );
+        $this->assertStringContainsString(
+            'reporting.example.com',
+            (string) $headers->get('Report-To'),
+        );
+        $this->assertStringContainsString(
+            '"report_to":"default"',
+            (string) $headers->get('NEL'),
+        );
+    }
+
+    public function testReportingUrlAddsCspReportDirectives(): void
+    {
+        $subscriber = $this->createSubscriber(
+            cspDirectives: ["default-src" => "'self'"],
+            reportingUrl: 'https://reporting.example.com/reports',
+            cspReportUrl: 'https://csp.example.com/reports',
+        );
+        $event = $this->createResponseEvent();
+
+        $subscriber->onKernelResponse($event);
+
+        $csp = (string) $event->getResponse()->headers->get('Content-Security-Policy');
+        $this->assertStringContainsString('report-uri https://csp.example.com/reports', $csp);
+        $this->assertStringContainsString('report-to default', $csp);
+    }
+
+    public function testNullReportingUrlDoesNotAddReportingHeaders(): void
+    {
+        $subscriber = $this->createSubscriber();
+        $event = $this->createResponseEvent();
+
+        $subscriber->onKernelResponse($event);
+
+        $headers = $event->getResponse()->headers;
+        $this->assertFalse($headers->has('Reporting-Endpoints'));
+        $this->assertFalse($headers->has('Report-To'));
+        $this->assertFalse($headers->has('NEL'));
+        $this->assertStringNotContainsString('report-uri', (string) $headers->get('Content-Security-Policy'));
+        $this->assertStringNotContainsString('report-to', (string) $headers->get('Content-Security-Policy'));
+    }
+
+    public function testEmptyReportingUrlDoesNotAddReportingHeaders(): void
+    {
+        $subscriber = $this->createSubscriber(reportingUrl: '');
+        $event = $this->createResponseEvent();
+
+        $subscriber->onKernelResponse($event);
+
+        $headers = $event->getResponse()->headers;
+        $this->assertFalse($headers->has('Reporting-Endpoints'));
+        $this->assertFalse($headers->has('Report-To'));
+        $this->assertFalse($headers->has('NEL'));
+    }
+
+    public function testCspReportUrlOnlyAddsReportUri(): void
+    {
+        $subscriber = $this->createSubscriber(
+            cspDirectives: ["default-src" => "'self'"],
+            cspReportUrl: 'https://csp.example.com/reports',
+        );
+        $event = $this->createResponseEvent();
+
+        $subscriber->onKernelResponse($event);
+
+        $csp = (string) $event->getResponse()->headers->get('Content-Security-Policy');
+        $this->assertStringContainsString('report-uri https://csp.example.com/reports', $csp);
+        $this->assertStringNotContainsString('report-to', $csp);
+        $this->assertFalse($event->getResponse()->headers->has('Reporting-Endpoints'));
+    }
+
+    public function testReportingUrlOnlyAddsReportTo(): void
+    {
+        $subscriber = $this->createSubscriber(
+            cspDirectives: ["default-src" => "'self'"],
+            reportingUrl: 'https://reporting.example.com/reports',
+        );
+        $event = $this->createResponseEvent();
+
+        $subscriber->onKernelResponse($event);
+
+        $csp = (string) $event->getResponse()->headers->get('Content-Security-Policy');
+        $this->assertStringContainsString('report-to default', $csp);
+        $this->assertStringNotContainsString('report-uri', $csp);
     }
 }

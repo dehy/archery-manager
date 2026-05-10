@@ -20,6 +20,12 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
 
     private const string HEADER_HSTS = 'Strict-Transport-Security';
 
+    private const string HEADER_REPORTING_ENDPOINTS = 'Reporting-Endpoints';
+
+    private const string HEADER_REPORT_TO = 'Report-To';
+
+    private const string HEADER_NEL = 'NEL';
+
     private const string HSTS_VALUE = 'max-age=31536000; includeSubDomains';
 
     private const string REFERRER_POLICY_VALUE = 'strict-origin-when-cross-origin';
@@ -28,12 +34,16 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
 
     private const string X_FRAME_OPTIONS_VALUE = 'DENY';
 
+    private const string REPORTING_GROUP = 'default';
+
     /**
      * @param array<string, string> $cspDirectives
      */
     public function __construct(
         private readonly array $cspDirectives,
         private readonly ?string $matomoUrl = null,
+        private readonly ?string $reportingUrl = null,
+        private readonly ?string $cspReportUrl = null,
     ) {
     }
 
@@ -61,6 +71,31 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
         if ($request->isSecure()) {
             $response->headers->set(self::HEADER_HSTS, self::HSTS_VALUE);
         }
+
+        if (null !== $this->reportingUrl && '' !== $this->reportingUrl) {
+            $response->headers->set(
+                self::HEADER_REPORTING_ENDPOINTS,
+                self::REPORTING_GROUP . '="' . $this->reportingUrl . '"',
+            );
+            $response->headers->set(
+                self::HEADER_REPORT_TO,
+                (string) json_encode([
+                    'group' => self::REPORTING_GROUP,
+                    'max_age' => 10886400,
+                    'endpoints' => [['url' => $this->reportingUrl]],
+                    'include_subdomains' => true,
+                ]),
+            );
+            $response->headers->set(
+                self::HEADER_NEL,
+                (string) json_encode([
+                    'report_to' => self::REPORTING_GROUP,
+                    'max_age' => 2592000,
+                    'include_subdomains' => true,
+                    'failure_fraction' => 1.0,
+                ]),
+            );
+        }
     }
 
     private function buildCspHeaderValue(): string
@@ -84,6 +119,14 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
             }
 
             $parts[] = \sprintf('%s %s', $directive, $normalizedValue);
+        }
+
+        if (null !== $this->cspReportUrl && '' !== $this->cspReportUrl) {
+            $parts[] = 'report-uri ' . $this->cspReportUrl;
+        }
+
+        if (null !== $this->reportingUrl && '' !== $this->reportingUrl) {
+            $parts[] = 'report-to ' . self::REPORTING_GROUP;
         }
 
         return implode('; ', $parts);

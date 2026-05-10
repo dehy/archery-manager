@@ -78,6 +78,8 @@ services:
         arguments:
             $cspDirectives: '%app.security.csp_directives%'
             $matomoUrl: '%env(default::MATOMO_URL)%'
+            $reportingUrl: '%env(default::REPORTING_URL)%'
+            $cspReportUrl: '%env(default::CSP_REPORT_URL)%'
 
 when@test:
     services:
