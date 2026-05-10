@@ -297,4 +297,16 @@ final class ResponseHeadersSubscriberTest extends TestCase
         $this->assertStringContainsString('same-origin', $coop);
         $this->assertStringContainsString('report-to="default"', $coop);
     }
+
+    public function testIntegrityPolicyReportOnlyHeaderIsAlwaysSet(): void
+    {
+        $subscriber = $this->createSubscriber();
+        $event = $this->createResponseEvent();
+
+        $subscriber->onKernelResponse($event);
+
+        $policy = (string) $event->getResponse()->headers->get('Integrity-Policy-Report-Only');
+        $this->assertStringContainsString('blocked-destinations=(script style)', $policy);
+        $this->assertStringContainsString('endpoints=(default)', $policy);
+    }
 }
