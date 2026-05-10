@@ -102,20 +102,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     {
         return [
             'id' => $this->getId(),
-            'email' => $this->getEmail(),
+            'email' => isset($this->email) ? $this->email : null,
             'roles' => $this->getRoles(),
             'password' => $this->getPassword(),
-            'firstname' => $this->getFirstname(),
-            'lastname' => $this->getLastname(),
+            'firstname' => isset($this->firstname) ? $this->firstname : null,
+            'lastname' => isset($this->lastname) ? $this->lastname : null,
         ];
     }
 
     public function __unserialize(array $data): void
     {
         $this->id = $data['id'];
-        $this->setEmail($data['email'])
-            ->setRoles($data['roles'])
+        $this->setRoles($data['roles'])
             ->setPassword($data['password']);
+
+        if (isset($data['email'])) {
+             $this->setPassword($data['email']);
+        }
 
         if (isset($data['firstname'])) {
             $this->setFirstname($data['firstname']);
