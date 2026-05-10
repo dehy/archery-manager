@@ -28,7 +28,36 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
 
     private const string HEADER_PERMISSIONS_POLICY = 'Permissions-Policy';
 
-    private const string PERMISSIONS_POLICY_VALUE = 'accelerometer=();report-to=default, ambient-light-sensor=();report-to=default, autoplay=();report-to=default, battery=();report-to=default, camera=();report-to=default, display-capture=();report-to=default, document-domain=();report-to=default, encrypted-media=();report-to=default, execution-while-not-rendered=();report-to=default, execution-while-out-of-viewport=();report-to=default, fullscreen=();report-to=default, geolocation=();report-to=default, gyroscope=();report-to=default, keyboard-map=();report-to=default, magnetometer=();report-to=default, microphone=();report-to=default, midi=();report-to=default, payment=();report-to=default, picture-in-picture=();report-to=default, publickey-credentials-get=();report-to=default, screen-wake-lock=();report-to=default, sync-xhr=();report-to=default, usb=();report-to=default, web-share=();report-to=default, xr-spatial-tracking=();report-to=default, clipboard-read=();report-to=default, gamepad=();report-to=default, speaker-selection=();report-to=default';
+    private const array PERMISSIONS_POLICY_DIRECTIVES = [
+        'accelerometer',
+        'ambient-light-sensor',
+        'autoplay',
+        'battery',
+        'camera',
+        'clipboard-read',
+        'display-capture',
+        'document-domain',
+        'encrypted-media',
+        'execution-while-not-rendered',
+        'execution-while-out-of-viewport',
+        'fullscreen',
+        'gamepad',
+        'geolocation',
+        'gyroscope',
+        'keyboard-map',
+        'magnetometer',
+        'microphone',
+        'midi',
+        'payment',
+        'picture-in-picture',
+        'publickey-credentials-get',
+        'screen-wake-lock',
+        'speaker-selection',
+        'sync-xhr',
+        'usb',
+        'web-share',
+        'xr-spatial-tracking',
+    ];
 
     private const string HSTS_VALUE = 'max-age=31536000; includeSubDomains';
 
@@ -71,7 +100,7 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
         $response->headers->set(self::HEADER_X_CONTENT_TYPE_OPTIONS, self::X_CONTENT_TYPE_OPTIONS_VALUE);
         $response->headers->set(self::HEADER_X_FRAME_OPTIONS, self::X_FRAME_OPTIONS_VALUE);
         $response->headers->set(self::HEADER_REFERRER_POLICY, self::REFERRER_POLICY_VALUE);
-        $response->headers->set(self::HEADER_PERMISSIONS_POLICY, self::PERMISSIONS_POLICY_VALUE);
+        $response->headers->set(self::HEADER_PERMISSIONS_POLICY, $this->buildPermissionsPolicyValue());
 
         if ($request->isSecure()) {
             $response->headers->set(self::HEADER_HSTS, self::HSTS_VALUE);
@@ -101,6 +130,14 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
                 ]),
             );
         }
+    }
+
+    private function buildPermissionsPolicyValue(): string
+    {
+        return implode(', ', array_map(
+            static fn (string $directive): string => $directive . '=();report-to=' . self::REPORTING_GROUP,
+            self::PERMISSIONS_POLICY_DIRECTIVES,
+        ));
     }
 
     private function buildCspHeaderValue(): string
