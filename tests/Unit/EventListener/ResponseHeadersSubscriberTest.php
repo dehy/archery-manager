@@ -334,13 +334,11 @@ final class ResponseHeadersSubscriberTest extends TestCase
     }
 
     /**
-     * @return array<string, array{string}>
+     * @return \Iterator<string, array{string}>
      */
-    public static function nonProductionEnvironmentProvider(): array
+    public static function nonProductionEnvironmentProvider(): \Iterator
     {
-        return [
-            'dev' => ['dev'],
-            'test' => ['test'],
-        ];
+        yield 'dev' => ['dev'];
+        yield 'test' => ['test'];
     }
 }
