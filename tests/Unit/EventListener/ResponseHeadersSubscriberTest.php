@@ -307,7 +307,7 @@ final class ResponseHeadersSubscriberTest extends TestCase
         $subscriber->onKernelResponse($event);
 
         $policy = (string) $event->getResponse()->headers->get('Integrity-Policy-Report-Only');
-        $this->assertStringContainsString('blocked-destinations=(script style)', $policy);
+        $this->assertStringContainsString('blocked-destinations=(script)', $policy);
         $this->assertStringContainsString('endpoints=(default)', $policy);
     }
 

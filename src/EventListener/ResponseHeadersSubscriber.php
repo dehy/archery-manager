@@ -38,7 +38,7 @@ class ResponseHeadersSubscriber implements EventSubscriberInterface
 
     private const string COOP_REPORT_ONLY_VALUE = 'same-origin; report-to="' . self::REPORTING_GROUP . '"';
 
-    private const string INTEGRITY_POLICY_REPORT_ONLY_VALUE = 'blocked-destinations=(script style), endpoints=(' . self::REPORTING_GROUP . ')';
+    private const string INTEGRITY_POLICY_REPORT_ONLY_VALUE = 'blocked-destinations=(script), endpoints=(' . self::REPORTING_GROUP . ')';
 
     private const array PERMISSIONS_POLICY_DIRECTIVES = [
         'accelerometer',
