@@ -61,6 +61,8 @@ function initMatomo(cookiesEnabled: boolean): void {
         const script = document.createElement('script');
         script.async = true;
         script.src = baseUrl + 'matomo.js';
+        script.integrity = 'sha384-rqKj5OEi4157+CLwl7OfzQuxZAbzyMNQYc+6FmteZjg6uYU2dy30kJTho5LvvCY7';
+        script.crossOrigin = 'anonymous';
         const firstScript = document.getElementsByTagName('script')[0];
         if (firstScript?.parentNode) {
             firstScript.parentNode.insertBefore(script, firstScript);
