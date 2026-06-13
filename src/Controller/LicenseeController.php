@@ -14,6 +14,7 @@ use App\Entity\Result;
 use App\Entity\Season;
 use App\Entity\User;
 use App\Form\Type\LicenseeFormType;
+use App\Helper\CaciHelper;
 use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
@@ -43,7 +44,7 @@ use Symfony\UX\Chartjs\Model\Chart;
 
 class LicenseeController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly FilesystemOperator $licenseesStorage, private readonly EntityManagerInterface $entityManager)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly EntityManagerInterface $entityManager, private readonly CaciHelper $caciHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly FilesystemOperator $licenseesStorage)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -133,12 +134,34 @@ class LicenseeController extends BaseController
             $licenseeSyncForm = $this->createSyncForm($licensee);
         }
 
+        $caciEntry = null;
+        if ($this->isGranted('ROLE_CLUB_ADMIN')) {
+            $caciSeason = $this->seasonHelper->getSelectedSeason();
+            $renewalDate = new \DateTimeImmutable(($caciSeason - 1).'-09-01');
+            $threshold = $renewalDate->modify('-6 months');
+            $caciLicense = $licensee->getLicenseForSeason($caciSeason);
+            if ($caciLicense instanceof License && $caciLicense->isCaciExempt()) {
+                $caciEntry = ['status' => 'exempt', 'certificate' => null, 'threshold' => $threshold];
+            } else {
+                $certificate = $this->caciHelper->getMostRecentCertificate($licensee);
+
+                $status = match (true) {
+                    !$certificate instanceof LicenseeAttachment => 'none',
+                    !$certificate->getDocumentDate() instanceof \DateTimeImmutable => 'unknown',
+                    $certificate->getDocumentDate() >= $threshold => 'valid',
+                    default => 'expired',
+                };
+                $caciEntry = ['status' => $status, 'certificate' => $certificate, 'threshold' => $threshold];
+            }
+        }
+
         return $this->render('licensee/show.html.twig', [
             'licensee' => $licensee,
             'seasons' => $seasons,
             'results_charts' => $resultsCharts,
             'licensee_sync_form' => $licenseeSyncForm?->createView(),
             'activeLoans' => $activeLoans,
+            'caciEntry' => $caciEntry,
         ]);
     }
 

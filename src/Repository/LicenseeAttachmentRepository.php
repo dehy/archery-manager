@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\DBAL\Types\LicenseeAttachmentType;
 use App\Entity\LicenseeAttachment;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -39,6 +40,37 @@ class LicenseeAttachmentRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    /**
+     * Returns LicenseeAttachment records of type MEDICAL_CERTIFICATE whose documentDate
+     * will be invalid at the next season renewal and that have not yet received a reminder
+     * during the current campaign window (June–August).
+     *
+     * @return LicenseeAttachment[]
+     */
+    public function findNeedingCaciReminder(
+        \DateTimeImmutable $threshold,
+        \DateTimeImmutable $campaignStart,
+        \DateTimeImmutable $campaignEnd,
+    ): array {
+        return $this->createQueryBuilder('a')
+            ->leftJoin('a.licensee', 'l')
+            ->addSelect('l')
+            ->where('a.type = :type')
+            ->andWhere('a.documentDate IS NOT NULL')
+            ->andWhere('a.documentDate < :threshold')
+            ->andWhere(
+                'a.lastCaciReminderSentAt IS NULL
+                 OR a.lastCaciReminderSentAt < :campaignStart
+                 OR a.lastCaciReminderSentAt > :campaignEnd'
+            )
+            ->setParameter('type', LicenseeAttachmentType::MEDICAL_CERTIFICATE)
+            ->setParameter('threshold', $threshold)
+            ->setParameter('campaignStart', $campaignStart)
+            ->setParameter('campaignEnd', $campaignEnd)
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**

@@ -225,6 +225,57 @@
                 </div>
             {% endif %}
 
+            {% if is_granted('ROLE_CLUB_ADMIN') and caciEntry %}
+                <div class="card border-info mb-4">
+                    <div class="card-header bg-info text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <em class="fa-solid fa-file-medical me-2"></em>
+                                CACI
+                            </h5>
+                            <a href="{{ path('app_licensee_caci') }}" class="btn btn-sm btn-light">
+                                <em class="fa-solid fa-arrow-up-right-from-square me-1"></em>
+                                Suivi CACI
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if caciEntry.status == 'exempt' %}
+                            <span class="badge bg-info text-dark fs-6">
+                                <em class="fa-solid fa-clipboard-check me-1"></em>
+                                Questionnaire seul
+                            </span>
+                            <p class="text-muted small mt-2 mb-0">CACI non requis (questionnaire sans réponse affirmative).</p>
+                        {% elseif caciEntry.status == 'none' %}
+                            <span class="badge bg-secondary fs-6">
+                                <em class="fa-solid fa-file-medical me-1"></em>
+                                Aucun CACI
+                            </span>
+                        {% elseif caciEntry.status == 'unknown' %}
+                            <span class="badge bg-warning text-dark fs-6">
+                                <em class="fa-solid fa-question me-1"></em>
+                                Date inconnue
+                            </span>
+                        {% elseif caciEntry.status == 'valid' %}
+                            <span class="badge bg-success fs-6">
+                                <em class="fa-solid fa-check me-1"></em>
+                                CACI valide
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger fs-6">
+                                <em class="fa-solid fa-exclamation-triangle me-1"></em>
+                                À renouveler
+                            </span>
+                        {% endif %}
+                        {% if caciEntry.certificate and caciEntry.certificate.documentDate %}
+                            <p class="text-muted small mt-2 mb-0">
+                                Établi le {{ caciEntry.certificate.documentDate|date('d/m/Y') }}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
             <div class="row">
                 <!-- Equipment Card -->
                 <div class="col-md-6 col-12 mb-4">
