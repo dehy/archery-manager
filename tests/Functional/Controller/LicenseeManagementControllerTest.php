@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller;
 
+use App\Entity\Licensee;
+use App\Entity\User;
+use App\Repository\LicenseeRepository;
+use App\Repository\UserRepository;
 use App\Tests\application\LoggedInTestCase;
 
 final class LicenseeManagementControllerTest extends LoggedInTestCase
@@ -454,5 +458,335 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         ]);
 
         $this->assertResponseRedirects(self::URL_MANUAL);
+    }
+
+    // ── Move User — Step 1 ────────────────────────────────────────────
+
+    public function testMoveUserStep1RequiresAuthentication(): void
+    {
+        $client = self::createClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+
+        $this->assertResponseRedirects();
+        $this->assertStringContainsString('/login', (string) $client->getResponse()->headers->get('Location'));
+    }
+
+    public function testMoveUserStep1DeniedForRegularUser(): void
+    {
+        $client = self::createLoggedInAsUserClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testMoveUserStep1DeniedWhenAdminBelongsToDifferentClub(): void
+    {
+        // admin@acme.org belongs to club_ladb; licensee_ladg_1 belongs to club_ladg
+        $client = self::createLoggedInAsAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+
+        // Redirects to the licensee's profile with a danger flash
+        $this->assertResponseRedirects();
+        $location = (string) $client->getResponse()->headers->get('Location');
+        $this->assertStringContainsString('/licensee/'.$licensee->getId(), $location);
+    }
+
+    public function testMoveUserStep1RendersFormForValidClubAdmin(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testMoveUserStep1PostNewWithEmptyEmailShowsError(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'new',
+            'form[email]' => '',
+        ]);
+        $client->submit($form);
+
+        // Stays on form with validation errors (422 Unprocessable Content)
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testMoveUserStep1PostNewWithInvalidEmailFormatShowsError(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'new',
+            'form[email]' => 'not-a-valid-email',
+        ]);
+        $client->submit($form);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testMoveUserStep1PostNewWithAlreadyUsedEmailShowsError(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+
+        // user2@ladg.com already exists in fixtures
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'new',
+            'form[email]' => 'user2@ladg.com',
+        ]);
+        $client->submit($form);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testMoveUserStep1PostNewWithFreshEmailRedirectsToStep2(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'new',
+            'form[email]' => 'brand-new-'.uniqid().'@example.com',
+        ]);
+        $client->submit($form);
+
+        $this->assertResponseRedirects($this->moveStep2Url($licensee->getId()));
+    }
+
+    public function testMoveUserStep1PostExistingWithNoUserShowsError(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+
+        // Choose 'existing' but leave existing_user empty
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'existing',
+            'form[existing_user]' => '',
+        ]);
+        $client->submit($form);
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testMoveUserStep1PostExistingWithValidUserRedirectsToStep2(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+
+        // Pick any valid option from the select (exclude empty placeholder)
+        $selectField = $crawler->filter('select[name="form[existing_user]"]');
+        $this->assertGreaterThan(0, $selectField->count(), 'existing_user select must exist');
+        $options = $selectField->filter('option[value!=""]');
+        $this->assertGreaterThan(0, $options->count(), 'At least one selectable user must exist');
+        $targetUserId = $options->first()->attr('value');
+
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'existing',
+            'form[existing_user]' => $targetUserId,
+        ]);
+        $client->submit($form);
+
+        $this->assertResponseRedirects($this->moveStep2Url($licensee->getId()));
+    }
+
+    // ── Move User — Step 2 ────────────────────────────────────────────
+
+    public function testMoveUserStep2WithoutSessionRedirectsToStep1(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep2Url($licensee->getId()));
+
+        $this->assertResponseRedirects($this->moveStep1Url($licensee->getId()));
+    }
+
+    public function testMoveUserStep2WithNewChoiceRendersConfirmation(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+
+        // Navigate step1 → step2
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'new',
+            'form[email]' => 'step2-test-'.uniqid().'@example.com',
+        ]);
+        $client->submit($form);
+        $client->followRedirect();
+
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testMoveUserStep2WithExistingChoiceRendersConfirmation(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+        $selectField = $crawler->filter('select[name="form[existing_user]"]');
+        $targetUserId = $selectField->filter('option[value!=""]')->first()->attr('value');
+
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'existing',
+            'form[existing_user]' => $targetUserId,
+        ]);
+        $client->submit($form);
+        $client->followRedirect();
+
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testMoveUserStep2PostNewChoiceCreatesUserAndRedirects(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $newEmail = 'created-user-'.uniqid().'@example.com';
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'new',
+            'form[email]' => $newEmail,
+        ]);
+        $client->submit($form);
+
+        $crawler = $client->followRedirect();
+        $form = $crawler->selectButton('Confirmer le déplacement')->form();
+        $client->submit($form);
+
+        $this->assertResponseRedirects('/licensee/'.$licensee->getId());
+
+        // Verify the new user was created
+        $userRepo = self::getContainer()->get(UserRepository::class);
+        $createdUser = $userRepo->findOneByEmail($newEmail);
+        $this->assertInstanceOf(User::class, $createdUser);
+    }
+
+    public function testMoveUserStep2PostExistingChoiceRelinksLicenseeAndRedirects(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+        $targetUserId = $crawler->filter('select[name="form[existing_user]"]')->filter('option[value!=""]')->first()->attr('value');
+
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'existing',
+            'form[existing_user]' => $targetUserId,
+        ]);
+        $client->submit($form);
+
+        $crawler = $client->followRedirect();
+        $form = $crawler->selectButton('Confirmer le déplacement')->form();
+        $client->submit($form);
+
+        $this->assertResponseRedirects('/licensee/'.$licensee->getId());
+
+        // Verify the licensee is now linked to the target user
+        $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
+        $updatedLicensee = $licenseeRepo->find($licensee->getId());
+        $this->assertSame((int) $targetUserId, $updatedLicensee?->getUser()?->getId());
+    }
+
+    public function testMoveUserStep2DeletesSourceUserWhenItWasTheLastLicensee(): void
+    {
+        // user1@ladg.com has exactly one licensee (licensee_ladg_1)
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->getLicenseeByUserEmail('user1@ladg.com');
+        $sourceUserId = $licensee->getUser()?->getId();
+        $this->assertNotNull($sourceUserId, 'Fixture user must exist');
+        $newEmail = 'delete-source-'.uniqid().'@example.com';
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($licensee->getId()));
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'new',
+            'form[email]' => $newEmail,
+        ]);
+        $client->submit($form);
+
+        $crawler = $client->followRedirect();
+        $form = $crawler->selectButton('Confirmer le déplacement')->form();
+        $client->submit($form);
+
+        $this->assertResponseRedirects('/licensee/'.$licensee->getId());
+
+        // The source user should have been deleted (had only 1 licensee)
+        $userRepo = self::getContainer()->get(UserRepository::class);
+        $this->assertNull($userRepo->find($sourceUserId));
+    }
+
+    public function testMoveUserStep2KeepsSourceUserWhenItHasMultipleLicensees(): void
+    {
+        // parent1@ladg.com has two licensees: licensee_ladg_parent_1 + licensee_ladg_child_1
+        $client = self::createLoggedInAsClubAdminClient();
+
+        // Move the child licensee (also linked to parent1's user)
+        $childLicensee = $this->getLicenseeByUserEmail('parent1@ladg.com', second: true);
+        $sourceUserId = $childLicensee->getUser()?->getId();
+        $this->assertNotNull($sourceUserId, 'Source user must exist');
+        $newEmail = 'keep-source-'.uniqid().'@example.com';
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->moveStep1Url($childLicensee->getId()));
+        $form = $crawler->selectButton('Suivant — Confirmer')->form([
+            'form[user_choice]' => 'new',
+            'form[email]' => $newEmail,
+        ]);
+        $client->submit($form);
+
+        $crawler = $client->followRedirect();
+        $form = $crawler->selectButton('Confirmer le déplacement')->form();
+        $client->submit($form);
+
+        $this->assertResponseRedirects('/licensee/'.$childLicensee->getId());
+
+        // The source user should still exist (has another licensee)
+        $userRepo = self::getContainer()->get(UserRepository::class);
+        $this->assertInstanceOf(User::class, $userRepo->find($sourceUserId));
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────
+
+    /**
+     * Returns the nth licensee (0-indexed) associated with the given user email.
+     * Pass second: true to get the second licensee (index 1).
+     */
+    private function getLicenseeByUserEmail(string $email, bool $second = false): Licensee
+    {
+        $userRepo = self::getContainer()->get(UserRepository::class);
+        $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
+
+        $user = $userRepo->findOneByEmail($email);
+        $this->assertInstanceOf(User::class, $user, \sprintf("User fixture '%s' not found.", $email));
+
+        $licensees = $licenseeRepo->findBy(['user' => $user]);
+        $this->assertNotEmpty($licensees, \sprintf("No licensees found for user '%s'.", $email));
+
+        $index = $second ? 1 : 0;
+        $this->assertArrayHasKey($index, $licensees, \sprintf("Licensee index %s not found for user '%s'.", $index, $email));
+
+        return $licensees[$index];
+    }
+
+    private function moveStep1Url(int $licenseeId): string
+    {
+        return \sprintf('/licensees/manage/%d/move-user/step1', $licenseeId);
+    }
+
+    private function moveStep2Url(int $licenseeId): string
+    {
+        return \sprintf('/licensees/manage/%d/move-user/step2', $licenseeId);
     }
 }
