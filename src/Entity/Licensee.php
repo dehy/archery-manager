@@ -295,6 +295,29 @@ class Licensee implements \Stringable
             : null;
     }
 
+    public function hasLicenseForClub(Club $club): bool
+    {
+        foreach ($this->licenses as $license) {
+            if ($license->getClub() === $club) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function getMostRecentLicense(): ?License
+    {
+        $mostRecent = null;
+        foreach ($this->licenses as $license) {
+            if (!$mostRecent instanceof License || $license->getSeason() > $mostRecent->getSeason()) {
+                $mostRecent = $license;
+            }
+        }
+
+        return $mostRecent;
+    }
+
     public function addLicense(License $license): self
     {
         if (!$this->licenses->contains($license)) {

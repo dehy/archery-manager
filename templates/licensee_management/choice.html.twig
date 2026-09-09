@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Créer un licencié{% endblock %}
+{% block title %}Ajouter / renouveler un licencié{% endblock %}
 
 {% block body %}
 <div class="container mt-4">
@@ -10,36 +10,31 @@
                 <div class="card-header bg-primary text-white">
                     <h3 class="mb-0">
                         <em class="fa-solid fa-user-plus me-2"></em>
-                        Créer un nouveau licencié
+                        Ajouter ou renouveler un licencié
                     </h3>
                 </div>
                 <div class="card-body">
-                    <p class="lead">Comment souhaitez-vous créer le licencié ?</p>
+                    <p class="lead">Saisissez le code licence FFTA du licencié pour renouveler sa licence ou récupérer ses informations.</p>
 
-                    <form method="post" action="{{ path('app_licensee_new_choice') }}" data-controller="licensee-choice" data-action="change->licensee-choice#update">
-                        <div class="mb-4">
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="radio" name="choice" id="choice_sync" value="sync" disabled data-licensee-choice-target="syncRadio">
-                                <label class="form-check-label text-muted" for="choice_sync">
-                                    <strong>Synchroniser depuis la FFTA</strong>
-                                    <small class="d-block text-muted">Temporairement désactivé (fonctionnalité en maintenance)</small>
-                                </label>
+                    {% if not_found_code is defined %}
+                        <div class="alert alert-warning d-flex justify-content-between align-items-center" role="alert">
+                            <div>
+                                <em class="fa-solid fa-triangle-exclamation me-2"></em>
+                                Aucun licencié trouvé pour le code <strong>{{ not_found_code }}</strong>.
                             </div>
+                            <a href="{{ path('app_licensee_new_manual', {ffta_member_code: not_found_code}) }}" class="btn btn-warning btn-sm text-nowrap ms-3">
+                                <em class="fa-solid fa-user-plus me-2"></em>
+                                Créer ce licencié
+                            </a>
+                        </div>
+                    {% endif %}
 
-                            <div id="ffta_code_field" class="ms-4 mb-3 d-none" data-licensee-choice-target="field">
-                                <label for="ffta_member_code" class="form-label">Code licence FFTA</label>
-                                <input type="text" class="form-control" id="ffta_member_code" name="ffta_member_code" 
-                                       data-licensee-choice-target="input"
-                                       placeholder="8 caractères" maxlength="8" pattern="[A-Z0-9]{8}">
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="choice" id="choice_manual" value="manual" required checked>
-                                <label class="form-check-label" for="choice_manual">
-                                    <strong>Créer manuellement</strong>
-                                    <small class="d-block text-muted">Saisir toutes les informations à la main</small>
-                                </label>
-                            </div>
+                    <form method="post" action="{{ path('app_licensee_new_choice') }}">
+                        <div class="mb-3">
+                            <label for="ffta_member_code" class="form-label">Code licence FFTA</label>
+                            <input type="text" class="form-control" id="ffta_member_code" name="ffta_member_code"
+                                   value="{{ not_found_code|default('') }}"
+                                   placeholder="7 ou 8 caractères" maxlength="8" pattern="[A-Za-z0-9]{7,8}">
                         </div>
 
                         <div class="d-flex justify-content-between">
@@ -48,11 +43,18 @@
                                 Annuler
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                Suivant
-                                <em class="fa-solid fa-arrow-right ms-2"></em>
+                                Rechercher
+                                <em class="fa-solid fa-magnifying-glass ms-2"></em>
                             </button>
                         </div>
                     </form>
+
+                    <hr class="my-4">
+
+                    <p class="mb-0">
+                        Vous ne connaissez pas le code licence, ou le licencié n'en a pas encore ?
+                        <a href="{{ path('app_licensee_new_manual') }}">Créer manuellement</a>.
+                    </p>
                 </div>
             </div>
         </div>
