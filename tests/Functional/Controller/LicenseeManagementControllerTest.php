@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller;
 
+use App\Entity\License;
+use App\Entity\Licensee;
+use App\Repository\ClubRepository;
+use App\Repository\LicenseeRepository;
 use App\Tests\application\LoggedInTestCase;
+use Doctrine\ORM\EntityManagerInterface;
 
 final class LicenseeManagementControllerTest extends LoggedInTestCase
 {
@@ -21,6 +26,8 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
     private const string URL_STEP4 = '/licensees/manage/new/step4';
 
     private const string URL_CANCEL = '/licensees/manage/cancel';
+
+    private const string URL_RENEW_PREFIX = '/licensees/manage/renew/';
 
     public function testNewChoicePageRequiresAuthentication(): void
     {
@@ -39,24 +46,43 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    public function testNewChoicePostSyncRedirects(): void
+    public function testNewChoicePostWithUnknownCodeShowsWarningWithCreateCta(): void
     {
         $client = self::createLoggedInAsAdminClient();
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
-            'choice' => 'sync',
-            'ffta_member_code' => '123456A',
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
+            'ffta_member_code' => 'UNKNOWN1',
         ]);
 
-        $this->assertResponseRedirects('/licensees/manage/new/sync/123456A');
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('.alert-warning', 'UNKNOWN1');
+
+        $ctaLink = $crawler->selectLink('Créer ce licencié');
+        $this->assertGreaterThan(0, $ctaLink->count());
+        $this->assertStringContainsString(
+            '/licensees/manage/new/manual?ffta_member_code=UNKNOWN1',
+            (string) $ctaLink->attr('href'),
+        );
     }
 
-    public function testNewChoicePostManualRedirects(): void
+    public function testManualCreationPrefillsSearchedCode(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MANUAL.'?ffta_member_code=UNKNOWN1');
+
+        $crawler = $client->followRedirect();
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSame('UNKNOWN1', $crawler->filter('#licensee_form_fftaMemberCode')->attr('value'));
+    }
+
+    public function testNewChoicePostWithEmptyCodeRedirectsToManual(): void
     {
         $client = self::createLoggedInAsAdminClient();
 
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
-            'choice' => 'manual',
+            'ffta_member_code' => '',
         ]);
 
         $this->assertResponseRedirects(self::URL_MANUAL);
@@ -221,25 +247,105 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    public function testClubAdminChoicePostSyncRedirects(): void
+    public function testClubAdminChoicePostWithEmptyCodeRedirectsToManual(): void
     {
         $client = self::createLoggedInAsClubAdminClient();
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
-            'choice' => 'sync',
-            'ffta_member_code' => '123456A',
-        ]);
-
-        $this->assertResponseRedirects('/licensees/manage/new/sync/123456A');
-    }
-
-    public function testClubAdminChoicePostManualRedirects(): void
-    {
-        $client = self::createLoggedInAsClubAdminClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
-            'choice' => 'manual',
+            'ffta_member_code' => '',
         ]);
 
         $this->assertResponseRedirects(self::URL_MANUAL);
+    }
+
+    public function testClubAdminChoicePostWithOwnClubLicenseeRedirectsToRenew(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->createLicenseeWithPastSeasonLicense('club_ladg');
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
+            'ffta_member_code' => $licensee->getFftaMemberCode(),
+        ]);
+
+        $this->assertResponseRedirects(self::URL_RENEW_PREFIX.$licensee->getId());
+    }
+
+    public function testClubAdminChoicePostWithForeignClubLicenseeShowsMinimalInfoOnly(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->createLicenseeWithPastSeasonLicense('club_ladb');
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
+            'ffta_member_code' => $licensee->getFftaMemberCode(),
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $content = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString($licensee->getLastname(), $content);
+        $this->assertStringNotContainsString((string) $licensee->getFftaMemberCode(), $content);
+    }
+
+    public function testRenewDeniedForClubAdminOfAnotherClub(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->createLicenseeWithPastSeasonLicense('club_ladb');
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_RENEW_PREFIX.$licensee->getId());
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testRenewCreatesLicenseForCurrentSeason(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->createLicenseeWithPastSeasonLicense('club_ladg');
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_RENEW_PREFIX.$licensee->getId());
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Enregistrer la licence')->form([
+            'license_form[type]' => 'A',
+            'license_form[category]' => 'A',
+            'license_form[ageCategory]' => 'S1',
+        ]);
+        $activityCheckboxes = $crawler->filter('input[name="license_form[activities][]"]');
+        if ($activityCheckboxes->count() > 0) {
+            $form['license_form[activities]'] = [$activityCheckboxes->first()->attr('value')];
+        }
+
+        $client->submit($form);
+
+        $this->assertResponseRedirects('/licensee/'.$licensee->getId());
+
+        /** @var LicenseeRepository $licenseeRepository */
+        $licenseeRepository = self::getContainer()->get(LicenseeRepository::class);
+        $reloaded = $licenseeRepository->find($licensee->getId());
+        $this->assertInstanceOf(Licensee::class, $reloaded);
+        $this->assertInstanceOf(License::class, $reloaded->getLicenseForSeason(2026));
+    }
+
+    public function testRenewRedirectsWithFlashWhenSeasonLicenseAlreadyExists(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->createLicenseeWithPastSeasonLicense('club_ladg');
+
+        // Give it a 2026 license too, so it already has one for the current season.
+        /** @var EntityManagerInterface $em */
+        $em = self::getContainer()->get(EntityManagerInterface::class);
+        $currentSeasonLicense = new License();
+        $currentSeasonLicense->setLicensee($licensee);
+        $currentSeasonLicense->setClub($licensee->getMostRecentLicense()->getClub());
+        $currentSeasonLicense->setSeason(2026);
+        $currentSeasonLicense->setType('A');
+        $currentSeasonLicense->setCategory('A');
+        $currentSeasonLicense->setAgeCategory('S1');
+        $currentSeasonLicense->setActivities(['CL']);
+
+        $em->persist($currentSeasonLicense);
+        $em->flush();
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_RENEW_PREFIX.$licensee->getId());
+
+        $this->assertResponseRedirects('/licensee/'.$licensee->getId());
     }
 
     public function testClubAdminCanStartManualWizard(): void
@@ -449,10 +555,59 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
 
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
-            'choice' => 'sync',
             // Missing ffta_member_code
         ]);
 
         $this->assertResponseRedirects(self::URL_MANUAL);
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────
+
+    /**
+     * Persist a Licensee with a single License for a past season (2025) at the
+     * given club fixture reference, so it's a renewal candidate for the
+     * currently selected season (2026) without conflicting with fixture data.
+     */
+    private function createLicenseeWithPastSeasonLicense(string $clubReference): Licensee
+    {
+        /** @var EntityManagerInterface $em */
+        $em = self::getContainer()->get(EntityManagerInterface::class);
+        /** @var ClubRepository $clubRepository */
+        $clubRepository = self::getContainer()->get(ClubRepository::class);
+        $club = 'club_ladg' === $clubReference
+            ? $clubRepository->findOneByCode('1033093')
+            : $clubRepository->findOneByCode('1033078');
+        $this->assertInstanceOf(\App\Entity\Club::class, $club, \sprintf('Club fixture "%s" not found.', $clubReference));
+
+        $uniqueId = uniqid();
+
+        $licensee = new Licensee();
+        $licensee->setFirstname('Renew');
+        $licensee->setLastname('Candidate'.$uniqueId);
+        $licensee->setGender('M');
+        $licensee->setBirthdate(new \DateTime('1990-01-01'));
+        $licensee->setFftaMemberCode('R'.$uniqueId);
+        $licensee->setFftaId(random_int(1, PHP_INT_MAX));
+
+        /** @var \App\Repository\UserRepository $userRepository */
+        $userRepository = self::getContainer()->get(\App\Repository\UserRepository::class);
+        $user = $userRepository->findOneByEmail('user1@ladg.com');
+        $this->assertInstanceOf(\App\Entity\User::class, $user);
+        $licensee->setUser($user);
+
+        $license = new License();
+        $license->setLicensee($licensee);
+        $license->setClub($club);
+        $license->setSeason(2025);
+        $license->setType('A');
+        $license->setCategory('A');
+        $license->setAgeCategory('S1');
+        $license->setActivities(['CL']);
+
+        $em->persist($licensee);
+        $em->persist($license);
+        $em->flush();
+
+        return $licensee;
     }
 }
