@@ -21,6 +21,8 @@ use App\Helper\LicenseeHelper;
 use App\Helper\LicenseHelper;
 use App\Helper\SeasonHelper;
 use App\Repository\GroupRepository;
+use App\Repository\LicenseeRepository;
+use App\Security\Voter\LicenseeVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,28 +32,68 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CLUB_ADMIN')]
 class LicenseeManagementController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly EntityManagerInterface $entityManager)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly LicenseeRepository $licenseeRepository, private readonly EntityManagerInterface $entityManager)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
 
+    /**
+     * Search for an existing licensee by FFTA member code before falling back
+     * to full creation. Looking up locally first (instead of browsing all
+     * members) keeps club admins scoped to people who have a real link to
+     * their club.
+     */
     #[Route('/licensees/manage/new', name: 'app_licensee_new_choice', methods: ['GET', 'POST'])]
     public function newChoice(Request $request): Response
     {
-        if ($request->isMethod('POST')) {
-            $choice = $request->request->get('choice');
-            $fftaMemberCode = $request->request->get('ffta_member_code');
+        if (!$request->isMethod('POST')) {
+            return $this->render('licensee_management/choice.html.twig');
+        }
 
-            if ('sync' === $choice && $fftaMemberCode) {
-                return $this->redirectToRoute('app_licensee_new_sync', [
-                    'fftaMemberCode' => $fftaMemberCode,
-                ]);
-            }
+        $fftaMemberCode = strtoupper(trim((string) $request->request->get('ffta_member_code')));
 
+        if ('' === $fftaMemberCode) {
             return $this->redirectToRoute('app_licensee_new_manual');
         }
 
-        return $this->render('licensee_management/choice.html.twig');
+        return $this->resolveLicenseeSearch($fftaMemberCode);
+    }
+
+    private function resolveLicenseeSearch(string $fftaMemberCode): Response
+    {
+        $licensee = $this->licenseeRepository->findOneByCode($fftaMemberCode);
+
+        if (!$licensee instanceof Licensee) {
+            $this->addFlash('warning', 'Aucun licencié trouvé localement avec ce code. La synchronisation FFTA est temporairement indisponible.');
+
+            return $this->render('licensee_management/choice.html.twig', [
+                'not_found_code' => $fftaMemberCode,
+            ]);
+        }
+
+        $club = $this->clubHelper->getClubForUser($this->getUser());
+
+        if (!$club instanceof Club || !$licensee->hasLicenseForClub($club)) {
+            // Never expose more than identity for a licensee outside the admin's club.
+            return $this->render('licensee_management/foreign_notice.html.twig', [
+                'licensee' => $licensee,
+            ]);
+        }
+
+        return $this->redirectForClubLicensee($licensee);
+    }
+
+    private function redirectForClubLicensee(Licensee $licensee): Response
+    {
+        $currentSeason = $this->seasonHelper->getSelectedSeason();
+
+        if ($licensee->getLicenseForSeason($currentSeason) instanceof License) {
+            $this->addFlash('info', 'Ce licencié possède déjà une licence pour cette saison.');
+
+            return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
+        }
+
+        return $this->redirectToRoute('app_licensee_renew', ['id' => $licensee->getId()]);
     }
 
     #[Route('/licensees/manage/new/sync/{fftaMemberCode}', name: 'app_licensee_new_sync', methods: ['GET', 'POST'])]
@@ -111,10 +153,12 @@ class LicenseeManagementController extends BaseController
     #[Route('/licensees/manage/new/manual', name: 'app_licensee_new_manual', methods: ['GET'])]
     public function newManual(Request $request): Response
     {
-        // Initialize session for manual creation
+        // Initialize session for manual creation, carrying over the searched
+        // code (if any) so step 1 can pre-fill it.
         $session = $request->getSession();
         $session->set('licensee_creation', [
             'from_ffta' => false,
+            'prefill_ffta_member_code' => strtoupper(trim((string) $request->query->get('ffta_member_code'))) ?: null,
         ]);
 
         return $this->redirectToRoute('app_licensee_new_step1');
@@ -144,6 +188,8 @@ class LicenseeManagementController extends BaseController
             if (!empty($fftaData['birthdate'])) {
                 $licensee->setBirthdate(new \DateTime($fftaData['birthdate']));
             }
+        } elseif (!empty($creationData['prefill_ffta_member_code'])) {
+            $licensee->setFftaMemberCode($creationData['prefill_ffta_member_code']);
         }
 
         $form = $this->createForm(LicenseeFormType::class, $licensee);
@@ -308,6 +354,54 @@ class LicenseeManagementController extends BaseController
         $this->addFlash('info', 'Création de licencié annulée.');
 
         return $this->redirectToRoute('app_licensee_index');
+    }
+
+    #[Route('/licensees/manage/renew/{id}', name: 'app_licensee_renew', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    #[IsGranted(LicenseeVoter::RENEW, subject: 'licensee')]
+    public function renew(Licensee $licensee, Request $request): Response
+    {
+        $currentSeason = $this->seasonHelper->getSelectedSeason();
+
+        // Voter already scopes access to the admin's club, but re-check the
+        // season to guard against a stale link (defense in depth).
+        if ($licensee->getLicenseForSeason($currentSeason) instanceof License) {
+            $this->addFlash('info', 'Ce licencié possède déjà une licence pour cette saison.');
+
+            return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
+        }
+
+        $license = new License();
+        $license->setLicensee($licensee);
+
+        $mostRecentLicense = $licensee->getMostRecentLicense();
+        if ($mostRecentLicense instanceof License) {
+            $license->setType($mostRecentLicense->getType());
+            $license->setCategory($mostRecentLicense->getCategory());
+            $license->setAgeCategory($mostRecentLicense->getAgeCategory());
+            $license->setActivities($mostRecentLicense->getActivities());
+        }
+
+        $form = $this->createForm(LicenseFormType::class, $license);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Club and season are never taken from client input.
+            $license->setClub($this->clubHelper->getClubForUser($this->getUser()));
+            $license->setSeason($currentSeason);
+
+            $this->entityManager->persist($license);
+            $this->entityManager->flush();
+
+            $this->addFlash('success', 'Licence ajoutée avec succès.');
+
+            return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
+        }
+
+        return $this->render('licensee_management/renew_form.html.twig', [
+            'form' => $form,
+            'licensee' => $licensee,
+            'season' => $currentSeason,
+        ]);
     }
 
     /**

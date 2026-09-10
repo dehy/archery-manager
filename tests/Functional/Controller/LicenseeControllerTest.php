@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller;
 
 use App\Entity\Licensee;
+use App\Entity\Season;
 use App\Entity\User;
 use App\Repository\LicenseeRepository;
 use App\Tests\application\LoggedInTestCase;
@@ -267,7 +268,7 @@ final class LicenseeControllerTest extends LoggedInTestCase
         $ownLicenseeIds = $coach->getLicensees()->map(static fn (Licensee $l): ?int => $l->getId())->toArray();
         $coachClub = null;
         foreach ($coach->getLicensees() as $l) {
-            $coachClub = $l->getLicenseForSeason(2026)?->getClub();
+            $coachClub = $l->getLicenseForSeason(Season::seasonForDate(new \DateTimeImmutable()))?->getClub();
             if (null !== $coachClub) {
                 break;
             }
@@ -282,7 +283,7 @@ final class LicenseeControllerTest extends LoggedInTestCase
                 continue;
             }
 
-            if ($l->getLicenseForSeason(2026)?->getClub() === $coachClub) {
+            if ($l->getLicenseForSeason(Season::seasonForDate(new \DateTimeImmutable()))?->getClub() === $coachClub) {
                 $sameClubLicensee = $l;
                 break;
             }
@@ -307,7 +308,7 @@ final class LicenseeControllerTest extends LoggedInTestCase
         $ownLicenseeIds = $coach->getLicensees()->map(static fn (Licensee $l): ?int => $l->getId())->toArray();
         $coachClub = null;
         foreach ($coach->getLicensees() as $l) {
-            $coachClub = $l->getLicenseForSeason(2026)?->getClub();
+            $coachClub = $l->getLicenseForSeason(Season::seasonForDate(new \DateTimeImmutable()))?->getClub();
             if (null !== $coachClub) {
                 break;
             }
@@ -322,7 +323,7 @@ final class LicenseeControllerTest extends LoggedInTestCase
                 continue;
             }
 
-            $licenseClub = $l->getLicenseForSeason(2026)?->getClub();
+            $licenseClub = $l->getLicenseForSeason(Season::seasonForDate(new \DateTimeImmutable()))?->getClub();
             if (null !== $licenseClub && $licenseClub !== $coachClub) {
                 $differentClubLicensee = $l;
                 break;

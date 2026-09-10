@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Scheduler;
 
 use App\Entity\Club;
+use App\Entity\Season;
 use App\Repository\ClubRepository;
 use App\Scheduler\FftaLicenseesProvider;
 use App\Scheduler\Message\SyncFftaLicensees;
@@ -52,12 +53,12 @@ final class FftaLicenseesProviderTest extends TestCase
         $this->assertInstanceOf(SyncFftaLicensees::class, $message1);
         $this->assertSame(1, $message1->getId());
         $this->assertSame('41', $message1->getClubCode());
-        $this->assertSame(2026, $message1->getSeason()); // September 2025 = 2025-2026 season
+        $this->assertSame(Season::seasonForDate(new \DateTimeImmutable()), $message1->getSeason());
 
         $message2 = $messages[1];
         $this->assertInstanceOf(SyncFftaLicensees::class, $message2);
         $this->assertSame(2, $message2->getId());
         $this->assertSame('42', $message2->getClubCode());
-        $this->assertSame(2026, $message2->getSeason()); // September 2025 = 2025-2026 season
+        $this->assertSame(Season::seasonForDate(new \DateTimeImmutable()), $message2->getSeason());
     }
 }

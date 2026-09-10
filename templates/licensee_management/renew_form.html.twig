@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% form_theme form 'bootstrap_5_layout.html.twig' %}
+
+{% block title %}Renouveler la licence de {{ licensee.firstname }} {{ licensee.lastname }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_licensee_index') }}">Licenciés</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_licensee_profile', {id: licensee.id}) }}">{{ licensee.firstname }} {{ licensee.lastname }}</a></li>
+                    <li class="breadcrumb-item active">Renouvellement</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <em class="fa-solid fa-id-card me-2"></em>
+                        Renouveler la licence {{ season }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="lead">{{ licensee.firstname }} {{ licensee.lastname }}</p>
+
+                    {{ form_start(form) }}
+                        {{ form_row(form.ageCategory) }}
+                        {{ form_row(form.category) }}
+                        {{ form_row(form.type) }}
+
+                        <div class="mb-3">
+                            {{ form_label(form.activities) }}
+                            <div class="border rounded p-3">
+                                {{ form_widget(form.activities) }}
+                            </div>
+                            {{ form_errors(form.activities) }}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('app_licensee_profile', {id: licensee.id}) }}" class="btn btn-secondary">
+                                <em class="fa-solid fa-arrow-left me-2"></em>
+                                Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <em class="fa-solid fa-check me-2"></em>
+                                Enregistrer la licence
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

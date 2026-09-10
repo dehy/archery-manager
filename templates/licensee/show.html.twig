@@ -26,6 +26,12 @@
         </h1>
         {% if is_granted('ROLE_COACH') or is_granted('ROLE_CLUB_ADMIN') %}
             <div>
+                {% if is_granted('ROLE_CLUB_ADMIN') and is_granted('RENEW', licensee) and licensee.getLicenseForSeason(seasonHelper.getSelectedSeason()) is null %}
+                    <a href="{{ path('app_licensee_renew', {'id': licensee.id}) }}" class="btn btn-success me-2">
+                        <em class="fa-solid fa-arrows-rotate me-2"></em>
+                        Renouveler sa licence
+                    </a>
+                {% endif %}
                 <a href="{{ path('app_licensee_edit', {'id': licensee.id}) }}" class="btn btn-warning">
                     <em class="fa-solid fa-pen-to-square me-2"></em>
                     Modifier

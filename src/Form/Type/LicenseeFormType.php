@@ -44,7 +44,7 @@ class LicenseeFormType extends AbstractType
                 'label' => 'Code licence FFTA',
                 'required' => false,
                 'attr' => [
-                    'placeholder' => '8 caractères',
+                    'placeholder' => '7 ou 8 caractères',
                     'maxlength' => 8,
                 ],
             ])

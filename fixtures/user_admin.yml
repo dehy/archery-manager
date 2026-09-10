@@ -23,7 +23,7 @@ App\Entity\Licensee:
 
 App\Entity\License:
     license_licensee_admin:
-        season: 2026
+        season: 2027
         type: 'A'
         category: 'A'
         ageCategory: 'S1'

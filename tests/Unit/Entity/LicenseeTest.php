@@ -227,6 +227,65 @@ final class LicenseeTest extends TestCase
         $licensee->getLicenseForSeason(2025);
     }
 
+    public function testHasLicenseForClub(): void
+    {
+        $licensee = new Licensee();
+        $club = $this->createStub(\App\Entity\Club::class);
+        $otherClub = $this->createStub(\App\Entity\Club::class);
+        $otherLicense = $this->createMock(License::class);
+        $license = $this->createMock(License::class);
+
+        $otherLicense->method('setLicensee');
+        $otherLicense->method('getClub')->willReturn($otherClub);
+        $license->method('setLicensee');
+        $license->method('getClub')->willReturn($club);
+        $licensee->addLicense($otherLicense);
+        $licensee->addLicense($license);
+
+        $this->assertTrue($licensee->hasLicenseForClub($club));
+        $this->assertFalse($licensee->hasLicenseForClub($this->createStub(\App\Entity\Club::class)));
+    }
+
+    public function testHasLicenseForClubReturnsFalseWithoutLicenses(): void
+    {
+        $licensee = new Licensee();
+
+        $this->assertFalse($licensee->hasLicenseForClub($this->createStub(\App\Entity\Club::class)));
+    }
+
+    public function testGetMostRecentLicenseReturnsHighestSeason(): void
+    {
+        $licensee = new Licensee();
+        $license2024 = $this->createMock(License::class);
+        $license2026 = $this->createMock(License::class);
+
+        $license2024->method('setLicensee');
+        $license2024->method('getSeason')->willReturn(2024);
+        $license2026->method('setLicensee');
+        $license2026->method('getSeason')->willReturn(2026);
+
+        $licensee->addLicense($license2024);
+        $licensee->addLicense($license2026);
+
+        $this->assertSame($license2026, $licensee->getMostRecentLicense());
+    }
+
+    public function testGetMostRecentLicenseReturnsSingleLicense(): void
+    {
+        $licensee = new Licensee();
+        $license = $this->createMock(License::class);
+        $license->method('setLicensee');
+        $license->method('getSeason')->willReturn(2025);
+        $licensee->addLicense($license);
+
+        $this->assertSame($license, $licensee->getMostRecentLicense());
+    }
+
+    public function testGetMostRecentLicenseReturnsNullWithoutLicenses(): void
+    {
+        $this->assertNotInstanceOf(\App\Entity\License::class, new Licensee()->getMostRecentLicense());
+    }
+
     public function testAddBow(): void
     {
         $licensee = new Licensee();
