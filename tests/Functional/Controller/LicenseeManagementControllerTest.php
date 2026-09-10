@@ -34,6 +34,8 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
 
     private const string URL_RENEW_PREFIX = '/licensees/manage/renew/';
 
+    private const string URL_PROFILE_PREFIX = '/licensee/';
+
     public function testNewChoicePageRequiresAuthentication(): void
     {
         $client = self::createClient();
@@ -286,6 +288,20 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $this->assertResponseRedirects(self::URL_RENEW_PREFIX.$licensee->getId());
     }
 
+    public function testClubAdminChoicePostWithCurrentSeasonLicenseRedirectsToProfile(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->createLicenseeWithPastSeasonLicense('club_ladg');
+
+        $this->addCurrentSeasonLicense($licensee);
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
+            'ffta_member_code' => $licensee->getFftaMemberCode(),
+        ]);
+
+        $this->assertResponseRedirects(self::URL_PROFILE_PREFIX.$licensee->getId());
+    }
+
     public function testClubAdminChoicePostWithForeignClubLicenseeShowsMinimalInfoOnly(): void
     {
         $client = self::createLoggedInAsClubAdminClient();
@@ -331,7 +347,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
 
         $client->submit($form);
 
-        $this->assertResponseRedirects('/licensee/'.$licensee->getId());
+        $this->assertResponseRedirects(self::URL_PROFILE_PREFIX.$licensee->getId());
 
         /** @var LicenseeRepository $licenseeRepository */
         $licenseeRepository = self::getContainer()->get(LicenseeRepository::class);
@@ -362,7 +378,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
 
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_RENEW_PREFIX.$licensee->getId());
 
-        $this->assertResponseRedirects('/licensee/'.$licensee->getId());
+        $this->assertResponseRedirects(self::URL_PROFILE_PREFIX.$licensee->getId());
     }
 
     public function testClubAdminCanStartManualWizard(): void
@@ -628,5 +644,22 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $em->flush();
 
         return $licensee;
+    }
+
+    private function addCurrentSeasonLicense(Licensee $licensee): void
+    {
+        /** @var EntityManagerInterface $em */
+        $em = self::getContainer()->get(EntityManagerInterface::class);
+        $license = new License();
+        $license->setLicensee($licensee);
+        $license->setClub($licensee->getMostRecentLicense()->getClub());
+        $license->setSeason(2026);
+        $license->setType(LicenseType::ADULTES_COMPETITION);
+        $license->setCategory(LicenseCategoryType::ADULTES);
+        $license->setAgeCategory(LicenseAgeCategoryType::SENIOR_1);
+        $license->setActivities([LicenseActivityType::CL]);
+
+        $em->persist($license);
+        $em->flush();
     }
 }
