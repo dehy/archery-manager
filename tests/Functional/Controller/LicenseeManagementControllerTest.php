@@ -74,7 +74,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
     {
         $client = self::createLoggedInAsAdminClient();
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MANUAL.'?ffta_member_code=UNKNOWN1');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_MANUAL.'?ffta_member_code=unknown1');
 
         $crawler = $client->followRedirect();
 
@@ -269,6 +269,18 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
 
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
             'ffta_member_code' => $licensee->getFftaMemberCode(),
+        ]);
+
+        $this->assertResponseRedirects(self::URL_RENEW_PREFIX.$licensee->getId());
+    }
+
+    public function testClubAdminChoicePostNormalizesLowercaseCodeBeforeLookup(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $licensee = $this->createLicenseeWithPastSeasonLicense('club_ladg');
+
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_CHOICE, [
+            'ffta_member_code' => strtolower((string) $licensee->getFftaMemberCode()),
         ]);
 
         $this->assertResponseRedirects(self::URL_RENEW_PREFIX.$licensee->getId());
@@ -591,6 +603,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $licensee->setLastname('Candidate'.$uniqueId);
         $licensee->setGender('M');
         $licensee->setBirthdate(new \DateTime('1990-01-01'));
+
         $fftaId = FftaCodeProvider::fftaId();
         $licensee->setFftaMemberCode(FftaCodeProvider::fftaCode($fftaId));
         $licensee->setFftaId($fftaId);
