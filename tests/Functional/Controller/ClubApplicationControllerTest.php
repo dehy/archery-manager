@@ -8,8 +8,10 @@ use App\DBAL\Types\ClubApplicationStatusType;
 use App\Entity\Club;
 use App\Entity\ClubApplication;
 use App\Entity\Licensee;
+use App\Entity\Season;
 use App\Entity\User;
 use App\Repository\ClubApplicationRepository;
+use App\Repository\LicenseeRepository;
 use App\Tests\application\LoggedInTestCase;
 
 final class ClubApplicationControllerTest extends LoggedInTestCase
@@ -19,6 +21,10 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
     private const string URL_STATUS = '/club-application/status';
 
     private const string URL_MANAGE = '/club-application/manage';
+
+    private const string URL_ACTIVATE_PREFIX = '/club-application/';
+
+    private const string URL_ACTIVATE_SUFFIX = '/activate';
 
     // ── New Application ────────────────────────────────────────────────
 
@@ -176,6 +182,90 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         $this->assertResponseRedirects(self::URL_MANAGE);
     }
 
+    public function testPendingApplicationCannotBeActivated(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $applicationId = $this->createTestApplication($client);
+
+        $client->request(
+            \Symfony\Component\HttpFoundation\Request::METHOD_GET,
+            self::URL_ACTIVATE_PREFIX.$applicationId.self::URL_ACTIVATE_SUFFIX,
+        );
+
+        $this->assertResponseRedirects(self::URL_MANAGE);
+    }
+
+    public function testValidatedApplicationShowsFftaActivationForm(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $applicationId = $this->createTestApplication($client);
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/validate');
+        $client->submit($crawler->selectButton('Accepter la demande')->form());
+        $this->assertResponseRedirects(self::URL_MANAGE);
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_ACTIVATE_PREFIX.$applicationId.self::URL_ACTIVATE_SUFFIX);
+        $this->assertResponseIsSuccessful();
+        $this->assertGreaterThan(0, $crawler->selectButton('Vérifier le code FFTA')->count());
+    }
+
+    public function testActivationDeniedForRegularUser(): void
+    {
+        $adminClient = self::createLoggedInAsAdminClient();
+        $applicationId = $this->createTestApplication($adminClient);
+        $crawler = $adminClient->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/validate');
+        $adminClient->submit($crawler->selectButton('Accepter la demande')->form());
+
+        $client = self::createLoggedInAsUserClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_ACTIVATE_PREFIX.$applicationId.self::URL_ACTIVATE_SUFFIX);
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testActivationRedirectsWhenLicenseAlreadyExists(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $applicationId = $this->createTestApplication($client, Season::seasonForDate(new \DateTimeImmutable()));
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/validate');
+        $client->submit($crawler->selectButton('Accepter la demande')->form());
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_ACTIVATE_PREFIX.$applicationId.self::URL_ACTIVATE_SUFFIX);
+
+        $this->assertResponseRedirects(self::URL_MANAGE);
+    }
+
+    public function testActivationRejectsFftaCodeBelongingToAnotherLicensee(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $applicationId = $this->createTestApplication($client);
+        $application = self::getContainer()->get(ClubApplicationRepository::class)->find($applicationId);
+        $this->assertInstanceOf(ClubApplication::class, $application);
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/validate');
+        $client->submit($crawler->selectButton('Accepter la demande')->form());
+
+        /** @var LicenseeRepository $licenseeRepository */
+        $licenseeRepository = self::getContainer()->get(LicenseeRepository::class);
+        $otherLicensee = null;
+        foreach ($licenseeRepository->findAll() as $licensee) {
+            if ($licensee->getId() !== $application->getLicensee()->getId() && null !== $licensee->getFftaMemberCode()) {
+                $otherLicensee = $licensee;
+                break;
+            }
+        }
+
+        $this->assertInstanceOf(Licensee::class, $otherLicensee);
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_ACTIVATE_PREFIX.$applicationId.self::URL_ACTIVATE_SUFFIX);
+        $form = $crawler->selectButton('Vérifier le code FFTA')->form([
+            'ffta_member_code[fftaMemberCode]' => $otherLicensee->getFftaMemberCode(),
+        ]);
+        $client->submit($form);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertStringContainsString('déjà associé à un autre licencié', (string) $client->getResponse()->getContent());
+    }
+
     // ── Waiting List ───────────────────────────────────────────────────
 
     public function testWaitingListFormRendersForAdmin(): void
@@ -295,7 +385,7 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
     /**
      * Create a test ClubApplication and return its ID.
      */
-    private function createTestApplication(\Symfony\Bundle\FrameworkBundle\KernelBrowser $client): int
+    private function createTestApplication(\Symfony\Bundle\FrameworkBundle\KernelBrowser $client, int $season = 2099): int
     {
         $em = self::getContainer()->get('doctrine.orm.entity_manager');
 
@@ -313,7 +403,7 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         $application = new ClubApplication();
         $application->setLicensee($licensee);
         $application->setClub($club);
-        $application->setSeason(2099);
+        $application->setSeason($season);
         $application->setStatus(ClubApplicationStatusType::PENDING);
         $application->setCreatedAt(new \DateTimeImmutable());
 

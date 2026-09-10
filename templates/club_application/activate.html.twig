@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Activer la licence FFTA{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <em class="fa-solid fa-id-card me-2"></em>
+                            Activer la licence FFTA
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <strong>Candidat :</strong>
+                            {{ application.licensee.firstname }} {{ application.licensee.lastname }}
+                            <br>
+                            <small>La demande est acceptée. Saisissez le code créé sur le site FFTA pour activer l'accès à Archery Manager.</small>
+                        </div>
+
+                        {% form_theme codeForm 'bootstrap_5_layout.html.twig' %}
+                        {{ form_start(codeForm) }}
+                            {{ form_row(codeForm.fftaMemberCode) }}
+                            <button type="submit" class="btn btn-primary">
+                                <em class="fa-solid fa-magnifying-glass me-2"></em>
+                                Vérifier le code FFTA
+                            </button>
+                        {{ form_end(codeForm) }}
+
+                        {% if fftaProfile %}
+                            <hr class="my-4">
+                            <div class="alert alert-success">
+                                <strong>Licence FFTA trouvée :</strong>
+                                {{ fftaProfile.prenom|default(application.licensee.firstname) }}
+                                {{ fftaProfile.nom|default(application.licensee.lastname) }}
+                                <br>
+                                <small>Vérifiez les informations de licence avant l'activation.</small>
+                            </div>
+
+                            {% form_theme licenseForm 'bootstrap_5_layout.html.twig' %}
+                            {{ form_start(licenseForm) }}
+                                <input type="hidden" name="activation_stage" value="confirm">
+                                <input type="hidden" name="ffta_member_code" value="{{ searchedCode }}">
+                                {{ form_row(licenseForm.ageCategory) }}
+                                {{ form_row(licenseForm.category) }}
+                                {{ form_row(licenseForm.type) }}
+                                {{ form_row(licenseForm.activities) }}
+                                <div class="d-flex justify-content-between mt-3">
+                                    <a href="{{ path('app_club_application_manage') }}" class="btn btn-secondary">Annuler</a>
+                                    <button type="submit" class="btn btn-success">
+                                        <em class="fa-solid fa-check me-2"></em>
+                                        Activer la licence
+                                    </button>
+                                </div>
+                            {{ form_end(licenseForm) }}
+                        {% endif %}
+
+                        <a href="{{ path('app_club_application_manage') }}" class="btn btn-link mt-3">Retour aux demandes</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
