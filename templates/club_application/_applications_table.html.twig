@@ -29,10 +29,20 @@
                                 En attente
                             </span>
                         {% elseif application.isValidated %}
-                            <span class="badge bg-success">
-                                <em class="fa-solid fa-check me-1"></em>
-                                Validée
-                            </span>
+                            {% if application.licensee.getLicenseForSeason(application.season) %}
+                                <span class="badge bg-success">
+                                    <em class="fa-solid fa-check me-1"></em>
+                                    Active
+                                </span>
+                            {% else %}
+                                <a href="{{ path('app_club_application_activate', { id: application.id }) }}"
+                                   class="badge bg-warning text-dark text-decoration-none"
+                                   title="Activer après création de la licence FFTA"
+                                   data-bs-toggle="tooltip">
+                                    <em class="fa-solid fa-id-card me-1"></em>
+                                    Acceptée — activation FFTA requise
+                                </a>
+                            {% endif %}
                         {% elseif application.isOnWaitingList %}
                             <span class="badge bg-info">
                                 <em class="fa-solid fa-hourglass-half me-1"></em>
