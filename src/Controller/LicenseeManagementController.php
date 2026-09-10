@@ -50,7 +50,7 @@ class LicenseeManagementController extends BaseController
             return $this->render('licensee_management/choice.html.twig');
         }
 
-        $fftaMemberCode = trim((string) $request->request->get('ffta_member_code'));
+        $fftaMemberCode = strtoupper(trim((string) $request->request->get('ffta_member_code')));
 
         if ('' === $fftaMemberCode) {
             return $this->redirectToRoute('app_licensee_new_manual');
@@ -158,7 +158,7 @@ class LicenseeManagementController extends BaseController
         $session = $request->getSession();
         $session->set('licensee_creation', [
             'from_ffta' => false,
-            'prefill_ffta_member_code' => trim((string) $request->query->get('ffta_member_code')) ?: null,
+            'prefill_ffta_member_code' => strtoupper(trim((string) $request->query->get('ffta_member_code'))) ?: null,
         ]);
 
         return $this->redirectToRoute('app_licensee_new_step1');

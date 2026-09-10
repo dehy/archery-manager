@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller;
 
+use App\DBAL\Types\LicenseActivityType;
+use App\DBAL\Types\LicenseAgeCategoryType;
+use App\DBAL\Types\LicenseCategoryType;
+use App\DBAL\Types\LicenseType;
+use App\DataFixtures\Faker\Provider\FftaCodeProvider;
 use App\Entity\License;
 use App\Entity\Licensee;
 use App\Repository\ClubRepository;
@@ -335,10 +340,10 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $currentSeasonLicense->setLicensee($licensee);
         $currentSeasonLicense->setClub($licensee->getMostRecentLicense()->getClub());
         $currentSeasonLicense->setSeason(2026);
-        $currentSeasonLicense->setType('A');
-        $currentSeasonLicense->setCategory('A');
-        $currentSeasonLicense->setAgeCategory('S1');
-        $currentSeasonLicense->setActivities(['CL']);
+        $currentSeasonLicense->setType(LicenseType::ADULTES_COMPETITION);
+        $currentSeasonLicense->setCategory(LicenseCategoryType::ADULTES);
+        $currentSeasonLicense->setAgeCategory(LicenseAgeCategoryType::SENIOR_1);
+        $currentSeasonLicense->setActivities([LicenseActivityType::CL]);
 
         $em->persist($currentSeasonLicense);
         $em->flush();
@@ -586,8 +591,9 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $licensee->setLastname('Candidate'.$uniqueId);
         $licensee->setGender('M');
         $licensee->setBirthdate(new \DateTime('1990-01-01'));
-        $licensee->setFftaMemberCode('R'.$uniqueId);
-        $licensee->setFftaId(random_int(1, PHP_INT_MAX));
+        $fftaId = FftaCodeProvider::fftaId();
+        $licensee->setFftaMemberCode(FftaCodeProvider::fftaCode($fftaId));
+        $licensee->setFftaId($fftaId);
 
         /** @var \App\Repository\UserRepository $userRepository */
         $userRepository = self::getContainer()->get(\App\Repository\UserRepository::class);
@@ -599,10 +605,10 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $license->setLicensee($licensee);
         $license->setClub($club);
         $license->setSeason(2025);
-        $license->setType('A');
-        $license->setCategory('A');
-        $license->setAgeCategory('S1');
-        $license->setActivities(['CL']);
+        $license->setType(LicenseType::ADULTES_COMPETITION);
+        $license->setCategory(LicenseCategoryType::ADULTES);
+        $license->setAgeCategory(LicenseAgeCategoryType::SENIOR_1);
+        $license->setActivities([LicenseActivityType::CL]);
 
         $em->persist($licensee);
         $em->persist($license);
