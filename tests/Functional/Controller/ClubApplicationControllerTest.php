@@ -20,6 +20,8 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
 
     private const string URL_MANAGE = '/club-application/manage';
 
+    private const string URL_ACTIVATE_PREFIX = '/club-application/';
+
     // ── New Application ────────────────────────────────────────────────
 
     public function testNewApplicationRequiresAuthentication(): void
@@ -174,6 +176,33 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         // Try to validate again — should redirect with warning (already processed)
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/validate');
         $this->assertResponseRedirects(self::URL_MANAGE);
+    }
+
+    public function testPendingApplicationCannotBeActivated(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $applicationId = $this->createTestApplication($client);
+
+        $client->request(
+            \Symfony\Component\HttpFoundation\Request::METHOD_GET,
+            self::URL_ACTIVATE_PREFIX.$applicationId.'/activate',
+        );
+
+        $this->assertResponseRedirects(self::URL_MANAGE);
+    }
+
+    public function testValidatedApplicationShowsFftaActivationForm(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $applicationId = $this->createTestApplication($client);
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/validate');
+        $client->submit($crawler->selectButton('Accepter la demande')->form());
+        $this->assertResponseRedirects(self::URL_MANAGE);
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_ACTIVATE_PREFIX.$applicationId.'/activate');
+        $this->assertResponseIsSuccessful();
+        $this->assertGreaterThan(0, $crawler->selectButton('Vérifier le code FFTA')->count());
     }
 
     // ── Waiting List ───────────────────────────────────────────────────
