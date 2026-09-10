@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller;
 
 use App\Entity\Group;
+use App\Entity\Season;
 use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
 use App\Tests\application\LoggedInTestCase;
@@ -318,7 +319,7 @@ final class GroupManagementControllerTest extends LoggedInTestCase
 
         /** @var LicenseeRepository $licenseeRepo */
         $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
-        $allLicensees = $licenseeRepo->findByLicenseYear($group->getClub(), 2026);
+        $allLicensees = $licenseeRepo->findByLicenseYear($group->getClub(), Season::seasonForDate(new \DateTimeImmutable()));
 
         foreach ($allLicensees as $licensee) {
             if (!$group->getLicensees()->contains($licensee)) {

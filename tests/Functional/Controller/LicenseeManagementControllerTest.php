@@ -63,7 +63,8 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         ]);
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('.alert-warning', 'UNKNOWN1');
+        $this->assertSelectorExists('.alert-warning');
+        $this->assertSame('UNKNOWN1', $crawler->filter('#ffta_member_code')->attr('value'));
 
         $ctaLink = $crawler->selectLink('Créer ce licencié');
         $this->assertGreaterThan(0, $ctaLink->count());
