@@ -11,6 +11,7 @@ use App\DBAL\Types\LicenseType;
 use App\DataFixtures\Faker\Provider\FftaCodeProvider;
 use App\Entity\License;
 use App\Entity\Licensee;
+use App\Entity\Season;
 use App\Repository\ClubRepository;
 use App\Repository\LicenseeRepository;
 use App\Tests\application\LoggedInTestCase;
@@ -353,7 +354,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $licenseeRepository = self::getContainer()->get(LicenseeRepository::class);
         $reloaded = $licenseeRepository->find($licensee->getId());
         $this->assertInstanceOf(Licensee::class, $reloaded);
-        $this->assertInstanceOf(License::class, $reloaded->getLicenseForSeason(2026));
+        $this->assertInstanceOf(License::class, $reloaded->getLicenseForSeason(Season::seasonForDate(new \DateTimeImmutable())));
     }
 
     public function testRenewRedirectsWithFlashWhenSeasonLicenseAlreadyExists(): void
@@ -361,13 +362,13 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsClubAdminClient();
         $licensee = $this->createLicenseeWithPastSeasonLicense('club_ladg');
 
-        // Give it a 2026 license too, so it already has one for the current season.
+        // Give it a current-season license, so it cannot be renewed twice.
         /** @var EntityManagerInterface $em */
         $em = self::getContainer()->get(EntityManagerInterface::class);
         $currentSeasonLicense = new License();
         $currentSeasonLicense->setLicensee($licensee);
         $currentSeasonLicense->setClub($licensee->getMostRecentLicense()->getClub());
-        $currentSeasonLicense->setSeason(2026);
+        $currentSeasonLicense->setSeason(Season::seasonForDate(new \DateTimeImmutable()));
         $currentSeasonLicense->setType(LicenseType::ADULTES_COMPETITION);
         $currentSeasonLicense->setCategory(LicenseCategoryType::ADULTES);
         $currentSeasonLicense->setAgeCategory(LicenseAgeCategoryType::SENIOR_1);
@@ -599,7 +600,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
     /**
      * Persist a Licensee with a single License for a past season (2025) at the
      * given club fixture reference, so it's a renewal candidate for the
-     * currently selected season (2026) without conflicting with fixture data.
+    * currently selected season without conflicting with fixture data.
      */
     private function createLicenseeWithPastSeasonLicense(string $clubReference): Licensee
     {
@@ -653,7 +654,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $license = new License();
         $license->setLicensee($licensee);
         $license->setClub($licensee->getMostRecentLicense()->getClub());
-        $license->setSeason(2026);
+        $license->setSeason(Season::seasonForDate(new \DateTimeImmutable()));
         $license->setType(LicenseType::ADULTES_COMPETITION);
         $license->setCategory(LicenseCategoryType::ADULTES);
         $license->setAgeCategory(LicenseAgeCategoryType::SENIOR_1);
