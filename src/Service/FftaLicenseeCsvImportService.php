@@ -155,11 +155,8 @@ readonly class FftaLicenseeCsvImportService
     private function licenseesByCode(array $codes): array
     {
         $licenseesByCode = [];
-        foreach (array_unique($codes) as $code) {
-            $licensee = $this->licenseeRepository->findOneByCode($code);
-            if ($licensee instanceof Licensee) {
-                $licenseesByCode[$code] = $licensee;
-            }
+        foreach ($this->licenseeRepository->findByCodesWithLicenses($codes) as $licensee) {
+            $licenseesByCode[$licensee->getFftaMemberCode()] = $licensee;
         }
 
         return $licenseesByCode;
@@ -173,8 +170,8 @@ readonly class FftaLicenseeCsvImportService
     private function usersByEmail(array $emails): array
     {
         $usersByEmail = [];
-        foreach (array_unique($emails) as $email) {
-            $user = $this->userRepository->findOneByEmail($email);
+        foreach ($this->userRepository->findByEmails($emails) as $user) {
+            $email = $user->getEmail();
             if (null !== $user?->getId()) {
                 $usersByEmail[$email] = $user->getId();
             }

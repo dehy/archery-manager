@@ -106,6 +106,28 @@ final class FftaLicenseeCsvImportServiceTest extends TestCase
         $this->assertSame(0, $preview['rows'][1]['sharedUserRow']);
     }
 
+    public function testLoadsLicenseesAndUsersInBulk(): void
+    {
+        $licenseeRepository = $this->createMock(LicenseeRepository::class);
+        $licenseeRepository->expects($this->once())
+            ->method('findByCodesWithLicenses')
+            ->with(['1234567A', '1234567B'])
+            ->willReturn([]);
+
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository->expects($this->once())
+            ->method('findByEmails')
+            ->with(['one@example.test', 'two@example.test'])
+            ->willReturn([]);
+
+        $service = new FftaLicenseeCsvImportService($licenseeRepository, $userRepository);
+        $service->createPreview($this->csvFile(
+            self::HEADERS
+            .'"1234567A";"Dupont";"Camille";"Féminin";"12/05/2010";"Active";"01/09/2026";"Jeune";"U18";"one@example.test"'."\n"
+            .'"1234567B";"Martin";"Alex";"Masculin";"12/05/1985";"Active";"01/09/2026";"Adulte pratique en club";"Sénior 1";"two@example.test"'."\n",
+        ));
+    }
+
     private function csvFile(string $contents): UploadedFile
     {
         $path = tempnam(sys_get_temp_dir(), 'ffta-licensees-');

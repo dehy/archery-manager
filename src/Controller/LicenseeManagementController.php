@@ -28,16 +28,18 @@ use App\Security\Voter\LicenseeVoter;
 use App\Service\AccountActivationEmailSender;
 use App\Service\FftaLicenseeCsvImportService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_CLUB_ADMIN')]
 class LicenseeManagementController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly LicenseeRepository $licenseeRepository, private readonly UserRepository $userRepository, private readonly FftaLicenseeCsvImportService $csvImportService, private readonly AccountActivationEmailSender $accountActivationEmailSender, private readonly EntityManagerInterface $entityManager)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly LicenseeRepository $licenseeRepository, private readonly UserRepository $userRepository, private readonly FftaLicenseeCsvImportService $csvImportService, private readonly AccountActivationEmailSender $accountActivationEmailSender, private readonly EntityManagerInterface $entityManager, private readonly LoggerInterface $logger)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -109,12 +111,15 @@ class LicenseeManagementController extends BaseController
 
             try {
                 $summary = $this->persistCsvImport($preview['rows'], $request->request->all('user_choices'));
+            } catch (AccessDeniedException $exception) {
+                throw $exception;
             } catch (\Throwable $exception) {
                 $this->addFlash('danger', $exception->getMessage());
 
                 return $this->redirectToRoute('app_licensee_csv_import_review');
             }
 
+            $failedActivationEmails = $this->sendActivationEmails($summary['activationUsers']);
             $request->getSession()->remove('ffta_licensee_csv_import');
             $this->addFlash('success', \sprintf(
                 'Import terminé : %d licence(s), %d licencié(s) et %d compte(s) créés.',
@@ -122,6 +127,12 @@ class LicenseeManagementController extends BaseController
                 $summary['licensees'],
                 $summary['users'],
             ));
+            if ($failedActivationEmails > 0) {
+                $this->addFlash('warning', \sprintf(
+                    '%d email(s) d’activation n’ont pas pu être envoyés. Les comptes ont bien été créés.',
+                    $failedActivationEmails,
+                ));
+            }
 
             return $this->redirectToRoute('app_licensee_index');
         }
@@ -158,7 +169,7 @@ class LicenseeManagementController extends BaseController
      * @param list<array<string, int|string|bool|null>> $rows
      * @param array<int|string, string> $userChoices
      *
-     * @return array{licenses: int, licensees: int, users: int}
+     * @return array{licenses: int, licensees: int, users: int, activationUsers: list<User>}
      */
     private function persistCsvImport(array $rows, array $userChoices): array
     {
@@ -214,10 +225,6 @@ class LicenseeManagementController extends BaseController
             }
 
             $this->entityManager->flush();
-            foreach ($createdUsers as $user) {
-                $this->accountActivationEmailSender->send($user);
-            }
-
             $this->entityManager->commit();
         } catch (\Throwable $throwable) {
             $this->entityManager->rollback();
@@ -228,6 +235,7 @@ class LicenseeManagementController extends BaseController
             'licenses' => \count($rows),
             'licensees' => $createdLicensees,
             'users' => \count($createdUsers),
+            'activationUsers' => $createdUsers,
         ];
     }
 
@@ -243,6 +251,8 @@ class LicenseeManagementController extends BaseController
             if (!$licensee instanceof Licensee) {
                 throw new \RuntimeException(\sprintf('Le licencié de la ligne %d n’existe plus.', $row['line']));
             }
+
+            $this->denyAccessUnlessGranted(LicenseeVoter::RENEW, $licensee);
 
             return $licensee;
         }
@@ -329,6 +339,27 @@ class LicenseeManagementController extends BaseController
         }
 
         return 'new';
+    }
+
+    /**
+     * @param list<User> $users
+     */
+    private function sendActivationEmails(array $users): int
+    {
+        $failures = 0;
+        foreach ($users as $user) {
+            try {
+                $this->accountActivationEmailSender->send($user);
+            } catch (\Throwable $throwable) {
+                ++$failures;
+                $this->logger->error('Unable to send imported account activation email.', [
+                    'exception' => $throwable,
+                    'userId' => $user->getId(),
+                ]);
+            }
+        }
+
+        return $failures;
     }
 
     private function resolveLicenseeSearch(string $fftaMemberCode): Response

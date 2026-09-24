@@ -12,10 +12,17 @@ use App\DataFixtures\Faker\Provider\FftaCodeProvider;
 use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\Season;
+use App\Entity\User;
 use App\Repository\ClubRepository;
 use App\Repository\LicenseeRepository;
+use App\Repository\UserRepository;
+use App\Service\AccountActivationEmailSender;
 use App\Tests\application\LoggedInTestCase;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\DomCrawler\Field\FileFormField;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class LicenseeManagementControllerTest extends LoggedInTestCase
 {
@@ -38,6 +45,12 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
     private const string URL_PROFILE_PREFIX = '/licensee/';
 
     private const string URL_IMPORT_USER_SEARCH = '/licensees/manage/import/users';
+
+    private const string URL_IMPORT = '/licensees/manage/import';
+
+    private const string URL_IMPORT_REVIEW = '/licensees/manage/import/review';
+
+    private const string CSV_HEADERS = "\xEF\xBB\xBF\"Code Adhérent\";\"Nom\";\"Prénom\";\"Sexe\";\"Date de naissance\";\"État\";\"Valide depuis le\";\"Type\";\"Catégorie âge\";\"Email\"\n";
 
     public function testNewChoicePageRequiresAuthentication(): void
     {
@@ -64,6 +77,51 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $this->assertResponseStatusCodeSame(\Symfony\Component\HttpFoundation\Response::HTTP_FORBIDDEN);
     }
 
+    /**
+     * @param list<string> $rows
+     */
+    private function uploadCsv(KernelBrowser $client, array $rows): Crawler
+    {
+        $path = tempnam(sys_get_temp_dir(), 'ffta-import-controller-');
+        $this->assertNotFalse($path);
+        file_put_contents($path, self::CSV_HEADERS.implode("\n", $rows)."\n");
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_IMPORT);
+        $form = $crawler->selectButton('Analyser le fichier')->form();
+        $fileField = $form['ffta_licensee_csv_upload[csv]'];
+        $this->assertInstanceOf(FileFormField::class, $fileField);
+        $fileField->upload(new UploadedFile($path, 'licensees.csv', 'text/csv', null, true));
+        $client->submit($form);
+        $this->assertResponseRedirects(self::URL_IMPORT_REVIEW);
+
+        return $client->followRedirect();
+    }
+
+    private function csvRow(
+        string $code,
+        string $lastname,
+        string $firstname,
+        string $gender,
+        string $birthdate,
+        string $type,
+        string $ageCategory,
+        string $email,
+        string $validFrom = '01/09/2026',
+    ): string {
+        return \sprintf(
+            '"%s";"%s";"%s";"%s";"%s";"Active";"%s";"%s";"%s";"%s"',
+            $code,
+            $lastname,
+            $firstname,
+            $gender,
+            $birthdate,
+            $validFrom,
+            $type,
+            $ageCategory,
+            $email,
+        );
+    }
+
     public function testImportUserSearchFindsAccountsWithoutLoadingEveryUser(): void
     {
         $client = self::createLoggedInAsClubAdminClient();
@@ -88,6 +146,141 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
             '{"users":[]}',
             (string) $client->getResponse()->getContent(),
         );
+    }
+
+    public function testCsvImportCreatesSharedLicenseesAndSendsOneActivationEmail(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $crawler = $this->uploadCsv($client, [
+            $this->csvRow('9900001A', 'Martin', 'Camille', 'Féminin', '12/05/2015', 'Jeune', 'U13', 'family-import@example.test'),
+            $this->csvRow('9900002B', 'Martin', 'Alex', 'Masculin', '12/05/1985', 'Adulte pratique en club', 'Sénior 1', 'family-import@example.test'),
+        ]);
+
+        $form = $crawler->selectButton('Confirmer l’import')->form([
+            'user_choices[0]' => 'share:1',
+            'user_choices[1]' => 'new',
+        ]);
+        $client->submit($form);
+
+        $this->assertResponseRedirects('/licensees');
+        self::assertEmailCount(1);
+        $email = self::getMailerMessage();
+        self::assertEmailSubjectContains($email, 'Créez votre mot de passe');
+        self::assertEmailHtmlBodyContains($email, 'Votre club a créé votre compte');
+
+        $licensees = self::getContainer()->get(LicenseeRepository::class);
+        $child = $licensees->findOneByCode('9900001A');
+        $adult = $licensees->findOneByCode('9900002B');
+        $this->assertInstanceOf(Licensee::class, $child);
+        $this->assertInstanceOf(Licensee::class, $adult);
+        $this->assertSame($adult->getUser()->getId(), $child->getUser()->getId());
+        $this->assertInstanceOf(License::class, $adult->getLicenseForSeason(2027));
+    }
+
+    public function testCsvImportPersistsAccountWhenActivationEmailFails(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $activationEmailSender = $this->createMock(AccountActivationEmailSender::class);
+        $activationEmailSender->expects($this->once())
+            ->method('send')
+            ->willThrowException(new \RuntimeException('Mailer unavailable'));
+        self::getContainer()->set(AccountActivationEmailSender::class, $activationEmailSender);
+
+        $crawler = $this->uploadCsv($client, [
+            $this->csvRow('9900005E', 'Mailer', 'Failure', 'Masculin', '12/05/1985', 'Adulte pratique en club', 'Sénior 1', 'mailer-failure-import@example.test'),
+        ]);
+        $client->submit($crawler->selectButton('Confirmer l’import')->form([
+            'user_choices[0]' => 'new',
+        ]));
+
+        $this->assertResponseRedirects('/licensees');
+        $this->assertInstanceOf(
+            Licensee::class,
+            self::getContainer()->get(LicenseeRepository::class)->findOneByCode('9900005E'),
+        );
+        $this->assertInstanceOf(
+            User::class,
+            self::getContainer()->get(UserRepository::class)->findOneByEmail('mailer-failure-import@example.test'),
+        );
+    }
+
+    public function testCsvImportLinksNewLicenseeToExistingAccountWithoutSendingActivationEmail(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $users = self::getContainer()->get(UserRepository::class);
+        $existingUser = $users->findOneByEmail('julien.candidat@ladg.com');
+        $this->assertInstanceOf(User::class, $existingUser);
+
+        $crawler = $this->uploadCsv($client, [
+            $this->csvRow('9900003C', 'Petit', 'Julien', 'Masculin', '12/05/1985', 'Adulte pratique en club', 'Sénior 1', $existingUser->getEmail()),
+        ]);
+        $form = $crawler->selectButton('Confirmer l’import')->form([
+            'user_choices[0]' => 'user:'.$existingUser->getId(),
+        ]);
+        $client->submit($form);
+
+        $this->assertResponseRedirects('/licensees');
+        self::assertEmailCount(0);
+        $licensee = self::getContainer()->get(LicenseeRepository::class)->findOneByCode('9900003C');
+        $this->assertInstanceOf(Licensee::class, $licensee);
+        $this->assertSame($existingUser->getId(), $licensee->getUser()->getId());
+    }
+
+    public function testCsvImportRenewsLicenseeFromAdministratorsClub(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $crawler = $this->uploadCsv($client, [
+            $this->csvRow('8000001A', 'Lefevre', 'Sophie', 'Féminin', '12/05/1985', 'Adulte pratique en compétition', 'Sénior 1', 'sophie.lefevre@ladg.com'),
+        ]);
+        $client->submit($crawler->selectButton('Confirmer l’import')->form());
+
+        $this->assertResponseRedirects('/licensees');
+        $licensee = self::getContainer()->get(LicenseeRepository::class)->findOneByCode('8000001A');
+        $this->assertInstanceOf(Licensee::class, $licensee);
+        $this->assertInstanceOf(License::class, $licensee->getLicenseForSeason(2027));
+    }
+
+    public function testCsvImportRejectsRenewalForLicenseeOutsideAdministratorsClub(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $clubs = self::getContainer()->get(ClubRepository::class)->findAll();
+        $foreignClub = array_first(array_filter($clubs, static fn (\App\Entity\Club $club): bool => 'Les Archers de Guyenne' !== $club->getName()));
+        $this->assertInstanceOf(\App\Entity\Club::class, $foreignClub);
+        $foreignLicensee = self::getContainer()->get(LicenseeRepository::class)->findByLicenseYear($foreignClub, 2027)[0];
+
+        $crawler = $this->uploadCsv($client, [
+            $this->csvRow(
+                (string) $foreignLicensee->getFftaMemberCode(),
+                $foreignLicensee->getLastname(),
+                $foreignLicensee->getFirstname(),
+                'Masculin',
+                '12/05/1985',
+                'Adulte pratique en club',
+                'Sénior 1',
+                $foreignLicensee->getUser()->getEmail(),
+                '01/09/2027',
+            ),
+        ]);
+        $client->submit($crawler->selectButton('Confirmer l’import')->form());
+
+        $this->assertResponseStatusCodeSame(\Symfony\Component\HttpFoundation\Response::HTTP_FORBIDDEN);
+        $this->assertNull($foreignLicensee->getLicenseForSeason(2028));
+    }
+
+    public function testCsvImportRollsBackInvalidSharedAccountChoice(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $crawler = $this->uploadCsv($client, [
+            $this->csvRow('9900004D', 'Rollback', 'Test', 'Masculin', '12/05/1985', 'Adulte pratique en club', 'Sénior 1', 'rollback-import@example.test'),
+        ]);
+        $client->submit($crawler->selectButton('Confirmer l’import')->form([
+            'user_choices[0]' => 'share:99',
+        ]));
+
+        $this->assertResponseRedirects(self::URL_IMPORT_REVIEW);
+        $this->assertNull(self::getContainer()->get(LicenseeRepository::class)->findOneByCode('9900004D'));
+        $this->assertNull(self::getContainer()->get(UserRepository::class)->findOneByEmail('rollback-import@example.test'));
+        self::assertEmailCount(0);
     }
 
     public function testNewChoicePostWithUnknownCodeShowsWarningWithCreateCta(): void

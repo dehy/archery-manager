@@ -30,7 +30,7 @@ readonly class AccountActivationEmailSender
             ->from(new Address('noreply@admds.net', 'Les Archers de Guyenne'))
             ->to($user->getEmail())
             ->subject('Créez votre mot de passe')
-            ->htmlTemplate('reset_password/email.html.twig')
+            ->htmlTemplate('email_notification/account_activation.html.twig')
             ->context([
                 'resetToken' => $resetToken,
             ]);
