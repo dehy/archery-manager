@@ -172,8 +172,8 @@ readonly class FftaLicenseeCsvImportService
     {
         $usersByEmail = [];
         foreach ($this->userRepository->findByEmails($emails) as $user) {
-            $email = $user->getEmail();
-            if (null !== $user?->getId()) {
+            $email = strtolower((string) $user->getEmail());
+            if (null !== $user->getId()) {
                 $usersByEmail[$email] = $user->getId();
             }
         }
