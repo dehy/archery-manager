@@ -1,0 +1,177 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Vérifier l’import FFTA{% endblock %}
+
+{% block body %}
+    <div class="container-fluid mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="mb-1">Vérifier l’import FFTA</h2>
+                <p class="text-muted mb-0">Aucune modification n’a encore été enregistrée.</p>
+            </div>
+            <a href="{{ path('app_licensee_csv_import') }}" class="btn btn-outline-secondary">
+                <em class="fa-solid fa-arrow-left me-2"></em>
+                Choisir un autre fichier
+            </a>
+        </div>
+
+        {% if preview.errors is not empty %}
+            <div class="alert alert-danger">
+                <strong>{{ preview.errors|length }} ligne(s) invalide(s)</strong> ne seront pas importées.
+                <ul class="mb-0 mt-2">
+                    {% for error in preview.errors %}
+                        <li>Ligne {{ error.line }} : {{ error.reason }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if preview.skipped is not empty %}
+            <div class="alert alert-warning">
+                <strong>{{ preview.skipped|length }} ligne(s) ignorée(s)</strong>.
+                <ul class="mb-0 mt-2">
+                    {% for skipped in preview.skipped %}
+                        <li>Ligne {{ skipped.line }} : {{ skipped.reason }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if preview.rows is empty and preview.alreadyLicensed is empty %}
+            <div class="alert alert-info">
+                Aucune ligne ne nécessite de création ou de renouvellement.
+            </div>
+        {% else %}
+            <form method="post" action="{{ path('app_licensee_csv_import_review') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('ffta-licensee-csv-import') }}">
+
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="mb-0">
+                            <em class="fa-solid fa-list-check me-2"></em>
+                            {{ preview.rows|length }} licence(s) à créer
+                            {% if preview.alreadyLicensed is not empty %}
+                                <small class="fw-normal">— {{ preview.alreadyLicensed|length }} déjà à jour</small>
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <div class="card-body border-bottom py-2">
+                        <small class="text-muted">
+                            Dans les champs « Compte utilisateur », saisissez quelques lettres pour rechercher un compte existant.
+                        </small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Ligne</th>
+                                    <th>Licencié</th>
+                                    <th>Code FFTA</th>
+                                    <th>Saison</th>
+                                    <th>Licence</th>
+                                    <th class="w-50">Compte utilisateur</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in displayRows %}
+                                    {% if row.alreadyLicensed is defined and row.alreadyLicensed %}
+                                        <tr class="table-secondary text-muted">
+                                            <td>{{ row.line }}</td>
+                                            <td>{{ row.firstname }} {{ row.lastname }}</td>
+                                            <td>{{ row.fftaMemberCode }}</td>
+                                            <td>{{ row.season }}</td>
+                                            <td colspan="2">
+                                                <em class="fa-solid fa-check-circle me-2 text-success"></em>
+                                                Ce licencié est déjà à jour pour cette saison, aucune action requise.
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td>{{ row.line }}</td>
+                                            <td>{{ row.firstname }} {{ row.lastname }}</td>
+                                            <td>{{ row.fftaMemberCode }}</td>
+                                            <td>{{ row.season }}</td>
+                                            <td>
+                                                {{ row.licenseTypeLabel }}
+                                                <small class="d-block text-muted">{{ row.ageCategory }}</small>
+                                            </td>
+                                            <td>
+                                                {% if row.licenseeId is not null %}
+                                                    <span class="badge text-bg-secondary">
+                                                        Licence précédente existante, ajout de la licence {{ row.season }}
+                                                    </span>
+                                                {% else %}
+                                                    {% set defaultChoice = row.userId is not null
+                                                        ? 'user:' ~ row.userId
+                                                        : row.sharedUserRow is defined
+                                                            ? 'share:' ~ row.sharedUserRow
+                                                            : 'new' %}
+                                                    {% set sharedRow = row.sharedUserRow is defined
+                                                        ? preview.rows[row.sharedUserRow]
+                                                        : null %}
+                                                    {% set isSharedGroup = sharedRow is not null or row.sharedUserDependentCount is defined %}
+                                                    <div
+                                                        data-controller="user-autocomplete"
+                                                        data-user-autocomplete-url-value="{{ path('app_licensee_csv_import_users') }}"
+                                                        data-user-autocomplete-name-value="{{ row.firstname }} {{ row.lastname }}"
+                                                        data-user-autocomplete-row-index-value="{{ row.rowIndex }}"
+                                                        {% if isSharedGroup %}
+                                                            data-user-autocomplete-group-value="{{ row.email }}"
+                                                        {% endif %}
+                                                    >
+                                                        <select
+                                                            class="form-select form-select-sm"
+                                                            name="user_choices[{{ row.rowIndex }}]"
+                                                            data-user-autocomplete-target="select"
+                                                            aria-label="Choisir ou rechercher un compte utilisateur"
+                                                        >
+                                                            {% if row.userId is null %}
+                                                                <option value="new" {{ defaultChoice == 'new' ? 'selected' : '' }}>
+                                                                    Créer le compte {{ row.email }}
+                                                                </option>
+                                                            {% endif %}
+                                                            {% if row.userId is not null %}
+                                                                <option value="user:{{ row.userId }}" {{ defaultChoice == 'user:' ~ row.userId ? 'selected' : '' }}>
+                                                                    Lier au compte existant {{ row.email }}
+                                                                </option>
+                                                            {% endif %}
+                                                            {% if sharedRow is not null %}
+                                                                <option value="share:{{ row.sharedUserRow }}" selected>
+                                                                    Utiliser le compte créé pour {{ sharedRow.firstname }} {{ sharedRow.lastname }}
+                                                                </option>
+                                                            {% endif %}
+                                                        </select>
+                                                        {% if isSharedGroup %}
+                                                            <div class="small text-primary mt-2" data-user-autocomplete-target="relationship">
+                                                                {% if sharedRow is not null %}
+                                                                <em class="fa-solid fa-arrow-right me-1"></em>
+                                                                Profil lié au compte principal :
+                                                                {{ sharedRow.firstname }} {{ sharedRow.lastname }}
+                                                                {% else %}
+                                                                <em class="fa-solid fa-user-group me-1"></em>
+                                                                Compte principal ·
+                                                                {{ row.sharedUserDependentCount }}
+                                                                profil{{ row.sharedUserDependentCount > 1 ? 's' : '' }} lié{{ row.sharedUserDependentCount > 1 ? 's' : '' }}
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer d-flex justify-content-end">
+                        <button type="submit" class="btn btn-success" {{ preview.rows is empty ? 'disabled' : '' }}>
+                            <em class="fa-solid fa-file-import me-2"></em>
+                            Confirmer l’import
+                        </button>
+                    </div>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+{% endblock %}

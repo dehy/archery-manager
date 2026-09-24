@@ -18,6 +18,10 @@
                     <em class="fa-solid fa-user-plus me-2"></em>
                     Ajouter / renouveler un licencié
                 </a>
+                <a href="{{ path('app_licensee_csv_import') }}" class="btn btn-outline-success me-2">
+                    <em class="fa-solid fa-file-csv me-2"></em>
+                    Importer CSV FFTA
+                </a>
             {% endif %}
             {% if is_granted('ROLE_CLUB_ADMIN') %}
                 <button class="btn btn-warning disabled">

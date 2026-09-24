@@ -74,6 +74,24 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getOneOrNullResult();
     }
 
+    /**
+     * @return list<User>
+     */
+    public function searchByNameOrEmail(string $query, int $limit = 20): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.email LIKE :query')
+            ->orWhere('u.firstname LIKE :query')
+            ->orWhere('u.lastname LIKE :query')
+            ->orWhere("CONCAT(u.firstname, ' ', u.lastname) LIKE :query")
+            ->setParameter('query', \sprintf('%%%s%%', $query))
+            ->orderBy('u.lastname', 'ASC')
+            ->addOrderBy('u.firstname', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findByClubAndRole(Club $club, string $role, ?int $season = null): array
     {
         $season ??= Season::seasonForDate(new \DateTimeImmutable());

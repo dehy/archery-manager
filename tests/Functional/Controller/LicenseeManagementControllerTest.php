@@ -37,6 +37,8 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
 
     private const string URL_PROFILE_PREFIX = '/licensee/';
 
+    private const string URL_IMPORT_USER_SEARCH = '/licensees/manage/import/users';
+
     public function testNewChoicePageRequiresAuthentication(): void
     {
         $client = self::createClient();
@@ -52,6 +54,40 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_CHOICE);
 
         $this->assertResponseIsSuccessful();
+    }
+
+    public function testImportUserSearchRequiresClubAdminRole(): void
+    {
+        $client = self::createLoggedInAsUserClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_IMPORT_USER_SEARCH.'?q=clubadmin');
+
+        $this->assertResponseStatusCodeSame(\Symfony\Component\HttpFoundation\Response::HTTP_FORBIDDEN);
+    }
+
+    public function testImportUserSearchFindsAccountsWithoutLoadingEveryUser(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_IMPORT_USER_SEARCH.'?q=clubadmin');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('content-type', 'application/json');
+
+        /** @var array{users: list<array{id: int, label: string}>} $response */
+        $response = json_decode((string) $client->getResponse()->getContent(), true, flags: \JSON_THROW_ON_ERROR);
+        $this->assertCount(1, $response['users']);
+        $this->assertStringContainsString('clubadmin@ladg.com', $response['users'][0]['label']);
+    }
+
+    public function testImportUserSearchRequiresTwoCharacters(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_IMPORT_USER_SEARCH.'?q=c');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertJsonStringEqualsJsonString(
+            '{"users":[]}',
+            (string) $client->getResponse()->getContent(),
+        );
     }
 
     public function testNewChoicePostWithUnknownCodeShowsWarningWithCreateCta(): void

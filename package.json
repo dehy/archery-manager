@@ -20,6 +20,7 @@
     "@symfony/webpack-encore": "^6.0.0",
     "@testing-library/dom": "^9.3.3",
     "@types/bootstrap": "^5.2.10",
+    "@types/dompurify": "^3.0.5",
     "@types/jest": "^29.5.10",
     "@types/leaflet": "^1.9.8",
     "@types/zxcvbn": "^4.4.4",
@@ -29,6 +30,7 @@
     "chartjs-plugin-annotation": "^2.2.1",
     "chartjs-plugin-datalabels": "^2.2.0",
     "core-js": "^3.33.3",
+    "dompurify": "^3.3.3",
     "file-loader": "^6.2.0",
     "leaflet": "^1.9.4",
     "pdfjs-dist": "^4.3.136",
@@ -41,9 +43,7 @@
     "webpack": "^5.89.0",
     "webpack-cli": "^6.0.0",
     "webpack-notifier": "^1.15.0",
-    "zxcvbn": "^4.4.2",
-    "@types/dompurify": "^3.0.5",
-    "dompurify": "^3.3.3"
+    "zxcvbn": "^4.4.2"
   },
   "license": "UNLICENSED",
   "private": true,
@@ -52,5 +52,8 @@
     "dev": "encore dev",
     "watch": "encore dev --watch",
     "build": "encore production --progress"
+  },
+  "dependencies": {
+    "tom-select": "^2.6.2"
   }
 }
