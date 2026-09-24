@@ -10,6 +10,7 @@ use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\Season;
 use App\Entity\User;
+use App\Exception\FftaLicenseeCsvImportException;
 use App\Exception\UserNotFoundException;
 use App\Form\Type\LicenseeFormType;
 use App\Form\Type\LicenseeGroupSelectionType;
@@ -109,41 +110,45 @@ class LicenseeManagementController extends BaseController
                 throw $this->createAccessDeniedException('Jeton CSRF invalide.');
             }
 
+            $response = null;
             try {
                 $summary = $this->persistCsvImport($preview['rows'], $request->request->all('user_choices'));
             } catch (AccessDeniedException $exception) {
                 throw $exception;
             } catch (\Throwable $exception) {
                 $this->addFlash('danger', $exception->getMessage());
-
-                return $this->redirectToRoute('app_licensee_csv_import_review');
+                $response = $this->redirectToRoute('app_licensee_csv_import_review');
             }
 
-            $failedActivationEmails = $this->sendActivationEmails($summary['activationUsers']);
-            $request->getSession()->remove('ffta_licensee_csv_import');
-            $this->addFlash('success', \sprintf(
-                'Import terminé : %d licence(s), %d licencié(s) et %d compte(s) créés.',
-                $summary['licenses'],
-                $summary['licensees'],
-                $summary['users'],
-            ));
-            if ($failedActivationEmails > 0) {
-                $this->addFlash('warning', \sprintf(
-                    '%d email(s) d’activation n’ont pas pu être envoyés. Les comptes ont bien été créés.',
-                    $failedActivationEmails,
+            if (!$response instanceof Response) {
+                $failedActivationEmails = $this->sendActivationEmails($summary['activationUsers']);
+                $request->getSession()->remove('ffta_licensee_csv_import');
+                $this->addFlash('success', \sprintf(
+                    'Import terminé : %d licence(s), %d licencié(s) et %d compte(s) créés.',
+                    $summary['licenses'],
+                    $summary['licensees'],
+                    $summary['users'],
                 ));
-            }
+                if ($failedActivationEmails > 0) {
+                    $this->addFlash('warning', \sprintf(
+                        '%d email(s) d’activation n’ont pas pu être envoyés. Les comptes ont bien été créés.',
+                        $failedActivationEmails,
+                    ));
+                }
 
-            return $this->redirectToRoute('app_licensee_index');
+                $response = $this->redirectToRoute('app_licensee_index');
+            }
+        } else {
+            $displayRows = array_merge($preview['rows'], $preview['alreadyLicensed'] ?? []);
+            usort($displayRows, static fn (array $a, array $b): int => ((int) $a['line']) <=> ((int) $b['line']));
+
+            $response = $this->render('licensee_management/csv_import_review.html.twig', [
+                'preview' => $preview,
+                'displayRows' => $displayRows,
+            ]);
         }
 
-        $displayRows = array_merge($preview['rows'], $preview['alreadyLicensed'] ?? []);
-        usort($displayRows, static fn (array $a, array $b): int => ((int) $a['line']) <=> ((int) $b['line']));
-
-        return $this->render('licensee_management/csv_import_review.html.twig', [
-            'preview' => $preview,
-            'displayRows' => $displayRows,
-        ]);
+        return $response;
     }
 
     #[Route('/licensees/manage/import/users', name: 'app_licensee_csv_import_users', methods: ['GET'])]
@@ -206,7 +211,7 @@ class LicenseeManagementController extends BaseController
             foreach ($rows as $index => $row) {
                 $licensee = $licensees[$index];
                 if ($licensee->getLicenseForSeason((int) $row['season']) instanceof \App\Entity\License) {
-                    throw new \RuntimeException(\sprintf('La ligne %d a déjà été importée ou possède désormais une licence pour cette saison.', $row['line']));
+                    throw new FftaLicenseeCsvImportException(\sprintf('La ligne %d a déjà été importée ou possède désormais une licence pour cette saison.', $row['line']));
                 }
 
                 $license = new License()
@@ -249,7 +254,7 @@ class LicenseeManagementController extends BaseController
         if (null !== $row['licenseeId']) {
             $licensee = $this->licenseeRepository->find($row['licenseeId']);
             if (!$licensee instanceof Licensee) {
-                throw new \RuntimeException(\sprintf('Le licencié de la ligne %d n’existe plus.', $row['line']));
+                throw new FftaLicenseeCsvImportException(\sprintf('Le licencié de la ligne %d n’existe plus.', $row['line']));
             }
 
             $this->denyAccessUnlessGranted(LicenseeVoter::RENEW, $licensee);
@@ -281,7 +286,7 @@ class LicenseeManagementController extends BaseController
     {
         $choice = $userChoice ?? $this->defaultUserChoice($row);
         if ('new' === $choice && null !== $row['userId']) {
-            throw new \RuntimeException(\sprintf('Un compte utilisateur existe déjà pour l’adresse email de la ligne %d.', $row['line']));
+            throw new FftaLicenseeCsvImportException(\sprintf('Un compte utilisateur existe déjà pour l’adresse email de la ligne %d.', $row['line']));
         }
 
         if (str_starts_with($choice, 'user:')) {
@@ -290,7 +295,7 @@ class LicenseeManagementController extends BaseController
                 return $user;
             }
 
-            throw new \RuntimeException(\sprintf('Le compte utilisateur choisi pour la ligne %d est introuvable.', $row['line']));
+            throw new FftaLicenseeCsvImportException(\sprintf('Le compte utilisateur choisi pour la ligne %d est introuvable.', $row['line']));
         }
 
         if (str_starts_with($choice, 'share:')) {
@@ -299,16 +304,16 @@ class LicenseeManagementController extends BaseController
                 return $sharedUser;
             }
 
-            throw new \RuntimeException(\sprintf('Le compte partagé choisi pour la ligne %d est invalide.', $row['line']));
+            throw new FftaLicenseeCsvImportException(\sprintf('Le compte partagé choisi pour la ligne %d est invalide.', $row['line']));
         }
 
         if ('new' !== $choice || null === $row['email']) {
-            throw new \RuntimeException(\sprintf('Le choix de compte utilisateur pour la ligne %d est invalide.', $row['line']));
+            throw new FftaLicenseeCsvImportException(\sprintf('Le choix de compte utilisateur pour la ligne %d est invalide.', $row['line']));
         }
 
         foreach ($createdUsers as $createdUser) {
             if ($createdUser->getEmail() === $row['email']) {
-                throw new \RuntimeException(\sprintf('L’adresse email de la ligne %d est déjà attribuée à un nouveau compte dans cet import.', $row['line']));
+                throw new FftaLicenseeCsvImportException(\sprintf('L’adresse email de la ligne %d est déjà attribuée à un nouveau compte dans cet import.', $row['line']));
             }
         }
 

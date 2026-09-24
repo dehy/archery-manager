@@ -10,6 +10,7 @@ use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
 use App\Entity\Licensee;
+use App\Exception\FftaLicenseeCsvImportException;
 use App\Helper\LicenseHelper;
 use App\Repository\LicenseeRepository;
 use App\Repository\UserRepository;
@@ -45,7 +46,7 @@ readonly class FftaLicenseeCsvImportService
     {
         $handle = fopen($file->getPathname(), 'rb');
         if (false === $handle) {
-            throw new \RuntimeException('Impossible de lire le fichier CSV importé.');
+            throw new FftaLicenseeCsvImportException('Impossible de lire le fichier CSV importé.');
         }
 
         try {
@@ -58,7 +59,7 @@ readonly class FftaLicenseeCsvImportService
 
             $headers = fgetcsv($handle, separator: ';', escape: '');
             if (false === $headers) {
-                throw new \RuntimeException('Le fichier CSV est vide.');
+                throw new FftaLicenseeCsvImportException('Le fichier CSV est vide.');
             }
 
             $headerIndexes = $this->headerIndexes($headers);
@@ -87,7 +88,7 @@ readonly class FftaLicenseeCsvImportService
 
         $missingHeaders = array_diff(self::REQUIRED_HEADERS, array_keys($indexes));
         if ([] !== $missingHeaders) {
-            throw new \RuntimeException(\sprintf('Colonnes CSV manquantes : %s.', implode(', ', $missingHeaders)));
+            throw new FftaLicenseeCsvImportException(\sprintf('Colonnes CSV manquantes : %s.', implode(', ', $missingHeaders)));
         }
 
         return $indexes;
@@ -189,55 +190,23 @@ readonly class FftaLicenseeCsvImportService
      */
     private function reconcileRows(array $rawRows, array $licenseesByCode, array $usersByEmail): array
     {
+        /** @var array{rows: list<array<string, int|string|bool|null>>, alreadyLicensed: list<array<string, int|string|bool|null>>, skipped: list<array{line: int, reason: string}>, errors: list<array{line: int, reason: string}>} $preview */
         $preview = ['rows' => [], 'alreadyLicensed' => [], 'skipped' => [], 'errors' => []];
+        /** @var array<string, list<int>> $newLicenseeRowIndexesByEmail */
         $newLicenseeRowIndexesByEmail = [];
+        /** @var array<string, int> $seenMemberCodes */
         $seenMemberCodes = [];
 
         foreach ($rawRows as $rawRow) {
-            if (self::STATE_ACTIVE !== $rawRow['state']) {
-                $preview['skipped'][] = ['line' => $rawRow['line'], 'reason' => \sprintf('État FFTA « %s » non importé.', $rawRow['state'])];
+            $row = $this->validatedActiveRow($rawRow, $preview, $seenMemberCodes);
+            if (null === $row) {
                 continue;
             }
-
-            try {
-                $row = $this->mapRow($rawRow);
-            } catch (\InvalidArgumentException $exception) {
-                $preview['errors'][] = ['line' => $rawRow['line'], 'reason' => $exception->getMessage()];
-                continue;
-            }
-
-            if (isset($seenMemberCodes[$row['fftaMemberCode']])) {
-                $preview['errors'][] = ['line' => $row['line'], 'reason' => \sprintf('Le code adhérent est déjà présent à la ligne %d.', $seenMemberCodes[$row['fftaMemberCode']])];
-                continue;
-            }
-
-            $seenMemberCodes[$row['fftaMemberCode']] = $row['line'];
 
             $licensee = $licenseesByCode[$row['fftaMemberCode']] ?? null;
-            if ($licensee instanceof Licensee) {
-                if ($licensee->getLicenseForSeason($row['season']) instanceof \App\Entity\License) {
-                    $row['licenseeId'] = $licensee->getId();
-                    $row['alreadyLicensed'] = true;
-                    $preview['alreadyLicensed'][] = $row;
-                    continue;
-                }
-
-                $row['licenseeId'] = $licensee->getId();
-                $row['userId'] = $licensee->getUser()?->getId();
-                $row['userChoice'] = 'existing-licensee';
-            } else {
-                if (null === $row['email']) {
-                    $preview['errors'][] = ['line' => $row['line'], 'reason' => 'Une adresse email est requise pour créer un nouveau licencié.'];
-                    continue;
-                }
-
-                $row['licenseeId'] = null;
-                $row['userId'] = $usersByEmail[$row['email']] ?? null;
-                $row['userChoice'] = null !== $row['userId'] ? 'existing' : 'new';
-
-                if ('new' === $row['userChoice']) {
-                    $newLicenseeRowIndexesByEmail[$row['email']][] = \count($preview['rows']);
-                }
+            $row = $this->reconcileRow($row, $licensee, $usersByEmail, $preview, $newLicenseeRowIndexesByEmail);
+            if (null === $row) {
+                continue;
             }
 
             $row['rowIndex'] = \count($preview['rows']);
@@ -247,6 +216,131 @@ readonly class FftaLicenseeCsvImportService
         $this->linkSharedNewUserRows($preview['rows'], $newLicenseeRowIndexesByEmail);
 
         return $preview;
+    }
+
+    /**
+     * @param array{line: int, fftaMemberCode: string, firstname: string, lastname: string, gender: string, birthdate: string, state: string, validFrom: string, type: string, ageCategory: string, email: string|null} $rawRow
+     * @param array{rows: list<array<string, int|string|bool|null>>, alreadyLicensed: list<array<string, int|string|bool|null>>, skipped: list<array{line: int, reason: string}>, errors: list<array{line: int, reason: string}>} $preview
+     * @param array<string, int> $seenMemberCodes
+     * @param-out array{rows: list<array<string, int|string|bool|null>>, alreadyLicensed: list<array<string, int|string|bool|null>>, skipped: list<array{line: int, reason: string}>, errors: list<array{line: int, reason: string}>} $preview
+     * @param-out array<string, int> $seenMemberCodes
+     *
+     * @return array<string, int|string|bool|null>|null
+     */
+    private function validatedActiveRow(array $rawRow, array &$preview, array &$seenMemberCodes): ?array
+    {
+        $row = $this->mapActiveRow($rawRow, $preview);
+        if (null === $row) {
+            return null;
+        }
+
+        $fftaMemberCode = (string) $row['fftaMemberCode'];
+        if (isset($seenMemberCodes[$fftaMemberCode])) {
+            $preview['errors'][] = ['line' => (int) $row['line'], 'reason' => \sprintf('Le code adhérent est déjà présent à la ligne %d.', $seenMemberCodes[$fftaMemberCode])];
+
+            return null;
+        }
+
+        $seenMemberCodes[$fftaMemberCode] = (int) $row['line'];
+
+        return $row;
+    }
+
+    /**
+     * @param array{line: int, fftaMemberCode: string, firstname: string, lastname: string, gender: string, birthdate: string, state: string, validFrom: string, type: string, ageCategory: string, email: string|null} $rawRow
+     * @param array{rows: list<array<string, int|string|bool|null>>, alreadyLicensed: list<array<string, int|string|bool|null>>, skipped: list<array{line: int, reason: string}>, errors: list<array{line: int, reason: string}>} $preview
+     * @param-out array{rows: list<array<string, int|string|bool|null>>, alreadyLicensed: list<array<string, int|string|bool|null>>, skipped: list<array{line: int, reason: string}>, errors: list<array{line: int, reason: string}>} $preview
+     *
+     * @return array<string, int|string|bool|null>|null
+     */
+    private function mapActiveRow(array $rawRow, array &$preview): ?array
+    {
+        if (self::STATE_ACTIVE !== $rawRow['state']) {
+            $preview['skipped'][] = ['line' => $rawRow['line'], 'reason' => \sprintf('État FFTA « %s » non importé.', $rawRow['state'])];
+
+            return null;
+        }
+
+        try {
+            return $this->mapRow($rawRow);
+        } catch (\InvalidArgumentException $invalidArgumentException) {
+            $preview['errors'][] = ['line' => $rawRow['line'], 'reason' => $invalidArgumentException->getMessage()];
+
+            return null;
+        }
+    }
+
+    /**
+     * @param array<string, int|string|bool|null> $row
+     * @param array<string, int> $usersByEmail
+     * @param array{rows: list<array<string, int|string|bool|null>>, alreadyLicensed: list<array<string, int|string|bool|null>>, skipped: list<array{line: int, reason: string}>, errors: list<array{line: int, reason: string}>} $preview
+     * @param array<string, list<int>> $newLicenseeRowIndexesByEmail
+     * @param-out array{rows: list<array<string, int|string|bool|null>>, alreadyLicensed: list<array<string, int|string|bool|null>>, skipped: list<array{line: int, reason: string}>, errors: list<array{line: int, reason: string}>} $preview
+     * @param-out array<string, list<int>> $newLicenseeRowIndexesByEmail
+     *
+     * @return array<string, int|string|bool|null>|null
+     */
+    private function reconcileRow(array $row, ?Licensee $licensee, array $usersByEmail, array &$preview, array &$newLicenseeRowIndexesByEmail): ?array
+    {
+        if ($licensee instanceof Licensee) {
+            return $this->reconcileExistingLicensee($row, $licensee, $preview);
+        }
+
+        return $this->reconcileNewLicensee($row, $usersByEmail, $preview, $newLicenseeRowIndexesByEmail);
+    }
+
+    /**
+     * @param array<string, int|string|bool|null> $row
+     * @param array{rows: list<array<string, int|string|bool|null>>, alreadyLicensed: list<array<string, int|string|bool|null>>, skipped: list<array{line: int, reason: string}>, errors: list<array{line: int, reason: string}>} $preview
+     * @param-out array{rows: list<array<string, int|string|bool|null>>, alreadyLicensed: list<array<string, int|string|bool|null>>, skipped: list<array{line: int, reason: string}>, errors: list<array{line: int, reason: string}>} $preview
+     *
+     * @return array<string, int|string|bool|null>|null
+     */
+    private function reconcileExistingLicensee(array $row, Licensee $licensee, array &$preview): ?array
+    {
+        if ($licensee->getLicenseForSeason((int) $row['season']) instanceof \App\Entity\License) {
+            $row['licenseeId'] = $licensee->getId();
+            $row['alreadyLicensed'] = true;
+            $preview['alreadyLicensed'][] = $row;
+
+            return null;
+        }
+
+        $row['licenseeId'] = $licensee->getId();
+        $row['userId'] = $licensee->getUser()?->getId();
+        $row['userChoice'] = 'existing-licensee';
+
+        return $row;
+    }
+
+    /**
+     * @param array<string, int|string|bool|null> $row
+     * @param array<string, int> $usersByEmail
+     * @param array{rows: list<array<string, int|string|bool|null>>, alreadyLicensed: list<array<string, int|string|bool|null>>, skipped: list<array{line: int, reason: string}>, errors: list<array{line: int, reason: string}>} $preview
+     * @param array<string, list<int>> $newLicenseeRowIndexesByEmail
+     * @param-out array{rows: list<array<string, int|string|bool|null>>, alreadyLicensed: list<array<string, int|string|bool|null>>, skipped: list<array{line: int, reason: string}>, errors: list<array{line: int, reason: string}>} $preview
+     * @param-out array<string, list<int>> $newLicenseeRowIndexesByEmail
+     *
+     * @return array<string, int|string|bool|null>|null
+     */
+    private function reconcileNewLicensee(array $row, array $usersByEmail, array &$preview, array &$newLicenseeRowIndexesByEmail): ?array
+    {
+        if (null === $row['email']) {
+            $preview['errors'][] = ['line' => (int) $row['line'], 'reason' => 'Une adresse email est requise pour créer un nouveau licencié.'];
+
+            return null;
+        }
+
+        $row['licenseeId'] = null;
+        $email = (string) $row['email'];
+        $row['userId'] = $usersByEmail[$email] ?? null;
+        $row['userChoice'] = null !== $row['userId'] ? 'existing' : 'new';
+
+        if ('new' === $row['userChoice']) {
+            $newLicenseeRowIndexesByEmail[$email][] = \count($preview['rows']);
+        }
+
+        return $row;
     }
 
     /**
