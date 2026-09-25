@@ -22,7 +22,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\DomCrawler\Field\FileFormField;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class LicenseeManagementControllerTest extends LoggedInTestCase
 {
@@ -82,15 +81,19 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
      */
     private function uploadCsv(KernelBrowser $client, array $rows): Crawler
     {
-        $path = tempnam(sys_get_temp_dir(), 'ffta-import-controller-');
-        $this->assertNotFalse($path);
+        $tmpPath = tempnam(sys_get_temp_dir(), 'ffta-import-controller-');
+        $this->assertNotFalse($tmpPath);
+        // Symfony's File constraint validates the extension of the uploaded file's
+        // original name, so the temp file needs a ".csv" suffix to pass validation.
+        $path = $tmpPath.'.csv';
+        rename($tmpPath, $path);
         file_put_contents($path, self::CSV_HEADERS.implode("\n", $rows)."\n");
 
         $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_IMPORT);
         $form = $crawler->selectButton('Analyser le fichier')->form();
         $fileField = $form['ffta_licensee_csv_upload[csv]'];
         $this->assertInstanceOf(FileFormField::class, $fileField);
-        $fileField->upload(new UploadedFile($path, 'licensees.csv', 'text/csv', null, true));
+        $fileField->upload($path);
         $client->submit($form);
         $this->assertResponseRedirects(self::URL_IMPORT_REVIEW);
 
@@ -180,6 +183,9 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
     public function testCsvImportPersistsAccountWhenActivationEmailFails(): void
     {
         $client = self::createLoggedInAsClubAdminClient();
+        // The kernel reboots before each request by default, which would discard the
+        // mocked service set below; disable rebooting so it stays in effect.
+        $client->disableReboot();
         $activationEmailSender = $this->createMock(AccountActivationEmailSender::class);
         $activationEmailSender->expects($this->once())
             ->method('send')
@@ -273,9 +279,12 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $crawler = $this->uploadCsv($client, [
             $this->csvRow('9900004D', 'Rollback', 'Test', 'Masculin', '12/05/1985', 'Adulte pratique en club', 'Sénior 1', 'rollback-import@example.test'),
         ]);
-        $client->submit($crawler->selectButton('Confirmer l’import')->form([
-            'user_choices[0]' => 'share:99',
-        ]));
+        $form = $crawler->selectButton('Confirmer l’import')->form();
+        // "share:99" references a non-existent row; the <select> only lists valid
+        // options server-side, so validation must be disabled to submit it anyway.
+        $form->disableValidation();
+        $form['user_choices[0]'] = 'share:99';
+        $client->submit($form);
 
         $this->assertResponseRedirects(self::URL_IMPORT_REVIEW);
         $this->assertNull(self::getContainer()->get(LicenseeRepository::class)->findOneByCode('9900004D'));
