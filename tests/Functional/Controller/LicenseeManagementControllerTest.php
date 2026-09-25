@@ -16,7 +16,7 @@ use App\Entity\User;
 use App\Repository\ClubRepository;
 use App\Repository\LicenseeRepository;
 use App\Repository\UserRepository;
-use App\Service\AccountActivationEmailSender;
+use App\Service\LicenseeImportNotificationEmailSender;
 use App\Tests\application\LoggedInTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -151,7 +151,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         );
     }
 
-    public function testCsvImportCreatesSharedLicenseesAndSendsOneActivationEmail(): void
+    public function testCsvImportCreatesSharedLicenseesAndSendsOneNewAccountEmail(): void
     {
         $client = self::createLoggedInAsClubAdminClient();
         $crawler = $this->uploadCsv($client, [
@@ -168,8 +168,8 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $this->assertResponseRedirects('/licensees');
         self::assertEmailCount(1);
         $email = self::getMailerMessage();
-        self::assertEmailSubjectContains($email, 'Créez votre mot de passe');
-        self::assertEmailHtmlBodyContains($email, 'Votre club a créé votre compte');
+        self::assertEmailSubjectContains($email, 'Votre compte a été créé');
+        self::assertEmailHtmlBodyContains($email, 'Votre club a créé votre compte avec l’adresse email suivante');
 
         $licensees = self::getContainer()->get(LicenseeRepository::class);
         $child = $licensees->findOneByCode('9900001A');
@@ -180,18 +180,18 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $this->assertInstanceOf(License::class, $adult->getLicenseForSeason(2027));
     }
 
-    public function testCsvImportPersistsAccountWhenActivationEmailFails(): void
+    public function testCsvImportPersistsAccountWhenNotificationEmailFails(): void
     {
         $client = self::createLoggedInAsClubAdminClient();
         // The kernel reboots before each request by default, which would discard the
         // mocked service set below; disable rebooting so it stays in effect.
         $client->disableReboot();
 
-        $activationEmailSender = $this->createMock(AccountActivationEmailSender::class);
-        $activationEmailSender->expects($this->once())
+        $notificationEmailSender = $this->createMock(LicenseeImportNotificationEmailSender::class);
+        $notificationEmailSender->expects($this->once())
             ->method('send')
             ->willThrowException(new \RuntimeException('Mailer unavailable'));
-        self::getContainer()->set(AccountActivationEmailSender::class, $activationEmailSender);
+        self::getContainer()->set(LicenseeImportNotificationEmailSender::class, $notificationEmailSender);
 
         $crawler = $this->uploadCsv($client, [
             $this->csvRow('9900005E', 'Mailer', 'Failure', 'Masculin', '12/05/1985', 'Adulte pratique en club', 'Sénior 1', 'mailer-failure-import@example.test'),
@@ -211,7 +211,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         );
     }
 
-    public function testCsvImportLinksNewLicenseeToExistingAccountWithoutSendingActivationEmail(): void
+    public function testCsvImportLinksNewLicenseeToExistingAccountAndSendsWelcomeEmail(): void
     {
         $client = self::createLoggedInAsClubAdminClient();
         $users = self::getContainer()->get(UserRepository::class);
@@ -227,13 +227,16 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $client->submit($form);
 
         $this->assertResponseRedirects('/licensees');
-        self::assertEmailCount(0);
+        self::assertEmailCount(1);
+        $email = self::getMailerMessage();
+        self::assertEmailSubjectContains($email, 'Bienvenue au club !');
+        self::assertEmailHtmlBodyContains($email, 'Vous êtes désormais licencié');
         $licensee = self::getContainer()->get(LicenseeRepository::class)->findOneByCode('9900003C');
         $this->assertInstanceOf(Licensee::class, $licensee);
         $this->assertSame($existingUser->getId(), $licensee->getUser()->getId());
     }
 
-    public function testCsvImportRenewsLicenseeFromAdministratorsClub(): void
+    public function testCsvImportRenewsLicenseeFromAdministratorsClubAndSendsRenewalEmail(): void
     {
         $client = self::createLoggedInAsClubAdminClient();
         $crawler = $this->uploadCsv($client, [
@@ -245,6 +248,9 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $licensee = self::getContainer()->get(LicenseeRepository::class)->findOneByCode('8000001A');
         $this->assertInstanceOf(Licensee::class, $licensee);
         $this->assertInstanceOf(License::class, $licensee->getLicenseForSeason(2027));
+        self::assertEmailCount(1);
+        $email = self::getMailerMessage();
+        self::assertEmailSubjectContains($email, 'Votre licence a été synchronisée');
     }
 
     public function testCsvImportRejectsRenewalForLicenseeOutsideAdministratorsClub(): void

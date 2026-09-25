@@ -10,6 +10,7 @@ use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\Season;
 use App\Entity\User;
+use App\Enum\LicenseeImportNotificationScenario;
 use App\Exception\FftaLicenseeCsvImportException;
 use App\Exception\UserNotFoundException;
 use App\Form\Type\LicenseeFormType;
@@ -26,8 +27,8 @@ use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
 use App\Repository\UserRepository;
 use App\Security\Voter\LicenseeVoter;
-use App\Service\AccountActivationEmailSender;
 use App\Service\FftaLicenseeCsvImportService;
+use App\Service\LicenseeImportNotificationEmailSender;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -40,7 +41,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CLUB_ADMIN')]
 class LicenseeManagementController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly LicenseeRepository $licenseeRepository, private readonly UserRepository $userRepository, private readonly FftaLicenseeCsvImportService $csvImportService, private readonly AccountActivationEmailSender $accountActivationEmailSender, private readonly EntityManagerInterface $entityManager, private readonly LoggerInterface $logger)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly LicenseeRepository $licenseeRepository, private readonly UserRepository $userRepository, private readonly FftaLicenseeCsvImportService $csvImportService, private readonly LicenseeImportNotificationEmailSender $notificationEmailSender, private readonly EntityManagerInterface $entityManager, private readonly LoggerInterface $logger)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -121,7 +122,7 @@ class LicenseeManagementController extends BaseController
             }
 
             if (!$response instanceof Response) {
-                $failedActivationEmails = $this->sendActivationEmails($summary['activationUsers']);
+                $failedNotificationEmails = $this->sendImportNotificationEmails($summary['notifications']);
                 $request->getSession()->remove('ffta_licensee_csv_import');
                 $this->addFlash('success', \sprintf(
                     'Import terminé : %d licence(s), %d licencié(s) et %d compte(s) créés.',
@@ -129,10 +130,10 @@ class LicenseeManagementController extends BaseController
                     $summary['licensees'],
                     $summary['users'],
                 ));
-                if ($failedActivationEmails > 0) {
+                if ($failedNotificationEmails > 0) {
                     $this->addFlash('warning', \sprintf(
-                        '%d email(s) d’activation n’ont pas pu être envoyés. Les comptes ont bien été créés.',
-                        $failedActivationEmails,
+                        '%d email(s) de notification n’ont pas pu être envoyés. Les licences ont bien été importées.',
+                        $failedNotificationEmails,
                     ));
                 }
 
@@ -174,7 +175,7 @@ class LicenseeManagementController extends BaseController
      * @param list<array<string, int|string|bool|null>> $rows
      * @param array<int|string, string> $userChoices
      *
-     * @return array{licenses: int, licensees: int, users: int, activationUsers: list<User>}
+     * @return array{licenses: int, licensees: int, users: int, notifications: list<array{user: User, scenario: LicenseeImportNotificationScenario}>}
      */
     private function persistCsvImport(array $rows, array $userChoices): array
     {
@@ -189,6 +190,7 @@ class LicenseeManagementController extends BaseController
             $createdUsers = [];
             $createdLicensees = 0;
             $licensees = [];
+            $notificationsByUser = [];
 
             // Resolve the "primary" rows (those not sharing an already-resolved user) first,
             // so a "share:" row can find its target user even if it appears earlier in the
@@ -210,7 +212,7 @@ class LicenseeManagementController extends BaseController
 
             foreach ($rows as $index => $row) {
                 $licensee = $licensees[$index];
-                if ($licensee->getLicenseForSeason((int) $row['season']) instanceof \App\Entity\License) {
+                if ($licensee->getLicenseForSeason((int) $row['season']) instanceof License) {
                     throw new FftaLicenseeCsvImportException(\sprintf('La ligne %d a déjà été importée ou possède désormais une licence pour cette saison.', $row['line']));
                 }
 
@@ -227,6 +229,8 @@ class LicenseeManagementController extends BaseController
                 if (null === $row['licenseeId']) {
                     ++$createdLicensees;
                 }
+
+                $this->recordImportNotification($index, $row, $resolvedUsers, $createdUsers, $notificationsByUser);
             }
 
             $this->entityManager->flush();
@@ -240,9 +244,35 @@ class LicenseeManagementController extends BaseController
             'licenses' => \count($rows),
             'licensees' => $createdLicensees,
             'users' => \count($createdUsers),
-            'activationUsers' => $createdUsers,
+            'notifications' => array_values($notificationsByUser),
         ];
     }
+
+    /**
+     * @param array<string, int|string|bool|null> $row
+     * @param array<int, User> $resolvedUsers
+     * @param list<User> $createdUsers
+     * @param array<int, array{user: User, scenario: LicenseeImportNotificationScenario}> $notificationsByUser
+     */
+    private function recordImportNotification(int $index, array $row, array $resolvedUsers, array $createdUsers, array &$notificationsByUser): void
+    {
+        $user = $resolvedUsers[$index] ?? null;
+        if (!$user instanceof User) {
+            return;
+        }
+
+        $scenario = match (true) {
+            null !== $row['licenseeId'] => LicenseeImportNotificationScenario::Renewal,
+            \in_array($user, $createdUsers, true) => LicenseeImportNotificationScenario::NewAccount,
+            default => LicenseeImportNotificationScenario::WelcomeToClub,
+        };
+
+        $key = spl_object_id($user);
+        if (!isset($notificationsByUser[$key]) || $scenario->priority() > $notificationsByUser[$key]['scenario']->priority()) {
+            $notificationsByUser[$key] = ['user' => $user, 'scenario' => $scenario];
+        }
+    }
+
 
     /**
      * @param array<string, int|string|bool|null> $row
@@ -258,6 +288,11 @@ class LicenseeManagementController extends BaseController
             }
 
             $this->denyAccessUnlessGranted(LicenseeVoter::RENEW, $licensee);
+
+            $existingUser = $licensee->getUser();
+            if ($existingUser instanceof User) {
+                $resolvedUsers[$index] = $existingUser;
+            }
 
             return $licensee;
         }
@@ -347,19 +382,19 @@ class LicenseeManagementController extends BaseController
     }
 
     /**
-     * @param list<User> $users
+     * @param list<array{user: User, scenario: LicenseeImportNotificationScenario}> $notifications
      */
-    private function sendActivationEmails(array $users): int
+    private function sendImportNotificationEmails(array $notifications): int
     {
         $failures = 0;
-        foreach ($users as $user) {
+        foreach ($notifications as $notification) {
             try {
-                $this->accountActivationEmailSender->send($user);
+                $this->notificationEmailSender->send($notification['user'], $notification['scenario']);
             } catch (\Throwable $throwable) {
                 ++$failures;
-                $this->logger->error('Unable to send imported account activation email.', [
+                $this->logger->error('Unable to send licensee import notification email.', [
                     'exception' => $throwable,
-                    'userId' => $user->getId(),
+                    'userId' => $notification['user']->getId(),
                 ]);
             }
         }
