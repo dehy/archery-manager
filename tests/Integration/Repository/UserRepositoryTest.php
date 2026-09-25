@@ -16,6 +16,8 @@ final class UserRepositoryTest extends KernelTestCase
 
     private const string CLUB_ADMIN_EMAIL = 'clubadmin@ladg.com';
 
+    private const string GLOBAL_ADMIN_EMAIL = 'admin@acme.org';
+
     private ?EntityManager $entityManager;
 
     #[\Override]
@@ -65,12 +67,12 @@ final class UserRepositoryTest extends KernelTestCase
 
         $users = $userRepository->findByEmails([
             self::CLUB_ADMIN_EMAIL,
-            'admin@admds.net',
+            self::GLOBAL_ADMIN_EMAIL,
             self::CLUB_ADMIN_EMAIL,
         ]);
 
         $this->assertEqualsCanonicalizing(
-            [self::CLUB_ADMIN_EMAIL, 'admin@admds.net'],
+            [self::CLUB_ADMIN_EMAIL, self::GLOBAL_ADMIN_EMAIL],
             array_map(static fn (User $user): string => (string) $user->getEmail(), $users),
         );
     }
