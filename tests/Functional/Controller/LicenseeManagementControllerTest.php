@@ -186,6 +186,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         // The kernel reboots before each request by default, which would discard the
         // mocked service set below; disable rebooting so it stays in effect.
         $client->disableReboot();
+
         $activationEmailSender = $this->createMock(AccountActivationEmailSender::class);
         $activationEmailSender->expects($this->once())
             ->method('send')
