@@ -54,6 +54,26 @@ class LicenseeRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param list<string> $fftaCodes
+     *
+     * @return list<Licensee>
+     */
+    public function findByCodesWithLicenses(array $fftaCodes): array
+    {
+        if ([] === $fftaCodes) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('l')
+            ->addSelect('licenses')
+            ->leftJoin('l.licenses', 'licenses')
+            ->where('l.fftaMemberCode IN (:fftaCodes)')
+            ->setParameter('fftaCodes', array_values(array_unique($fftaCodes)))
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @throws NonUniqueResultException
      */
     public function findOneByFftaId(int $fftaId): ?Licensee

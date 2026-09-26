@@ -10,6 +10,7 @@ import "./cookie-consent";
 
 // any CSS you import will output into a single css file (app.css in this case)
 import "./styles/app.scss";
+import "tom-select/dist/css/tom-select.bootstrap5.css";
 
 // start the Stimulus application
 import "./bootstrap";
@@ -73,6 +74,8 @@ import {
   faEuroSign,
   faEye,
   faFileContract,
+  faFileCsv,
+  faFileImport,
   faFloppyDisk,
   faGaugeHigh,
   faGenderless,
@@ -122,6 +125,7 @@ import {
   faTimes,
   faTimesCircle,
   faTrash,
+  faTriangleExclamation,
   faTrophy,
   faUpload,
   faUser,
@@ -211,6 +215,8 @@ library.add(
     faEye,
     faFile,
     faFileContract,
+    faFileCsv,
+    faFileImport,
     faFloppyDisk,
     faGaugeHigh,
     faGenderless,
@@ -262,6 +268,7 @@ library.add(
     faTimes,
     faTimesCircle,
     faTrash,
+    faTriangleExclamation,
     faTrophy,
     faUpload,
     faUser,

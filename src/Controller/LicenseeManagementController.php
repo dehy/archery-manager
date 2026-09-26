@@ -10,11 +10,14 @@ use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\Season;
 use App\Entity\User;
+use App\Enum\LicenseeImportNotificationScenario;
+use App\Exception\FftaLicenseeCsvImportException;
 use App\Exception\UserNotFoundException;
 use App\Form\Type\LicenseeFormType;
 use App\Form\Type\LicenseeGroupSelectionType;
 use App\Form\Type\LicenseeUserLinkType;
 use App\Form\Type\LicenseFormType;
+use App\Form\Type\FftaLicenseeCsvUploadType;
 use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
@@ -22,17 +25,23 @@ use App\Helper\LicenseHelper;
 use App\Helper\SeasonHelper;
 use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
+use App\Repository\UserRepository;
 use App\Security\Voter\LicenseeVoter;
+use App\Service\FftaLicenseeCsvImportService;
+use App\Service\LicenseeImportNotificationEmailSender;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_CLUB_ADMIN')]
 class LicenseeManagementController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly LicenseeRepository $licenseeRepository, private readonly EntityManagerInterface $entityManager)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly LicenseeRepository $licenseeRepository, private readonly UserRepository $userRepository, private readonly FftaLicenseeCsvImportService $csvImportService, private readonly LicenseeImportNotificationEmailSender $notificationEmailSender, private readonly EntityManagerInterface $entityManager, private readonly LoggerInterface $logger)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -57,6 +66,340 @@ class LicenseeManagementController extends BaseController
         }
 
         return $this->resolveLicenseeSearch($fftaMemberCode);
+    }
+
+    #[Route('/licensees/manage/import', name: 'app_licensee_csv_import', methods: ['GET', 'POST'])]
+    public function importCsv(Request $request): Response
+    {
+        $form = $this->createForm(FftaLicenseeCsvUploadType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $file = $form->get('csv')->getData();
+            if (!$file instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+                throw new \LogicException('Le formulaire CSV ne contient pas de fichier importé.');
+            }
+
+            try {
+                $request->getSession()->set('ffta_licensee_csv_import', $this->csvImportService->createPreview($file));
+            } catch (\RuntimeException $exception) {
+                $this->addFlash('danger', $exception->getMessage());
+
+                return $this->redirectToRoute('app_licensee_csv_import');
+            }
+
+            return $this->redirectToRoute('app_licensee_csv_import_review');
+        }
+
+        return $this->render('licensee_management/csv_import.html.twig', [
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/licensees/manage/import/review', name: 'app_licensee_csv_import_review', methods: ['GET', 'POST'])]
+    public function reviewCsvImport(Request $request): Response
+    {
+        $preview = $request->getSession()->get('ffta_licensee_csv_import');
+        if (!is_array($preview) || !isset($preview['rows'])) {
+            $this->addFlash('warning', 'Importez d’abord un fichier CSV.');
+
+            return $this->redirectToRoute('app_licensee_csv_import');
+        }
+
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('ffta-licensee-csv-import', (string) $request->request->get('_token'))) {
+                throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+            }
+
+            $response = null;
+            try {
+                $summary = $this->persistCsvImport($preview['rows'], $request->request->all('user_choices'));
+            } catch (AccessDeniedException $exception) {
+                throw $exception;
+            } catch (\Throwable $exception) {
+                $this->addFlash('danger', $exception->getMessage());
+                $response = $this->redirectToRoute('app_licensee_csv_import_review');
+            }
+
+            if (!$response instanceof Response) {
+                $failedNotificationEmails = $this->sendImportNotificationEmails($summary['notifications']);
+                $request->getSession()->remove('ffta_licensee_csv_import');
+                $this->addFlash('success', \sprintf(
+                    'Import terminé : %d licence(s), %d licencié(s) et %d compte(s) créés.',
+                    $summary['licenses'],
+                    $summary['licensees'],
+                    $summary['users'],
+                ));
+                if ($failedNotificationEmails > 0) {
+                    $this->addFlash('warning', \sprintf(
+                        '%d email(s) de notification n’ont pas pu être envoyés. Les licences ont bien été importées.',
+                        $failedNotificationEmails,
+                    ));
+                }
+
+                $response = $this->redirectToRoute('app_licensee_index');
+            }
+        } else {
+            $displayRows = array_merge($preview['rows'], $preview['alreadyLicensed'] ?? []);
+            usort($displayRows, static fn (array $a, array $b): int => ((int) $a['line']) <=> ((int) $b['line']));
+
+            $response = $this->render('licensee_management/csv_import_review.html.twig', [
+                'preview' => $preview,
+                'displayRows' => $displayRows,
+            ]);
+        }
+
+        return $response;
+    }
+
+    #[Route('/licensees/manage/import/users', name: 'app_licensee_csv_import_users', methods: ['GET'])]
+    public function searchUsersForCsvImport(Request $request): JsonResponse
+    {
+        $query = trim((string) $request->query->get('q'));
+        if (mb_strlen($query) < 2) {
+            return $this->json(['users' => []]);
+        }
+
+        $users = array_map(
+            static fn (User $user): array => [
+                'id' => $user->getId(),
+                'label' => \sprintf('%s (%s)', $user->getFullname(), $user->getEmail()),
+            ],
+            $this->userRepository->searchByNameOrEmail($query),
+        );
+
+        return $this->json(['users' => $users]);
+    }
+
+    /**
+     * @param list<array<string, int|string|bool|null>> $rows
+     * @param array<int|string, string> $userChoices
+     *
+     * @return array{licenses: int, licensees: int, users: int, notifications: list<array{user: User, scenario: LicenseeImportNotificationScenario}>}
+     */
+    private function persistCsvImport(array $rows, array $userChoices): array
+    {
+        $club = $this->clubHelper->getClubForUser($this->getUser());
+        if (!$club instanceof Club) {
+            throw new \LogicException('Impossible de déterminer votre club.');
+        }
+
+        $this->entityManager->beginTransaction();
+        try {
+            $resolvedUsers = [];
+            $createdUsers = [];
+            $createdLicensees = 0;
+            $licensees = [];
+            $notificationsByUser = [];
+
+            // Resolve the "primary" rows (those not sharing an already-resolved user) first,
+            // so a "share:" row can find its target user even if it appears earlier in the
+            // CSV than the row it shares an account with (e.g. a minor listed before the adult).
+            $sharedIndexes = [];
+            foreach ($rows as $index => $row) {
+                $choice = $userChoices[$index] ?? $this->defaultUserChoice($row);
+                if (str_starts_with($choice, 'share:')) {
+                    $sharedIndexes[] = $index;
+                    continue;
+                }
+
+                $licensees[$index] = $this->licenseeForImportRow($index, $row, $userChoices[$index] ?? null, $resolvedUsers, $createdUsers);
+            }
+
+            foreach ($sharedIndexes as $index) {
+                $licensees[$index] = $this->licenseeForImportRow($index, $rows[$index], $userChoices[$index] ?? null, $resolvedUsers, $createdUsers);
+            }
+
+            foreach ($rows as $index => $row) {
+                $licensee = $licensees[$index];
+                if ($licensee->getLicenseForSeason((int) $row['season']) instanceof License) {
+                    throw new FftaLicenseeCsvImportException(\sprintf('La ligne %d a déjà été importée ou possède désormais une licence pour cette saison.', $row['line']));
+                }
+
+                $license = new License()
+                    ->setLicensee($licensee)
+                    ->setClub($club)
+                    ->setSeason((int) $row['season'])
+                    ->setType((string) $row['type'])
+                    ->setCategory((string) $row['category'])
+                    ->setAgeCategory((string) $row['ageCategory'])
+                    ->setActivities([(string) $row['activities']]);
+
+                $this->entityManager->persist($license);
+                if (null === $row['licenseeId']) {
+                    ++$createdLicensees;
+                }
+
+                $this->recordImportNotification($index, $row, $resolvedUsers, $createdUsers, $notificationsByUser);
+            }
+
+            $this->entityManager->flush();
+            $this->entityManager->commit();
+        } catch (\Throwable $throwable) {
+            $this->entityManager->rollback();
+            throw $throwable;
+        }
+
+        return [
+            'licenses' => \count($rows),
+            'licensees' => $createdLicensees,
+            'users' => \count($createdUsers),
+            'notifications' => array_values($notificationsByUser),
+        ];
+    }
+
+    /**
+     * @param array<string, int|string|bool|null> $row
+     * @param array<int, User> $resolvedUsers
+     * @param list<User> $createdUsers
+     * @param array<int, array{user: User, scenario: LicenseeImportNotificationScenario}> $notificationsByUser
+     */
+    private function recordImportNotification(int $index, array $row, array $resolvedUsers, array $createdUsers, array &$notificationsByUser): void
+    {
+        $user = $resolvedUsers[$index] ?? null;
+        if (!$user instanceof User) {
+            return;
+        }
+
+        $scenario = match (true) {
+            null !== $row['licenseeId'] => LicenseeImportNotificationScenario::Renewal,
+            \in_array($user, $createdUsers, true) => LicenseeImportNotificationScenario::NewAccount,
+            default => LicenseeImportNotificationScenario::WelcomeToClub,
+        };
+
+        $key = spl_object_id($user);
+        if (!isset($notificationsByUser[$key]) || $scenario->priority() > $notificationsByUser[$key]['scenario']->priority()) {
+            $notificationsByUser[$key] = ['user' => $user, 'scenario' => $scenario];
+        }
+    }
+
+
+    /**
+     * @param array<string, int|string|bool|null> $row
+     * @param array<int, User> $resolvedUsers
+     * @param array<int, User> $createdUsers
+     */
+    private function licenseeForImportRow(int $index, array $row, ?string $userChoice, array &$resolvedUsers, array &$createdUsers): Licensee
+    {
+        if (null !== $row['licenseeId']) {
+            $licensee = $this->licenseeRepository->find($row['licenseeId']);
+            if (!$licensee instanceof Licensee) {
+                throw new FftaLicenseeCsvImportException(\sprintf('Le licencié de la ligne %d n’existe plus.', $row['line']));
+            }
+
+            $this->denyAccessUnlessGranted(LicenseeVoter::RENEW, $licensee);
+
+            $existingUser = $licensee->getUser();
+            if ($existingUser instanceof User) {
+                $resolvedUsers[$index] = $existingUser;
+            }
+
+            return $licensee;
+        }
+
+        $user = $this->userForImportRow($row, $userChoice, $resolvedUsers, $createdUsers);
+        $resolvedUsers[$index] = $user;
+
+        $licensee = new Licensee()
+            ->setFirstname((string) $row['firstname'])
+            ->setLastname((string) $row['lastname'])
+            ->setGender((string) $row['gender'])
+            ->setBirthdate(new \DateTime((string) $row['birthdate']))
+            ->setFftaMemberCode((string) $row['fftaMemberCode'])
+            ->setUser($user);
+        $this->entityManager->persist($licensee);
+
+        return $licensee;
+    }
+
+    /**
+     * @param array<string, int|string|bool|null> $row
+     * @param array<int, User> $resolvedUsers
+     * @param array<int, User> $createdUsers
+     */
+    private function userForImportRow(array $row, ?string $userChoice, array $resolvedUsers, array &$createdUsers): User
+    {
+        $choice = $userChoice ?? $this->defaultUserChoice($row);
+        if ('new' === $choice && null !== $row['userId']) {
+            throw new FftaLicenseeCsvImportException(\sprintf('Un compte utilisateur existe déjà pour l’adresse email de la ligne %d.', $row['line']));
+        }
+
+        if (str_starts_with($choice, 'user:')) {
+            $user = $this->userRepository->find((int) substr($choice, 5));
+            if ($user instanceof User) {
+                return $user;
+            }
+
+            throw new FftaLicenseeCsvImportException(\sprintf('Le compte utilisateur choisi pour la ligne %d est introuvable.', $row['line']));
+        }
+
+        if (str_starts_with($choice, 'share:')) {
+            $sharedUser = $resolvedUsers[(int) substr($choice, 6)] ?? null;
+            if ($sharedUser instanceof User) {
+                return $sharedUser;
+            }
+
+            throw new FftaLicenseeCsvImportException(\sprintf('Le compte partagé choisi pour la ligne %d est invalide.', $row['line']));
+        }
+
+        if ('new' !== $choice || null === $row['email']) {
+            throw new FftaLicenseeCsvImportException(\sprintf('Le choix de compte utilisateur pour la ligne %d est invalide.', $row['line']));
+        }
+
+        foreach ($createdUsers as $createdUser) {
+            if ($createdUser->getEmail() === $row['email']) {
+                throw new FftaLicenseeCsvImportException(\sprintf('L’adresse email de la ligne %d est déjà attribuée à un nouveau compte dans cet import.', $row['line']));
+            }
+        }
+
+        $user = new User()
+            ->setEmail((string) $row['email'])
+            ->setFirstname((string) $row['firstname'])
+            ->setLastname((string) $row['lastname'])
+            ->setGender((string) $row['gender'])
+            ->setBirthdate(new \DateTimeImmutable((string) $row['birthdate']))
+            ->setRoles(['ROLE_USER']);
+        $this->entityManager->persist($user);
+        $createdUsers[] = $user;
+
+        return $user;
+    }
+
+    /**
+     * @param array<string, int|string|bool|null> $row
+     */
+    private function defaultUserChoice(array $row): string
+    {
+        if (null !== $row['userId']) {
+            return \sprintf('user:%d', $row['userId']);
+        }
+
+        if (isset($row['sharedUserRow'])) {
+            return \sprintf('share:%d', $row['sharedUserRow']);
+        }
+
+        return 'new';
+    }
+
+    /**
+     * @param list<array{user: User, scenario: LicenseeImportNotificationScenario}> $notifications
+     */
+    private function sendImportNotificationEmails(array $notifications): int
+    {
+        $failures = 0;
+        foreach ($notifications as $notification) {
+            try {
+                $this->notificationEmailSender->send($notification['user'], $notification['scenario']);
+            } catch (\Throwable $throwable) {
+                ++$failures;
+                $this->logger->error('Unable to send licensee import notification email.', [
+                    'exception' => $throwable,
+                    'userId' => $notification['user']->getId(),
+                ]);
+            }
+        }
+
+        return $failures;
     }
 
     private function resolveLicenseeSearch(string $fftaMemberCode): Response
