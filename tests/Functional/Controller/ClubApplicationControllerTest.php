@@ -335,6 +335,7 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         $application = self::getContainer()->get(ClubApplicationRepository::class)->find($applicationId);
         $this->assertInstanceOf(ClubApplication::class, $application);
         $licensee = $application->getLicensee();
+        $this->assertInstanceOf(Licensee::class, $licensee);
         $fftaCode = $licensee->getFftaMemberCode() ?? 'Z1234567';
         $fftaId = $licensee->getFftaId() ?? 987654;
 
