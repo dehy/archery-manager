@@ -297,6 +297,22 @@ docker compose exec -e APP_ENV=test -u symfony -w /app app vendor/bin/phpunit
 make shell  # Then run commands inside container
 ```
 
+### Working from a git worktree
+
+The `app` container bind-mounts the **main checkout** (`.:/app`), so a `git worktree` has no `vendor/`, no `public/build/` and no running container. Mount it into a one-off container on the same compose network (shared database), then `exec` into it:
+
+```bash
+# From the main checkout: start a container serving the worktree (-d keeps it up, the entrypoint runs a server)
+docker compose run -d --no-deps -u symfony -v /path/to/worktree:/app -w /app app
+docker exec -u symfony -w /app <container> composer install --no-interaction
+# Assets: either `npm ci && npm run dev` in the worktree, or copy public/build from the main checkout if no asset changed
+docker exec -u symfony -w /app -e APP_ENV=test <container> bin/phpunit --exclude-group=disabled
+```
+
+- `docker compose run … app composer install` does **not** work: the image entrypoint starts a server and ignores the command, so use `exec`.
+- Rector gets killed with the default memory limit; run `php -d memory_limit=-1 vendor/bin/rector process src tests --no-progress-bar`.
+- Stop the container (`docker rm -f <container>`) when you remove the worktree.
+
 ### Database Migrations
 
 **Standard workflow**:
