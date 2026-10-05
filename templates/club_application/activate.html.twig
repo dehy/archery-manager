@@ -43,7 +43,7 @@
                             {% form_theme licenseForm 'bootstrap_5_layout.html.twig' %}
                             {{ form_start(licenseForm) }}
                                 <input type="hidden" name="activation_stage" value="confirm">
-                                <input type="hidden" name="ffta_member_code" value="{{ searchedCode }}">
+                                <input type="hidden" name="activation_ffta_member_code" value="{{ searchedCode }}">
                                 {{ form_row(licenseForm.ageCategory) }}
                                 {{ form_row(licenseForm.category) }}
                                 {{ form_row(licenseForm.type) }}

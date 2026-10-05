@@ -14,6 +14,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class LicenseFormType extends AbstractType
 {
@@ -57,6 +58,9 @@ class LicenseFormType extends AbstractType
                 'multiple' => true,
                 'expanded' => true,
                 'required' => true,
+                'constraints' => [
+                    new Assert\Count(min: 1, minMessage: 'Veuillez sélectionner au moins une activité.'),
+                ],
             ])
         ;
     }

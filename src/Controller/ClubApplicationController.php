@@ -32,6 +32,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ClubApplicationController extends AbstractController
 {
     private const string ERROR_ALREADY_PROCESSED = 'Cette demande a déjà été traitée.';
+    private const string ACTIVATION_STAGE_CONFIRM = 'confirm';
 
     public function __construct(
         private readonly LicenseeHelper $licenseeHelper,
@@ -276,8 +277,8 @@ class ClubApplicationController extends AbstractController
         if ($codeForm->isSubmitted() && $codeForm->isValid()) {
             $searchedCode = strtoupper(trim((string) $codeForm->get('fftaMemberCode')->getData()));
             $fftaProfile = $this->findFftaProfile($searchedCode, $licensee, $club, $season);
-        } elseif ($request->isMethod('POST') && 'confirm' === $request->request->get('activation_stage')) {
-            $searchedCode = strtoupper(trim((string) $request->request->get('ffta_member_code')));
+        } elseif ($request->isMethod('POST') && self::ACTIVATION_STAGE_CONFIRM === $request->request->get('activation_stage')) {
+            $searchedCode = strtoupper(trim((string) $request->request->get('activation_ffta_member_code')));
             $fftaProfile = $this->findFftaProfile($searchedCode, $licensee, $club, $season);
         }
 
@@ -285,7 +286,7 @@ class ClubApplicationController extends AbstractController
         if ($fftaProfile instanceof FftaProfile) {
             $license = $this->buildActivationLicense($licensee, $club, $season);
             $licenseForm = $this->createForm(LicenseFormType::class, $license);
-            if ('confirm' === $request->request->get('activation_stage')) {
+            if (self::ACTIVATION_STAGE_CONFIRM === $request->request->get('activation_stage')) {
                 $licenseForm->handleRequest($request);
             }
 

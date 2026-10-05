@@ -71,6 +71,9 @@ class ClubApplicationRepository extends ServiceEntityRepository
     public function findByClubAndSeason(Club $club, int $season): array
     {
         return $this->createQueryBuilder('la')
+            ->addSelect('licensee', 'licenses')
+            ->innerJoin('la.licensee', 'licensee')
+            ->leftJoin('licensee.licenses', 'licenses')
             ->andWhere('la.club = :club')
             ->andWhere(self::FILTER_SEASON)
             ->setParameter('club', $club)
