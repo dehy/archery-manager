@@ -65,6 +65,23 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     /**
      * @throws NonUniqueResultException
      */
+    /**
+     * An account is only a valid target for a club admin when it already has a licensee in that club.
+     */
+    public function findOneByEmailInClub(string $email, Club $club): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->innerJoin('u.licensees', 'l')
+            ->innerJoin('l.licenses', 'li')
+            ->andWhere('u.email = :email')
+            ->andWhere('li.club = :club')
+            ->setParameter('email', $email)
+            ->setParameter('club', $club)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findOneByEmail(string $email): ?User
     {
         return $this->createQueryBuilder('u')

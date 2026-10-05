@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Club;
+use App\Entity\Group;
 use App\Entity\Licensee;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -98,6 +99,72 @@ class LicenseeRepository extends ServiceEntityRepository
             ->setParameter('club', $club)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Licensees of a club for a season, with their account and groups, for the member management page.
+     *
+     * @return list<Licensee>
+     */
+    public function findForMemberManagement(Club $club, int $season, ?string $search = null, ?Group $group = null, bool $sharedAccountOnly = false): array
+    {
+        $qb = $this->createQueryBuilder('l')
+            ->select('l, li, u, g')
+            ->innerJoin('l.licenses', 'li')
+            ->innerJoin('l.user', 'u')
+            ->leftJoin('l.groups', 'g')
+            ->where('li.season = :season')
+            ->andWhere('li.club = :club')
+            ->setParameter('season', $season)
+            ->setParameter('club', $club)
+            ->orderBy('l.lastname', 'ASC')
+            ->addOrderBy('l.firstname', 'ASC');
+
+        $search = null === $search ? '' : trim($search);
+        if ('' !== $search) {
+            $qb->andWhere('l.firstname LIKE :search OR l.lastname LIKE :search OR l.fftaMemberCode LIKE :search OR u.email LIKE :search')
+                ->setParameter('search', '%'.addcslashes($search, '%_\\').'%');
+        }
+
+        if ($group instanceof Group) {
+            $qb->andWhere(':group MEMBER OF l.groups')
+                ->setParameter('group', $group);
+        }
+
+        if ($sharedAccountOnly) {
+            $qb->andWhere('u.id IN (SELECT IDENTITY(l2.user) FROM '.Licensee::class.' l2 GROUP BY l2.user HAVING COUNT(l2.id) > 1)');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Number of licensees attached to each of the given accounts, whatever their club or season.
+     *
+     * @param list<int> $userIds
+     *
+     * @return array<int, int> user id => licensee count
+     */
+    public function countByUserIds(array $userIds): array
+    {
+        if ([] === $userIds) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('l')
+            ->select('IDENTITY(l.user) AS userId, COUNT(l.id) AS total')
+            ->where('l.user IN (:userIds)')
+            ->setParameter('userIds', $userIds)
+            ->groupBy('l.user')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row['userId']] = (int) $row['total'];
+        }
+
+        return $counts;
     }
 
     /**

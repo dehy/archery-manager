@@ -1,0 +1,107 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des membres{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Gestion des membres <small class="text-muted fs-5">Saison {{ season }}</small></h1>
+        <a href="{{ path('app_licensee_new_choice') }}" class="btn btn-success">
+            <em class="fa-solid fa-user-plus me-2"></em>
+            Ajouter / renouveler un licencié
+        </a>
+    </div>
+
+    <form method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-12 col-md-5">
+            <label for="member-search" class="form-label visually-hidden">Recherche</label>
+            <input type="search" id="member-search" name="q" value="{{ search }}" class="form-control"
+                   placeholder="Nom, prénom, n° de licence ou email">
+        </div>
+        <div class="col-12 col-md-3">
+            <label for="member-group" class="form-label visually-hidden">Groupe</label>
+            <select id="member-group" name="group" class="form-select">
+                <option value="">Tous les groupes</option>
+                {% for group in allGroups %}
+                    <option value="{{ group.id }}" {{ selectedGroup and selectedGroup.id == group.id ? 'selected' }}>{{ group.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-2">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="shared" value="1" id="member-shared" {{ sharedOnly ? 'checked' }}>
+                <label class="form-check-label" for="member-shared">Compte partagé</label>
+            </div>
+        </div>
+        <div class="col-12 col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-grow-1">
+                <em class="fa-solid fa-magnifying-glass me-1"></em> Filtrer
+            </button>
+            <a href="{{ path('app_club_members') }}" class="btn btn-outline-secondary" title="Réinitialiser">
+                <em class="fa-solid fa-xmark"></em>
+            </a>
+        </div>
+    </form>
+
+    <p class="text-muted">{{ licensees|length }} membre{{ licensees|length > 1 ? 's' }}</p>
+
+    {% if licensees is empty %}
+        <div class="alert alert-info">Aucun membre ne correspond à votre recherche.</div>
+    {% else %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Membre</th>
+                        <th>Catégorie</th>
+                        <th>Groupes</th>
+                        <th>Compte</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for licensee in licensees %}
+                        {% set license = licensee.licenseForSeason(season) %}
+                        {% set accountSize = accountSizes[licensee.user.id]|default(1) %}
+                        <tr>
+                            <td>
+                                <a href="{{ path('app_licensee_profile', {id: licensee.id}) }}" class="fw-semibold text-decoration-none">
+                                    {{ licensee.lastname }} {{ licensee.firstname }}
+                                </a>
+                                <div class="small text-muted">{{ licensee.fftaMemberCode }}</div>
+                            </td>
+                            <td>{{ license ? license.ageCategory : '' }}</td>
+                            <td>
+                                {% for group in licensee.groups %}
+                                    <span class="badge text-bg-secondary">{{ group.name }}</span>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {{ licensee.user.email }}
+                                {% if accountSize > 1 %}
+                                    <span class="badge text-bg-info"
+                                          title="Ce compte regroupe {{ accountSize }} licenciés">
+                                        <em class="fa-solid fa-users me-1"></em>partagé ({{ accountSize }})
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a href="{{ path('app_licensee_edit', {id: licensee.id}) }}" class="btn btn-sm btn-outline-secondary"
+                                   title="Modifier le profil">
+                                    <em class="fa-solid fa-pen-to-square"></em>
+                                </a>
+                                {% if is_granted('CHANGE_USER', licensee) %}
+                                    <a href="{{ path('app_club_member_account', {id: licensee.id}) }}"
+                                       class="btn btn-sm btn-outline-primary" title="Changer de compte">
+                                        <em class="fa-solid fa-user-gear"></em>
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}
