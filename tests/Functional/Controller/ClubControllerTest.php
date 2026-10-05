@@ -10,6 +10,8 @@ final class ClubControllerTest extends LoggedInTestCase
 {
     private const string URL_MY_CLUB = '/my-club';
 
+    private const string URL_SETTINGS = '/my-club/settings';
+
     // ── Show My Club ───────────────────────────────────────────────────
 
     public function testShowRequiresAuthentication(): void
@@ -68,5 +70,22 @@ final class ClubControllerTest extends LoggedInTestCase
         $this->assertResponseIsSuccessful();
         // Licensees should be displayed somewhere on the page
         $this->assertSelectorExists('body');
+    }
+
+    public function testSettingsRendersForClubAdmin(): void
+    {
+        $client = self::createLoggedInAsClubAdminClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_SETTINGS);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorExists('input[name="club_registration_settings[acceptingApplications]"]');
+    }
+
+    public function testSettingsDeniedForRegularUser(): void
+    {
+        $client = self::createLoggedInAsUserClient();
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_SETTINGS);
+
+        $this->assertResponseStatusCodeSame(403);
     }
 }

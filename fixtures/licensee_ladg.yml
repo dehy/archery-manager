@@ -75,6 +75,15 @@ App\Entity\User:
         firstname: 'Julien'
         phoneNumber: <e164PhoneNumber()>
         birthdate: '<dateTimeImmutableBetween("-75 years", "-22 years")>'
+    user_ladg_club_applicant_{1..5}:
+        email: 'applicant<current()>\@ladg.com'
+        roles: ['ROLE_USER']
+        password: '\$2y\$13\$CGDD6CfkN8pHT/hKhml2RuA28Ba48QE86SlrjPssIcfXmRsNrzh1W' # user
+        gender: '<enum("GenderType")>'
+        lastname: <lastname()>
+        firstname: <firstname()>
+        phoneNumber: <e164PhoneNumber()>
+        birthdate: '<dateTimeImmutableBetween("-75 years", "-22 years")>'
 
 App\Entity\Licensee:
     licensee_ladg_coach_1:
@@ -145,6 +154,12 @@ App\Entity\Licensee:
         birthdate: '<dateTimeBetween("-16 years", "-13 years")>'
         fftaId: 8000003
         fftaMemberCode: '8000003C'
+    licensee_ladg_club_applicant_{1..5}:
+        user: '@user_ladg_club_applicant_<current()>'
+        gender: '@user_ladg_club_applicant_<current()>->gender'
+        lastname: '@user_ladg_club_applicant_<current()>->lastname'
+        firstname: '@user_ladg_club_applicant_<current()>->firstname'
+        birthdate: '<dateTimeBetween("-75 years", "-22 years")>'
 
 App\Entity\License:
     license_licensee_ladg_coach_1:

@@ -29,10 +29,20 @@
                                 En attente
                             </span>
                         {% elseif application.isValidated %}
-                            <span class="badge bg-success">
-                                <em class="fa-solid fa-check me-1"></em>
-                                Validée
-                            </span>
+                            {% if application.licensee.getLicenseForSeason(application.season) %}
+                                <span class="badge bg-success">
+                                    <em class="fa-solid fa-check me-1"></em>
+                                    Active
+                                </span>
+                            {% else %}
+                                <a href="{{ path('app_club_application_activate', { id: application.id }) }}"
+                                   class="badge bg-warning text-dark text-decoration-none"
+                                   title="Activer après création de la licence FFTA"
+                                   data-bs-toggle="tooltip">
+                                    <em class="fa-solid fa-id-card me-1"></em>
+                                    Acceptée — activation FFTA requise
+                                </a>
+                            {% endif %}
                         {% elseif application.isOnWaitingList %}
                             <span class="badge bg-info">
                                 <em class="fa-solid fa-hourglass-half me-1"></em>
@@ -61,20 +71,24 @@
                     </td>
                     {% if showActions is defined and showActions %}
                         <td class="text-end">
+                            {% if application.isPending or application.isOnWaitingList %}
                             <div class="btn-group btn-group-sm">
                                 <a href="{{ path('app_club_application_validate', { id: application.id }) }}"
                                    class="btn btn-success" title="Valider" data-bs-toggle="tooltip">
                                     <em class="fa-solid fa-check"></em>
                                 </a>
-                                <a href="{{ path('app_club_application_waiting_list', { id: application.id }) }}"
-                                   class="btn btn-info" title="Mettre en liste d'attente" data-bs-toggle="tooltip">
-                                    <em class="fa-solid fa-hourglass-half"></em>
-                                </a>
+                                {% if application.isPending %}
+                                    <a href="{{ path('app_club_application_waiting_list', { id: application.id }) }}"
+                                       class="btn btn-info" title="Mettre en liste d'attente" data-bs-toggle="tooltip">
+                                        <em class="fa-solid fa-hourglass-half"></em>
+                                    </a>
+                                {% endif %}
                                 <a href="{{ path('app_club_application_reject', { id: application.id }) }}" 
                                    class="btn btn-danger" title="Refuser" data-bs-toggle="tooltip">
                                     <em class="fa-solid fa-times"></em>
                                 </a>
                             </div>
+                            {% endif %}
                         </td>
                     {% endif %}
                 </tr>

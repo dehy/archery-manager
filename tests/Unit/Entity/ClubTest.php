@@ -79,6 +79,29 @@ final class ClubTest extends TestCase
         $this->assertSame('12345678', $club->getFftaCode());
     }
 
+    public function testClubAcceptsApplicationsByDefault(): void
+    {
+        $club = new Club();
+
+        $this->assertTrue($club->isAcceptingApplications());
+    }
+
+    public function testSetAndGetAcceptingApplications(): void
+    {
+        $club = new Club();
+        $club->setAcceptingApplications(false);
+
+        $this->assertFalse($club->isAcceptingApplications());
+    }
+
+    public function testSetAndGetApplicationClosureMessage(): void
+    {
+        $club = new Club();
+        $club->setApplicationClosureMessage('Le club est complet.');
+
+        $this->assertSame('Le club est complet.', $club->getApplicationClosureMessage());
+    }
+
     public function testSetAndGetFftaUsername(): void
     {
         $club = new Club();

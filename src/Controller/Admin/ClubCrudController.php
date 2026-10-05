@@ -8,7 +8,9 @@ use App\Controller\Admin\Field\VichImageField;
 use App\Entity\Club;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ColorField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 
@@ -30,6 +32,9 @@ class ClubCrudController extends AbstractCrudController
             ColorField::new('primaryColor'),
             EmailField::new('contactEmail'),
             TextField::new('fftaCode'),
+            BooleanField::new('acceptingApplications', 'Accepte les inscriptions'),
+            TextareaField::new('applicationClosureMessage', 'Message de fermeture')
+                ->setHelp('Affiché aux candidats lorsque les inscriptions sont fermées.'),
             TextField::new('fftaUsername')->onlyOnForms(),
             TextField::new('fftaPassword')->onlyOnForms()->setFormType(PasswordType::class),
         ];

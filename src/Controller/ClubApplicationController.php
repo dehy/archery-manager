@@ -6,13 +6,21 @@ namespace App\Controller;
 
 use App\DBAL\Types\ClubApplicationStatusType;
 use App\Entity\ClubApplication;
+use App\Entity\License;
+use App\Entity\Licensee;
 use App\Entity\User;
 use App\Form\ClubApplicationProcessType;
 use App\Form\ClubApplicationType;
+use App\Form\FftaMemberCodeType;
+use App\Form\Type\LicenseFormType;
 use App\Helper\EmailHelper;
+use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
+use App\Helper\LicenseHelper;
 use App\Helper\SeasonHelper;
 use App\Repository\ClubApplicationRepository;
+use App\Repository\LicenseeRepository;
+use App\Scrapper\FftaProfile;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,12 +33,17 @@ class ClubApplicationController extends AbstractController
 {
     private const string ERROR_ALREADY_PROCESSED = 'Cette demande a déjà été traitée.';
 
+    private const string ACTIVATION_STAGE_CONFIRM = 'confirm';
+
     public function __construct(
         private readonly LicenseeHelper $licenseeHelper,
         private readonly SeasonHelper $seasonHelper,
         private readonly EntityManagerInterface $entityManager,
         private readonly ClubApplicationRepository $applicationRepository,
         private readonly EmailHelper $emailHelper,
+        private readonly FftaHelper $fftaHelper,
+        private readonly LicenseeRepository $licenseeRepository,
+        private readonly LicenseHelper $licenseHelper,
     ) {
     }
 
@@ -95,16 +108,7 @@ class ClubApplicationController extends AbstractController
                 }
             }
 
-            $this->entityManager->persist($application);
-            $this->entityManager->flush();
-
-            try {
-                $this->emailHelper->sendClubApplicationNewEmail($application);
-            } catch (TransportExceptionInterface) {
-                // Non-blocking: email failure should not prevent the application from being saved
-            }
-
-            $this->addFlash('success', 'Votre demande d\'adhésion a été envoyée avec succès.');
+            $this->saveApplication($application);
 
             return $this->redirectToRoute('app_club_application_status');
         }
@@ -114,6 +118,43 @@ class ClubApplicationController extends AbstractController
             'application' => $application,
             'showLicenseeSelector' => $showLicenseeSelector,
         ]);
+    }
+
+    private function saveApplication(ClubApplication $application): void
+    {
+        $acceptingApplications = $application->getClub()?->isAcceptingApplications() ?? false;
+        $application->setStatus($acceptingApplications
+            ? ClubApplicationStatusType::PENDING
+            : ClubApplicationStatusType::WAITING_LIST);
+        $closureMessage = $application->getClub()?->getApplicationClosureMessage();
+        if (!$acceptingApplications) {
+            $application->setAdminMessage($closureMessage
+                ?? 'Le club n’accepte plus de nouvelles inscriptions. Votre demande a été placée automatiquement sur liste d’attente.');
+        }
+
+        $this->entityManager->persist($application);
+        $this->entityManager->flush();
+
+        try {
+            if ($acceptingApplications) {
+                $this->emailHelper->sendClubApplicationNewEmail($application);
+            } else {
+                $this->emailHelper->sendClubApplicationWaitingListEmail($application);
+            }
+        } catch (TransportExceptionInterface) {
+            // Non-blocking: email failure should not prevent the application from being saved
+        }
+
+        $closureSuffix = null !== $closureMessage ? ': '.$closureMessage : '.';
+        $this->addFlash(
+            $acceptingApplications ? 'success' : 'info',
+            $acceptingApplications
+                ? 'Votre demande d\'adhésion a été envoyée avec succès.'
+                : \sprintf(
+                    'Le club n’accepte plus de nouvelles inscriptions. Votre demande a été placée sur liste d’attente%s',
+                    $closureSuffix,
+                ),
+        );
     }
 
     private function validateClubApplication(\App\Entity\Licensee $licensee, int $currentSeason): ?Response
@@ -189,7 +230,7 @@ class ClubApplicationController extends AbstractController
     {
         $this->denyAccessUnlessGranted('manage', $application);
 
-        if (!$application->isPending()) {
+        if (!$this->isAwaitingDecision($application)) {
             $this->addFlash('warning', self::ERROR_ALREADY_PROCESSED);
 
             return $this->redirectToRoute('app_club_application_manage');
@@ -224,6 +265,149 @@ class ClubApplicationController extends AbstractController
             'form' => $form,
             'application' => $application,
         ]);
+    }
+
+    #[Route('/club-application/{id}/activate', name: 'app_club_application_activate', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_CLUB_ADMIN')]
+    public function activate(Request $request, ClubApplication $application): Response
+    {
+        $this->denyAccessUnlessGranted('manage', $application);
+
+        if (!$application->isValidated()) {
+            $this->addFlash('warning', 'La demande doit être acceptée avant l’activation de la licence FFTA.');
+
+            return $this->redirectToRoute('app_club_application_manage');
+        }
+
+        $licensee = $application->getLicensee();
+        $club = $application->getClub();
+        $season = $application->getSeason();
+        if (!$licensee instanceof Licensee || !$club instanceof \App\Entity\Club || null === $season) {
+            throw $this->createAccessDeniedException('Demande d’adhésion incomplète.');
+        }
+
+        if ($licensee->getLicenseForSeason($season) instanceof License) {
+            $this->addFlash('info', 'La licence de cette demande est déjà active.');
+
+            return $this->redirectToRoute('app_club_application_manage');
+        }
+
+        return $this->processActivation($request, $application, $licensee, $club, $season);
+    }
+
+    private function processActivation(Request $request, ClubApplication $application, Licensee $licensee, \App\Entity\Club $club, int $season): Response
+    {
+        $codeForm = $this->createForm(FftaMemberCodeType::class);
+        $codeForm->handleRequest($request);
+
+        $fftaProfile = null;
+        $searchedCode = null;
+
+        if ($codeForm->isSubmitted() && $codeForm->isValid()) {
+            $searchedCode = strtoupper(trim((string) $codeForm->get('fftaMemberCode')->getData()));
+            $fftaProfile = $this->findFftaProfile($searchedCode, $licensee, $club, $season);
+        } elseif ($request->isMethod('POST') && self::ACTIVATION_STAGE_CONFIRM === $request->request->get('activation_stage')) {
+            $searchedCode = strtoupper(trim((string) $request->request->get('activation_ffta_member_code')));
+            $fftaProfile = $this->findFftaProfile($searchedCode, $licensee, $club, $season);
+        }
+
+        $licenseForm = null;
+        if ($fftaProfile instanceof FftaProfile) {
+            $license = $this->buildActivationLicense($licensee, $club, $season);
+            $licenseForm = $this->createForm(LicenseFormType::class, $license);
+            if (self::ACTIVATION_STAGE_CONFIRM === $request->request->get('activation_stage')) {
+                $licenseForm->handleRequest($request);
+            }
+
+            if ($licenseForm->isSubmitted() && $licenseForm->isValid()) {
+                $this->updateLicenseeFromFftaProfile($licensee, $fftaProfile);
+                $this->entityManager->persist($license);
+                $this->entityManager->flush();
+
+                $this->addFlash('success', 'La licence FFTA a été activée pour cette demande.');
+
+                return $this->redirectToRoute('app_club_application_manage');
+            }
+        }
+
+        return $this->render('club_application/activate.html.twig', [
+            'application' => $application,
+            'codeForm' => $codeForm,
+            'licenseForm' => $licenseForm,
+            'fftaProfile' => $fftaProfile,
+            'searchedCode' => $searchedCode,
+        ]);
+    }
+
+    private function buildActivationLicense(Licensee $licensee, \App\Entity\Club $club, int $season): License
+    {
+        $license = new License();
+        $license->setLicensee($licensee);
+        $license->setClub($club);
+        $license->setSeason($season);
+
+        $mostRecentLicense = $licensee->getMostRecentLicense();
+        if ($mostRecentLicense instanceof License) {
+            $license->setType($mostRecentLicense->getType());
+            $license->setCategory($mostRecentLicense->getCategory());
+            $license->setAgeCategory($mostRecentLicense->getAgeCategory());
+            $license->setActivities($mostRecentLicense->getActivities());
+        } elseif ($licensee->getBirthdate() instanceof \DateTimeInterface) {
+            $license->setAgeCategory($this->licenseHelper->ageCategoryForBirthdate($licensee->getBirthdate()));
+            $license->setCategory($this->licenseHelper->categoryTypeForAgeCategory($license->getAgeCategory()));
+        }
+
+        return $license;
+    }
+
+    private function findFftaProfile(string $code, Licensee $licensee, \App\Entity\Club $club, int $season): ?FftaProfile
+    {
+        $profile = null;
+        $localLicensee = $this->licenseeRepository->findOneByCode($code);
+        if ($localLicensee instanceof Licensee && $localLicensee !== $licensee) {
+            $this->addFlash('danger', 'Ce code FFTA est déjà associé à un autre licencié.');
+        } else {
+            try {
+                $scrapper = $this->fftaHelper->getScrapper($club);
+                $fftaId = $scrapper->findLicenseeIdFromCode($code);
+                if (null === $fftaId || 0 === $fftaId) {
+                    $this->addFlash('warning', 'Ce code FFTA n’a pas été trouvé.');
+                } else {
+                    $candidate = $scrapper->fetchLicenseeProfile($fftaId, $season);
+                    if ($this->matchesLicenseeIdentity($licensee, $candidate)) {
+                        $profile = $candidate;
+                    } else {
+                        $this->addFlash('danger', 'Les informations FFTA ne correspondent pas au candidat.');
+                    }
+                }
+            } catch (\Throwable) {
+                $this->addFlash('danger', 'Impossible de vérifier ce code FFTA pour le moment.');
+            }
+        }
+
+        return $profile;
+    }
+
+    private function matchesLicenseeIdentity(Licensee $licensee, FftaProfile $profile): bool
+    {
+        $birthdate = $licensee->getBirthdate();
+
+        return $birthdate instanceof \DateTimeInterface
+            && $this->normalizeIdentity($licensee->getLastname()) === $this->normalizeIdentity($profile->getNom())
+            && $this->normalizeIdentity($licensee->getFirstname()) === $this->normalizeIdentity($profile->getPrenom())
+            && $profile->getDateNaissance() instanceof \DateTime
+            && $birthdate->format('Y-m-d') === $profile->getDateNaissance()->format('Y-m-d');
+    }
+
+    private function normalizeIdentity(?string $value): string
+    {
+        return mb_strtolower(trim((string) $value));
+    }
+
+    private function updateLicenseeFromFftaProfile(Licensee $licensee, FftaProfile $profile): void
+    {
+        $licensee->setFftaId($profile->getId());
+        $licensee->setFftaMemberCode(strtoupper((string) $profile->getCodeAdherent()));
     }
 
     #[Route('/club-application/{id}/waiting-list', name: 'app_club_application_waiting_list', methods: ['GET', 'POST'])]
@@ -275,7 +459,7 @@ class ClubApplicationController extends AbstractController
     {
         $this->denyAccessUnlessGranted('manage', $application);
 
-        if (!$application->isPending()) {
+        if (!$this->isAwaitingDecision($application)) {
             $this->addFlash('warning', self::ERROR_ALREADY_PROCESSED);
 
             return $this->redirectToRoute('app_club_application_manage');
@@ -335,8 +519,8 @@ class ClubApplicationController extends AbstractController
             return $this->redirectToRoute('app_club_application_status');
         }
 
-        if (!$application->isPending()) {
-            $this->addFlash('warning', 'Seule une demande en attente peut être annulée.');
+        if (!$this->isAwaitingDecision($application)) {
+            $this->addFlash('warning', 'Seule une demande en attente ou sur liste d\'attente peut être annulée.');
 
             return $this->redirectToRoute('app_club_application_status');
         }
@@ -350,5 +534,14 @@ class ClubApplicationController extends AbstractController
         ));
 
         return $this->redirectToRoute('app_club_application_status');
+    }
+
+    private function isAwaitingDecision(ClubApplication $application): bool
+    {
+        if ($application->isPending()) {
+            return true;
+        }
+
+        return $application->isOnWaitingList();
     }
 }

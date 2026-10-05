@@ -23,7 +23,9 @@
 
 <p>
     À bientôt !<br>
-    <strong>{{ application.processedBy.firstname }}</strong><br>
+    {% if application.processedBy %}
+        <strong>{{ application.processedBy.firstname }}</strong><br>
+    {% endif %}
     {{ application.club.name }}
 </p>
 

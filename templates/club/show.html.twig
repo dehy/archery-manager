@@ -187,6 +187,13 @@
                             <em class="fa-solid fa-bullseye me-2"></em>
                             Matériel du club
                         </a>
+
+                        {% if is_granted('ROLE_CLUB_ADMIN') %}
+                            <a href="{{ path('app_club_settings') }}" class="btn btn-outline-warning">
+                                <em class="fa-solid fa-sliders me-2"></em>
+                                Paramètres des inscriptions
+                            </a>
+                        {% endif %}
                         
                         {% if is_granted('ROLE_ADMIN') %}
                             <hr>
