@@ -32,6 +32,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ClubApplicationController extends AbstractController
 {
     private const string ERROR_ALREADY_PROCESSED = 'Cette demande a déjà été traitée.';
+
     private const string ACTIVATION_STAGE_CONFIRM = 'confirm';
 
     public function __construct(
@@ -107,16 +108,7 @@ class ClubApplicationController extends AbstractController
                 }
             }
 
-            $this->entityManager->persist($application);
-            $this->entityManager->flush();
-
-            try {
-                $this->emailHelper->sendClubApplicationNewEmail($application);
-            } catch (TransportExceptionInterface) {
-                // Non-blocking: email failure should not prevent the application from being saved
-            }
-
-            $this->addFlash('success', 'Votre demande d\'adhésion a été envoyée avec succès.');
+            $this->saveApplication($application);
 
             return $this->redirectToRoute('app_club_application_status');
         }
@@ -126,6 +118,43 @@ class ClubApplicationController extends AbstractController
             'application' => $application,
             'showLicenseeSelector' => $showLicenseeSelector,
         ]);
+    }
+
+    private function saveApplication(ClubApplication $application): void
+    {
+        $acceptingApplications = $application->getClub()?->isAcceptingApplications() ?? false;
+        $application->setStatus($acceptingApplications
+            ? ClubApplicationStatusType::PENDING
+            : ClubApplicationStatusType::WAITING_LIST);
+        $closureMessage = $application->getClub()?->getApplicationClosureMessage();
+        if (!$acceptingApplications) {
+            $application->setAdminMessage($closureMessage
+                ?? 'Le club n’accepte plus de nouvelles inscriptions. Votre demande a été placée automatiquement sur liste d’attente.');
+        }
+
+        $this->entityManager->persist($application);
+        $this->entityManager->flush();
+
+        try {
+            if ($acceptingApplications) {
+                $this->emailHelper->sendClubApplicationNewEmail($application);
+            } else {
+                $this->emailHelper->sendClubApplicationWaitingListEmail($application);
+            }
+        } catch (TransportExceptionInterface) {
+            // Non-blocking: email failure should not prevent the application from being saved
+        }
+
+        $closureSuffix = null !== $closureMessage ? ': '.$closureMessage : '.';
+        $this->addFlash(
+            $acceptingApplications ? 'success' : 'info',
+            $acceptingApplications
+                ? 'Votre demande d\'adhésion a été envoyée avec succès.'
+                : \sprintf(
+                    'Le club n’accepte plus de nouvelles inscriptions. Votre demande a été placée sur liste d’attente%s',
+                    $closureSuffix,
+                ),
+        );
     }
 
     private function validateClubApplication(\App\Entity\Licensee $licensee, int $currentSeason): ?Response
@@ -201,7 +230,7 @@ class ClubApplicationController extends AbstractController
     {
         $this->denyAccessUnlessGranted('manage', $application);
 
-        if (!$application->isPending()) {
+        if (!$this->isAwaitingDecision($application)) {
             $this->addFlash('warning', self::ERROR_ALREADY_PROCESSED);
 
             return $this->redirectToRoute('app_club_application_manage');
@@ -430,7 +459,7 @@ class ClubApplicationController extends AbstractController
     {
         $this->denyAccessUnlessGranted('manage', $application);
 
-        if (!$application->isPending()) {
+        if (!$this->isAwaitingDecision($application)) {
             $this->addFlash('warning', self::ERROR_ALREADY_PROCESSED);
 
             return $this->redirectToRoute('app_club_application_manage');
@@ -490,8 +519,8 @@ class ClubApplicationController extends AbstractController
             return $this->redirectToRoute('app_club_application_status');
         }
 
-        if (!$application->isPending()) {
-            $this->addFlash('warning', 'Seule une demande en attente peut être annulée.');
+        if (!$this->isAwaitingDecision($application)) {
+            $this->addFlash('warning', 'Seule une demande en attente ou sur liste d\'attente peut être annulée.');
 
             return $this->redirectToRoute('app_club_application_status');
         }
@@ -505,5 +534,14 @@ class ClubApplicationController extends AbstractController
         ));
 
         return $this->redirectToRoute('app_club_application_status');
+    }
+
+    private function isAwaitingDecision(ClubApplication $application): bool
+    {
+        if ($application->isPending()) {
+            return true;
+        }
+
+        return $application->isOnWaitingList();
     }
 }

@@ -35,6 +35,16 @@ class ClubApplicationType extends AbstractType
                 'label' => 'Club *',
                 'class' => Club::class,
                 'choice_label' => static fn (Club $club): string => \sprintf('%s - %s', $club->getCity(), $club->getName()),
+                'choice_attr' => static function (Club $club): array {
+                    if ($club->isAcceptingApplications()) {
+                        return [];
+                    }
+
+                    return [
+                        'data-closure-message' => $club->getApplicationClosureMessage()
+                            ?? 'Les inscriptions sont actuellement fermées. Votre demande sera placée sur liste d’attente.',
+                    ];
+                },
                 'placeholder' => 'Sélectionnez un club',
                 'required' => true,
                 'query_builder' => static fn (EntityRepository $er): \Doctrine\ORM\QueryBuilder => $er->createQueryBuilder('c')

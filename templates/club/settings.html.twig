@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% form_theme form 'bootstrap_5_layout.html.twig' %}
+
+{% block title %}Paramètres de {{ club.name }}{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_club_show') }}">Mon Club</a></li>
+                    <li class="breadcrumb-item active">Paramètres</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h2 class="h5 mb-0">
+                        <em class="fa-solid fa-sliders me-2"></em>
+                        Paramètres des inscriptions
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Lorsque les inscriptions sont fermées, les nouvelles demandes sont automatiquement placées sur liste d’attente.
+                    </p>
+
+                    {{ form_start(form) }}
+                        {{ form_row(form.acceptingApplications) }}
+                        {{ form_row(form.applicationClosureMessage) }}
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ path('app_club_show') }}" class="btn btn-secondary">Annuler</a>
+                            <button type="submit" class="btn btn-primary">
+                                <em class="fa-solid fa-floppy-disk me-2"></em>
+                                Enregistrer
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

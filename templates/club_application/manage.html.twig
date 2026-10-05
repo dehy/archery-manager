@@ -21,13 +21,31 @@
                             </div>
                         {% else %}
                             <ul class="nav nav-tabs mb-3" role="tablist">
-                                <li class="nav-item" role="presentation">
+                                <li class="nav-item">
                                     <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pending" type="button">
                                         <em class="fa-solid fa-clock me-1"></em>
                                         En attente ({{ applications|filter(app => app.isPending)|length }})
                                     </button>
                                 </li>
-                                <li class="nav-item" role="presentation">
+                                <li class="nav-item">
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#waiting-list" type="button">
+                                        <em class="fa-solid fa-hourglass-half me-1"></em>
+                                        Liste d'attente ({{ applications|filter(app => app.isOnWaitingList)|length }})
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#validated" type="button">
+                                        <em class="fa-solid fa-check me-1"></em>
+                                        Acceptées ({{ applications|filter(app => app.isValidated)|length }})
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#closed" type="button">
+                                        <em class="fa-solid fa-box-archive me-1"></em>
+                                        Terminées ({{ applications|filter(app => app.isRejected or app.isCancelled)|length }})
+                                    </button>
+                                </li>
+                                <li class="nav-item">
                                     <button class="nav-link" data-bs-toggle="tab" data-bs-target="#all" type="button">
                                         <em class="fa-solid fa-list me-1"></em>
                                         Toutes ({{ applications|length }})
@@ -47,9 +65,36 @@
                                         {{ include('club_application/_applications_table.html.twig', { applications: pendingApps, showActions: true }) }}
                                     {% endif %}
                                 </div>
+
+                                <div class="tab-pane fade" id="waiting-list">
+                                    {% set waitingListApps = applications|filter(app => app.isOnWaitingList) %}
+                                    {% if waitingListApps is empty %}
+                                        <div class="alert alert-info">Aucune demande sur liste d'attente.</div>
+                                    {% else %}
+                                        {{ include('club_application/_applications_table.html.twig', { applications: waitingListApps, showActions: true }) }}
+                                    {% endif %}
+                                </div>
+
+                                <div class="tab-pane fade" id="validated">
+                                    {% set validatedApps = applications|filter(app => app.isValidated) %}
+                                    {% if validatedApps is empty %}
+                                        <div class="alert alert-info">Aucune demande acceptée.</div>
+                                    {% else %}
+                                        {{ include('club_application/_applications_table.html.twig', { applications: validatedApps, showActions: false }) }}
+                                    {% endif %}
+                                </div>
+
+                                <div class="tab-pane fade" id="closed">
+                                    {% set closedApps = applications|filter(app => app.isRejected or app.isCancelled) %}
+                                    {% if closedApps is empty %}
+                                        <div class="alert alert-info">Aucune demande terminée.</div>
+                                    {% else %}
+                                        {{ include('club_application/_applications_table.html.twig', { applications: closedApps, showActions: false }) }}
+                                    {% endif %}
+                                </div>
                                 
                                 <div class="tab-pane fade" id="all">
-                                    {{ include('club_application/_applications_table.html.twig', { applications: applications, showActions: false }) }}
+                                    {{ include('club_application/_applications_table.html.twig', { applications: applications, showActions: true }) }}
                                 </div>
                             </div>
                         {% endif %}

@@ -21,11 +21,12 @@
                         </div>
 
                         {% form_theme form 'bootstrap_5_layout.html.twig' %}
-                        {{ form_start(form) }}
+                        {{ form_start(form, {attr: {'data-controller': 'club-application'}}) }}
                             {% if showLicenseeSelector is defined and showLicenseeSelector %}
                                 {{ form_row(form.licensee) }}
                             {% endif %}
-                            {{ form_row(form.club) }}
+                            {{ form_row(form.club, {attr: {'data-club-application-target': 'club', 'data-action': 'change->club-application#updateClosureMessage'}}) }}
+                            <div class="alert alert-warning d-none" role="alert" data-club-application-target="closureMessage"></div>
                             
                             <div class="d-flex gap-2 mt-3">
                                 <button type="submit" class="btn btn-primary">

@@ -44,6 +44,12 @@ class Club implements \Stringable
     #[ORM\Column(length: 8, unique: true)]
     private ?string $fftaCode = null;
 
+    #[ORM\Column(options: ['default' => true])]
+    private bool $acceptingApplications = true;
+
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::TEXT, nullable: true)]
+    private ?string $applicationClosureMessage = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt;
 
@@ -187,6 +193,30 @@ class Club implements \Stringable
     public function setFftaCode(string $fftaCode): self
     {
         $this->fftaCode = $fftaCode;
+
+        return $this;
+    }
+
+    public function isAcceptingApplications(): bool
+    {
+        return $this->acceptingApplications;
+    }
+
+    public function setAcceptingApplications(bool $acceptingApplications): self
+    {
+        $this->acceptingApplications = $acceptingApplications;
+
+        return $this;
+    }
+
+    public function getApplicationClosureMessage(): ?string
+    {
+        return $this->applicationClosureMessage;
+    }
+
+    public function setApplicationClosureMessage(?string $applicationClosureMessage): self
+    {
+        $this->applicationClosureMessage = $applicationClosureMessage;
 
         return $this;
     }

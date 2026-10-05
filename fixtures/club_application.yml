@@ -1,0 +1,41 @@
+App\Entity\ClubApplication:
+    club_application_pending:
+        licensee: '@licensee_ladg_club_applicant_1'
+        club: '@club_ladg'
+        season: 2027
+        status: 'pending'
+        createdAt: '<dateTimeBetween("-10 days", "-5 days")>'
+    club_application_validated:
+        licensee: '@licensee_ladg_club_applicant_2'
+        club: '@club_ladg'
+        season: 2027
+        status: 'validated'
+        adminMessage: 'Votre demande est acceptée. La licence FFTA doit encore être activée.'
+        createdAt: '<dateTimeBetween("-10 days", "-5 days")>'
+        updatedAt: '<dateTimeBetween("-4 days", "-3 days")>'
+        processedBy: '@user_ladg_club_admin_1'
+    club_application_waiting_list:
+        licensee: '@licensee_ladg_club_applicant_3'
+        club: '@club_ladg'
+        season: 2027
+        status: 'waiting_list'
+        adminMessage: 'Nous vous recontacterons dès qu’une place sera disponible.'
+        createdAt: '<dateTimeBetween("-10 days", "-5 days")>'
+        updatedAt: '<dateTimeBetween("-4 days", "-3 days")>'
+        processedBy: '@user_ladg_club_admin_1'
+    club_application_rejected:
+        licensee: '@licensee_ladg_club_applicant_4'
+        club: '@club_ladg'
+        season: 2027
+        status: 'rejected'
+        adminMessage: 'Votre demande n’a pas pu être retenue cette saison.'
+        createdAt: '<dateTimeBetween("-10 days", "-5 days")>'
+        updatedAt: '<dateTimeBetween("-4 days", "-3 days")>'
+        processedBy: '@user_ladg_club_admin_1'
+    club_application_cancelled:
+        licensee: '@licensee_ladg_club_applicant_5'
+        club: '@club_ladg'
+        season: 2027
+        status: 'cancelled'
+        createdAt: '<dateTimeBetween("-10 days", "-5 days")>'
+        updatedAt: '<dateTimeBetween("-4 days", "-3 days")>'
