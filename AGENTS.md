@@ -291,7 +291,7 @@ make shell-root   # As root
 # Correct way:
 docker compose exec -u symfony -w /app app bin/console <command>
 docker compose exec -u symfony -w /app app composer <command>
-docker compose exec -u symfony -w /app app vendor/bin/phpunit
+docker compose exec -e APP_ENV=test -u symfony -w /app app vendor/bin/phpunit
 
 # Or use Makefile shortcuts:
 make shell  # Then run commands inside container
@@ -393,6 +393,11 @@ The `sut` entrypoint inside the container automatically:
 Use this when iterating quickly — no full image rebuild needed:
 
 ```bash
+# 0. One-time: the dev MariaDB `symfony` user cannot create `app_test` by default
+#    (only `app` is granted). Grant it once per database volume:
+docker compose exec -T database mariadb -uroot -proot \
+  -e "GRANT ALL PRIVILEGES ON \`app_test%\`.* TO 'symfony'@'%'; FLUSH PRIVILEGES;"
+
 # 1. (Re)create and migrate the test database
 docker compose exec -u symfony -w /app app sh -c '
   APP_ENV=test bin/console doctrine:database:drop --force --if-exists &&
@@ -404,12 +409,21 @@ docker compose exec -u symfony -w /app app sh -c '
 docker compose exec -u symfony -w /app app sh -c \
   'APP_ENV=test bin/console hautelook:fixtures:load --no-interaction'
 
-# 3. Run all tests (excluding the "disabled" group)
-docker compose exec -u symfony -w /app app bin/phpunit --exclude-group=disabled
+# 3. Run all tests (excluding the "disabled" group) — `-e APP_ENV=test` is REQUIRED (see below)
+docker compose exec -e APP_ENV=test -u symfony -w /app app bin/phpunit --exclude-group=disabled
 
 # 4. Run a specific test file
-docker compose exec -u symfony -w /app app bin/phpunit tests/Functional/Controller/ClubEquipmentControllerTest.php
+docker compose exec -e APP_ENV=test -u symfony -w /app app bin/phpunit tests/Functional/Controller/ClubEquipmentControllerTest.php
 ```
+
+> ⚠️ **Always pass `-e APP_ENV=test` to `bin/phpunit` in the dev container.** The `app` container exports
+> `APP_ENV=dev`, and `KernelTestCase` reads `$_ENV` before `$_SERVER`, so the
+> `<server name="APP_ENV" value="test" force="true"/>` in `phpunit.xml.dist` does not win. Without it,
+> functional tests fail with *"framework.test config is not set to true"* and integration tests run
+> against the **dev** `app` database without DAMA rollback (polluting it). CI is unaffected because
+> `docker-compose.test.yml` sets `APP_ENV=test`.
+>
+> When scripting (agents, CI-like shells without a TTY), add `-T` to `docker compose exec`.
 
 ##### Key test environment details
 - **Config**: `.env.test` — database points to `app_test`, FriendlyCaptcha is bypassed, encryption key must be set
@@ -417,6 +431,10 @@ docker compose exec -u symfony -w /app app bin/phpunit tests/Functional/Controll
 - **Encryption**: Disabled via `config/packages/test/spec_shaper_encrypt.yaml`
 - **DB transactions**: DAMA DoctrineTestBundle rolls back each test case automatically (configured in `config/packages/test/dama_doctrine_test_bundle.yaml`)
 - **Fixtures**: YAML files in `fixtures/` loaded by `hautelook:fixtures:load`; must be reloaded whenever the schema changes
+  - Seasons are hardcoded (currently `2027`) in `fixtures/licensee_ladg.yml` and `fixtures/club_application.yml`; `Season::seasonForDate()` rolls over on Sept 1, so these need bumping each season
+  - `ClubApplication` is unique per (licensee, season, club): the fixture applicants `applicant{1..5}@ladg.com` each already have an LADG application for the fixture season — use another club (e.g. *Les Archers du Bosquet*) when a test submits a new application
+- **Replacing services with mocks in functional tests**: call `$client->disableReboot()` and `self::getContainer()->set(Service::class, $mock)` **before the first request** — once a request has instantiated the real service, `set()` throws *"service is already initialized"*. Only one `createClient()` per test is allowed; to switch users reuse the client with `$client->loginUser($otherUser)`
+- **Invalid form submissions** render with HTTP **422**, not 200 — assert `assertResponseStatusCodeSame(422)`
 
 ##### Encryption key for `.env.test`
 `.env.test` must contain a valid `SPEC_SHAPER_ENCRYPT_KEY`. Generate one with:
@@ -429,7 +447,7 @@ docker compose exec -u symfony -w /app app bin/console encrypt:genkey
 #### Pre-Commit Checklist
 **CRITICAL**: Before committing, ALWAYS:
 1. Run `make qa` until it passes (Rector, PHP CS Fixer, PHPStan)
-2. Run tests: `docker compose exec -u symfony -w /app app bin/phpunit --exclude-group=disabled`
+2. Run tests: `docker compose exec -e APP_ENV=test -u symfony -w /app app bin/phpunit --exclude-group=disabled`
 3. Fix any issues and repeat steps 1-2 until both pass
 
 #### Commit Conventions
@@ -894,7 +912,7 @@ Use this loop for every non-trivial change so work is traceable and reviewable.
 1. Create or confirm the tracking issue (link external source such as Aikido/Sonar when relevant).
 2. Sync from `main` and create a dedicated feature branch.
 3. Implement the smallest complete fix.
-4. Run required checks in Docker: `make qa` then `docker compose exec -u symfony -w /app app bin/phpunit --exclude-group=disabled`.
+4. Run required checks in Docker: `make qa` then `docker compose exec -e APP_ENV=test -u symfony -w /app app bin/phpunit --exclude-group=disabled`.
 5. Commit atomically with a one-line gitmoji message.
 6. Push branch and open PR linked to the issue.
 7. Check CI status and investigate failed checks immediately.

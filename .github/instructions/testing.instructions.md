@@ -21,10 +21,10 @@ docker compose exec -u symfony -w /app app sh -c \
   'APP_ENV=test bin/console hautelook:fixtures:load --no-interaction'
 
 # 3. Run all tests (excluding disabled group)
-docker compose exec -u symfony -w /app app bin/phpunit --exclude-group=disabled
+docker compose exec -e APP_ENV=test -u symfony -w /app app bin/phpunit --exclude-group=disabled
 
 # 4. Run a specific test file
-docker compose exec -u symfony -w /app app bin/phpunit tests/Functional/Controller/ClubEquipmentControllerTest.php
+docker compose exec -e APP_ENV=test -u symfony -w /app app bin/phpunit tests/Functional/Controller/ClubEquipmentControllerTest.php
 ```
 
 ## Full CI Run
