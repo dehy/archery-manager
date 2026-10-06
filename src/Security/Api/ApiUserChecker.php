@@ -12,8 +12,11 @@ use Symfony\Component\Security\Core\User\UserInterface;
 /**
  * Applies the web lockout rule to the API firewall, for logins and for every bearer-token request.
  *
- * A user without a password hash is deliberately not special-cased: it fails as plain
- * bad credentials so the login response doesn't reveal which emails exist.
+ * A user without a password hash is deliberately not special-cased: it fails as plain bad credentials.
+ *
+ * Known trade-off: this runs before the password check, so a locked account answers with the
+ * lock notice (account_locked) while an unknown email gets invalid_credentials. That reveals that
+ * a locked email exists, in exchange for telling real users why they can't log in.
  */
 final class ApiUserChecker implements UserCheckerInterface
 {
@@ -29,7 +32,7 @@ final class ApiUserChecker implements UserCheckerInterface
             ? max(1, (int) ceil(($lockedUntil->getTimestamp() - time()) / 60))
             : 1;
 
-        throw new CustomUserMessageAccountStatusException(\sprintf('Compte temporairement verrouillé. Réessayez dans %d minutes.', $remainingMinutes));
+        throw new CustomUserMessageAccountStatusException(\sprintf('Account temporarily locked. Try again in %d minutes.', $remainingMinutes));
     }
 
     #[\Override]

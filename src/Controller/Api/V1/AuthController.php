@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Controller\Api\V1;
 
 use App\Entity\SecurityLog;
+use App\Security\Api\ApiErrorResponse;
 use App\Security\Api\ApiTokenManager;
 use App\Security\Api\InvalidRefreshTokenException;
+use App\Security\Api\RefreshAccountLockedException;
+use App\Security\Api\RefreshConflictException;
 use App\Security\Api\RefreshTokenReuseException;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
@@ -17,6 +20,10 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final readonly class AuthController
 {
+    private const int MAX_TOKEN_LENGTH = 255;
+
+    private const string REFRESH_FAILED_MESSAGE = 'Invalid or expired session, log in again.';
+
     public function __construct(
         private ApiTokenManager $tokenManager,
         private EntityManagerInterface $entityManager,
@@ -25,12 +32,17 @@ final readonly class AuthController
     }
 
     /**
-     * Handled by the firewall's json_login authenticator; this route only has to exist.
+     * Credentials are checked by the firewall's json_login authenticator, which only handles
+     * requests with a JSON content type. Anything else ends up here.
      */
     #[Route('/api/v1/auth/login', name: 'api_v1_auth_login', methods: ['POST'])]
-    public function login(): never
+    public function login(): JsonResponse
     {
-        throw new \LogicException('Handled by the api firewall json_login authenticator.');
+        return ApiErrorResponse::create(
+            'unsupported_media_type',
+            'Send a JSON body with the header Content-Type: application/json.',
+            Response::HTTP_UNSUPPORTED_MEDIA_TYPE,
+        );
     }
 
     #[Route('/api/v1/auth/refresh', name: 'api_v1_auth_refresh', methods: ['POST'])]
@@ -38,7 +50,7 @@ final readonly class AuthController
     {
         $refreshToken = $this->refreshTokenFrom($request);
         if (null === $refreshToken) {
-            return $this->error('invalid_request', Response::HTTP_BAD_REQUEST);
+            return ApiErrorResponse::create('invalid_request', 'The refresh_token field is required.', Response::HTTP_BAD_REQUEST);
         }
 
         try {
@@ -46,12 +58,22 @@ final readonly class AuthController
         } catch (RefreshTokenReuseException $refreshTokenReuseException) {
             $this->logReuse($request, $refreshTokenReuseException);
 
-            return $this->error('invalid_refresh_token', Response::HTTP_UNAUTHORIZED);
+            return ApiErrorResponse::create('invalid_refresh_token', self::REFRESH_FAILED_MESSAGE, Response::HTTP_UNAUTHORIZED);
+        } catch (RefreshAccountLockedException) {
+            return ApiErrorResponse::create('account_locked', 'Account temporarily locked.', Response::HTTP_UNAUTHORIZED);
+        } catch (RefreshConflictException) {
+            $response = ApiErrorResponse::create('refresh_conflict', 'Concurrent refresh in progress, retry in a moment.', Response::HTTP_CONFLICT);
+            $response->headers->set('Retry-After', '1');
+
+            return $response;
         } catch (InvalidRefreshTokenException) {
-            return $this->error('invalid_refresh_token', Response::HTTP_UNAUTHORIZED);
+            return ApiErrorResponse::create('invalid_refresh_token', self::REFRESH_FAILED_MESSAGE, Response::HTTP_UNAUTHORIZED);
         }
 
-        return $this->noStore(new JsonResponse($tokens->toArray($this->clock->now())));
+        $response = new JsonResponse($tokens->toArray($this->clock->now()));
+        $response->headers->set('Cache-Control', 'no-store');
+
+        return $response;
     }
 
     /**
@@ -69,7 +91,10 @@ final readonly class AuthController
             $this->tokenManager->revokeByRefreshToken($refreshToken);
         }
 
-        return $this->noStore(new JsonResponse(null, Response::HTTP_NO_CONTENT));
+        $response = new JsonResponse(null, Response::HTTP_NO_CONTENT);
+        $response->headers->set('Cache-Control', 'no-store');
+
+        return $response;
     }
 
     private function refreshTokenFrom(Request $request): ?string
@@ -80,7 +105,11 @@ final readonly class AuthController
             return null;
         }
 
-        return \is_string($refreshToken) && '' !== $refreshToken ? $refreshToken : null;
+        if (!\is_string($refreshToken) || '' === $refreshToken || \strlen($refreshToken) > self::MAX_TOKEN_LENGTH) {
+            return null;
+        }
+
+        return $refreshToken;
     }
 
     private function logReuse(Request $request, RefreshTokenReuseException $exception): void
@@ -95,17 +124,5 @@ final readonly class AuthController
 
         $this->entityManager->persist($securityLog);
         $this->entityManager->flush();
-    }
-
-    private function error(string $code, int $status): JsonResponse
-    {
-        return $this->noStore(new JsonResponse(['error' => $code], $status));
-    }
-
-    private function noStore(JsonResponse $response): JsonResponse
-    {
-        $response->headers->set('Cache-Control', 'no-store');
-
-        return $response;
     }
 }

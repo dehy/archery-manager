@@ -101,7 +101,28 @@ final class AuthControllerTest extends WebTestCase
         $client->jsonRequest(Request::METHOD_POST, self::LOGIN_URL, ['email' => self::EMAIL, 'password' => self::PASSWORD]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
-        $this->assertStringContainsString('verrouillé', (string) $this->decode($client)['error']);
+        $body = $this->decode($client);
+        $this->assertSame('account_locked', $body['error']);
+        $this->assertStringContainsString('locked', (string) $body['message']);
+    }
+
+    public function testFailedLoginsOnAnAlreadyLockedAccountDoNotExtendTheLock(): void
+    {
+        $client = self::createClient();
+        $user = $this->user();
+        $user->setFailedLoginAttempts(10);
+        $user->lockAccount(30);
+        $this->entityManager()->flush();
+        $lockedUntil = $user->getAccountLockedUntil()?->getTimestamp();
+
+        $client->jsonRequest(Request::METHOD_POST, self::LOGIN_URL, ['email' => self::EMAIL, 'password' => 'nope']);
+        $client->jsonRequest(Request::METHOD_POST, self::LOGIN_URL, ['email' => self::EMAIL, 'password' => 'nope']);
+
+        $reloaded = $this->user();
+        $this->assertSame(10, $reloaded->getFailedLoginAttempts());
+        $this->assertSame($lockedUntil, $reloaded->getAccountLockedUntil()?->getTimestamp());
+        $this->assertSame(0, $this->securityLogCount(SecurityLog::EVENT_ACCOUNT_LOCKED));
+        $this->assertSame(2, $this->securityLogCount(SecurityLog::EVENT_FAILED_LOGIN));
     }
 
     public function testMeRequiresAToken(): void
@@ -205,16 +226,22 @@ final class AuthControllerTest extends WebTestCase
         $client = self::createClient();
         $first = $this->login($client);
         $second = $this->refresh($client, $first['refresh_token']);
+        $this->expireRotationGracePeriod();
 
         $this->refresh($client, $first['refresh_token']);
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
         $this->assertSame(1, $this->securityLogCount(SecurityLog::EVENT_SUSPICIOUS_ACTIVITY));
+        $this->assertSame(1, $this->revokedSessionCount());
 
         $this->get($client, self::ME_URL, $second['access_token']);
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
 
         $this->refresh($client, $second['refresh_token']);
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+
+        // Replaying again is just an invalid token: the already revoked session isn't re-flagged.
+        $this->refresh($client, $first['refresh_token']);
+        $this->assertSame(1, $this->securityLogCount(SecurityLog::EVENT_SUSPICIOUS_ACTIVITY));
     }
 
     public function testExpiredRefreshTokenIsRejected(): void
@@ -370,6 +397,20 @@ final class AuthControllerTest extends WebTestCase
     private function logout(KernelBrowser $client, string $refreshToken): void
     {
         $client->jsonRequest(Request::METHOD_POST, self::LOGOUT_URL, ['refresh_token' => $refreshToken]);
+    }
+
+    private function expireRotationGracePeriod(): void
+    {
+        $this->entityManager()->createQuery('UPDATE '.ApiSession::class.' s SET s.rotatedAt = :past')
+            ->setParameter('past', new \DateTimeImmutable(\sprintf('-%d seconds', ApiTokenManager::ROTATION_GRACE_SECONDS + 60)))
+            ->execute();
+    }
+
+    private function revokedSessionCount(): int
+    {
+        return (int) $this->entityManager()
+            ->createQuery('SELECT COUNT(s.id) FROM '.ApiSession::class.' s WHERE s.revokedAt IS NOT NULL')
+            ->getSingleScalarResult();
     }
 
     private function expireAccessTokens(): void
