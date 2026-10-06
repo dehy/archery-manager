@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Api\V1;
 
-use App\DBAL\Types\EventParticipationStateType;
 use App\DBAL\Types\TargetTypeType;
 use App\Entity\ClubApplication;
 use App\Entity\ContestEvent;
@@ -28,7 +27,7 @@ final readonly class HomePresenter
     /**
      * @return array<string, mixed>
      */
-    public function event(Event $event, EventParticipation $participation): array
+    public function event(Event $event, EventParticipation $participation, int $participantsCount): array
     {
         return [
             'id' => $event->getId(),
@@ -40,9 +39,7 @@ final readonly class HomePresenter
             'all_day' => $event->isAllDay(),
             'address' => $event->getAddress(),
             'participation_state' => $participation->getParticipationState(),
-            'participants_count' => $event->getParticipations()
-                ->filter(static fn (EventParticipation $p): bool => EventParticipationStateType::NOT_GOING !== $p->getParticipationState())
-                ->count(),
+            'participants_count' => $participantsCount,
         ];
     }
 

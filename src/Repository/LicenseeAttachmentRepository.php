@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\DBAL\Types\LicenseeAttachmentType;
+use App\Entity\Licensee;
 use App\Entity\LicenseeAttachment;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -21,6 +23,31 @@ class LicenseeAttachmentRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, LicenseeAttachment::class);
+    }
+
+    /**
+     * Which of these licensees have a profile picture, in a single query.
+     *
+     * @param list<Licensee> $licensees
+     *
+     * @return array<int, true> licensee id => true
+     */
+    public function profilePictureOwners(array $licensees): array
+    {
+        if ([] === $licensees) {
+            return [];
+        }
+
+        $ids = $this->createQueryBuilder('a')
+            ->select('IDENTITY(a.licensee)')
+            ->where('a.type = :type')
+            ->andWhere('a.licensee IN (:licensees)')
+            ->setParameter('type', LicenseeAttachmentType::PROFILE_PICTURE)
+            ->setParameter('licensees', $licensees)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        return array_fill_keys(array_map(intval(...), $ids), true);
     }
 
     public function add(LicenseeAttachment $entity, bool $flush = false): void

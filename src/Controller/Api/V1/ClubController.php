@@ -12,6 +12,7 @@ use App\Entity\Club;
 use App\Entity\Group;
 use App\Entity\Licensee;
 use App\Repository\GroupRepository;
+use App\Repository\LicenseeAttachmentRepository;
 use App\Repository\LicenseeRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,6 +22,10 @@ use Symfony\Component\String\UnicodeString;
 
 /**
  * The club of the selected licensee for the selected season, and its member directory (the "trombinoscope").
+ *
+ * The directory is built from one query for the whole club: filtering, searching and sorting happen in
+ * PHP on the displayed names (the viewer must not be able to search or order on what they cannot see).
+ * That is fine for a club, but it is the place to push into SQL if clubs ever get large.
  */
 final readonly class ClubController
 {
@@ -28,12 +33,16 @@ final readonly class ClubController
 
     private const int MAX_PAGE_SIZE = 100;
 
+    /** Beyond this the offset arithmetic could overflow; nobody pages through 3 million members. */
+    private const int MAX_PAGE = 100000;
+
     private const string NO_GROUP = 'none';
 
     public function __construct(
         private MemberContext $context,
         private GroupRepository $groups,
         private LicenseeRepository $licensees,
+        private LicenseeAttachmentRepository $attachments,
         private ClubPresenter $clubPresenter,
         private LicenseePresenter $licenseePresenter,
     ) {
@@ -44,95 +53,124 @@ final readonly class ClubController
     {
         $club = $this->context->requireClub();
         $season = $this->context->season();
-        $members = $this->licensees->findByLicenseYear($club, $season);
+        $members = $this->directory($club, $season);
 
         return PrivateJson::response([
             'club' => $this->clubPresenter->summary($club),
             'season' => $season,
             'member_count' => \count($members),
-            'groups' => $this->groupsWithCounts($club, $members),
+            'groups' => $this->groupsWithCounts($this->groups->findBy(['club' => $club], ['name' => 'ASC']), $members),
             'without_group_count' => $this->withoutGroupCount($members),
         ]);
     }
 
     /**
      * Query parameters: `group` (a group id of the club, or "none"), `q` (search in the displayed name),
-     * `page` and `per_page`.
+     * `page` and `per_page` (larger values are capped).
      */
     #[Route('/api/v1/club/members', name: 'api_v1_club_members', methods: ['GET'])]
     public function members(Request $request): JsonResponse
     {
         $club = $this->context->requireClub();
         $season = $this->context->season();
-        $all = $this->licensees->findByLicenseYear($club, $season);
+        $clubGroups = $this->groups->findBy(['club' => $club], ['name' => 'ASC']);
+        $all = $this->directory($club, $season);
 
-        $filtered = $this->filterByGroup($all, $this->groupFilter($request, $club));
-        $summaries = array_map(fn (Licensee $licensee): array => $this->licenseePresenter->summary($licensee, $season), $filtered);
-        $summaries = $this->search($summaries, trim((string) $request->query->get('q', '')));
-        usort($summaries, static fn (array $a, array $b): int => self::fold($a['display_name']) <=> self::fold($b['display_name']));
+        $matching = $this->search($this->filterByGroup($all, $this->groupFilter($request, $clubGroups)), trim((string) $request->query->get('q', '')));
+        usort($matching, static fn (array $a, array $b): int => [$a['key'], $a['licensee']->getId()] <=> [$b['key'], $b['licensee']->getId()]);
 
-        $page = $this->positiveInt($request, 'page', 1);
+        $page = $this->positiveInt($request, 'page', 1, self::MAX_PAGE);
         $perPage = min($this->positiveInt($request, 'per_page', self::DEFAULT_PAGE_SIZE), self::MAX_PAGE_SIZE);
+        $pageLicensees = array_map(static fn (array $entry): Licensee => $entry['licensee'], \array_slice($matching, ($page - 1) * $perPage, $perPage));
+        $withPicture = $this->attachments->profilePictureOwners($pageLicensees);
 
         return PrivateJson::response([
-            'data' => \array_slice($summaries, ($page - 1) * $perPage, $perPage),
+            'data' => array_map(
+                fn (Licensee $licensee): array => $this->licenseePresenter->summary($licensee, $season, $club, isset($withPicture[$licensee->getId()])),
+                $pageLicensees,
+            ),
             'meta' => [
                 'page' => $page,
                 'per_page' => $perPage,
-                'total' => \count($summaries),
+                'total' => \count($matching),
                 'total_in_club' => \count($all),
             ],
             'filters' => [
-                'groups' => $this->groupsWithCounts($club, $all),
+                'groups' => $this->groupsWithCounts($clubGroups, $all),
                 'without_group_count' => $this->withoutGroupCount($all),
             ],
         ]);
     }
 
     /**
-     * @param list<Licensee> $members
+     * Every member of the club for the season, with the groups of the club they are in and the
+     * name the viewer may see (and its folded form, used to sort and search).
      *
-     * @return list<array{id: int|null, name: string|null, description: string|null, member_count: int}>
+     * @return list<array{licensee: Licensee, groups: list<Group>, name: string, key: string}>
      */
-    private function groupsWithCounts(Club $club, array $members): array
+    private function directory(Club $club, int $season): array
     {
-        $groups = [];
-        foreach ($this->groups->findBy(['club' => $club], ['name' => 'ASC']) as $group) {
-            $groups[] = [
-                ...$this->clubPresenter->groupReference($group),
-                'description' => $group->getDescription(),
-                'member_count' => \count(array_filter($members, static fn (Licensee $m): bool => $m->getGroups()->contains($group))),
+        $entries = [];
+        foreach ($this->licensees->findForDirectory($club, $season) as $licensee) {
+            $name = $this->licenseePresenter->displayName($licensee);
+            $entries[] = [
+                'licensee' => $licensee,
+                'groups' => $this->licenseePresenter->groupsOf($licensee, $club),
+                'name' => $name,
+                'key' => $this->fold($name),
             ];
         }
 
-        return $groups;
+        return $entries;
     }
 
     /**
-     * @param list<Licensee> $members
+     * @param list<Group>                                                                      $groups
+     * @param list<array{licensee: Licensee, groups: list<Group>, name: string, key: string}> $members
+     *
+     * @return list<array{id: int|null, name: string|null, description: string|null, member_count: int}>
+     */
+    private function groupsWithCounts(array $groups, array $members): array
+    {
+        $result = [];
+        foreach ($groups as $group) {
+            $result[] = [
+                ...$this->clubPresenter->groupReference($group),
+                'description' => $group->getDescription(),
+                'member_count' => \count(array_filter($members, static fn (array $m): bool => \in_array($group, $m['groups'], true))),
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param list<array{licensee: Licensee, groups: list<Group>, name: string, key: string}> $members
      */
     private function withoutGroupCount(array $members): int
     {
-        return \count(array_filter($members, static fn (Licensee $m): bool => $m->getGroups()->isEmpty()));
+        return \count(array_filter($members, static fn (array $m): bool => [] === $m['groups']));
     }
 
     /**
+     * @param list<Group> $clubGroups
+     *
      * @return Group|self::NO_GROUP|null
      */
-    private function groupFilter(Request $request, Club $club): Group|string|null
+    private function groupFilter(Request $request, array $clubGroups): Group|string|null
     {
-        $group = $request->query->get('group');
-        if (null === $group || '' === $group) {
+        $requested = $request->query->get('group');
+        if (null === $requested || '' === $requested) {
             return null;
         }
 
-        if (self::NO_GROUP === $group) {
+        if (self::NO_GROUP === $requested) {
             return self::NO_GROUP;
         }
 
-        foreach ($this->groups->findBy(['club' => $club]) as $candidate) {
-            if (ctype_digit((string) $group) && $candidate->getId() === (int) $group) {
-                return $candidate;
+        foreach ($clubGroups as $group) {
+            if (ctype_digit((string) $requested) && $group->getId() === (int) $requested) {
+                return $group;
             }
         }
 
@@ -140,15 +178,15 @@ final readonly class ClubController
     }
 
     /**
-     * @param list<Licensee> $members
+     * @param list<array{licensee: Licensee, groups: list<Group>, name: string, key: string}> $members
      *
-     * @return list<Licensee>
+     * @return list<array{licensee: Licensee, groups: list<Group>, name: string, key: string}>
      */
     private function filterByGroup(array $members, Group|string|null $filter): array
     {
         return match (true) {
-            $filter instanceof Group => array_values(array_filter($members, static fn (Licensee $m): bool => $m->getGroups()->contains($filter))),
-            self::NO_GROUP === $filter => array_values(array_filter($members, static fn (Licensee $m): bool => $m->getGroups()->isEmpty())),
+            $filter instanceof Group => array_values(array_filter($members, static fn (array $m): bool => \in_array($filter, $m['groups'], true))),
+            self::NO_GROUP === $filter => array_values(array_filter($members, static fn (array $m): bool => [] === $m['groups'])),
             default => $members,
         };
     }
@@ -157,22 +195,22 @@ final readonly class ClubController
      * Searches what the viewer can see (the displayed name): matching on a last name that is
      * shown as an initial would let a member find out other members' last names.
      *
-     * @param list<array<string, mixed>> $summaries
+     * @param list<array{licensee: Licensee, groups: list<Group>, name: string, key: string}> $members
      *
-     * @return list<array<string, mixed>>
+     * @return list<array{licensee: Licensee, groups: list<Group>, name: string, key: string}>
      */
-    private function search(array $summaries, string $query): array
+    private function search(array $members, string $query): array
     {
         if ('' === $query) {
-            return $summaries;
+            return $members;
         }
 
-        $needle = self::fold($query);
+        $needle = $this->fold($query);
 
-        return array_values(array_filter($summaries, static fn (array $s): bool => str_contains(self::fold($s['display_name']), $needle)));
+        return array_values(array_filter($members, static fn (array $m): bool => str_contains((string) $m['key'], $needle)));
     }
 
-    private function positiveInt(Request $request, string $name, int $default): int
+    private function positiveInt(Request $request, string $name, int $default, ?int $max = null): int
     {
         $value = $request->query->get($name);
         if (null === $value || '' === $value) {
@@ -180,7 +218,7 @@ final readonly class ClubController
         }
 
         $int = filter_var($value, \FILTER_VALIDATE_INT);
-        if (false === $int || $int < 1) {
+        if (false === $int || $int < 1 || (null !== $max && $int > $max)) {
             throw new BadRequestHttpException(\sprintf('Invalid "%s" parameter.', $name));
         }
 
@@ -190,7 +228,7 @@ final readonly class ClubController
     /**
      * Case- and accent-insensitive form used to sort and search names.
      */
-    private static function fold(string $value): string
+    private function fold(string $value): string
     {
         return new UnicodeString($value)->ascii()->lower()->toString();
     }

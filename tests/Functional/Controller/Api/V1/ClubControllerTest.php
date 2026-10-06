@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller\Api\V1;
 
+use App\Entity\Group;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -252,6 +254,69 @@ final class ClubControllerTest extends ApiWebTestCase
         yield 'per_page zero' => ['per_page=0'];
         yield 'unknown group' => ['group=999999999'];
         yield 'group not a number' => ['group=abc'];
+    }
+
+    public function testAnAbsurdPageNumberIsRejectedInsteadOfOverflowing(): void
+    {
+        $client = self::createClient();
+        $token = $this->tokenFor(self::MEMBER);
+
+        foreach (['9223372036854775807', '100001'] as $page) {
+            $this->get($client, self::MEMBERS_URL.'?page='.$page, $token);
+            $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        }
+
+        $this->get($client, self::MEMBERS_URL.'?page=100000', $token);
+        $this->assertResponseIsSuccessful();
+        $this->assertSame([], $this->json($client)['data'], 'A page past the end is simply empty.');
+    }
+
+    public function testTheGroupsOfAPreviousClubAreNeitherShownNorCounted(): void
+    {
+        $client = self::createClient();
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $member = $this->licenseeOf(self::OTHER_MEMBER);
+        foreach ($member->getGroups()->toArray() as $group) {
+            $member->removeGroup($group);
+        }
+
+        // The member belonged to another club before: its group is still attached to the licensee.
+        $previousClubGroup = $entityManager->getRepository(Group::class)->findOneBy(['name' => 'Débutants Adultes']);
+        $this->assertInstanceOf(Group::class, $previousClubGroup);
+        $member->addGroup($previousClubGroup);
+        $entityManager->flush();
+        $token = $this->tokenFor(self::MEMBER);
+
+        $this->get($client, self::MEMBERS_URL.'?per_page=100', $token);
+        $listed = array_column($this->json($client)['data'], null, 'id')[$member->getId()];
+        $this->assertSame([], $listed['groups'], 'The group of the other club is not shown.');
+
+        $this->get($client, self::MEMBERS_URL.'?per_page=100&group=none', $token);
+        $this->assertContains($member->getId(), array_column($this->json($client)['data'], 'id'), 'The member has no group in this club.');
+        $withoutGroup = $this->json($client)['filters']['without_group_count'];
+        $this->assertSame($withoutGroup, $this->json($client)['meta']['total']);
+    }
+
+    public function testMembersWithTheSameDisplayedNameKeepAStableOrderByIdentifier(): void
+    {
+        $client = self::createClient();
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $first = $this->licenseeOf('user3@ladg.com');
+        $second = $this->licenseeOf('user4@ladg.com');
+        // "Jean D." twice: an ordinary member cannot tell them apart, so only the identifier can order them.
+        $first->setFirstname('Jean')->setLastname('Dupont');
+        $second->setFirstname('Jean')->setLastname('Durand');
+        $entityManager->flush();
+        $token = $this->tokenFor(self::MEMBER);
+
+        $orders = [];
+        foreach ([1, 2] as $_) {
+            $this->get($client, self::MEMBERS_URL.'?per_page=100&q=jean+d', $token);
+            $orders[] = array_column($this->json($client)['data'], 'id');
+        }
+
+        $this->assertSame([$first->getId(), $second->getId()], $orders[0]);
+        $this->assertSame($orders[0], $orders[1]);
     }
 
     public function testThePageSizeIsCapped(): void

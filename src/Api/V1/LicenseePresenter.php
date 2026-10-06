@@ -10,6 +10,8 @@ use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseeAttachmentType;
 use App\DBAL\Types\LicenseType;
+use App\Entity\Club;
+use App\Entity\Group;
 use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\LicenseeAttachment;
@@ -26,20 +28,49 @@ final readonly class LicenseePresenter
     }
 
     /**
-     * What the member directory shows of a member. The display name follows the web rule:
-     * admins and coaches see full names, everybody else "Firstname L.".
+     * The name the viewer is allowed to see: the web rule, full names for admins and coaches
+     * and "Firstname L." for everybody else.
+     */
+    public function displayName(Licensee $licensee): string
+    {
+        return $this->displayName->getLicenseeDisplayName($licensee);
+    }
+
+    /**
+     * What the member directory shows of a member.
+     *
+     * Groups are those of $club only: a member who changed club still carries the groups of the old
+     * one, which must not show up (nor be counted) in the new club. `null` keeps all the groups.
+     * $hasPicture saves a lookup per member when the caller already knows it for a whole page.
      *
      * @return array<string, mixed>
      */
-    public function summary(Licensee $licensee, int $season): array
+    public function summary(Licensee $licensee, int $season, ?Club $club = null, ?bool $hasPicture = null): array
     {
         return [
             'id' => $licensee->getId(),
-            'display_name' => $this->displayName->getLicenseeDisplayName($licensee),
-            'groups' => $this->groups($licensee),
+            'display_name' => $this->displayName($licensee),
+            'groups' => array_map($this->clubPresenter->groupReference(...), $this->groupsOf($licensee, $club)),
             'activities' => EnumValue::listOf(LicenseActivityType::class, $licensee->getLicenseForSeason($season)?->getActivities()),
-            'picture_url' => $licensee->hasProfilePicture() ? $this->pictureUrl($licensee) : null,
+            'picture_url' => ($hasPicture ?? $licensee->hasProfilePicture()) ? $this->pictureUrl($licensee) : null,
         ];
+    }
+
+    /**
+     * The groups of a licensee that belong to $club (all of them when $club is null).
+     *
+     * @return list<Group>
+     */
+    public function groupsOf(Licensee $licensee, ?Club $club): array
+    {
+        $groups = [];
+        foreach ($licensee->getGroups() as $group) {
+            if (!$club instanceof Club || $group->getClub() === $club) {
+                $groups[] = $group;
+            }
+        }
+
+        return $groups;
     }
 
     /**
@@ -50,7 +81,7 @@ final readonly class LicenseePresenter
     public function profile(Licensee $licensee, int $season): array
     {
         return [
-            ...$this->summary($licensee, $season),
+            ...$this->summary($licensee, $season, $licensee->getLicenseForSeason($season)?->getClub()),
             'firstname' => $licensee->getFirstname(),
             'lastname' => $licensee->getLastname(),
             'full_name' => $licensee->getFullname(),
@@ -102,19 +133,6 @@ final readonly class LicenseePresenter
                 'attachmentId' => $attachment->getId(),
             ]),
         ];
-    }
-
-    /**
-     * @return list<array{id: int|null, name: string|null}>
-     */
-    private function groups(Licensee $licensee): array
-    {
-        $groups = [];
-        foreach ($licensee->getGroups() as $group) {
-            $groups[] = $this->clubPresenter->groupReference($group);
-        }
-
-        return $groups;
     }
 
     private function pictureUrl(Licensee $licensee): string

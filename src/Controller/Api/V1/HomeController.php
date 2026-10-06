@@ -10,6 +10,7 @@ use App\Api\V1\PrivateJson;
 use App\Entity\Licensee;
 use App\Helper\EventHelper;
 use App\Repository\ClubApplicationRepository;
+use App\Repository\EventParticipationRepository;
 use App\Repository\EventRepository;
 use App\Repository\ResultRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,6 +28,7 @@ final readonly class HomeController
         private MemberContext $context,
         private ClubApplicationRepository $applications,
         private EventRepository $events,
+        private EventParticipationRepository $participations,
         private ResultRepository $results,
         private EventHelper $eventHelper,
         private HomePresenter $presenter,
@@ -72,9 +74,16 @@ final readonly class HomeController
      */
     private function dashboard(Licensee $licensee): array
     {
+        $events = array_values($this->events->findNextForLicensee($licensee, self::NEXT_EVENTS)->toArray());
+        $attending = $this->participations->countAttendingByEvent($events);
+
         $nextEvents = [];
-        foreach ($this->events->findNextForLicensee($licensee, self::NEXT_EVENTS) as $event) {
-            $nextEvents[] = $this->presenter->event($event, $this->eventHelper->licenseeParticipationToEvent($licensee, $event));
+        foreach ($events as $event) {
+            $nextEvents[] = $this->presenter->event(
+                $event,
+                $this->eventHelper->licenseeParticipationToEvent($licensee, $event),
+                $attending[$event->getId()] ?? 0,
+            );
         }
 
         return [

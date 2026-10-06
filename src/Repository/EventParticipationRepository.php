@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\DBAL\Types\EventParticipationStateType;
+use App\Entity\Event;
 use App\Entity\EventParticipation;
 use App\Entity\Licensee;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -23,6 +24,39 @@ class EventParticipationRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, EventParticipation::class);
+    }
+
+    /**
+     * How many participants of each event have not declined (everything but "not going"),
+     * counted in the database: an event's `participations` collection can't be trusted when
+     * the event was loaded with a grouped, fetch-joined query.
+     *
+     * @param list<Event> $events
+     *
+     * @return array<int, int> event id => attending participants
+     */
+    public function countAttendingByEvent(array $events): array
+    {
+        if ([] === $events) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('ep')
+            ->select('IDENTITY(ep.event) AS eventId', 'COUNT(ep.id) AS attending')
+            ->where('ep.event IN (:events)')
+            ->andWhere('ep.participationState IS NULL OR ep.participationState != :notGoing')
+            ->groupBy('ep.event')
+            ->setParameter('events', $events)
+            ->setParameter('notGoing', EventParticipationStateType::NOT_GOING)
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row['eventId']] = (int) $row['attending'];
+        }
+
+        return $counts;
     }
 
     public function add(EventParticipation $entity, bool $flush = true): void
