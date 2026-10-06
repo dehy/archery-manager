@@ -163,9 +163,7 @@ final class AuthControllerTest extends WebTestCase
     {
         $client = self::createClient();
         $tokens = $this->login($client);
-        $this->entityManager()->createQuery('UPDATE '.ApiSession::class.' s SET s.accessTokenExpiresAt = :past')
-            ->setParameter('past', new \DateTimeImmutable('-1 minute'))
-            ->execute();
+        $this->expireAccessTokens();
 
         $this->get($client, self::ME_URL, $tokens['access_token']);
 
@@ -246,7 +244,7 @@ final class AuthControllerTest extends WebTestCase
         $phone = $this->login($client, deviceName: 'phone');
         $tablet = $this->login($client, deviceName: 'tablet');
 
-        $client->jsonRequest(Request::METHOD_POST, self::LOGOUT_URL, [], ['HTTP_AUTHORIZATION' => 'Bearer '.$phone['access_token']]);
+        $this->logout($client, $phone['refresh_token']);
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
 
         $this->get($client, self::ME_URL, $phone['access_token']);
@@ -259,12 +257,51 @@ final class AuthControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    public function testLogoutRequiresAToken(): void
+    public function testLogoutWorksAfterTheAccessTokenExpired(): void
     {
         $client = self::createClient();
-        $client->jsonRequest(Request::METHOD_POST, self::LOGOUT_URL);
+        $tokens = $this->login($client);
+        $this->expireAccessTokens();
 
+        $client->jsonRequest(Request::METHOD_POST, self::LOGOUT_URL, ['refresh_token' => $tokens['refresh_token']], ['HTTP_AUTHORIZATION' => 'Bearer '.$tokens['access_token']]);
+        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
+
+        $this->refresh($client, $tokens['refresh_token']);
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+    }
+
+    public function testLogoutWithAnUnknownOrMissingTokenRevealsNothing(): void
+    {
+        $client = self::createClient();
+
+        $this->logout($client, 'not-a-real-refresh-token');
+        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
+
+        $client->jsonRequest(Request::METHOD_POST, self::LOGOUT_URL);
+        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
+    }
+
+    public function testLogoutWithTheRotatedAwayRefreshTokenStillEndsTheSession(): void
+    {
+        $client = self::createClient();
+        $first = $this->login($client);
+        $second = $this->refresh($client, $first['refresh_token']);
+
+        $this->logout($client, $first['refresh_token']);
+
+        $this->get($client, self::ME_URL, $second['access_token']);
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+    }
+
+    public function testRefreshIgnoresAStaleBearerToken(): void
+    {
+        $client = self::createClient();
+        $tokens = $this->login($client);
+        $this->expireAccessTokens();
+
+        $client->jsonRequest(Request::METHOD_POST, self::REFRESH_URL, ['refresh_token' => $tokens['refresh_token']], ['HTTP_AUTHORIZATION' => 'Bearer '.$tokens['access_token']]);
+
+        $this->assertResponseIsSuccessful();
     }
 
     public function testLicenseeHeaderSelectsAnOwnedLicensee(): void
@@ -328,6 +365,18 @@ final class AuthControllerTest extends WebTestCase
         $client->jsonRequest(Request::METHOD_POST, self::REFRESH_URL, ['refresh_token' => $refreshToken]);
 
         return $this->decode($client);
+    }
+
+    private function logout(KernelBrowser $client, string $refreshToken): void
+    {
+        $client->jsonRequest(Request::METHOD_POST, self::LOGOUT_URL, ['refresh_token' => $refreshToken]);
+    }
+
+    private function expireAccessTokens(): void
+    {
+        $this->entityManager()->createQuery('UPDATE '.ApiSession::class.' s SET s.accessTokenExpiresAt = :past')
+            ->setParameter('past', new \DateTimeImmutable('-1 minute'))
+            ->execute();
     }
 
     /**

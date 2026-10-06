@@ -36,13 +36,8 @@ final readonly class AuthController
     #[Route('/api/v1/auth/refresh', name: 'api_v1_auth_refresh', methods: ['POST'])]
     public function refresh(Request $request): JsonResponse
     {
-        try {
-            $refreshToken = $request->toArray()['refresh_token'] ?? null;
-        } catch (\JsonException) {
-            $refreshToken = null;
-        }
-
-        if (!\is_string($refreshToken) || '' === $refreshToken) {
+        $refreshToken = $this->refreshTokenFrom($request);
+        if (null === $refreshToken) {
             return $this->error('invalid_request', Response::HTTP_BAD_REQUEST);
         }
 
@@ -59,28 +54,33 @@ final readonly class AuthController
         return $this->noStore(new JsonResponse($tokens->toArray($this->clock->now())));
     }
 
+    /**
+     * Revokes the device session a refresh token belongs to.
+     *
+     * Identified by the refresh token rather than the access token, which has usually
+     * expired by the time a user logs out. Always answers 204 so it can't be used to
+     * probe for valid tokens.
+     */
     #[Route('/api/v1/auth/logout', name: 'api_v1_auth_logout', methods: ['POST'])]
     public function logout(Request $request): JsonResponse
     {
-        $accessToken = $this->bearerToken($request);
-        $session = null !== $accessToken ? $this->tokenManager->findValidSessionByAccessToken($accessToken) : null;
-        if ($session instanceof \App\Entity\ApiSession) {
-            $this->tokenManager->revoke($session);
+        $refreshToken = $this->refreshTokenFrom($request);
+        if (null !== $refreshToken) {
+            $this->tokenManager->revokeByRefreshToken($refreshToken);
         }
 
         return $this->noStore(new JsonResponse(null, Response::HTTP_NO_CONTENT));
     }
 
-    private function bearerToken(Request $request): ?string
+    private function refreshTokenFrom(Request $request): ?string
     {
-        $header = $request->headers->get('Authorization', '');
-        if (!str_starts_with((string) $header, 'Bearer ')) {
+        try {
+            $refreshToken = $request->toArray()['refresh_token'] ?? null;
+        } catch (\JsonException) {
             return null;
         }
 
-        $token = trim(substr((string) $header, \strlen('Bearer ')));
-
-        return '' === $token ? null : $token;
+        return \is_string($refreshToken) && '' !== $refreshToken ? $refreshToken : null;
     }
 
     private function logReuse(Request $request, RefreshTokenReuseException $exception): void

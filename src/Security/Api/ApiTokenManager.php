@@ -121,6 +121,40 @@ class ApiTokenManager
         $this->entityManager->flush();
     }
 
+    /**
+     * Revokes the session a refresh token belongs to, whether it is the current
+     * token or one that was just rotated away. Unknown tokens are ignored so the
+     * caller can't probe for valid ones.
+     */
+    public function revokeByRefreshToken(string $refreshToken): void
+    {
+        $hash = self::hash($refreshToken);
+        $session = $this->sessions->findOneByRefreshTokenHash($hash)
+            ?? $this->sessions->findOneByPreviousRefreshTokenHash($hash);
+
+        if ($session instanceof ApiSession && !$session->isRevoked()) {
+            $this->revoke($session);
+        }
+    }
+
+    /**
+     * Signs the user out of every device, e.g. after a password reset.
+     *
+     * @return int the number of sessions that were revoked
+     */
+    public function revokeAllForUser(User $user): int
+    {
+        return (int) $this->entityManager->createQueryBuilder()
+            ->update(ApiSession::class, 's')
+            ->set('s.revokedAt', ':now')
+            ->where('s.user = :user')
+            ->andWhere('s.revokedAt IS NULL')
+            ->setParameter('now', $this->clock->now())
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->execute();
+    }
+
     public static function hash(string $token): string
     {
         return hash('sha256', $token);
