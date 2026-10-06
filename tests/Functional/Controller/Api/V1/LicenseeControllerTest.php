@@ -105,9 +105,17 @@ final class LicenseeControllerTest extends ApiWebTestCase
     {
         $client = self::createClient();
 
-        $this->get($client, $this->url($this->licenseeOf($target)), $this->tokenFor($viewer));
+        $targetLicensee = $this->licenseeOf($target);
+
+        $this->get($client, $this->url($targetLicensee), $this->tokenFor($viewer));
 
         $this->assertResponseStatusCodeSame($expected);
+        if (Response::HTTP_OK === $expected) {
+            $this->assertSame($targetLicensee->getId(), $this->json($client)['licensee']['id']);
+            $this->assertResponseMatchesSchema($client, 'LicenseeProfile', 'licensee');
+        } else {
+            $this->assertResponseMatchesSchema($client, 'Error');
+        }
     }
 
     public function testADeniedProfileRevealsNothingAboutThePerson(): void
@@ -152,7 +160,11 @@ final class LicenseeControllerTest extends ApiWebTestCase
         $this->assertResponseHeaderSame('content-type', 'image/jpeg');
         $this->assertResponseHeaderSame('content-length', (string) \strlen(self::PICTURE_BYTES));
         $this->assertResponseHeaderSame('x-content-type-options', 'nosniff');
-        $this->assertStringContainsString('private', (string) $client->getResponse()->headers->get('cache-control'));
+        $cacheControl = (string) $client->getResponse()->headers->get('cache-control');
+        foreach (['private', 'max-age=0', 'must-revalidate'] as $directive) {
+            $this->assertStringContainsString($directive, $cacheControl);
+        }
+
         $this->assertNotNull($client->getResponse()->headers->get('last-modified'));
     }
 
@@ -292,6 +304,115 @@ final class LicenseeControllerTest extends ApiWebTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
     }
 
+    /**
+     * An uploaded HTML or SVG file must never be rendered by the app's web view: always a download.
+     *
+     * @return iterable<string, array{string, string}>
+     */
+    public static function riskyTypes(): iterable
+    {
+        yield 'html' => ['text/html', '<script>alert(1)</script>'];
+        yield 'svg' => ['image/svg+xml', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'];
+        yield 'html with parameters' => ['text/html; charset=utf-8', '<h1>x</h1>'];
+        yield 'unknown binary' => ['application/octet-stream', 'binary'];
+    }
+
+    #[DataProvider('riskyTypes')]
+    public function testOnlyImagesAndPdfsAreEverShownInline(string $mimeType, string $content): void
+    {
+        $client = self::createClient();
+        $client->disableReboot();
+
+        $licensee = $this->licenseeOf(self::MEMBER);
+        $attachment = $this->storeAttachment($licensee, LicenseeAttachmentType::MISC, 'misc/risky.bin', $mimeType, $content);
+
+        $this->get($client, $this->url($licensee).'/attachments/'.$attachment->getId(), $this->tokenFor(self::MEMBER));
+
+        $this->assertResponseIsSuccessful();
+        $this->assertStringStartsWith('attachment', (string) $client->getResponse()->headers->get('content-disposition'));
+        $this->assertResponseHeaderSame('x-content-type-options', 'nosniff');
+    }
+
+    #[DataProvider('safeTypes')]
+    public function testImagesAndPdfsAreShownInline(string $mimeType): void
+    {
+        $client = self::createClient();
+        $client->disableReboot();
+
+        $licensee = $this->licenseeOf(self::MEMBER);
+        $attachment = $this->storeAttachment($licensee, LicenseeAttachmentType::MISC, 'misc/safe.bin', $mimeType, 'data');
+
+        $this->get($client, $this->url($licensee).'/attachments/'.$attachment->getId(), $this->tokenFor(self::MEMBER));
+
+        $this->assertStringStartsWith('inline', (string) $client->getResponse()->headers->get('content-disposition'));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function safeTypes(): iterable
+    {
+        yield 'jpeg' => ['image/jpeg'];
+        yield 'png' => ['image/png'];
+        yield 'webp' => ['image/webp'];
+        yield 'gif' => ['image/gif'];
+        yield 'pdf' => ['application/pdf'];
+        yield 'pdf, uppercase with parameters' => ['Application/PDF; charset=binary'];
+    }
+
+    public function testTheContentLengthIsTheRealSizeOfTheStoredFileNotTheOneInTheDatabase(): void
+    {
+        $client = self::createClient();
+        $client->disableReboot();
+
+        $licensee = $this->licenseeOf(self::MEMBER);
+        // The file was replaced and the size column was not updated: trusting it would truncate the download.
+        $attachment = $this->storeAttachment($licensee, LicenseeAttachmentType::MISC, 'misc/replaced.pdf', 'application/pdf', self::CERTIFICATE_BYTES, declaredSize: 5);
+
+        $this->get($client, $this->url($licensee).'/attachments/'.$attachment->getId(), $this->tokenFor(self::MEMBER));
+
+        $this->assertResponseHeaderSame('content-length', (string) \strlen(self::CERTIFICATE_BYTES));
+        $this->assertSame(self::CERTIFICATE_BYTES, $this->streamed($client));
+    }
+
+    public function testAFileOlderThanTheClientsCopyIsNotModifiedButANewerOneIsSentAgain(): void
+    {
+        $client = self::createClient();
+        $client->disableReboot();
+
+        $licensee = $this->licenseeOf(self::MEMBER);
+        $attachment = $this->storeAttachment($licensee, LicenseeAttachmentType::MISC, 'misc/cache.pdf', 'application/pdf', self::CERTIFICATE_BYTES);
+        $url = $this->url($licensee).'/attachments/'.$attachment->getId();
+        $token = $this->tokenFor(self::MEMBER);
+
+        $this->get($client, $url, $token, ['HTTP_IF_MODIFIED_SINCE' => gmdate('D, d M Y H:i:s', time() + 3600).' GMT']);
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_MODIFIED);
+
+        // The client's copy predates the file: it is sent again.
+        $this->get($client, $url, $token, ['HTTP_IF_MODIFIED_SINCE' => 'Thu, 01 Jan 1970 00:00:01 GMT']);
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+        $this->assertSame(self::CERTIFICATE_BYTES, $this->streamed($client));
+    }
+
+    public function testAnAttachmentIsFoundByAFreshKernelAfterTheEntityManagerWasCleared(): void
+    {
+        $client = self::createClient();
+        $client->disableReboot();
+
+        $licensee = $this->licenseeOf(self::MEMBER);
+        $attachment = $this->storeAttachment($licensee, LicenseeAttachmentType::MEDICAL_CERTIFICATE, 'certificates/fresh.pdf', 'application/pdf', self::CERTIFICATE_BYTES);
+        $licenseeId = $licensee->getId();
+        $attachmentId = $attachment->getId();
+        $token = $this->tokenFor(self::MEMBER);
+
+        // Nothing may come from the identity map of the test: everything is reloaded from the database.
+        self::getContainer()->get(EntityManagerInterface::class)->clear();
+        $this->get($client, '/api/v1/licensees/'.$licenseeId.'/attachments/'.$attachmentId, $token);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSame(self::CERTIFICATE_BYTES, $this->streamed($client));
+    }
+
     public function testAnAttachmentWhoseFileIsMissingFromTheStorageIsNotFound(): void
     {
         $client = self::createClient();
@@ -319,7 +440,7 @@ final class LicenseeControllerTest extends ApiWebTestCase
     /**
      * Stores a file in the (in-memory, in tests) licensees storage and attaches it to the licensee.
      */
-    private function storeAttachment(Licensee $licensee, string $type, string $key, string $mimeType, string $content, ?string $originalName = null): LicenseeAttachment
+    private function storeAttachment(Licensee $licensee, string $type, string $key, string $mimeType, string $content, ?string $originalName = null, ?int $declaredSize = null): LicenseeAttachment
     {
         $this->storage()->write($key, $content);
 
@@ -327,7 +448,8 @@ final class LicenseeControllerTest extends ApiWebTestCase
         $file->setName($key);
         $file->setOriginalName($originalName ?? basename($key));
         $file->setMimeType($mimeType);
-        $file->setSize(\strlen($content));
+        // What the database claims; a replaced file can leave it out of date.
+        $file->setSize($declaredSize ?? \strlen($content));
 
         $attachment = new LicenseeAttachment();
         $attachment->setFile($file);
