@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Security\Api\ApiTokenManager;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -131,6 +132,117 @@ final class AuthControllerTest extends WebTestCase
         $client->jsonRequest(Request::METHOD_GET, self::ME_URL);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+        $this->assertSame('authentication_required', $this->decode($client)['error']);
+    }
+
+    public function testTenWrongPasswordsLockTheAccountAndTheNextLoginSaysSo(): void
+    {
+        $client = self::createClient();
+
+        for ($attempt = 1; $attempt <= 10; ++$attempt) {
+            $client->jsonRequest(Request::METHOD_POST, self::LOGIN_URL, ['email' => self::EMAIL, 'password' => 'nope']);
+            $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+        }
+
+        $this->assertTrue($this->user()->isAccountLocked());
+        $this->assertSame(1, $this->securityLogCount(SecurityLog::EVENT_ACCOUNT_LOCKED));
+
+        // Even the right password is refused while locked, and nothing escalates any further.
+        $client->jsonRequest(Request::METHOD_POST, self::LOGIN_URL, ['email' => self::EMAIL, 'password' => self::PASSWORD]);
+        $this->assertSame('account_locked', $this->decode($client)['error']);
+        $client->jsonRequest(Request::METHOD_POST, self::LOGIN_URL, ['email' => self::EMAIL, 'password' => 'nope']);
+        $this->assertSame(1, $this->securityLogCount(SecurityLog::EVENT_ACCOUNT_LOCKED));
+        $this->assertSame(10, $this->user()->getFailedLoginAttempts());
+    }
+
+    public function testAfterTheLockLapsesTheCounterStartsOverInsteadOfRelockingAtOnce(): void
+    {
+        $client = self::createClient();
+        $user = $this->user();
+        $user->setFailedLoginAttempts(10);
+        $user->setAccountLockedUntil(new \DateTimeImmutable('-1 minute'));
+        $this->entityManager()->flush();
+
+        $client->jsonRequest(Request::METHOD_POST, self::LOGIN_URL, ['email' => self::EMAIL, 'password' => 'nope']);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+        $this->assertSame('invalid_credentials', $this->decode($client)['error']);
+        $reloaded = $this->user();
+        $this->assertSame(1, $reloaded->getFailedLoginAttempts());
+        $this->assertFalse($reloaded->isAccountLocked());
+        $this->assertSame(0, $this->securityLogCount(SecurityLog::EVENT_ACCOUNT_LOCKED));
+    }
+
+    public function testAnOversizedEmailIsJustBadCredentialsAndIsLoggedTruncated(): void
+    {
+        $client = self::createClient();
+
+        $client->jsonRequest(Request::METHOD_POST, self::LOGIN_URL, ['email' => str_repeat('a', 4000).'@example.com', 'password' => 'nope']);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+        $this->assertSame('invalid_credentials', $this->decode($client)['error']);
+        $loggedEmails = $this->entityManager()->createQuery('SELECT l.email FROM '.SecurityLog::class.' l WHERE l.eventType = :type')
+            ->setParameter('type', SecurityLog::EVENT_FAILED_LOGIN)
+            ->getSingleColumnResult();
+        $this->assertCount(1, $loggedEmails);
+        $this->assertSame(255, mb_strlen((string) $loggedEmails[0]));
+    }
+
+    public function testADeviceNameIsStoredCappedAndIgnoredWhenNotAString(): void
+    {
+        $client = self::createClient();
+        $this->login($client, deviceName: str_repeat('d', 300));
+        $client->jsonRequest(Request::METHOD_POST, self::LOGIN_URL, ['email' => self::EMAIL, 'password' => self::PASSWORD, 'device_name' => ['not', 'a', 'string']]);
+        $this->assertResponseIsSuccessful();
+
+        $names = $this->entityManager()->createQuery('SELECT s.deviceName FROM '.ApiSession::class.' s ORDER BY s.id')->getSingleColumnResult();
+
+        $this->assertSame(255, mb_strlen((string) $names[0]));
+        $this->assertNull($names[1]);
+    }
+
+    #[DataProvider('invalidRefreshBodies')]
+    public function testRefreshWithAnInvalidBodyIsABadRequest(string $rawBody): void
+    {
+        $client = self::createClient();
+
+        $client->request(Request::METHOD_POST, self::REFRESH_URL, server: ['CONTENT_TYPE' => 'application/json'], content: $rawBody);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $this->assertSame('invalid_request', $this->decode($client)['error']);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidRefreshBodies(): iterable
+    {
+        yield 'empty object' => ['{}'];
+        yield 'empty token' => ['{"refresh_token":""}'];
+        yield 'integer token' => ['{"refresh_token":12345}'];
+        yield 'array token' => ['{"refresh_token":["a"]}'];
+        yield 'oversized token' => ['{"refresh_token":"'.str_repeat('a', 256).'"}'];
+        yield 'json scalar' => ['"just a string"'];
+        yield 'malformed json' => ['{'];
+    }
+
+    public function testRefreshOfALockedAccountIsRefusedWithoutLosingTheSession(): void
+    {
+        $client = self::createClient();
+        $tokens = $this->login($client);
+        $this->user()->lockAccount(30);
+        $this->entityManager()->flush();
+
+        $body = $this->refresh($client, $tokens['refresh_token']);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+        $this->assertSame('account_locked', $body['error']);
+
+        $user = $this->user();
+        $user->setAccountLockedUntil(null);
+        $this->entityManager()->flush();
+        $this->refresh($client, $tokens['refresh_token']);
+        $this->assertResponseIsSuccessful();
     }
 
     public function testMeReturnsTheUserLicenseesAndContext(): void
@@ -198,9 +310,18 @@ final class AuthControllerTest extends WebTestCase
         $this->user()->lockAccount(30);
         $this->entityManager()->flush();
 
-        $this->get($client, self::ME_URL, $tokens['access_token']);
+        $body = $this->get($client, self::ME_URL, $tokens['access_token']);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+        $this->assertSame('account_locked', $body['error']);
+        $this->assertStringContainsString('invalid_token', (string) $client->getResponse()->headers->get('www-authenticate'));
+
+        // The lock, not the token, is what stops the request: lifting it restores access.
+        $user = $this->user();
+        $user->setAccountLockedUntil(null);
+        $this->entityManager()->flush();
+        $this->get($client, self::ME_URL, $tokens['access_token']);
+        $this->assertResponseIsSuccessful();
     }
 
     public function testRefreshRotatesBothTokens(): void
@@ -303,6 +424,11 @@ final class AuthControllerTest extends WebTestCase
 
         $client->jsonRequest(Request::METHOD_POST, self::LOGOUT_URL);
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
+
+        foreach (['{', '"a string"', '{"refresh_token":["a"]}', '{"refresh_token":'.str_repeat('1', 400).'}'] as $rawBody) {
+            $client->request(Request::METHOD_POST, self::LOGOUT_URL, server: ['CONTENT_TYPE' => 'application/json'], content: $rawBody);
+            $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT, 'Logout must not reveal anything, even for a malformed body: '.$rawBody);
+        }
     }
 
     public function testLogoutWithARotatedAwayRefreshTokenDoesNothing(): void

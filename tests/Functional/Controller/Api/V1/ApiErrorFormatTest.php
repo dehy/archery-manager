@@ -34,7 +34,7 @@ final class ApiErrorFormatTest extends WebTestCase
         $this->assertError($client, Response::HTTP_UNSUPPORTED_MEDIA_TYPE, 'unsupported_media_type');
     }
 
-    #[DataProvider('malformedLoginBodies')]
+    #[DataProvider('invalidLoginBodies')]
     public function testLoginWithAMalformedJsonBodyIsABadRequest(string $body): void
     {
         $client = self::createClient();
@@ -47,7 +47,7 @@ final class ApiErrorFormatTest extends WebTestCase
     /**
      * @return iterable<string, array{string}>
      */
-    public static function malformedLoginBodies(): iterable
+    public static function invalidLoginBodies(): iterable
     {
         yield 'not json' => ['{'];
         yield 'missing email' => ['{"password":"user"}'];

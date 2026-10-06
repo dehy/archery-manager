@@ -81,29 +81,64 @@ final class ApiTokenManagerTest extends KernelTestCase
         $this->assertNotNull($this->manager->refresh($tokens->refreshToken)->accessToken);
     }
 
-    public function testRotationIsAtomicAndRefusesAStaleExpectation(): void
+    public function testRotationAppliesWhenTheExpectedRefreshTokenStillHolds(): void
     {
         $tokens = $this->manager->issue($this->user);
-        $session = $this->sessions->findOneByRefreshTokenHash(ApiTokenManager::hash($tokens->refreshToken));
-        $this->assertInstanceOf(ApiSession::class, $session);
+        $session = $this->sessionOf($tokens->refreshToken);
+        $before = new \DateTimeImmutable('-1 second');
+        $now = new \DateTimeImmutable();
+
+        $rotated = $this->sessions->rotateIfUnchanged($session, $session->getRefreshTokenHash(), 'new-access-hash', $now, 'new-refresh-hash', $now, $now);
+
+        $this->assertSame(1, $rotated);
+        $this->entityManager->clear();
+        $reloaded = $this->sessions->find($session->getId());
+        $this->assertInstanceOf(ApiSession::class, $reloaded);
+        $this->assertSame('new-access-hash', $reloaded->getAccessTokenHash());
+        $this->assertSame('new-refresh-hash', $reloaded->getRefreshTokenHash());
+        $this->assertGreaterThanOrEqual($before, $reloaded->getLastUsedAt());
+        $this->assertNotInstanceOf(\App\Entity\ApiSession::class, $this->sessions->findOneByRefreshTokenHash(ApiTokenManager::hash($tokens->refreshToken)));
+    }
+
+    public function testRotationRefusesAStaleExpectationAndLeavesTheSessionUntouched(): void
+    {
+        $tokens = $this->manager->issue($this->user);
+        $session = $this->sessionOf($tokens->refreshToken);
         $now = new \DateTimeImmutable();
 
         $rotated = $this->sessions->rotateIfUnchanged($session, 'someone-else-rotated-it-first', 'a', $now, 'b', $now, $now);
 
         $this->assertSame(0, $rotated);
         $this->entityManager->clear();
-        $this->assertInstanceOf(\App\Entity\ApiSession::class, $this->sessions->findOneByRefreshTokenHash(ApiTokenManager::hash($tokens->refreshToken)));
+        $reloaded = $this->sessions->find($session->getId());
+        $this->assertInstanceOf(ApiSession::class, $reloaded);
+        $this->assertSame(ApiTokenManager::hash($tokens->accessToken), $reloaded->getAccessTokenHash());
+        $this->assertSame(ApiTokenManager::hash($tokens->refreshToken), $reloaded->getRefreshTokenHash());
     }
 
     public function testRotationDoesNotTouchARevokedSession(): void
     {
         $tokens = $this->manager->issue($this->user);
-        $session = $this->sessions->findOneByRefreshTokenHash(ApiTokenManager::hash($tokens->refreshToken));
-        $this->assertInstanceOf(ApiSession::class, $session);
+        $session = $this->sessionOf($tokens->refreshToken);
         $this->manager->revoke($session);
         $now = new \DateTimeImmutable();
 
-        $this->assertSame(0, $this->sessions->rotateIfUnchanged($session, $session->getRefreshTokenHash(), 'a', $now, 'b', $now, $now));
+        $rotated = $this->sessions->rotateIfUnchanged($session, $session->getRefreshTokenHash(), 'a', $now, 'b', $now, $now);
+
+        $this->assertSame(0, $rotated);
+        $this->entityManager->clear();
+        $reloaded = $this->sessions->find($session->getId());
+        $this->assertInstanceOf(ApiSession::class, $reloaded);
+        $this->assertTrue($reloaded->isRevoked());
+        $this->assertSame(ApiTokenManager::hash($tokens->refreshToken), $reloaded->getRefreshTokenHash());
+    }
+
+    public function testARevokedSessionsAccessTokenIsRejected(): void
+    {
+        $tokens = $this->manager->issue($this->user);
+        $this->manager->revoke($this->sessionOf($tokens->refreshToken));
+
+        $this->assertNotInstanceOf(\App\Entity\ApiSession::class, $this->manager->findValidSessionByAccessToken($tokens->accessToken));
     }
 
     public function testRevokeByRefreshTokenIgnoresUnknownTokensAndRevokedSessions(): void
@@ -149,8 +184,17 @@ final class ApiTokenManagerTest extends KernelTestCase
             ->execute();
         $this->entityManager->clear();
 
+        $beforeCall = new \DateTimeImmutable('-1 second');
         $refreshed = $this->manager->findValidSessionByAccessToken($tokens->accessToken);
-        $this->assertGreaterThan(new \DateTimeImmutable('-1 minute'), $refreshed?->getLastUsedAt());
+        $this->assertGreaterThanOrEqual($beforeCall, $refreshed?->getLastUsedAt());
+    }
+
+    private function sessionOf(string $refreshToken): ApiSession
+    {
+        $session = $this->sessions->findOneByRefreshTokenHash(ApiTokenManager::hash($refreshToken));
+        $this->assertInstanceOf(ApiSession::class, $session);
+
+        return $session;
     }
 
     private function userByEmail(string $email): User
