@@ -43,5 +43,7 @@ final readonly class ApiUserChecker implements UserCheckerInterface
     #[\Override]
     public function checkPostAuth(UserInterface $user): void
     {
+        // Nothing to verify once the credentials are accepted: the lockout is decided in checkPreAuth(),
+        // before the password is even checked.
     }
 }

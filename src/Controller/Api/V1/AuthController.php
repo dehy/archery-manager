@@ -51,16 +51,23 @@ final readonly class AuthController
 
         try {
             $tokens = $this->tokenManager->refresh($refreshToken);
-        } catch (RefreshAccountLockedException) {
-            return ApiErrorResponse::create('account_locked', 'Account temporarily locked.', Response::HTTP_UNAUTHORIZED);
-        } catch (InvalidRefreshTokenException) {
-            return ApiErrorResponse::create('invalid_refresh_token', self::REFRESH_FAILED_MESSAGE, Response::HTTP_UNAUTHORIZED);
+        } catch (InvalidRefreshTokenException $invalidRefreshTokenException) {
+            return $this->refreshFailure($invalidRefreshTokenException);
         }
 
         $response = new JsonResponse($tokens->toArray($this->clock->now()));
         $response->headers->set('Cache-Control', 'no-store');
 
         return $response;
+    }
+
+    private function refreshFailure(InvalidRefreshTokenException $exception): JsonResponse
+    {
+        if ($exception instanceof RefreshAccountLockedException) {
+            return ApiErrorResponse::create('account_locked', 'Account temporarily locked.', Response::HTTP_UNAUTHORIZED);
+        }
+
+        return ApiErrorResponse::create('invalid_refresh_token', self::REFRESH_FAILED_MESSAGE, Response::HTTP_UNAUTHORIZED);
     }
 
     /**

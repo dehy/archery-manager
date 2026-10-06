@@ -42,6 +42,23 @@ class LicenseeHelper
             return $user instanceof User ? $this->getLicenseeFromHeader($user, $request) : null;
         }
 
+        /** @var User $user */
+        return $this->getLicenseeFromWebSession($user);
+    }
+
+    public function setSelectedLicensee(?Licensee $licensee): void
+    {
+        if (ApiRequest::is($this->requestStack->getCurrentRequest())) {
+            return;
+        }
+
+        $this->requestStack
+            ->getSession()
+            ->set(self::SESSION_KEY, $licensee?->getFftaMemberCode());
+    }
+
+    private function getLicenseeFromWebSession(User $user): ?Licensee
+    {
         $licenseeCode = $this->requestStack
             ->getSession()
             ->get(self::SESSION_KEY);
@@ -61,17 +78,6 @@ class LicenseeHelper
         }
 
         return $user->getLicenseeWithCode($licenseeCode);
-    }
-
-    public function setSelectedLicensee(?Licensee $licensee): void
-    {
-        if (ApiRequest::is($this->requestStack->getCurrentRequest())) {
-            return;
-        }
-
-        $this->requestStack
-            ->getSession()
-            ->set(self::SESSION_KEY, $licensee?->getFftaMemberCode());
     }
 
     private function getLicenseeFromHeader(User $user, ?Request $request): ?Licensee

@@ -176,20 +176,21 @@ class AuthenticationFailureListener implements EventSubscriberInterface
     private function extractUsername(Request $request): string
     {
         $username = $request->request->get('_username');
-        if (\is_string($username)) {
-            return $username;
+        if (!\is_string($username) && 'json' === $request->getContentTypeFormat()) {
+            $username = $this->emailFromJsonBody($request);
         }
 
-        if ('json' !== $request->getContentTypeFormat()) {
-            return '';
-        }
+        return \is_string($username) ? $username : '';
+    }
 
+    private function emailFromJsonBody(Request $request): ?string
+    {
         try {
-            $email = $request->toArray()['email'] ?? '';
+            $email = $request->toArray()['email'] ?? null;
         } catch (RequestExceptionInterface) {
-            return '';
+            return null;
         }
 
-        return \is_string($email) ? $email : '';
+        return \is_string($email) ? $email : null;
     }
 }
