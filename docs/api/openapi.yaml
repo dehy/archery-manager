@@ -22,9 +22,19 @@ info:
       server. Without them the first licensee and the current season are used.
     - **Errors** always have the same shape, see `Error`, and carry a stable machine-readable `error` code.
     - **Dates** are ISO 8601 with offset (`2026-10-06T19:00:00+02:00`); plain dates are `YYYY-MM-DD`.
-    - **Caching.** Responses depend on who asks: they are `private, no-store`, except files, which are
-      `private` and support `If-Modified-Since`.
+    - **Caching.** JSON responses depend on who asks and are never stored (`Cache-Control: no-store, private`).
+      Files are `private, max-age=0, must-revalidate` with a `Last-Modified` taken from the stored file, so the
+      app can keep them and revalidate with `If-Modified-Since` (`304`).
     - **Pagination.** Lists take `page` (from 1) and `per_page` (default 30, max 100).
+
+    ## Access rules and their known limit
+
+    A licensee's profile and attachments are visible to the licensee's own account, to admins, and to club
+    admins and coaches **who share a club with the licensee in the current season** (the season selected with
+    `X-Season` does not widen this). Pictures and the directory follow the **selected** season, so a member
+    sees the club as it was in that season. `ROLE_COACH` and `ROLE_CLUB_ADMIN` belong to the account, not to a
+    club: a coach of club A whose account also holds a licensee in club B is a coach for club B too (same as the
+    web app; it needs per-club roles to fix).
 
     ## Not yet in this version
 
@@ -218,7 +228,9 @@ paths:
         - `blank_account`: the account has no licensee yet;
         - `no_license`: the licensee has no license for the selected season; the club applications of that
           season are listed so the user can follow them;
-        - `dashboard`: the next 5 events and the last 5 results.
+        - `dashboard`: the next 5 events and the last 5 results. Like the web home page, the events are the
+          upcoming ones assigned to one of the licensee's groups (an event open to everybody, with no assigned
+          group, is not listed there), and the club of the current season scopes them.
       parameters:
         - $ref: '#/components/parameters/XLicensee'
         - $ref: '#/components/parameters/XSeason'
@@ -281,13 +293,10 @@ paths:
         - $ref: '#/components/parameters/XSeason'
         - name: group
           in: query
-          description: Only the members of this group (an id of a group of the club), or `none` for the members without a group.
+          description: Only the members of this group (the id of a group of the club), or `none` for the members without a group. Anything else is a `400`.
           schema:
-            oneOf:
-              - type: integer
-                minimum: 1
-              - type: string
-                const: none
+            type: string
+            pattern: '^(none|[1-9][0-9]*)$'
         - name: q
           in: query
           description: Search in the displayed name, ignoring case and accents.
@@ -295,16 +304,18 @@ paths:
             type: string
         - name: page
           in: query
+          description: Starts at 1. Larger than 100000 is a `400`.
           schema:
             type: integer
             minimum: 1
+            maximum: 100000
             default: 1
         - name: per_page
           in: query
+          description: Larger values are not rejected, they are capped to 100.
           schema:
             type: integer
             minimum: 1
-            maximum: 100
             default: 30
       responses:
         '200':
@@ -318,8 +329,8 @@ paths:
                 $ref: '#/components/schemas/MemberPage'
         '400':
           description: |
-            A parameter is invalid: `page` or `per_page` is not a positive integer, `group` is not a group
-            of this club, or one of the context headers is invalid.
+            A parameter is invalid: `page` is not an integer between 1 and 100000, `per_page` is not a
+            positive integer, `group` is not a group of this club, or one of the context headers is invalid.
           content:
             application/json:
               schema:
@@ -335,11 +346,11 @@ paths:
       operationId: getLicensee
       summary: A licensee's profile
       description: |
-        Allowed for the licensee's own account, for admins, and for club admins and coaches of the same
-        club in the selected season. Anybody else gets `403`.
+        Allowed for the licensee's own account, for admins, and for club admins and coaches who share a club
+        with the licensee in the **current** season. Anybody else gets `403`. `X-Licensee` has no effect here:
+        the licensee is the one in the path. `X-Season` only chooses which season's license is described.
       parameters:
         - $ref: '#/components/parameters/LicenseeId'
-        - $ref: '#/components/parameters/XLicensee'
         - $ref: '#/components/parameters/XSeason'
       responses:
         '200':
@@ -370,8 +381,8 @@ paths:
       operationId: getLicenseePicture
       summary: A licensee's profile picture
       description: |
-        Streams the image. Allowed for the same people as the profile **and any member of the same club**,
-        since the directory shows every member's picture. Authorized on every request: there is no public or
+        Streams the image. Allowed for the same people as the profile **and any member of the same club in the
+        selected season**, since the directory shows every member's picture. Authorized on every request: there is no public or
         long-lived link. Send the bearer token with the image request (`expo-image` and `expo-file-system`
         accept headers).
 
@@ -384,6 +395,8 @@ paths:
         '200':
           description: The image.
           headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlRevalidate'
             Last-Modified:
               $ref: '#/components/headers/LastModified'
             Content-Length:
@@ -395,7 +408,9 @@ paths:
                 type: string
                 format: binary
         '304':
-          description: Not modified since `If-Modified-Since`.
+          $ref: '#/components/responses/NotModified'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -409,9 +424,12 @@ paths:
       operationId: getLicenseeAttachment
       summary: A file attached to a licensee (medical certificate, license application...)
       description: |
-        Streams the file. Attachments are sensitive: allowed only for the licensee's own account, admins,
-        and club admins and coaches of the same club (the rule of the profile, **not** of the picture).
-        The attachment must belong to the licensee in the path, otherwise `404`.
+        Streams the file. Attachments are sensitive: allowed only for the licensee's own account, admins, and
+        club admins and coaches who share a club with the licensee in the current season (the rule of the
+        profile, **not** of the picture). The attachment must belong to the licensee in the path, otherwise `404`.
+
+        Only plain images (JPEG, PNG, WebP, GIF) and PDF files are served `inline`; any other type is always
+        sent as a download (`Content-Disposition: attachment`).
       parameters:
         - $ref: '#/components/parameters/LicenseeId'
         - name: attachmentId
@@ -432,6 +450,8 @@ paths:
         '200':
           description: The file, with its own media type.
           headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlRevalidate'
             Last-Modified:
               $ref: '#/components/headers/LastModified'
             Content-Length:
@@ -447,7 +467,9 @@ paths:
                 type: string
                 format: binary
         '304':
-          description: Not modified since `If-Modified-Since`.
+          $ref: '#/components/responses/NotModified'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -498,18 +520,30 @@ components:
       description: Tokens are never cached.
       schema:
         type: string
-        const: no-store
+        examples: ['no-store, private']
     PrivateNoStore:
-      description: The answer depends on the authenticated user.
+      description: The answer depends on the authenticated user and is never stored.
       schema:
         type: string
-        const: private, no-store
+        examples: ['no-store, private']
+    CacheControlRevalidate:
+      description: Files are private and must be revalidated before each reuse.
+      schema:
+        type: string
+        examples: ['must-revalidate, max-age=0, private']
     LastModified:
       description: Modification time of the stored file.
       schema:
         type: string
 
   responses:
+    NotModified:
+      description: The file did not change since `If-Modified-Since`.
+      headers:
+        Cache-Control:
+          $ref: '#/components/headers/CacheControlRevalidate'
+        Last-Modified:
+          $ref: '#/components/headers/LastModified'
     BadRequest:
       description: |
         The request is invalid: malformed JSON or body (`bad_request`), an invalid `X-Season` header, or an
@@ -674,9 +708,9 @@ components:
             email:
               type: string
             firstname:
-              type: string
+              type: [string, 'null']
             lastname:
-              type: string
+              type: [string, 'null']
         licensees:
           type: array
           description: The licensees of the account (a parent can have several).
@@ -721,7 +755,7 @@ components:
         id:
           type: integer
         firstname:
-          type: string
+          type: [string, 'null']
         ffta_member_code:
           type: [string, 'null']
 
@@ -829,7 +863,7 @@ components:
             for the members of the assigned groups). `null` means "no answer yet".
         participants_count:
           type: integer
-          description: Participants who did not answer `not_going`.
+          description: Participants of the event whose answer is not `not_going` (including those without an answer yet).
 
     ResultSummary:
       type: object
@@ -859,7 +893,9 @@ components:
           type: [integer, 'null']
           description: Meters.
         target_type:
-          $ref: '#/components/schemas/EnumValue'
+          oneOf:
+            - $ref: '#/components/schemas/EnumValue'
+            - type: 'null'
         target_size:
           type: [integer, 'null']
           description: Centimeters.
@@ -885,7 +921,7 @@ components:
           description: Hexadecimal color, e.g. `#0a7d33`.
         logo_url:
           type: [string, 'null']
-          description: Public URL of the logo, `null` when the club has none.
+          description: Path or URL of the club logo (public, no token needed), `null` when the club has none.
 
     Group:
       type: object
@@ -930,6 +966,7 @@ components:
           description: Full name for admins and coaches, "Firstname L." for everybody else.
         groups:
           type: array
+          description: The groups of the club the member is in (groups of a previous club are not listed).
           items:
             $ref: '#/components/schemas/Reference'
         activities:
@@ -1009,7 +1046,9 @@ components:
         id:
           type: integer
         type:
-          $ref: '#/components/schemas/EnumValue'
+          oneOf:
+            - $ref: '#/components/schemas/EnumValue'
+            - type: 'null'
         season:
           type: [integer, 'null']
         document_date:

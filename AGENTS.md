@@ -257,7 +257,9 @@ Stateless JSON API for the React Native app. The contract is [`docs/api/openapi.
 - **Errors**: always `{"error": "<stable_code>", "message": "<English text>"}` through `ApiErrorResponse` (and `ApiExceptionListener` for everything else). All technical text is English; French only for display labels and club content (e.g. `EnumValue` labels).
 - **Authorization**: reuse or add a voter (`LicenseeAccessVoter`); authorize on every request, and stream files through the API instead of handing out long-lived storage URLs.
 - **Privacy**: mirror the web rules (members see "Firstname L."; only admins and coaches see full names) and never search or sort on data the viewer cannot see.
-- **Tests**: `ApiWebTestCase` issues bearer tokens straight from `ApiTokenManager`; `LoggedInTestCase` (session login) does not work on the stateless firewalls.
+- **Access rules** (`LicenseeAccessVoter`): profile and attachments need the club relation in the **current** season, whatever `X-Season` selects; pictures and the directory follow the selected season. Known limit, shared with the web: `ROLE_COACH` / `ROLE_CLUB_ADMIN` belong to the account, not to a club (needs per-club roles to fix).
+- **Tests**: `ApiWebTestCase` issues bearer tokens straight from `ApiTokenManager` and pins `X-Season` to the fixture season (bump `FIXTURE_SEASON` with the fixtures); `LoggedInTestCase` (session login) does not work on the stateless firewalls. `assertResponseMatchesSchema()` validates a real response against `docs/api/openapi.yaml` (opis/json-schema, dev dependency): call it on every new endpoint's happy path and error shapes.
+- **Directory queries**: don't fetch-join attachments for lists and don't trust a fetch-joined `getParticipations()` (the dashboard event query groups rows); count in SQL instead.
 
 ## Development Workflow
 
