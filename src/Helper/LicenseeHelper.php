@@ -33,12 +33,13 @@ class LicenseeHelper
      */
     public function getLicenseeFromSession(): ?Licensee
     {
-        /** @var User $user */
+        /** @var User|null $user */
         $user = $this->security->getUser();
 
         $request = $this->requestStack->getCurrentRequest();
         if (ApiRequest::is($request)) {
-            return $this->getLicenseeFromHeader($user, $request);
+            // No authenticated user (a public API route): there is no licensee to act as.
+            return $user instanceof User ? $this->getLicenseeFromHeader($user, $request) : null;
         }
 
         $licenseeCode = $this->requestStack

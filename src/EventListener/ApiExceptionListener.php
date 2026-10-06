@@ -24,12 +24,17 @@ final readonly class ApiExceptionListener
 {
     private const array CODES = [
         Response::HTTP_BAD_REQUEST => 'bad_request',
+        Response::HTTP_UNAUTHORIZED => 'unauthorized',
         Response::HTTP_FORBIDDEN => 'forbidden',
         Response::HTTP_NOT_FOUND => 'not_found',
         Response::HTTP_METHOD_NOT_ALLOWED => 'method_not_allowed',
         Response::HTTP_NOT_ACCEPTABLE => 'not_acceptable',
+        Response::HTTP_CONFLICT => 'conflict',
+        Response::HTTP_REQUEST_ENTITY_TOO_LARGE => 'payload_too_large',
         Response::HTTP_UNSUPPORTED_MEDIA_TYPE => 'unsupported_media_type',
+        Response::HTTP_UNPROCESSABLE_ENTITY => 'unprocessable_entity',
         Response::HTTP_TOO_MANY_REQUESTS => 'too_many_requests',
+        Response::HTTP_SERVICE_UNAVAILABLE => 'service_unavailable',
     ];
 
     /**

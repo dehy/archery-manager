@@ -24,9 +24,6 @@ class ApiSession
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $createdAt;
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $lastUsedAt = null;
 
@@ -45,10 +42,11 @@ class ApiSession
         private string $refreshTokenHash,
         #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
         private \DateTimeImmutable $refreshTokenExpiresAt,
+        #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+        private \DateTimeImmutable $createdAt,
         #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
         private ?string $deviceName = null,
     ) {
-        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int

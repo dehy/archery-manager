@@ -9,6 +9,7 @@ use App\Security\Api\ApiTokenManager;
 use App\Security\Api\InvalidRefreshTokenException;
 use App\Security\Api\RefreshAccountLockedException;
 use Psr\Clock\ClockInterface;
+use Symfony\Component\HttpFoundation\Exception\RequestExceptionInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -87,7 +88,8 @@ final readonly class AuthController
     {
         try {
             $refreshToken = $request->toArray()['refresh_token'] ?? null;
-        } catch (\JsonException) {
+        } catch (RequestExceptionInterface) {
+            // Empty or malformed body, or JSON that isn't an object: Request::toArray() throws its own exceptions.
             return null;
         }
 

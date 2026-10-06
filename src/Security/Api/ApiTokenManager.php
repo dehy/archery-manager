@@ -40,6 +40,7 @@ class ApiTokenManager
             $tokens->accessTokenExpiresAt,
             self::hash($tokens->refreshToken),
             $tokens->refreshTokenExpiresAt,
+            $this->clock->now(),
             null !== $deviceName ? mb_substr($deviceName, 0, 255) : null,
         );
         $this->entityManager->persist($session);

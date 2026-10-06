@@ -25,6 +25,9 @@ final class ApiRequestTest extends TestCase
         yield 'me' => ['/api/v1/me', true];
         yield 'with query string' => ['/api/v1/me?x=1', true];
         yield 'bare prefix' => ['/api/v1', true];
+        yield 'bare prefix with trailing slash' => ['/api/v1/', true];
+        yield 'longer name sharing the prefix' => ['/api/v1foo', false];
+        yield 'next version sharing the prefix' => ['/api/v10/me', false];
         yield 'percent-encoded letter' => ['/%61pi/v1/me', true];
         yield 'percent-encoded slash' => ['/api%2Fv1/me', true];
         yield 'web page' => ['/events', false];

@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 final class ApiRequest
 {
     /**
-     * Same prefix as the `api` firewall pattern (^/api/v1) in security.yaml.
+     * Same boundary as the `api` firewall pattern (^/api/v1(/|$)) in security.yaml.
      */
     public const string PATH_PREFIX = '/api/v1';
 
@@ -27,7 +27,12 @@ final class ApiRequest
      */
     public static function is(?Request $request): bool
     {
-        return $request instanceof Request
-            && str_starts_with(rawurldecode($request->getPathInfo()), self::PATH_PREFIX);
+        if (!$request instanceof Request) {
+            return false;
+        }
+
+        $path = rawurldecode($request->getPathInfo());
+
+        return self::PATH_PREFIX === $path || str_starts_with($path, self::PATH_PREFIX.'/');
     }
 }
