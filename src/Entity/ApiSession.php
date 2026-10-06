@@ -12,8 +12,8 @@ use Doctrine\ORM\Mapping as ORM;
  * One authenticated device of the mobile API.
  *
  * Only SHA-256 hashes of the opaque access and refresh tokens are stored.
- * Refreshing rotates both tokens in place; the previous refresh hash is kept
- * so that a replayed (stolen) refresh token revokes the whole session.
+ * Refreshing rotates both tokens in place (see ApiSessionRepository::rotateIfUnchanged); the
+ * previous refresh hash is kept so that a replayed (stolen) refresh token revokes the whole session.
  */
 #[ORM\Entity(repositoryClass: ApiSessionRepository::class)]
 #[ORM\Table(name: 'api_session')]
@@ -27,6 +27,9 @@ class ApiSession
 
     #[ORM\Column(type: Types::STRING, length: 64, nullable: true)]
     private ?string $previousRefreshTokenHash = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $rotatedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
@@ -130,16 +133,18 @@ class ApiSession
         return !$this->isRevoked() && $this->refreshTokenExpiresAt > $now;
     }
 
-    public function rotate(
-        string $accessTokenHash,
-        \DateTimeImmutable $accessTokenExpiresAt,
-        string $refreshTokenHash,
-        \DateTimeImmutable $refreshTokenExpiresAt,
-    ): void {
-        $this->previousRefreshTokenHash = $this->refreshTokenHash;
-        $this->accessTokenHash = $accessTokenHash;
-        $this->accessTokenExpiresAt = $accessTokenExpiresAt;
-        $this->refreshTokenHash = $refreshTokenHash;
-        $this->refreshTokenExpiresAt = $refreshTokenExpiresAt;
+    public function getRotatedAt(): ?\DateTimeImmutable
+    {
+        return $this->rotatedAt;
+    }
+
+    /**
+     * Whether the refresh token was rotated at most $seconds ago. The previous token is
+     * still honoured in that window, because the client may never have received the new pair.
+     */
+    public function wasRotatedWithin(int $seconds, \DateTimeImmutable $now): bool
+    {
+        return $this->rotatedAt instanceof \DateTimeImmutable
+            && $now->getTimestamp() - $this->rotatedAt->getTimestamp() <= $seconds;
     }
 }

@@ -23,6 +23,11 @@ class ApiTokenManager
 
     private const int LAST_USED_GRANULARITY_SECONDS = 60;
 
+    /**
+     * How long a refresh token that was just rotated away is still accepted (lost responses, retries).
+     */
+    final public const int ROTATION_GRACE_SECONDS = 30;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ApiSessionRepository $sessions,
@@ -51,8 +56,9 @@ class ApiTokenManager
     /**
      * Exchanges a refresh token for a fresh pair, rotating both tokens.
      *
-     * Presenting an already-rotated refresh token means it leaked: the whole
-     * session is revoked.
+     * The token that was just rotated away is still accepted for a short grace period, because
+     * on a flaky network the client may never have received the new pair and will retry. Past
+     * that period it counts as stolen: the whole session is revoked.
      *
      * @throws InvalidRefreshTokenException
      */
@@ -61,34 +67,34 @@ class ApiTokenManager
         $now = $this->clock->now();
         $hash = self::hash($refreshToken);
 
-        $replayed = $this->sessions->findOneByPreviousRefreshTokenHash($hash);
-        if ($replayed instanceof ApiSession) {
-            $this->revoke($replayed);
-
-            throw new RefreshTokenReuseException($replayed->getUser());
+        $session = $this->sessions->findOneByRefreshTokenHash($hash);
+        if (!$session instanceof ApiSession) {
+            $session = $this->findSessionRotatedAwayFrom($hash, $now);
         }
 
-        $session = $this->sessions->findOneByRefreshTokenHash($hash);
-        if (!$session instanceof ApiSession || !$session->isRefreshTokenValid($now)) {
+        if (!$session->isRefreshTokenValid($now)) {
             throw new InvalidRefreshTokenException('Invalid or expired refresh token.');
         }
 
         if ($session->getUser()->isAccountLocked()) {
-            $this->revoke($session);
-
-            throw new InvalidRefreshTokenException('Account locked.');
+            throw new RefreshAccountLockedException('Account locked.');
         }
 
         $tokens = $this->generateTokens();
-        $session->rotate(
+        $rotated = $this->sessions->rotateIfUnchanged(
+            $session,
+            $session->getRefreshTokenHash(),
             self::hash($tokens->accessToken),
             $tokens->accessTokenExpiresAt,
             self::hash($tokens->refreshToken),
             $tokens->refreshTokenExpiresAt,
+            $now,
         );
-        $session->touch($now);
+        if (0 === $rotated) {
+            throw new RefreshConflictException('Session was refreshed concurrently.');
+        }
 
-        $this->entityManager->flush();
+        $this->entityManager->refresh($session);
 
         return $tokens;
     }
@@ -158,6 +164,25 @@ class ApiTokenManager
     public static function hash(string $token): string
     {
         return hash('sha256', $token);
+    }
+
+    /**
+     * @throws InvalidRefreshTokenException when the token is unknown, or reused outside the grace period
+     */
+    private function findSessionRotatedAwayFrom(string $hash, \DateTimeImmutable $now): ApiSession
+    {
+        $session = $this->sessions->findOneByPreviousRefreshTokenHash($hash);
+        if (!$session instanceof ApiSession || $session->isRevoked()) {
+            throw new InvalidRefreshTokenException('Invalid or expired refresh token.');
+        }
+
+        if (!$session->wasRotatedWithin(self::ROTATION_GRACE_SECONDS, $now)) {
+            $this->revoke($session);
+
+            throw new RefreshTokenReuseException($session->getUser());
+        }
+
+        return $session;
     }
 
     private function generateTokens(): IssuedTokens
