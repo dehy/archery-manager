@@ -12,6 +12,7 @@ use App\Helper\SeasonHelper;
 use App\Security\Voter\LicenseeAccessVoter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Security\Core\Authentication\Token\NullToken;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
@@ -19,13 +20,19 @@ use Symfony\Component\Security\Core\Role\RoleHierarchy;
 
 final class LicenseeAccessVoterTest extends TestCase
 {
+    /** The current season, given the mocked clock below (the season rolls over on 1 September). */
     private const int SEASON = 2027;
+
+    private const int PAST_SEASON = 2026;
 
     private Club $club;
 
     private Club $otherClub;
 
     private LicenseeAccessVoter $voter;
+
+    /** The season the request selects with X-Season. */
+    private int $selectedSeason = self::SEASON;
 
     #[\Override]
     protected function setUp(): void
@@ -34,12 +41,16 @@ final class LicenseeAccessVoterTest extends TestCase
         $this->otherClub = new Club();
 
         $seasonHelper = $this->createStub(SeasonHelper::class);
-        $seasonHelper->method('getSelectedSeason')->willReturn(self::SEASON);
+        $seasonHelper->method('getSelectedSeason')->willReturnCallback(fn (): int => $this->selectedSeason);
 
-        $this->voter = new LicenseeAccessVoter($seasonHelper, new RoleHierarchy([
-            'ROLE_CLUB_ADMIN' => ['ROLE_USER'],
-            'ROLE_ADMIN' => ['ROLE_CLUB_ADMIN'],
-        ]));
+        $this->voter = new LicenseeAccessVoter(
+            $seasonHelper,
+            new RoleHierarchy([
+                'ROLE_CLUB_ADMIN' => ['ROLE_USER'],
+                'ROLE_ADMIN' => ['ROLE_CLUB_ADMIN'],
+            ]),
+            new MockClock('2026-10-06 12:00:00'),
+        );
     }
 
     /**
@@ -96,6 +107,47 @@ final class LicenseeAccessVoterTest extends TestCase
         $this->assertSame(VoterInterface::ACCESS_GRANTED, $this->vote($viewer, LicenseeAccessVoter::VIEW, $second));
     }
 
+    public function testOnlyTheLicensesOfTheViewerOrTheTargetInTheRelevantSeasonCount(): void
+    {
+        // Both held a license in this club last season; this season neither does.
+        $coach = $this->user(['ROLE_COACH'], $this->licensee($this->club, self::PAST_SEASON));
+        $target = $this->licensee($this->club, self::PAST_SEASON);
+        $this->selectedSeason = self::PAST_SEASON;
+
+        // The past roster is visible to those who were in it (directory, pictures)...
+        $this->assertSame(VoterInterface::ACCESS_GRANTED, $this->vote($coach, LicenseeAccessVoter::VIEW_PICTURE, $target));
+        // ...but profiles and medical certificates need the relation now, whatever season is selected.
+        $this->assertSame(VoterInterface::ACCESS_DENIED, $this->vote($coach, LicenseeAccessVoter::VIEW, $target));
+    }
+
+    public function testAPersonWhoLeftTheClubKeepsNoProfileAccessThroughAnOldSeason(): void
+    {
+        $coach = $this->user(['ROLE_COACH'], $this->licensee($this->club, self::PAST_SEASON, self::SEASON));
+        $leftTheClub = $this->licensee($this->club, self::PAST_SEASON);
+        $leftTheClub->addLicense(new License()->setSeason(self::SEASON)->setClub($this->otherClub));
+
+        $this->selectedSeason = self::PAST_SEASON;
+
+        $this->assertSame(VoterInterface::ACCESS_DENIED, $this->vote($coach, LicenseeAccessVoter::VIEW, $leftTheClub));
+    }
+
+    public function testASelectedSeasonWithoutLicenseGivesNoPictureAccess(): void
+    {
+        $member = $this->user(['ROLE_USER'], $this->licensee($this->club));
+        $target = $this->licensee($this->club);
+        $this->selectedSeason = 2019;
+
+        $this->assertSame(VoterInterface::ACCESS_DENIED, $this->vote($member, LicenseeAccessVoter::VIEW_PICTURE, $target));
+    }
+
+    public function testASeveralLicenseesViewerOnlyNeedsOneOfThemInTheClub(): void
+    {
+        $viewer = $this->user(['ROLE_COACH'], $this->licensee($this->otherClub));
+        $viewer->addLicensee($this->licensee($this->club));
+
+        $this->assertSame(VoterInterface::ACCESS_GRANTED, $this->vote($viewer, LicenseeAccessVoter::VIEW, $this->licensee($this->club)));
+    }
+
     public function testItAbstainsForWhatItDoesNotHandle(): void
     {
         $viewer = $this->user(['ROLE_ADMIN'], $this->licensee($this->club));
@@ -128,11 +180,16 @@ final class LicenseeAccessVoterTest extends TestCase
         return $user;
     }
 
-    private function licensee(?Club $club): Licensee
+    /**
+     * A licensee holding a license of $club for each of $seasons (the current season by default).
+     */
+    private function licensee(?Club $club, int ...$seasons): Licensee
     {
         $licensee = new Licensee();
         if ($club instanceof Club) {
-            $licensee->addLicense(new License()->setSeason(self::SEASON)->setClub($club));
+            foreach ([] === $seasons ? [self::SEASON] : $seasons as $season) {
+                $licensee->addLicense(new License()->setSeason($season)->setClub($club));
+            }
         }
 
         return $licensee;
