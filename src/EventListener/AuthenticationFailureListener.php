@@ -10,11 +10,15 @@ use App\Service\SecurityNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Http\Authenticator\AccessTokenAuthenticator;
 use Symfony\Component\Security\Http\Event\LoginFailureEvent;
 
 class AuthenticationFailureListener implements EventSubscriberInterface
 {
+    private const string API_FIREWALL = 'api';
+
     private const int LOCKOUT_THRESHOLD = 10;
 
     // Lock account after 10 failed attempts
@@ -40,8 +44,13 @@ class AuthenticationFailureListener implements EventSubscriberInterface
 
     public function onLoginFailure(LoginFailureEvent $event): void
     {
+        // A rejected bearer token is not a login attempt: don't log it nor count it against an account.
+        if ($event->getAuthenticator() instanceof AccessTokenAuthenticator) {
+            return;
+        }
+
         $request = $event->getRequest();
-        $email = $request->request->get('_username', '');
+        $email = $this->extractUsername($request);
         $ipAddress = $request->getClientIp() ?? 'unknown';
         $userAgent = $request->headers->get('User-Agent', '');
 
@@ -59,10 +68,12 @@ class AuthenticationFailureListener implements EventSubscriberInterface
 
         $this->entityManager->persist($securityLog);
 
-        // Track failed attempts in session for CAPTCHA logic
-        $session = $this->requestStack->getSession();
-        $sessionFailedCount = $session->get('failed_login_count', 0);
-        $session->set('failed_login_count', $sessionFailedCount + 1);
+        // Track failed attempts in session for CAPTCHA logic (the stateless API firewall has no session)
+        if (self::API_FIREWALL !== $event->getFirewallName()) {
+            $session = $this->requestStack->getSession();
+            $sessionFailedCount = $session->get('failed_login_count', 0);
+            $session->set('failed_login_count', $sessionFailedCount + 1);
+        }
 
         if (null !== $user) {
             // Increment failed login attempts
@@ -135,5 +146,28 @@ class AuthenticationFailureListener implements EventSubscriberInterface
 
             $this->entityManager->flush();
         }
+    }
+
+    /**
+     * The web form posts `_username`; the mobile API posts a JSON body with `email`.
+     */
+    private function extractUsername(Request $request): string
+    {
+        $username = $request->request->get('_username');
+        if (\is_string($username)) {
+            return $username;
+        }
+
+        if ('json' !== $request->getContentTypeFormat()) {
+            return '';
+        }
+
+        try {
+            $email = $request->toArray()['email'] ?? '';
+        } catch (\JsonException) {
+            return '';
+        }
+
+        return \is_string($email) ? $email : '';
     }
 }

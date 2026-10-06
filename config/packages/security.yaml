@@ -17,11 +17,22 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         # Stateless firewall for the mobile API. No session, no cookies, no CSRF.
-        # Token authenticators are added in phase 1.
+        # Clients log in with JSON credentials and then send opaque bearer tokens (see ApiTokenManager).
         api:
             pattern: ^/api/v1
             stateless: true
             provider: app_user_provider
+            user_checker: App\Security\Api\ApiUserChecker
+            login_throttling:
+                max_attempts: 10
+                interval: '15 minutes'
+            json_login:
+                check_path: api_v1_auth_login
+                username_path: email
+                password_path: password
+                success_handler: App\Security\Api\ApiLoginSuccessHandler
+            access_token:
+                token_handler: App\Security\Api\ApiAccessTokenHandler
         main:
             lazy: true
             provider: app_user_provider
@@ -51,7 +62,7 @@ security:
     access_control:
         - { path: ^/(login|register|verify/email|reset-password|cgu|politique-de-confidentialite), roles: PUBLIC_ACCESS }
         - { path: ^/api/consent$, roles: PUBLIC_ACCESS }
-        - { path: ^/api/v1/health$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/(health|auth/login|auth/refresh)$, roles: PUBLIC_ACCESS }
         - { path: ^/calendar/, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/audit, roles: ROLE_ADMIN }
@@ -63,6 +74,10 @@ security:
 
 when@test:
     security:
+        firewalls:
+            api:
+                login_throttling:
+                    max_attempts: 1000
         password_hashers:
             # By default, password hashers are resource intensive and take time. This is
             # important to generate secure password hashes. In tests however, secure hashes
