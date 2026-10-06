@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Changer de compte — {{ licensee.fullname }}{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_club_members') }}">Gestion des membres</a></li>
+                    <li class="breadcrumb-item active">{{ licensee.fullname }}</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><em class="fa-solid fa-user-gear me-2"></em>Changer de compte</h3>
+                </div>
+                <div class="card-body">
+                    <p>
+                        <strong>{{ licensee.fullname }}</strong> est actuellement rattaché au compte
+                        <strong>{{ sourceUser.email }}</strong>.
+                        Ses licences, groupes, participations, résultats et matériel le suivent.
+                    </p>
+
+                    {{ form_start(form) }}
+                        {{ form_row(form.destination) }}
+                        {{ form_row(form.email, {help: 'Compte dédié : un email de création de mot de passe sera envoyé à cette adresse. Compte existant : l\'adresse d\'un compte déjà utilisé par un membre de votre club.'}) }}
+
+                        {% if sourceWillBeEmpty %}
+                            <div class="alert alert-warning">
+                                <em class="fa-solid fa-triangle-exclamation me-2"></em>
+                                {{ sourceUser.email }} n'aura plus aucun licencié après ce changement.
+                            </div>
+                            {{ form_row(form.delete_emptied_account) }}
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ path('app_club_members') }}" class="btn btn-secondary">
+                                <em class="fa-solid fa-arrow-left me-2"></em>Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <em class="fa-solid fa-check me-2"></em>Changer de compte
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

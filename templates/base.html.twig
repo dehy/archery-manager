@@ -187,6 +187,14 @@
                                 </a>
                             </li>
                         {% endif %}
+                        {% if is_granted("ROLE_CLUB_ADMIN") %}
+                            <li>
+                                <a class="dropdown-item {{ _self.isActive('app_club_member') }}" href="{{ path('app_club_members') }}">
+                                    <em class="fa-solid fa-users-gear"></em>
+                                    Gestion des membres
+                                </a>
+                            </li>
+                        {% endif %}
                         {% if (is_granted("ROLE_CLUB_ADMIN")) %}
                             <li>
                                 <a class="dropdown-item" href="{{ path('app_club_application_manage') }}">
