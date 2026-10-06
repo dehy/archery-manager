@@ -23,11 +23,6 @@ class ApiTokenManager
 
     private const int LAST_USED_GRANULARITY_SECONDS = 60;
 
-    /**
-     * How long a refresh token that was just rotated away is still accepted (lost responses, retries).
-     */
-    final public const int ROTATION_GRACE_SECONDS = 30;
-
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ApiSessionRepository $sessions,
@@ -56,23 +51,17 @@ class ApiTokenManager
     /**
      * Exchanges a refresh token for a fresh pair, rotating both tokens.
      *
-     * The token that was just rotated away is still accepted for a short grace period, because
-     * on a flaky network the client may never have received the new pair and will retry. Past
-     * that period it counts as stolen: the whole session is revoked.
+     * Only the current refresh token works: one that was already rotated away (replayed, or retried
+     * after a lost response) is just an unknown token. There is no replay detection for now.
      *
      * @throws InvalidRefreshTokenException
      */
     public function refresh(string $refreshToken): IssuedTokens
     {
         $now = $this->clock->now();
-        $hash = self::hash($refreshToken);
 
-        $session = $this->sessions->findOneByRefreshTokenHash($hash);
-        if (!$session instanceof ApiSession) {
-            $session = $this->findSessionRotatedAwayFrom($hash, $now);
-        }
-
-        if (!$session->isRefreshTokenValid($now)) {
+        $session = $this->sessions->findOneByRefreshTokenHash(self::hash($refreshToken));
+        if (!$session instanceof ApiSession || !$session->isRefreshTokenValid($now)) {
             throw new InvalidRefreshTokenException('Invalid or expired refresh token.');
         }
 
@@ -91,7 +80,8 @@ class ApiTokenManager
             $now,
         );
         if (0 === $rotated) {
-            throw new RefreshConflictException('Session was refreshed concurrently.');
+            // A concurrent refresh with the same token won the race: this one now holds a rotated-away token.
+            throw new InvalidRefreshTokenException('Invalid or expired refresh token.');
         }
 
         $this->entityManager->refresh($session);
@@ -128,15 +118,12 @@ class ApiTokenManager
     }
 
     /**
-     * Revokes the session a refresh token belongs to, whether it is the current
-     * token or one that was just rotated away. Unknown tokens are ignored so the
-     * caller can't probe for valid ones.
+     * Revokes the session the current refresh token belongs to. Unknown tokens (including
+     * ones already rotated away) are ignored so the caller can't probe for valid ones.
      */
     public function revokeByRefreshToken(string $refreshToken): void
     {
-        $hash = self::hash($refreshToken);
-        $session = $this->sessions->findOneByRefreshTokenHash($hash)
-            ?? $this->sessions->findOneByPreviousRefreshTokenHash($hash);
+        $session = $this->sessions->findOneByRefreshTokenHash(self::hash($refreshToken));
 
         if ($session instanceof ApiSession && !$session->isRevoked()) {
             $this->revoke($session);
@@ -164,25 +151,6 @@ class ApiTokenManager
     public static function hash(string $token): string
     {
         return hash('sha256', $token);
-    }
-
-    /**
-     * @throws InvalidRefreshTokenException when the token is unknown, or reused outside the grace period
-     */
-    private function findSessionRotatedAwayFrom(string $hash, \DateTimeImmutable $now): ApiSession
-    {
-        $session = $this->sessions->findOneByPreviousRefreshTokenHash($hash);
-        if (!$session instanceof ApiSession || $session->isRevoked()) {
-            throw new InvalidRefreshTokenException('Invalid or expired refresh token.');
-        }
-
-        if (!$session->wasRotatedWithin(self::ROTATION_GRACE_SECONDS, $now)) {
-            $this->revoke($session);
-
-            throw new RefreshTokenReuseException($session->getUser());
-        }
-
-        return $session;
     }
 
     private function generateTokens(): IssuedTokens

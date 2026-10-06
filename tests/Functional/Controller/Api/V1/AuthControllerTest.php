@@ -221,27 +221,24 @@ final class AuthControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    public function testReplayedRefreshTokenRevokesTheWholeSession(): void
+    public function testARotatedAwayRefreshTokenIsJustABadToken(): void
     {
         $client = self::createClient();
         $first = $this->login($client);
         $second = $this->refresh($client, $first['refresh_token']);
-        $this->expireRotationGracePeriod();
 
-        $this->refresh($client, $first['refresh_token']);
+        $body = $this->refresh($client, $first['refresh_token']);
+
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
-        $this->assertSame(1, $this->securityLogCount(SecurityLog::EVENT_SUSPICIOUS_ACTIVITY));
-        $this->assertSame(1, $this->revokedSessionCount());
+        $this->assertSame('invalid_refresh_token', $body['error']);
 
+        // No replay detection: the session carries on with its current tokens and nothing is flagged.
+        $this->assertSame(0, $this->revokedSessionCount());
+        $this->assertSame(0, $this->securityLogCount(SecurityLog::EVENT_SUSPICIOUS_ACTIVITY));
         $this->get($client, self::ME_URL, $second['access_token']);
-        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
-
+        $this->assertResponseIsSuccessful();
         $this->refresh($client, $second['refresh_token']);
-        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
-
-        // Replaying again is just an invalid token: the already revoked session isn't re-flagged.
-        $this->refresh($client, $first['refresh_token']);
-        $this->assertSame(1, $this->securityLogCount(SecurityLog::EVENT_SUSPICIOUS_ACTIVITY));
+        $this->assertResponseIsSuccessful();
     }
 
     public function testExpiredRefreshTokenIsRejected(): void
@@ -308,7 +305,7 @@ final class AuthControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
     }
 
-    public function testLogoutWithTheRotatedAwayRefreshTokenStillEndsTheSession(): void
+    public function testLogoutWithARotatedAwayRefreshTokenDoesNothing(): void
     {
         $client = self::createClient();
         $first = $this->login($client);
@@ -316,8 +313,9 @@ final class AuthControllerTest extends WebTestCase
 
         $this->logout($client, $first['refresh_token']);
 
+        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
         $this->get($client, self::ME_URL, $second['access_token']);
-        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+        $this->assertResponseIsSuccessful();
     }
 
     public function testRefreshIgnoresAStaleBearerToken(): void
@@ -397,13 +395,6 @@ final class AuthControllerTest extends WebTestCase
     private function logout(KernelBrowser $client, string $refreshToken): void
     {
         $client->jsonRequest(Request::METHOD_POST, self::LOGOUT_URL, ['refresh_token' => $refreshToken]);
-    }
-
-    private function expireRotationGracePeriod(): void
-    {
-        $this->entityManager()->createQuery('UPDATE '.ApiSession::class.' s SET s.rotatedAt = :past')
-            ->setParameter('past', new \DateTimeImmutable(\sprintf('-%d seconds', ApiTokenManager::ROTATION_GRACE_SECONDS + 60)))
-            ->execute();
     }
 
     private function revokedSessionCount(): int

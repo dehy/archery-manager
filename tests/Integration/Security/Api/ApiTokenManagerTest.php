@@ -10,7 +10,6 @@ use App\Repository\ApiSessionRepository;
 use App\Security\Api\ApiTokenManager;
 use App\Security\Api\InvalidRefreshTokenException;
 use App\Security\Api\RefreshAccountLockedException;
-use App\Security\Api\RefreshTokenReuseException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -35,65 +34,30 @@ final class ApiTokenManagerTest extends KernelTestCase
         $this->user = $this->userByEmail('clubadmin@ladg.com');
     }
 
-    public function testRetryWithTheRotatedAwayTokenWithinTheGracePeriodIssuesAFreshPair(): void
+    public function testARotatedAwayTokenIsRejectedAndTheSessionKeepsWorking(): void
     {
         $first = $this->manager->issue($this->user);
         $second = $this->manager->refresh($first->refreshToken);
-
-        // The client never got `$second` (lost response) and retries with the old token.
-        $third = $this->manager->refresh($first->refreshToken);
-
-        $this->assertNotSame($second->refreshToken, $third->refreshToken);
-        $this->assertInstanceOf(\App\Entity\ApiSession::class, $this->manager->findValidSessionByAccessToken($third->accessToken));
-        $this->assertNotInstanceOf(\App\Entity\ApiSession::class, $this->manager->findValidSessionByAccessToken($second->accessToken));
-        $this->assertSame(0, $this->revokedCount());
-    }
-
-    public function testAClientHoldingTheNewestButOneTokenKeepsWorkingInTheGracePeriod(): void
-    {
-        $first = $this->manager->issue($this->user);
-        $second = $this->manager->refresh($first->refreshToken);
-        $this->manager->refresh($first->refreshToken);
-
-        // `$second` was the winner of a race and is now the "previous" token.
-        $this->manager->refresh($second->refreshToken);
-
-        $this->assertSame(0, $this->revokedCount());
-    }
-
-    public function testReuseOutsideTheGracePeriodRevokesTheSession(): void
-    {
-        $first = $this->manager->issue($this->user);
-        $second = $this->manager->refresh($first->refreshToken);
-        $this->expireGracePeriod();
 
         try {
             $this->manager->refresh($first->refreshToken);
-            $this->fail('Reusing a rotated refresh token must be rejected.');
-        } catch (RefreshTokenReuseException $refreshTokenReuseException) {
-            $this->assertSame($this->user->getId(), $refreshTokenReuseException->user->getId());
-        }
-
-        $this->assertSame(1, $this->revokedCount());
-        $this->expectException(InvalidRefreshTokenException::class);
-        $this->manager->refresh($second->refreshToken);
-    }
-
-    public function testReusingATokenOfAnAlreadyRevokedSessionIsPlainlyInvalid(): void
-    {
-        $first = $this->manager->issue($this->user);
-        $this->manager->refresh($first->refreshToken);
-        $this->manager->revokeByRefreshToken($first->refreshToken);
-        $this->expireGracePeriod();
-
-        try {
-            $this->manager->refresh($first->refreshToken);
-            $this->fail('A revoked session must not refresh.');
-        } catch (RefreshTokenReuseException) {
-            $this->fail('A revoked session must not be reported as a new token reuse.');
+            $this->fail('A refresh token can only be used once.');
         } catch (InvalidRefreshTokenException) {
             $this->addToAssertionCount(1);
         }
+
+        $this->assertSame(0, $this->revokedCount());
+        $this->assertInstanceOf(ApiSession::class, $this->manager->findValidSessionByAccessToken($second->accessToken));
+        $this->assertNotNull($this->manager->refresh($second->refreshToken)->refreshToken);
+    }
+
+    public function testARevokedSessionCannotRefresh(): void
+    {
+        $tokens = $this->manager->issue($this->user);
+        $this->manager->revokeByRefreshToken($tokens->refreshToken);
+
+        $this->expectException(InvalidRefreshTokenException::class);
+        $this->manager->refresh($tokens->refreshToken);
     }
 
     public function testALockedAccountIsRefusedWithoutLosingItsSession(): void
@@ -202,14 +166,5 @@ final class ApiTokenManagerTest extends KernelTestCase
         return (int) $this->entityManager
             ->createQuery('SELECT COUNT(s.id) FROM '.ApiSession::class.' s WHERE s.revokedAt IS NOT NULL')
             ->getSingleScalarResult();
-    }
-
-    private function expireGracePeriod(): void
-    {
-        $this->entityManager->createQuery('UPDATE '.ApiSession::class.' s SET s.rotatedAt = :past')
-            ->setParameter('past', new \DateTimeImmutable(\sprintf('-%d seconds', ApiTokenManager::ROTATION_GRACE_SECONDS + 60)))
-            ->execute();
-        $this->entityManager->clear();
-        $this->user = $this->userByEmail('clubadmin@ladg.com');
     }
 }

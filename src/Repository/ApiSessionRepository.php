@@ -28,11 +28,6 @@ class ApiSessionRepository extends ServiceEntityRepository
         return $this->findOneBy(['refreshTokenHash' => $hash]);
     }
 
-    public function findOneByPreviousRefreshTokenHash(string $hash): ?ApiSession
-    {
-        return $this->findOneBy(['previousRefreshTokenHash' => $hash]);
-    }
-
     /**
      * Rotates the tokens in a single conditional UPDATE: it only applies if the session still
      * holds the refresh token the caller read and is not revoked, so two concurrent refreshes
@@ -51,12 +46,10 @@ class ApiSessionRepository extends ServiceEntityRepository
     ): int {
         return (int) $this->getEntityManager()->createQueryBuilder()
             ->update(ApiSession::class, 's')
-            ->set('s.previousRefreshTokenHash', 's.refreshTokenHash')
             ->set('s.accessTokenHash', ':accessHash')
             ->set('s.accessTokenExpiresAt', ':accessExpires')
             ->set('s.refreshTokenHash', ':refreshHash')
             ->set('s.refreshTokenExpiresAt', ':refreshExpires')
-            ->set('s.rotatedAt', ':now')
             ->set('s.lastUsedAt', ':now')
             ->where('s.id = :id')
             ->andWhere('s.refreshTokenHash = :expected')

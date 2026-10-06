@@ -12,24 +12,17 @@ use Doctrine\ORM\Mapping as ORM;
  * One authenticated device of the mobile API.
  *
  * Only SHA-256 hashes of the opaque access and refresh tokens are stored.
- * Refreshing rotates both tokens in place (see ApiSessionRepository::rotateIfUnchanged); the
- * previous refresh hash is kept so that a replayed (stolen) refresh token revokes the whole session.
+ * Refreshing rotates both tokens in place (see ApiSessionRepository::rotateIfUnchanged). A refresh
+ * token that was rotated away is simply unknown afterwards: no replay detection for now.
  */
 #[ORM\Entity(repositoryClass: ApiSessionRepository::class)]
 #[ORM\Table(name: 'api_session')]
-#[ORM\Index(name: 'idx_api_session_previous_refresh', columns: ['previous_refresh_token_hash'])]
 class ApiSession
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
-
-    #[ORM\Column(type: Types::STRING, length: 64, nullable: true)]
-    private ?string $previousRefreshTokenHash = null;
-
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $rotatedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
@@ -88,11 +81,6 @@ class ApiSession
         return $this->refreshTokenHash;
     }
 
-    public function getPreviousRefreshTokenHash(): ?string
-    {
-        return $this->previousRefreshTokenHash;
-    }
-
     public function getRefreshTokenExpiresAt(): \DateTimeImmutable
     {
         return $this->refreshTokenExpiresAt;
@@ -131,20 +119,5 @@ class ApiSession
     public function isRefreshTokenValid(\DateTimeImmutable $now): bool
     {
         return !$this->isRevoked() && $this->refreshTokenExpiresAt > $now;
-    }
-
-    public function getRotatedAt(): ?\DateTimeImmutable
-    {
-        return $this->rotatedAt;
-    }
-
-    /**
-     * Whether the refresh token was rotated at most $seconds ago. The previous token is
-     * still honoured in that window, because the client may never have received the new pair.
-     */
-    public function wasRotatedWithin(int $seconds, \DateTimeImmutable $now): bool
-    {
-        return $this->rotatedAt instanceof \DateTimeImmutable
-            && $now->getTimestamp() - $this->rotatedAt->getTimestamp() <= $seconds;
     }
 }

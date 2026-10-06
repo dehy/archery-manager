@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller\Api\V1;
 
-use App\Entity\SecurityLog;
 use App\Security\Api\ApiErrorResponse;
 use App\Security\Api\ApiTokenManager;
 use App\Security\Api\InvalidRefreshTokenException;
 use App\Security\Api\RefreshAccountLockedException;
-use App\Security\Api\RefreshConflictException;
-use App\Security\Api\RefreshTokenReuseException;
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +22,6 @@ final readonly class AuthController
 
     public function __construct(
         private ApiTokenManager $tokenManager,
-        private EntityManagerInterface $entityManager,
         private ClockInterface $clock,
     ) {
     }
@@ -55,17 +50,8 @@ final readonly class AuthController
 
         try {
             $tokens = $this->tokenManager->refresh($refreshToken);
-        } catch (RefreshTokenReuseException $refreshTokenReuseException) {
-            $this->logReuse($request, $refreshTokenReuseException);
-
-            return ApiErrorResponse::create('invalid_refresh_token', self::REFRESH_FAILED_MESSAGE, Response::HTTP_UNAUTHORIZED);
         } catch (RefreshAccountLockedException) {
             return ApiErrorResponse::create('account_locked', 'Account temporarily locked.', Response::HTTP_UNAUTHORIZED);
-        } catch (RefreshConflictException) {
-            $response = ApiErrorResponse::create('refresh_conflict', 'Concurrent refresh in progress, retry in a moment.', Response::HTTP_CONFLICT);
-            $response->headers->set('Retry-After', '1');
-
-            return $response;
         } catch (InvalidRefreshTokenException) {
             return ApiErrorResponse::create('invalid_refresh_token', self::REFRESH_FAILED_MESSAGE, Response::HTTP_UNAUTHORIZED);
         }
@@ -110,19 +96,5 @@ final readonly class AuthController
         }
 
         return $refreshToken;
-    }
-
-    private function logReuse(Request $request, RefreshTokenReuseException $exception): void
-    {
-        $securityLog = new SecurityLog();
-        $securityLog->setUser($exception->user);
-        $securityLog->setEmail((string) $exception->user->getEmail());
-        $securityLog->setIpAddress($request->getClientIp() ?? 'unknown');
-        $securityLog->setEventType(SecurityLog::EVENT_SUSPICIOUS_ACTIVITY);
-        $securityLog->setUserAgent($request->headers->get('User-Agent', ''));
-        $securityLog->setDetails('API refresh token reuse detected; session revoked');
-
-        $this->entityManager->persist($securityLog);
-        $this->entityManager->flush();
     }
 }
