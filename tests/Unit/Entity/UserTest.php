@@ -311,6 +311,32 @@ final class UserTest extends TestCase
         $this->assertContains('ROLE_USER', $user->getRoles());
     }
 
+    public function testAnActiveLockKeepsTheFailedAttemptCounter(): void
+    {
+        $user = new User()->setFailedLoginAttempts(10)->setAccountLockedUntil(new \DateTimeImmutable('+10 minutes'));
+
+        $this->assertTrue($user->isAccountLocked());
+        $this->assertSame(10, $user->getFailedLoginAttempts());
+    }
+
+    public function testAnExpiredLockResetsTheFailedAttemptCounter(): void
+    {
+        // Otherwise the first wrong password after the lock lapses would hit the threshold and re-lock at once.
+        $user = new User()->setFailedLoginAttempts(10)->setAccountLockedUntil(new \DateTimeImmutable('-1 minute'));
+
+        $this->assertFalse($user->isAccountLocked());
+        $this->assertNotInstanceOf(\DateTimeImmutable::class, $user->getAccountLockedUntil());
+        $this->assertSame(0, $user->getFailedLoginAttempts());
+    }
+
+    public function testAnAccountThatWasNeverLockedKeepsItsCounter(): void
+    {
+        $user = new User()->setFailedLoginAttempts(4);
+
+        $this->assertFalse($user->isAccountLocked());
+        $this->assertSame(4, $user->getFailedLoginAttempts());
+    }
+
     public function testFluentInterface(): void
     {
         $user = new User();
