@@ -10,6 +10,7 @@ use App\Service\SecurityNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Exception\RequestExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Exception\TooManyLoginAttemptsAuthenticationException;
@@ -18,15 +19,19 @@ use Symfony\Component\Security\Http\Event\LoginFailureEvent;
 
 class AuthenticationFailureListener implements EventSubscriberInterface
 {
-    private const string API_FIREWALL = 'api';
-
-    private const int LOCKOUT_THRESHOLD = 10;
+    /**
+     * Stateless firewalls of the mobile API: they have no session to keep a CAPTCHA counter in.
+     */
+    private const array API_FIREWALLS = ['api', 'api_login'];
 
     // Lock account after 10 failed attempts
+    private const int LOCKOUT_THRESHOLD = 10;
+
+    // Send a warning email after 5 failed attempts
     private const int WARNING_THRESHOLD = 5;
 
-    // Show CAPTCHA after 3 failed attempts in session
-    private const int LOCKOUT_DURATION_MINUTES = 30; // Lock account for 30 minutes
+    // Lock account for 30 minutes
+    private const int LOCKOUT_DURATION_MINUTES = 30;
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
@@ -55,6 +60,14 @@ class AuthenticationFailureListener implements EventSubscriberInterface
         $ipAddress = $request->getClientIp() ?? 'unknown';
         $userAgent = $request->headers->get('User-Agent', '');
 
+        // A throttled request was never checked against the password. It is not recorded in the
+        // database: once throttled, every further request would otherwise write a row.
+        if ($event->getException() instanceof TooManyLoginAttemptsAuthenticationException) {
+            $this->logger->warning('Login attempt throttled', ['email' => $email, 'ip' => $ipAddress]);
+
+            return;
+        }
+
         // Try to find the user
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
 
@@ -63,24 +76,22 @@ class AuthenticationFailureListener implements EventSubscriberInterface
         $securityLog->setUser($user);
         $securityLog->setEmail($email);
         $securityLog->setIpAddress($ipAddress);
-
-        $throttled = $event->getException() instanceof TooManyLoginAttemptsAuthenticationException;
-        $securityLog->setEventType($throttled ? SecurityLog::EVENT_RATE_LIMITED : SecurityLog::EVENT_FAILED_LOGIN);
+        $securityLog->setEventType(SecurityLog::EVENT_FAILED_LOGIN);
         $securityLog->setUserAgent($userAgent);
         $securityLog->setDetails($event->getException()->getMessage());
 
         $this->entityManager->persist($securityLog);
 
-        // Track failed attempts in session for CAPTCHA logic (the stateless API firewall has no session)
-        if (self::API_FIREWALL !== $event->getFirewallName()) {
+        // Track failed attempts in session for CAPTCHA logic (the stateless API firewalls have no session)
+        if (!\in_array($event->getFirewallName(), self::API_FIREWALLS, true)) {
             $session = $this->requestStack->getSession();
             $sessionFailedCount = $session->get('failed_login_count', 0);
             $session->set('failed_login_count', $sessionFailedCount + 1);
         }
 
-        // A throttled request was not checked against the password, and an account that is already
-        // locked must neither have its lock extended nor re-send the lockout email on every attempt.
-        if ($throttled || ($user instanceof User && $user->isAccountLocked())) {
+        // An account that is already locked must neither have its lock extended nor re-send
+        // the lockout email on every attempt: the failure is logged and that is all.
+        if ($user instanceof User && $user->isAccountLocked()) {
             $this->entityManager->flush();
 
             return;
@@ -175,7 +186,7 @@ class AuthenticationFailureListener implements EventSubscriberInterface
 
         try {
             $email = $request->toArray()['email'] ?? '';
-        } catch (\JsonException) {
+        } catch (RequestExceptionInterface) {
             return '';
         }
 

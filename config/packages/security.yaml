@@ -24,16 +24,15 @@ security:
             pattern: ^/api/v1/(auth/(refresh|logout)|health)$
             stateless: true
             security: false
-        # Stateless firewall for the mobile API. No session, no cookies, no CSRF.
-        # Clients log in with JSON credentials and then send opaque bearer tokens (see ApiTokenManager).
-        api:
-            pattern: ^/api/v1
+        # Login has a firewall of its own, with the JSON credentials authenticator only. The login
+        # throttle counts every failed authentication of the firewall it is attached to: sharing it with
+        # the bearer-token firewall would let expired access tokens use up the budget of a shared IP.
+        # It also keeps a stale Authorization header on a login request from interfering.
+        api_login:
+            pattern: ^/api/v1/auth/login$
             stateless: true
             provider: app_user_provider
             user_checker: App\Security\Api\ApiUserChecker
-            # Every error is answered in JSON (see also ApiExceptionListener).
-            entry_point: App\Security\Api\ApiEntryPoint
-            access_denied_handler: App\Security\Api\ApiAccessDeniedHandler
             login_throttling:
                 max_attempts: 10
                 interval: '15 minutes'
@@ -43,6 +42,16 @@ security:
                 password_path: password
                 success_handler: App\Security\Api\ApiLoginSuccessHandler
                 failure_handler: App\Security\Api\ApiLoginFailureHandler
+        # Stateless firewall for the rest of the mobile API. No session, no cookies, no CSRF.
+        # Requests carry the opaque bearer token obtained at login (see ApiTokenManager).
+        api:
+            pattern: ^/api/v1(/|$)
+            stateless: true
+            provider: app_user_provider
+            user_checker: App\Security\Api\ApiUserChecker
+            # Every error is answered in JSON (see also ApiExceptionListener).
+            entry_point: App\Security\Api\ApiEntryPoint
+            access_denied_handler: App\Security\Api\ApiAccessDeniedHandler
             access_token:
                 token_handler: App\Security\Api\ApiAccessTokenHandler
                 failure_handler: App\Security\Api\ApiTokenFailureHandler
@@ -88,7 +97,7 @@ security:
 when@test:
     security:
         firewalls:
-            api:
+            api_login:
                 login_throttling:
                     max_attempts: 1000
         password_hashers:
