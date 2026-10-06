@@ -442,6 +442,24 @@ docker compose exec -e APP_ENV=test -u symfony -w /app app bin/phpunit tests/Fun
 docker compose exec -u symfony -w /app app bin/console encrypt:genkey
 ```
 
+#### Working in a git worktree
+
+The running `app` / `messenger-async` containers mount the **main checkout**, not a worktree. To run
+PHP tooling against a worktree, use a one-off container that mounts it (`<wt>` = absolute worktree path):
+
+```bash
+docker compose -p archery-manager run --rm --no-deps -T --entrypoint php \
+  -e APP_ENV=test -v <wt>:/app -v <wt>/var:/app/var -u symfony -w /app app bin/phpunit --exclude-group=disabled
+# same pattern with --entrypoint composer for `composer install`
+```
+
+- **`--entrypoint` is required**: the image entrypoint ignores the command and starts nginx/php-fpm, so a plain `run ... composer install` hangs forever doing nothing.
+- **Mount `<wt>/var:/app/var`**: the `app-var` volume is shared with the main checkout, so without it you read caches (Twig, container) compiled from another branch and get phantom failures such as missing routes.
+- **Copy `public/build`** from the main checkout into the worktree (it is untracked); otherwise every page-rendering test fails on `entrypoints.json`.
+- **The `app_test` database is shared by all checkouts.** A migration applied from one branch is visible to the others. Before editing a branch migration, roll it back (`bin/console doctrine:migrations:execute --down "DoctrineMigrations\\VersionXXXX"` with `APP_ENV=test`), edit, then migrate again.
+- **`make:migration` does not exist in the test env** (maker is dev-only). Generate with `APP_ENV=test bin/console doctrine:migrations:diff` against `app_test` (which sits at `main`'s schema), then keep only your own changes: the diff may also show unrelated pre-existing drift (e.g. `consent_log` indexes).
+- Rector can be killed by the container memory limit (`Child process error: Killed`); retry with other containers stopped, or rely on the CI `rector` job.
+
 ### Git Workflow
 
 #### Pre-Commit Checklist

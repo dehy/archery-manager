@@ -416,8 +416,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
 
         $now = new \DateTimeImmutable();
         if ($now > $this->accountLockedUntil) {
-            // Account was locked but lock has expired
+            // The lock has expired: start over with a clean counter, otherwise the very next wrong
+            // password would reach the lockout threshold again and re-lock the account at once.
             $this->accountLockedUntil = null;
+            $this->resetFailedAttempts();
 
             return false;
         }

@@ -16,12 +16,45 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        # Stateless firewall for the mobile API. No session, no cookies, no CSRF.
-        # Token authenticators are added in phase 1.
-        api:
-            pattern: ^/api/v1
+        # Refresh and logout are authenticated by the refresh token in the body, not by a bearer
+        # token: apps routinely attach an expired access token to every call, and that must not
+        # turn into a 401 before the controller can use the refresh token. The same goes for the
+        # health check, which never needs credentials.
+        api_refresh:
+            pattern: ^/api/v1/(auth/(refresh|logout)|health)$
+            stateless: true
+            security: false
+        # Login has a firewall of its own, with the JSON credentials authenticator only. The login
+        # throttle counts every failed authentication of the firewall it is attached to: sharing it with
+        # the bearer-token firewall would let expired access tokens use up the budget of a shared IP.
+        # It also keeps a stale Authorization header on a login request from interfering.
+        api_login:
+            pattern: ^/api/v1/auth/login$
             stateless: true
             provider: app_user_provider
+            user_checker: App\Security\Api\ApiUserChecker
+            login_throttling:
+                max_attempts: 10
+                interval: '15 minutes'
+            json_login:
+                check_path: api_v1_auth_login
+                username_path: email
+                password_path: password
+                success_handler: App\Security\Api\ApiLoginSuccessHandler
+                failure_handler: App\Security\Api\ApiLoginFailureHandler
+        # Stateless firewall for the rest of the mobile API. No session, no cookies, no CSRF.
+        # Requests carry the opaque bearer token obtained at login (see ApiTokenManager).
+        api:
+            pattern: ^/api/v1(/|$)
+            stateless: true
+            provider: app_user_provider
+            user_checker: App\Security\Api\ApiUserChecker
+            # Every error is answered in JSON (see also ApiExceptionListener).
+            entry_point: App\Security\Api\ApiEntryPoint
+            access_denied_handler: App\Security\Api\ApiAccessDeniedHandler
+            access_token:
+                token_handler: App\Security\Api\ApiAccessTokenHandler
+                failure_handler: App\Security\Api\ApiTokenFailureHandler
         main:
             lazy: true
             provider: app_user_provider
@@ -51,7 +84,7 @@ security:
     access_control:
         - { path: ^/(login|register|verify/email|reset-password|cgu|politique-de-confidentialite), roles: PUBLIC_ACCESS }
         - { path: ^/api/consent$, roles: PUBLIC_ACCESS }
-        - { path: ^/api/v1/health$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/auth/login$, roles: PUBLIC_ACCESS }
         - { path: ^/calendar/, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/audit, roles: ROLE_ADMIN }
@@ -63,6 +96,10 @@ security:
 
 when@test:
     security:
+        firewalls:
+            api_login:
+                login_throttling:
+                    max_attempts: 1000
         password_hashers:
             # By default, password hashers are resource intensive and take time. This is
             # important to generate secure password hashes. In tests however, secure hashes

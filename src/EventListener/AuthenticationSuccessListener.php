@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Http\Authenticator\AccessTokenAuthenticator;
 use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 
 /**
@@ -33,6 +34,11 @@ class AuthenticationSuccessListener implements EventSubscriberInterface
 
     public function onLoginSuccess(LoginSuccessEvent $event): void
     {
+        // Bearer-token requests authenticate on every call: only real logins are security events.
+        if ($event->getAuthenticator() instanceof AccessTokenAuthenticator) {
+            return;
+        }
+
         $request = $this->requestStack->getCurrentRequest();
         if (!$request instanceof \Symfony\Component\HttpFoundation\Request) {
             return;

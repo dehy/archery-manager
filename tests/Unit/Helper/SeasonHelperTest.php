@@ -6,9 +6,12 @@ namespace App\Tests\Unit\Helper;
 
 use App\Entity\Season;
 use App\Helper\SeasonHelper;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 final class SeasonHelperTest extends TestCase
 {
@@ -90,5 +93,59 @@ final class SeasonHelperTest extends TestCase
         $result = $this->seasonHelper->getSelectedSeason();
 
         $this->assertSame($season, $result);
+    }
+
+    // ── Stateless mobile API: the season comes from the X-Season header, never from the session ──
+
+    #[DataProvider('validSeasonHeaders')]
+    public function testApiRequestUsesTheSeasonHeader(string $header, int $expected): void
+    {
+        $this->assertSame($expected, $this->apiSeasonHelper(['HTTP_X_SEASON' => $header])->getSelectedSeason());
+    }
+
+    /**
+     * @return iterable<string, array{string, int}>
+     */
+    public static function validSeasonHeaders(): iterable
+    {
+        yield 'a season' => ['2025', 2025];
+        yield 'lower bound' => ['2000', 2000];
+        yield 'upper bound' => ['2100', 2100];
+    }
+
+    public function testApiRequestWithoutHeaderDefaultsToTheCurrentSeason(): void
+    {
+        $this->assertSame(Season::seasonForDate(new \DateTimeImmutable()), $this->apiSeasonHelper([])->getSelectedSeason());
+    }
+
+    #[DataProvider('invalidSeasonHeaders')]
+    public function testApiRequestWithAnInvalidSeasonHeaderIsABadRequest(string $header): void
+    {
+        $this->expectException(BadRequestHttpException::class);
+        $this->apiSeasonHelper(['HTTP_X_SEASON' => $header])->getSelectedSeason();
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidSeasonHeaders(): iterable
+    {
+        yield 'not a number' => ['abc'];
+        yield 'below range' => ['1999'];
+        yield 'above range' => ['2101'];
+        yield 'float' => ['2025.5'];
+        yield 'scientific notation' => ['1e3'];
+    }
+
+    /**
+     * @param array<string, string> $server
+     */
+    private function apiSeasonHelper(array $server): SeasonHelper
+    {
+        $requestStack = $this->createMock(RequestStack::class);
+        $requestStack->expects($this->never())->method('getSession');
+        $requestStack->method('getCurrentRequest')->willReturn(Request::create('/api/v1/me', server: $server));
+
+        return new SeasonHelper($requestStack);
     }
 }

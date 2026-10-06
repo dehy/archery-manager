@@ -10,8 +10,10 @@ use App\Helper\LicenseeHelper;
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Mailer\MailerInterface;
 
 final class LicenseeHelperTest extends TestCase
@@ -146,5 +148,72 @@ final class LicenseeHelperTest extends TestCase
         $result = $this->licenseeHelper->getLicenseeFromSession();
 
         $this->assertSame($licensee2, $result);
+    }
+
+    // ── Stateless mobile API: the licensee comes from the X-Licensee header, never from the session ──
+
+    public function testApiRequestUsesTheLicenseeHeader(): void
+    {
+        $this->requestStack->expects($this->never())->method('getSession');
+        $this->requestStack->method('getCurrentRequest')->willReturn(Request::create('/api/v1/me', server: ['HTTP_X_LICENSEE' => self::ANOTHER_CODE]));
+
+        $first = $this->createStub(Licensee::class);
+        $second = $this->createStub(Licensee::class);
+        $user = $this->createMock(User::class);
+        $user->method('getLicensees')->willReturn(new ArrayCollection([$first, $second]));
+        $user->method('getLicenseeWithCode')->with(self::ANOTHER_CODE)->willReturn($second);
+        $this->security->method('getUser')->willReturn($user);
+
+        $this->assertSame($second, $this->licenseeHelper->getLicenseeFromSession());
+    }
+
+    public function testApiRequestWithoutHeaderUsesTheFirstLicensee(): void
+    {
+        $this->requestStack->expects($this->never())->method('getSession');
+        $first = $this->createStub(Licensee::class);
+        $user = $this->createMock(User::class);
+        $user->method('getLicensees')->willReturn(new ArrayCollection([$first, $this->createStub(Licensee::class)]));
+        $this->security->method('getUser')->willReturn($user);
+
+        $this->requestStack->method('getCurrentRequest')->willReturn(Request::create('/api/v1/me'));
+        $this->assertSame($first, $this->licenseeHelper->getLicenseeFromSession());
+    }
+
+    public function testApiRequestWithAnEmptyHeaderUsesTheFirstLicensee(): void
+    {
+        $first = $this->createStub(Licensee::class);
+        $user = $this->createMock(User::class);
+        $user->method('getLicensees')->willReturn(new ArrayCollection([$first]));
+        $this->security->method('getUser')->willReturn($user);
+        $this->requestStack->method('getCurrentRequest')->willReturn(Request::create('/api/v1/me', server: ['HTTP_X_LICENSEE' => '']));
+
+        $this->assertSame($first, $this->licenseeHelper->getLicenseeFromSession());
+    }
+
+    public function testApiRequestWithALicenseeTheUserDoesNotOwnIsForbidden(): void
+    {
+        $user = $this->createMock(User::class);
+        $user->method('getLicenseeWithCode')->willReturn(null);
+        $this->security->method('getUser')->willReturn($user);
+        $this->requestStack->method('getCurrentRequest')->willReturn(Request::create('/api/v1/me', server: ['HTTP_X_LICENSEE' => self::INVALID_CODE]));
+
+        $this->expectException(AccessDeniedHttpException::class);
+        $this->licenseeHelper->getLicenseeFromSession();
+    }
+
+    public function testApiRequestWithoutAnAuthenticatedUserHasNoLicensee(): void
+    {
+        $this->security->method('getUser')->willReturn(null);
+        $this->requestStack->method('getCurrentRequest')->willReturn(Request::create('/api/v1/health'));
+
+        $this->assertNotInstanceOf(Licensee::class, $this->licenseeHelper->getLicenseeFromSession());
+    }
+
+    public function testSelectingALicenseeIsANoOpOnApiRequests(): void
+    {
+        $this->requestStack->expects($this->never())->method('getSession');
+        $this->requestStack->method('getCurrentRequest')->willReturn(Request::create('/api/v1/me'));
+
+        $this->licenseeHelper->setSelectedLicensee($this->createStub(Licensee::class));
     }
 }

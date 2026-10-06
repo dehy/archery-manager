@@ -14,6 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'idx_event_type', columns: ['event_type'])]
 class SecurityLog
 {
+    private const int EMAIL_MAX_LENGTH = 255;
+
     public const EVENT_FAILED_LOGIN = 'failed_login';
 
     public const EVENT_ACCOUNT_LOCKED = 'account_locked';
@@ -43,7 +45,7 @@ class SecurityLog
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $user = null;
 
-    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 255)]
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: self::EMAIL_MAX_LENGTH)]
     private string $email;
 
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::STRING, length: 45)]
@@ -90,7 +92,8 @@ class SecurityLog
 
     public function setEmail(string $email): self
     {
-        $this->email = $email;
+        // Logins record whatever the client typed: keep it within the column so an oversized value can't fail the insert.
+        $this->email = mb_substr($email, 0, self::EMAIL_MAX_LENGTH);
 
         return $this;
     }
