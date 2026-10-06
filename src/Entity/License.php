@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\LicenseCategoryType;
 use App\DBAL\Types\LicenseType;
@@ -25,7 +24,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 ),]
 #[ValidLicenseCombination]
 #[Auditable]
-#[ApiResource]
 class License
 {
     #[ORM\Id]
