@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller;
 
+use App\Entity\ApiSession;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +30,11 @@ final class ResetPasswordApiSessionsTest extends WebTestCase
         $someoneElse = $this->apiLogin($client, self::OTHER_EMAIL);
 
         $this->resetPassword($client, self::EMAIL, 'a-brand-new-password');
+
+        $revokedOwners = self::getContainer()->get(EntityManagerInterface::class)
+            ->createQuery('SELECT u.email FROM '.ApiSession::class.' s JOIN s.user u WHERE s.revokedAt IS NOT NULL')
+            ->getSingleColumnResult();
+        $this->assertSame([self::EMAIL, self::EMAIL], $revokedOwners, 'Exactly the two sessions of the user who reset their password are revoked.');
 
         foreach ([$phone, $tablet] as $tokens) {
             $client->request(Request::METHOD_GET, '/api/v1/me', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$tokens['access_token']]);

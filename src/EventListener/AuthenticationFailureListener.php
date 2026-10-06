@@ -12,6 +12,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Exception\TooManyLoginAttemptsAuthenticationException;
 use Symfony\Component\Security\Http\Authenticator\AccessTokenAuthenticator;
 use Symfony\Component\Security\Http\Event\LoginFailureEvent;
 
@@ -62,7 +63,9 @@ class AuthenticationFailureListener implements EventSubscriberInterface
         $securityLog->setUser($user);
         $securityLog->setEmail($email);
         $securityLog->setIpAddress($ipAddress);
-        $securityLog->setEventType(SecurityLog::EVENT_FAILED_LOGIN);
+
+        $throttled = $event->getException() instanceof TooManyLoginAttemptsAuthenticationException;
+        $securityLog->setEventType($throttled ? SecurityLog::EVENT_RATE_LIMITED : SecurityLog::EVENT_FAILED_LOGIN);
         $securityLog->setUserAgent($userAgent);
         $securityLog->setDetails($event->getException()->getMessage());
 
@@ -73,6 +76,14 @@ class AuthenticationFailureListener implements EventSubscriberInterface
             $session = $this->requestStack->getSession();
             $sessionFailedCount = $session->get('failed_login_count', 0);
             $session->set('failed_login_count', $sessionFailedCount + 1);
+        }
+
+        // A throttled request was not checked against the password, and an account that is already
+        // locked must neither have its lock extended nor re-send the lockout email on every attempt.
+        if ($throttled || ($user instanceof User && $user->isAccountLocked())) {
+            $this->entityManager->flush();
+
+            return;
         }
 
         if (null !== $user) {

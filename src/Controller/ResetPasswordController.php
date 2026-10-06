@@ -149,11 +149,13 @@ class ResetPasswordController extends AbstractController
                 $form->get('plainPassword')->getData(),
             );
 
-            $user->setPassword($encodedPassword);
-            $this->entityManager->flush();
-
+            // One transaction: either the password changes AND every mobile session is revoked, or nothing does.
             // Whoever had the old password (or a stolen token) must not stay signed in on the mobile app.
-            $this->apiTokenManager->revokeAllForUser($user);
+            $this->entityManager->wrapInTransaction(function () use ($user, $encodedPassword): void {
+                $user->setPassword($encodedPassword);
+                $this->entityManager->flush();
+                $this->apiTokenManager->revokeAllForUser($user);
+            });
 
             // Log successful password reset
             $this->successListener->logSuccessfulPasswordReset(
