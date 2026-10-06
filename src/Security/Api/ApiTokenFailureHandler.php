@@ -19,12 +19,9 @@ final class ApiTokenFailureHandler implements AuthenticationFailureHandlerInterf
     #[\Override]
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): JsonResponse
     {
-        $locked = $exception instanceof CustomUserMessageAccountStatusException;
-        $response = ApiErrorResponse::create(
-            $locked ? 'account_locked' : 'invalid_token',
-            $locked ? $exception->getMessageKey() : 'Invalid or expired access token.',
-            Response::HTTP_UNAUTHORIZED,
-        );
+        $response = $exception instanceof CustomUserMessageAccountStatusException
+            ? ApiErrorResponse::create('account_locked', $exception->getMessageKey(), Response::HTTP_UNAUTHORIZED)
+            : ApiErrorResponse::create('invalid_token', 'Invalid or expired access token.', Response::HTTP_UNAUTHORIZED);
         $response->headers->set('WWW-Authenticate', 'Bearer error="invalid_token"');
 
         return $response;
