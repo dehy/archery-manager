@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\EventListener\AuthenticationSuccessListener;
 use App\Form\ChangePasswordFormType;
 use App\Form\ResetPasswordRequestFormType;
+use App\Security\Api\ApiTokenManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,6 +37,7 @@ class ResetPasswordController extends AbstractController
         private readonly UserPasswordHasherInterface $userPasswordHasher,
         private readonly AuthenticationSuccessListener $successListener,
         private readonly RateLimiterFactory $passwordResetLimiter,
+        private readonly ApiTokenManager $apiTokenManager,
     ) {
     }
 
@@ -149,6 +151,9 @@ class ResetPasswordController extends AbstractController
 
             $user->setPassword($encodedPassword);
             $this->entityManager->flush();
+
+            // Whoever had the old password (or a stolen token) must not stay signed in on the mobile app.
+            $this->apiTokenManager->revokeAllForUser($user);
 
             // Log successful password reset
             $this->successListener->logSuccessfulPasswordReset(
