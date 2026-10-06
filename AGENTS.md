@@ -247,6 +247,18 @@ Events can be assigned to specific groups via `assignedGroups` (ManyToMany):
 - UI behavior: Disabled participation button with tooltip for unauthorized users
 - Server-side validation: Form submission blocked with flash message
 
+### Mobile API (`/api/v1`)
+
+Stateless JSON API for the React Native app. The contract is [`docs/api/openapi.yaml`](docs/api/openapi.yaml): **update it in the same commit as any API change** — `tests/Integration/Api/OpenApiSpecTest.php` fails when a route or an error code and the document drift apart.
+
+- **Code layout**: controllers in `src/Controller/Api/V1/` (plain `final readonly` classes, route names `api_v1_*`), payload builders in `src/Api/V1/` (presenters), auth in `src/Security/Api/`.
+- **Auth**: separate stateless firewalls (`security.yaml`): `api_login` (json_login + throttling), `api_refresh` (refresh/logout/health, no bearer auth) and `api` (opaque bearer tokens, hashed in `api_session`). Don't add authenticators to `api_login`: login attempts and rejected tokens must not share one throttle.
+- **Context**: the selected licensee and season come from the `X-Licensee` / `X-Season` headers (`LicenseeHelper` / `SeasonHelper` read them on API requests, never the session).
+- **Errors**: always `{"error": "<stable_code>", "message": "<English text>"}` through `ApiErrorResponse` (and `ApiExceptionListener` for everything else). All technical text is English; French only for display labels and club content (e.g. `EnumValue` labels).
+- **Authorization**: reuse or add a voter (`LicenseeAccessVoter`); authorize on every request, and stream files through the API instead of handing out long-lived storage URLs.
+- **Privacy**: mirror the web rules (members see "Firstname L."; only admins and coaches see full names) and never search or sort on data the viewer cannot see.
+- **Tests**: `ApiWebTestCase` issues bearer tokens straight from `ApiTokenManager`; `LoggedInTestCase` (session login) does not work on the stateless firewalls.
+
 ## Development Workflow
 
 ### Environment Setup
