@@ -103,19 +103,29 @@ final readonly class LicenseeController
             fclose($input);
         });
         $mimeType = $file?->getMimeType() ?? 'application/octet-stream';
-        $fileName = $file?->getOriginalName() ?? basename($name);
+        // The original name comes from an upload or the FFTA: it may hold path separators, which a
+        // Content-Disposition header cannot carry (building it would throw).
+        $fileName = str_replace(['/', '\\'], '_', $file?->getOriginalName() ?? basename($name));
         $response->headers->set('Content-Type', $mimeType);
         $response->headers->set('Content-Length', (string) $size);
         $response->headers->set('Content-Disposition', HeaderUtils::makeDisposition(
             $download || !$this->isSafeToDisplayInline($mimeType) ? HeaderUtils::DISPOSITION_ATTACHMENT : HeaderUtils::DISPOSITION_INLINE,
             $fileName,
-            // The ASCII-only fallback some clients use: no non-ASCII characters, '%', or path separators.
-            (string) preg_replace('/[^\x20-\x7e]|[%\/\\\\]/u', '_', $fileName),
+            $this->asciiFallbackName($fileName),
         ));
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $this->makeRevalidated($response, $lastModified);
 
         return $response;
+    }
+
+    /**
+     * The ASCII-only file name some clients fall back to: HTTP forbids '%' and path separators in it,
+     * and anything that is not printable ASCII (accents...) is replaced.
+     */
+    private function asciiFallbackName(string $fileName): string
+    {
+        return (string) preg_replace('/[^\x20-\x7e]/u', '_', str_replace(['%', '/', '\\'], '_', $fileName));
     }
 
     /**

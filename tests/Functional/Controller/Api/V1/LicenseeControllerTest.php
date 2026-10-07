@@ -258,6 +258,20 @@ final class LicenseeControllerTest extends ApiWebTestCase
         $this->assertStringContainsString('filename="certificat m_dical.pdf"', $disposition);
     }
 
+    public function testTheAsciiFallbackOfTheFileNameHasNoPercentSignPathSeparatorOrAccent(): void
+    {
+        $client = self::createClient();
+        $client->disableReboot();
+
+        $licensee = $this->licenseeOf(self::MEMBER);
+        $attachment = $this->storeAttachment($licensee, LicenseeAttachmentType::MISC, 'misc/name.pdf', 'application/pdf', 'x', 'rapport 100%/été\\v2.pdf');
+
+        $this->get($client, $this->url($licensee).'/attachments/'.$attachment->getId(), $this->tokenFor(self::MEMBER));
+
+        $this->assertResponseIsSuccessful();
+        $this->assertStringContainsString('filename="rapport 100___t__v2.pdf"', (string) $client->getResponse()->headers->get('content-disposition'));
+    }
+
     /**
      * Attachments hold medical certificates: only the owner, admins, and club admins or coaches of the club.
      *
