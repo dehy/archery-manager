@@ -335,6 +335,7 @@ final class EventControllerTest extends ApiWebTestCase
     {
         $client = self::createClient();
         $client->disableReboot();
+
         $contest = $this->contest('2027-06-16 09:00');
         $attachment = $this->attach($contest, 'mandates/m.pdf', 'application/pdf', '%PDF-1.4 mandate');
         $token = $this->tokenFor(self::MEMBER);
@@ -356,6 +357,7 @@ final class EventControllerTest extends ApiWebTestCase
     {
         $client = self::createClient();
         $client->disableReboot();
+
         $contest = $this->contest('2027-06-16 09:00');
         $other = $this->contest('2027-06-17 09:00');
         $foreign = $this->training('Autre club', '2027-06-05 18:00', [], $this->club('Les Archers du Bosquet'));

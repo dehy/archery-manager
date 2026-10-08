@@ -199,7 +199,7 @@ final class EventVoterTest extends TestCase
         $user = $this->createUser(['ROLE_USER']);
         $this->addLicenseeWithClub($user, $this->createStub(Club::class));
         $token = $this->createToken($user);
-        $event = $this->createEvent(null);
+        $event = $this->createEvent();
 
         $this->assertSame(VoterInterface::ACCESS_GRANTED, $voter->vote($token, $event, [EventVoter::VIEW]));
         $this->assertSame(VoterInterface::ACCESS_DENIED, $voter->vote($token, $event, [EventVoter::EDIT]));
