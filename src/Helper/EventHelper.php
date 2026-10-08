@@ -47,32 +47,45 @@ class EventHelper
             'event' => $event,
         ]);
 
-        if (null === $eventParticipation) {
-            // Create a new virtual/dynamic EventParticipation (not persisted yet)
-            $eventParticipation = new EventParticipation();
-            $eventParticipation->setEvent($event);
-            $eventParticipation->setParticipant($licensee);
+        return $eventParticipation ?? $this->defaultParticipation($licensee, $event);
+    }
 
-            // Set default activity from licensee's current license
-            $license = $licensee->getLicenseForSeason(Season::seasonForDate($event->getStartsAt()));
-            if ($license instanceof \App\Entity\License && !\in_array($license->getActivities(), [null, []], true)) {
-                // Use the first activity as default
-                $eventParticipation->setActivity($license->getActivities()[0]);
-            }
+    /**
+     * The participation a licensee has in an event before ever answering: a virtual EventParticipation
+     * that is not persisted, without any query. Trainings default to "registered" for those allowed to
+     * take part; contests have no default, the licensee must choose.
+     */
+    public function defaultParticipation(Licensee $licensee, Event $event): EventParticipation
+    {
+        $eventParticipation = new EventParticipation();
+        $eventParticipation->setEvent($event);
+        $eventParticipation->setParticipant($licensee);
 
-            // Set dynamic default participation state based on event type and group membership
-            // This is only a default in the UI - will be saved only when user submits the form
-            $isContest = $event instanceof ContestEvent || $event instanceof HobbyContestEvent;
-            // For training events, check if licensee can participate (is in event's group)
-            if (!$isContest && $this->canLicenseeParticipateInEvent($licensee, $event)) {
-                // Default to REGISTERED (Present) only for licensees in the event's group
-                $eventParticipation->setParticipationState(EventParticipationStateType::REGISTERED);
-            }
-
-            // For contests or if not in group, leave it null (no default, user must choose)
+        // Set default activity from licensee's current license
+        $license = $licensee->getLicenseForSeason(Season::seasonForDate($event->getStartsAt()));
+        if ($license instanceof \App\Entity\License && !\in_array($license->getActivities(), [null, []], true)) {
+            // Use the first activity as default
+            $eventParticipation->setActivity($license->getActivities()[0]);
         }
 
+        // Set dynamic default participation state based on event type and group membership
+        // This is only a default in the UI - will be saved only when user submits the form
+        // For training events, check if licensee can participate (is in event's group)
+        if (!$this->isContest($event) && $this->canLicenseeParticipateInEvent($licensee, $event)) {
+            // Default to REGISTERED (Present) only for licensees in the event's group
+            $eventParticipation->setParticipationState(EventParticipationStateType::REGISTERED);
+        }
+
+        // For contests or if not in group, leave it null (no default, user must choose)
         return $eventParticipation;
+    }
+
+    /**
+     * Contests (official or hobby) offer three answers and a target type; the other events two answers.
+     */
+    public function isContest(Event $event): bool
+    {
+        return $event instanceof ContestEvent || $event instanceof HobbyContestEvent;
     }
 
     /**

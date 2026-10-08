@@ -64,7 +64,8 @@ class EventVoter extends Voter
         // ... (check conditions and return true to grant permission) ...
         return match ($attribute) {
             self::EDIT, self::DELETE => $isAdmin || ($isClubAdmin && $eventBelongsToUsersClub),
-            self::VIEW => $eventBelongsToUsersClub,
+            // An event without a club (an open competition, for instance) is visible to every member, as in the web calendar.
+            self::VIEW => !$event->getClub() instanceof \App\Entity\Club || $eventBelongsToUsersClub,
             default => false,
         };
     }

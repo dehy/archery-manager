@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Club;
 use App\Entity\Event;
 use App\Entity\License;
 use App\Entity\Licensee;
@@ -108,6 +109,36 @@ class EventRepository extends ServiceEntityRepository
             ->setParameter('clubs', $clubs)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * The events of the given clubs, and the events without any club, that overlap [$from, $to].
+     * Which of them a member may actually see is up to EventVoter::VIEW.
+     *
+     * @param list<Club> $clubs
+     *
+     * @return list<Event>
+     */
+    public function findInRangeForClubs(array $clubs, \DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        $qb = $this->createQueryBuilder('e');
+        $inClubsOrWithoutClub = [] === $clubs
+            ? $qb->expr()->isNull('e.club')
+            : $qb->expr()->orX('e.club IN (:clubs)', 'e.club IS NULL');
+
+        $qb->where('e.endsAt >= :from')
+            ->andWhere('e.startsAt <= :to')
+            ->andWhere($inClubsOrWithoutClub)
+            ->orderBy('e.startsAt', 'ASC')
+            ->addOrderBy('e.endsAt', 'ASC')
+            ->addOrderBy('e.id', 'ASC')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to);
+        if ([] !== $clubs) {
+            $qb->setParameter('clubs', $clubs);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
