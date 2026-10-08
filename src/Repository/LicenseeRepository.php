@@ -21,6 +21,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class LicenseeRepository extends ServiceEntityRepository
 {
+    private const string IN_CLUB = 'li.club = :club';
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Licensee::class);
@@ -94,7 +96,7 @@ class LicenseeRepository extends ServiceEntityRepository
             ->leftJoin('l.attachments', 'a')
             ->leftJoin('l.groups', 'g')
             ->where('li.season = :year')
-            ->andWhere('li.club = :club')
+            ->andWhere(self::IN_CLUB)
             ->setParameter('year', $year)
             ->setParameter('club', $club)
             ->getQuery()
@@ -117,7 +119,7 @@ class LicenseeRepository extends ServiceEntityRepository
             ->innerJoin('l.licenses', 'li')
             ->leftJoin('l.groups', 'g')
             ->where('li.season = :season')
-            ->andWhere('li.club = :club')
+            ->andWhere(self::IN_CLUB)
             ->orderBy('l.id', 'ASC')
             ->setParameter('season', $season)
             ->setParameter('club', $club)
@@ -149,7 +151,7 @@ class LicenseeRepository extends ServiceEntityRepository
             ->setParameter('groups', $groups)
             ->setParameter('season', $season);
         if ($club instanceof Club) {
-            $qb->andWhere('li.club = :club')->setParameter('club', $club);
+            $qb->andWhere(self::IN_CLUB)->setParameter('club', $club);
         }
 
         return $qb->getQuery()->getResult();

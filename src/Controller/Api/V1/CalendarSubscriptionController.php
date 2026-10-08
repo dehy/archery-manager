@@ -21,6 +21,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 final readonly class CalendarSubscriptionController
 {
+    private const string PATH = '/api/v1/calendar-subscription';
+
     public function __construct(
         private MemberContext $context,
         private EntityManagerInterface $entityManager,
@@ -28,13 +30,13 @@ final readonly class CalendarSubscriptionController
     ) {
     }
 
-    #[Route('/api/v1/calendar-subscription', name: 'api_v1_calendar_subscription', methods: ['GET'])]
+    #[Route(self::PATH, name: 'api_v1_calendar_subscription', methods: ['GET'])]
     public function show(): JsonResponse
     {
         return $this->respond($this->licensee());
     }
 
-    #[Route('/api/v1/calendar-subscription', name: 'api_v1_calendar_subscription_generate', methods: ['PUT'])]
+    #[Route(self::PATH, name: 'api_v1_calendar_subscription_generate', methods: ['PUT'])]
     public function generate(): JsonResponse
     {
         $licensee = $this->licensee()->generateCalendarToken();
@@ -43,7 +45,7 @@ final readonly class CalendarSubscriptionController
         return $this->respond($licensee);
     }
 
-    #[Route('/api/v1/calendar-subscription', name: 'api_v1_calendar_subscription_revoke', methods: ['DELETE'])]
+    #[Route(self::PATH, name: 'api_v1_calendar_subscription_revoke', methods: ['DELETE'])]
     public function revoke(): Response
     {
         $this->licensee()->revokeCalendarToken();
