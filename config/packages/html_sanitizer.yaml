@@ -1,0 +1,13 @@
+framework:
+    html_sanitizer:
+        sanitizers:
+            # Rich text written by coaches (practice advice), sent to the mobile app as HTML.
+            # Only safe formatting elements survive: no scripts, styles, forms or event handlers.
+            app.advice_sanitizer:
+                allow_safe_elements: true
+                allow_relative_links: false
+                allow_relative_medias: false
+                allowed_link_schemes: ['https', 'mailto']
+                allowed_media_schemes: ['https']
+                force_https_urls: true
+                max_input_length: 100000

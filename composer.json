@@ -48,6 +48,7 @@
         "symfony/flex": "^2",
         "symfony/form": "*",
         "symfony/framework-bundle": "*",
+        "symfony/html-sanitizer": "^7.4",
         "symfony/http-client": "*",
         "symfony/intl": "*",
         "symfony/mailer": "*",
