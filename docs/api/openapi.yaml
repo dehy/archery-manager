@@ -66,6 +66,10 @@ tags:
     description: A licensee's profile, picture and attachments.
   - name: Events
     description: The calendar, event details, answering an event, participants and the personal calendar feed.
+  - name: Results
+    description: A member's contest results and the results of a contest.
+  - name: Practice advice
+    description: The advice coaches wrote for the selected licensee.
 
 paths:
   /health:
@@ -749,6 +753,186 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  /results:
+    get:
+      tags: [Results]
+      operationId: listMyResults
+      summary: The selected licensee's contest results, over all seasons
+      description: |
+        Newest contest first. Every entry carries its contest and the season it belongs to (`event.season`), so
+        a client can chart a season or the whole history. Needs a license for the selected season.
+      parameters:
+        - $ref: '#/components/parameters/XLicensee'
+        - $ref: '#/components/parameters/XSeason'
+      responses:
+        '200':
+          description: The results.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/PrivateNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultHistory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /events/{id}/results:
+    get:
+      tags: [Results]
+      operationId: listEventResults
+      summary: The results of a contest
+      description: |
+        In the order of the web page: age category (youngest first), activity, then archer. Archers are named
+        as the viewer may see them (`Firstname L.`; full names for admins and coaches) and sorted by that name.
+        `404` when the event is not a contest.
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+        - $ref: '#/components/parameters/XLicensee'
+        - $ref: '#/components/parameters/XSeason'
+      responses:
+        '200':
+          description: The results; empty while none was entered.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/PrivateNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContestResults'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /practice-advices:
+    get:
+      tags: [Practice advice]
+      operationId: listPracticeAdvices
+      summary: The practice advice written for the selected licensee
+      description: Newest first. Needs a license for the selected season.
+      parameters:
+        - $ref: '#/components/parameters/XLicensee'
+        - $ref: '#/components/parameters/XSeason'
+        - name: archived
+          in: query
+          description: Include archived advice.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: The advice.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/PrivateNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PracticeAdviceList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /practice-advices/{id}:
+    get:
+      tags: [Practice advice]
+      operationId: getPracticeAdvice
+      summary: A piece of practice advice
+      description: |
+        Advice is personal: only the licensee it was written for finds it, anybody else gets `404`. The text is
+        written in Markdown (`advice_markdown`) and also sent rendered (`advice_html`), sanitized: only
+        formatting elements and `https` / `mailto` links survive, so it can be displayed as is.
+      parameters:
+        - $ref: '#/components/parameters/PracticeAdviceId'
+        - $ref: '#/components/parameters/XLicensee'
+        - $ref: '#/components/parameters/XSeason'
+      responses:
+        '200':
+          description: The advice.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/PrivateNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PracticeAdviceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /practice-advices/{id}/attachments/{attachmentId}:
+    get:
+      tags: [Practice advice]
+      operationId: getPracticeAdviceAttachment
+      summary: A file attached to a piece of practice advice
+      description: |
+        Streams the file, for the licensee the advice was written for only (`404` for anybody else). Only plain
+        images and PDF files are served `inline`; any other type is always sent as a download.
+      parameters:
+        - $ref: '#/components/parameters/PracticeAdviceId'
+        - name: attachmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - $ref: '#/components/parameters/XLicensee'
+        - $ref: '#/components/parameters/XSeason'
+        - name: download
+          in: query
+          description: 'Ask for `Content-Disposition: attachment` instead of `inline`.'
+          schema:
+            type: boolean
+            default: false
+        - $ref: '#/components/parameters/IfModifiedSince'
+      responses:
+        '200':
+          description: The file, with its own media type.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlRevalidate'
+            Last-Modified:
+              $ref: '#/components/headers/LastModified'
+            Content-Length:
+              schema:
+                type: integer
+            Content-Disposition:
+              schema:
+                type: string
+              description: '`inline` or `attachment`, with the original file name.'
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -781,6 +965,13 @@ components:
         type: integer
         minimum: 1
     EventId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    PracticeAdviceId:
       name: id
       in: path
       required: true
@@ -1352,6 +1543,190 @@ components:
               type: integer
             display_name:
               type: string
+
+    ResultScores:
+      type: object
+      required: [id, discipline, age_category, activity, distance, target_type, target_size, score1, score2, total, max_total, nb10, nb10p, tie_break_labels, position]
+      properties:
+        id:
+          type: integer
+        discipline:
+          $ref: '#/components/schemas/EnumValue'
+        age_category:
+          $ref: '#/components/schemas/EnumValue'
+        activity:
+          $ref: '#/components/schemas/EnumValue'
+        distance:
+          type: [integer, 'null']
+          description: Meters.
+        target_type:
+          $ref: '#/components/schemas/EnumValue'
+        target_size:
+          type: [integer, 'null']
+          description: Centimeters.
+        score1:
+          type: [integer, 'null']
+        score2:
+          type: [integer, 'null']
+        total:
+          type: [integer, 'null']
+        max_total:
+          type: [integer, 'null']
+          description: Best possible total of the contest format, `null` when unknown (field, 3D...).
+        nb10:
+          type: [integer, 'null']
+          description: First tie-break count, named by `tie_break_labels[0]`.
+        nb10p:
+          type: [integer, 'null']
+          description: Second tie-break count, named by `tie_break_labels[1]`.
+        tie_break_labels:
+          type: array
+          description: 'Names of the two tie-break counts: `["10", "X"]` for compound, `["9", "10"]` otherwise.'
+          minItems: 2
+          maxItems: 2
+          items:
+            type: string
+        position:
+          type: [integer, 'null']
+          description: Ranking in the contest, when known.
+
+    HistoryResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultScores'
+        - type: object
+          required: [event]
+          properties:
+            event:
+              oneOf:
+                - type: object
+                  required: [id, slug, title, starts_at, ends_at, season]
+                  properties:
+                    id:
+                      type: integer
+                    slug:
+                      type: [string, 'null']
+                    title:
+                      type: string
+                    starts_at:
+                      type: [string, 'null']
+                      format: date-time
+                    ends_at:
+                      type: [string, 'null']
+                      format: date-time
+                    season:
+                      type: [integer, 'null']
+                - type: 'null'
+
+    ResultHistory:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryResult'
+
+    ContestResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultScores'
+        - type: object
+          required: [licensee, is_mine]
+          properties:
+            licensee:
+              type: object
+              required: [id, display_name]
+              properties:
+                id:
+                  type: integer
+                display_name:
+                  type: string
+            is_mine:
+              type: boolean
+              description: The result is the selected licensee's.
+
+    ContestResults:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContestResult'
+
+    PracticeAdviceSummary:
+      type: object
+      required: [id, title, author_firstname, created_at, archived_at, attachments_count]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        author_firstname:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        archived_at:
+          type: [string, 'null']
+          format: date-time
+        attachments_count:
+          type: integer
+
+    PracticeAdviceDetail:
+      allOf:
+        - $ref: '#/components/schemas/PracticeAdviceSummary'
+        - type: object
+          required: [advice_markdown, advice_html, attachments]
+          properties:
+            advice_markdown:
+              type: string
+              description: The text as the coach wrote it, in Markdown (GitHub flavor). Older advice may hold HTML.
+            advice_html:
+              type: string
+              description: |
+                `advice_markdown` rendered to HTML and sanitized (formatting elements, `https` and `mailto` links,
+                `https` images): safe to display as is.
+            attachments:
+              type: array
+              items:
+                $ref: '#/components/schemas/PracticeAdviceAttachment'
+
+    PracticeAdviceAttachment:
+      type: object
+      required: [id, type, file_name, mime_type, size, url]
+      properties:
+        id:
+          type: integer
+        type:
+          oneOf:
+            - $ref: '#/components/schemas/EnumValue'
+            - type: 'null'
+        file_name:
+          type: [string, 'null']
+        mime_type:
+          type: [string, 'null']
+        size:
+          type: [integer, 'null']
+          description: Bytes.
+        url:
+          type: string
+          description: Path (from the host root) of the attachment endpoint. Needs the bearer token.
+
+    PracticeAdviceList:
+      type: object
+      required: [advices]
+      properties:
+        advices:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeAdviceSummary'
+
+    PracticeAdviceResponse:
+      type: object
+      required: [advice]
+      properties:
+        advice:
+          $ref: '#/components/schemas/PracticeAdviceDetail'
 
     ResultSummary:
       type: object

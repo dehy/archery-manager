@@ -4,8 +4,33 @@ declare(strict_types=1);
 
 namespace App\Helper;
 
+use App\DBAL\Types\LicenseAgeCategoryType;
+use App\Entity\Result;
+
 class ResultHelper
 {
+    /**
+     * Results the way the results page lists them: by age category (youngest first), then activity, then
+     * archer. The archer is compared by the name the caller is allowed to show.
+     *
+     * @param list<Result>                 $results
+     * @param callable(Result): string     $archerName
+     *
+     * @return list<Result>
+     */
+    public static function sort(array $results, callable $archerName): array
+    {
+        $rankMap = array_flip(array_values(LicenseAgeCategoryType::getOrderedChoices()));
+        usort($results, static function (Result $a, Result $b) use ($rankMap, $archerName): int {
+            $rankA = $rankMap[$a->getAgeCategory()] ?? \PHP_INT_MAX;
+            $rankB = $rankMap[$b->getAgeCategory()] ?? \PHP_INT_MAX;
+
+            return [$rankA, $a->getActivity(), $archerName($a)] <=> [$rankB, $b->getActivity(), $archerName($b)];
+        });
+
+        return $results;
+    }
+
     final public const string HEX_FORMAT = '#%02x%02x%02x';
 
     final public const string COLOR_LOWEST = '#FFDFD4';
