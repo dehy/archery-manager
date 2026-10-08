@@ -7,19 +7,17 @@ namespace App\Api\V1;
 use App\DBAL\Types\PracticeAdviceAttachmentType;
 use App\Entity\PracticeAdvice;
 use App\Entity\PracticeAdviceAttachment;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
+use App\Service\PracticeAdviceRenderer;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * Practice advice: the advice a coach wrote for a member. The text is rich text (HTML) typed in a web
- * editor; it is sanitized here, so that a client can display it without having to trust it.
+ * Practice advice: the advice a coach wrote for a member. The text is Markdown; it is sent both as written
+ * and rendered to sanitized HTML (see PracticeAdviceRenderer), so a client can display either.
  */
 final readonly class PracticeAdvicePresenter
 {
     public function __construct(
-        #[Autowire(service: 'html_sanitizer.sanitizer.app.advice_sanitizer')]
-        private HtmlSanitizerInterface $sanitizer,
+        private PracticeAdviceRenderer $renderer,
         private UrlGeneratorInterface $urlGenerator,
     ) {
     }
@@ -48,7 +46,8 @@ final readonly class PracticeAdvicePresenter
     {
         return [
             ...$this->summary($advice, \count($attachments)),
-            'advice_html' => $this->sanitizer->sanitize((string) $advice->getAdvice()),
+            'advice_markdown' => (string) $advice->getAdvice(),
+            'advice_html' => $this->renderer->toHtml($advice->getAdvice()),
             'attachments' => array_map(fn (PracticeAdviceAttachment $attachment): array => $this->attachment($advice, $attachment), $attachments),
         ];
     }

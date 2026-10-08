@@ -62,7 +62,40 @@ final class PracticeAdviceControllerTest extends ApiWebTestCase
         $this->assertSame(2, $this->json($client)['advices'][0]['attachments_count']);
     }
 
-    public function testTheAdviceIsShownWithItsTextSanitized(): void
+    public function testTheMarkdownOfTheAdviceIsSentAsWrittenAndRendered(): void
+    {
+        $client = self::createClient();
+        $markdown = "## Posture\n\nGardez le **dos droit** et *relâchez* l'épaule.\n\n- Pieds écartés\n- Regard sur la cible\n\n[Vidéo](https://example.org/video)";
+        $advice = $this->advice($this->licenseeOf(self::MEMBER), 'Posture', '2027-03-10', $markdown);
+
+        $this->get($client, self::URL.'/'.$advice->getId(), $this->tokenFor(self::MEMBER));
+
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseMatchesSchema($client, 'PracticeAdviceResponse');
+        $body = $this->json($client)['advice'];
+        $this->assertSame($markdown, $body['advice_markdown']);
+        $html = (string) $body['advice_html'];
+        $this->assertStringContainsString('<h2>Posture</h2>', $html);
+        $this->assertStringContainsString('<strong>dos droit</strong>', $html);
+        $this->assertStringContainsString('<em>relâchez</em>', $html);
+        $this->assertStringContainsString('<li>Pieds écartés</li>', $html);
+        $this->assertStringContainsString('<a href="https://example.org/video">Vidéo</a>', $html);
+    }
+
+    public function testMarkdownLinksToUnsafeSchemesAreDropped(): void
+    {
+        $client = self::createClient();
+        $advice = $this->advice($this->licenseeOf(self::MEMBER), 'Liens', '2027-03-10', '[piège](javascript:alert(1)) et ![image](http://example.org/x.png)');
+
+        $this->get($client, self::URL.'/'.$advice->getId(), $this->tokenFor(self::MEMBER));
+
+        $html = (string) $this->json($client)['advice']['advice_html'];
+        $this->assertStringContainsString('piège', $html);
+        $this->assertStringNotContainsString('javascript:', $html);
+        $this->assertStringNotContainsString('http://', $html);
+    }
+
+    public function testOlderHtmlAdviceStillRendersSanitized(): void
     {
         $client = self::createClient();
         $advice = $this->advice(
@@ -79,15 +112,15 @@ final class PracticeAdviceControllerTest extends ApiWebTestCase
         $body = $this->json($client)['advice'];
         $this->assertSame('Posture', $body['title']);
         $this->assertSame($advice->getAuthor()->getFirstname(), $body['author_firstname']);
-        $html = $body['advice_html'];
-        $this->assertStringContainsString('<strong>dos droit</strong>', (string) $html);
-        $this->assertStringContainsString('https://example.org/video', (string) $html);
-        $this->assertStringNotContainsString('script', (string) $html);
-        $this->assertStringNotContainsString('alert', (string) $html);
-        $this->assertStringNotContainsString('onclick', (string) $html);
-        $this->assertStringNotContainsString('onerror', (string) $html);
-        $this->assertStringNotContainsString('javascript:', (string) $html);
-        $this->assertStringNotContainsString('http://', (string) $html);
+        $html = (string) $body['advice_html'];
+        $this->assertStringContainsString('<strong>dos droit</strong>', $html, 'Old rich-text advice keeps its formatting.');
+        $this->assertStringContainsString('<a href="https://example.org/video">vidéo</a>', $html);
+        // Whatever survives of the payloads is inert: no element, handler or URL that can run.
+        $this->assertStringNotContainsString('<script', $html);
+        $this->assertStringNotContainsString('onclick', $html);
+        $this->assertStringNotContainsString('onerror', $html);
+        $this->assertStringNotContainsString('javascript:', $html);
+        $this->assertStringNotContainsString('http://', $html);
     }
 
     public function testSomeoneElsesAdviceIsNotFound(): void

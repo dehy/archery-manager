@@ -1,7 +1,7 @@
 framework:
     html_sanitizer:
         sanitizers:
-            # Rich text written by coaches (practice advice), sent to the mobile app as HTML.
+            # Practice advice rendered from Markdown (which may embed HTML), for the web page and the API.
             # Only safe formatting elements survive: no scripts, styles, forms or event handlers.
             app.advice_sanitizer:
                 allow_safe_elements: true

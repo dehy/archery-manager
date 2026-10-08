@@ -11,7 +11,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -39,7 +39,10 @@ class PracticeAdviceCrudController extends AbstractCrudController
         return [
             AssociationField::new('licensee'),
             TextField::new('title'),
-            TextEditorField::new('advice'),
+            TextareaField::new('advice')
+                ->setNumOfRows(15)
+                ->setHelp('Markdown : **gras**, *italique*, listes « - », titres « ## », liens [texte](https://…).')
+                ->hideOnIndex(),
             AssociationField::new('author'),
             DateTimeField::new('createdAt')->hideOnForm(),
             BooleanField::new('archivedAt', 'Archived')

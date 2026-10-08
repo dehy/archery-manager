@@ -852,8 +852,8 @@ paths:
       summary: A piece of practice advice
       description: |
         Advice is personal: only the licensee it was written for finds it, anybody else gets `404`. The text is
-        sanitized HTML (`advice_html`): only formatting elements and `https` / `mailto` links survive, so it can
-        be displayed as is.
+        written in Markdown (`advice_markdown`) and also sent rendered (`advice_html`), sanitized: only
+        formatting elements and `https` / `mailto` links survive, so it can be displayed as is.
       parameters:
         - $ref: '#/components/parameters/PracticeAdviceId'
         - $ref: '#/components/parameters/XLicensee'
@@ -1676,11 +1676,16 @@ components:
       allOf:
         - $ref: '#/components/schemas/PracticeAdviceSummary'
         - type: object
-          required: [advice_html, attachments]
+          required: [advice_markdown, advice_html, attachments]
           properties:
+            advice_markdown:
+              type: string
+              description: The text as the coach wrote it, in Markdown (GitHub flavor). Older advice may hold HTML.
             advice_html:
               type: string
-              description: Sanitized HTML (formatting elements, `https` and `mailto` links, `https` images).
+              description: |
+                `advice_markdown` rendered to HTML and sanitized (formatting elements, `https` and `mailto` links,
+                `https` images): safe to display as is.
             attachments:
               type: array
               items:
