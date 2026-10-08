@@ -146,6 +146,7 @@
         "fakerphp/faker": "^1.23",
         "friendsofphp/php-cs-fixer": "^3.14",
         "hautelook/alice-bundle": "^2.11",
+        "opis/json-schema": "^2.6",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-phpunit": "^2.0",
         "phpunit/phpunit": "^11.0",

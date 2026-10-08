@@ -1,0 +1,1093 @@
+openapi: 3.1.0
+
+info:
+  title: Archery Manager mobile API
+  version: 1.0.0
+  summary: Stateless JSON API consumed by the Archery Manager mobile app.
+  description: |
+    This is the contract between the Symfony application and the React Native app. The app generates its
+    typed client from this file; `tests/Integration/Api/OpenApiSpecTest.php` fails when a route and this
+    document drift apart.
+
+    ## Conventions
+
+    - **Versioned and stateless.** Everything lives under `/api/v1`. There is no session and no cookie.
+    - **Technical text is English**: error codes, error messages, field names. **Display labels are French**
+      (`label` of an enum value, club and group names, event titles...): they are the club's own content.
+    - **Bearer tokens.** `POST /auth/login` returns an opaque access token (15 minutes) and a refresh token
+      (30 days). Send `Authorization: Bearer <access_token>`. A refresh token works **once**: refreshing
+      returns a new pair and the previous refresh token becomes invalid.
+    - **Request context.** One account can have several licensees (family members) and the data depends on a
+      season. Both are chosen per request with the `X-Licensee` and `X-Season` headers, never stored on the
+      server. Without them the first licensee and the current season are used.
+    - **Errors** always have the same shape, see `Error`, and carry a stable machine-readable `error` code.
+    - **Dates** are ISO 8601 with offset (`2026-10-06T19:00:00+02:00`); plain dates are `YYYY-MM-DD`.
+    - **Caching.** JSON responses depend on who asks and are never stored (`Cache-Control: no-store, private`).
+      Files are `private, max-age=0, must-revalidate` with a `Last-Modified` taken from the stored file, so the
+      app can keep them and revalidate with `If-Modified-Since` (`304`).
+    - **Pagination.** Lists take `page` (from 1) and `per_page` (default 30, max 100).
+
+    ## Access rules and their known limit
+
+    A licensee's profile and attachments are visible to the licensee's own account, to admins, and to club
+    admins and coaches **who share a club with the licensee in the current season** (the season selected with
+    `X-Season` does not widen this). Pictures and the directory follow the **selected** season, so a member
+    sees the club as it was in that season. `ROLE_COACH` and `ROLE_CLUB_ADMIN` belong to the account, not to a
+    club: a coach of club A whose account also holds a licensee in club B is a coach for club B too (same as the
+    web app; it needs per-club roles to fix).
+
+    ## Not yet in this version
+
+    Events, participation, results, practice advice, club applications, consent and push notifications are
+    added by the next phases of the mobile plan.
+  license:
+    name: AGPL-3.0-or-later
+    url: https://www.gnu.org/licenses/agpl-3.0.html
+
+servers:
+  - url: /api/v1
+    description: Relative to the host of the Archery Manager installation.
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Meta
+    description: Service status.
+  - name: Authentication
+    description: Log in, refresh the tokens, log out.
+  - name: Account
+    description: The authenticated account and its context.
+  - name: Home
+    description: The dashboard.
+  - name: Club
+    description: The club of the selected licensee and its member directory.
+  - name: Licensees
+    description: A licensee's profile, picture and attachments.
+
+paths:
+  /health:
+    get:
+      tags: [Meta]
+      operationId: getHealth
+      summary: Service health
+      description: Always public, and not affected by an `Authorization` header (so a stale token does not break monitoring).
+      security: []
+      responses:
+        '200':
+          description: The service is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      operationId: login
+      summary: Log in with an email and a password
+      description: |
+        Creates a session for this device. Wrong credentials, unknown emails and accounts without a password
+        all get the same `invalid_credentials` answer. After 10 failed attempts an account is locked for
+        30 minutes (`account_locked`). Attempts are also throttled per IP and email (`429`).
+
+        The body must be JSON with `Content-Type: application/json`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Logged in.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: |
+            `invalid_credentials`, or `account_locked` (the message says for how long).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: The body is not JSON (`unsupported_media_type`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/TooManyAttempts'
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      operationId: refreshTokens
+      summary: Exchange a refresh token for a new pair of tokens
+      description: |
+        The refresh token is single-use: the response contains a new access token **and** a new refresh token,
+        which the app must store. A refresh token that was already used, expired, or revoked is rejected with
+        `invalid_refresh_token`: the user has to log in again.
+
+        Not affected by an `Authorization` header: an expired access token may be sent along without harm.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: A new pair of tokens.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '400':
+          description: '`refresh_token` is missing, empty, not a string, or longer than 255 characters (`invalid_request`).'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: |
+            `invalid_refresh_token` (unknown, already used, expired or revoked), or `account_locked`. In the
+            second case the session is kept: refreshing works again once the lock is over.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      operationId: logout
+      summary: Log this device out
+      description: |
+        Revokes the session the refresh token belongs to; other devices are not affected. Keyed on the
+        refresh token because the access token has usually expired by then. Always answers `204`, whatever
+        the token (it never tells whether a token was valid).
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '204':
+          description: Done.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+
+  /me:
+    get:
+      tags: [Account]
+      operationId: getMe
+      summary: The authenticated account, its licensees and the resolved context
+      parameters:
+        - $ref: '#/components/parameters/XLicensee'
+        - $ref: '#/components/parameters/XSeason'
+      responses:
+        '200':
+          description: The account.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/PrivateNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /home:
+    get:
+      tags: [Home]
+      operationId: getHome
+      summary: The dashboard of the selected licensee
+      description: |
+        Like the web home page, it has three states, told by `state`:
+
+        - `blank_account`: the account has no licensee yet;
+        - `no_license`: the licensee has no license for the selected season; the club applications of that
+          season are listed so the user can follow them;
+        - `dashboard`: the next 5 events and the last 5 results. Like the web home page, the events are the
+          upcoming ones assigned to one of the licensee's groups (an event open to everybody, with no assigned
+          group, is not listed there), and the club of the current season scopes them.
+      parameters:
+        - $ref: '#/components/parameters/XLicensee'
+        - $ref: '#/components/parameters/XSeason'
+      responses:
+        '200':
+          description: The dashboard.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/PrivateNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Home'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /club:
+    get:
+      tags: [Club]
+      operationId: getClub
+      summary: The club of the selected licensee for the selected season
+      description: Needs a license for the selected season (`403 forbidden` otherwise).
+      parameters:
+        - $ref: '#/components/parameters/XLicensee'
+        - $ref: '#/components/parameters/XSeason'
+      responses:
+        '200':
+          description: The club, its groups and member counts.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/PrivateNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClubOverview'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /club/members:
+    get:
+      tags: [Club]
+      operationId: listClubMembers
+      summary: The member directory ("trombinoscope")
+      description: |
+        The members of the club that hold a license for the selected season, sorted by displayed name
+        (case and accents ignored). Needs a license for the selected season.
+
+        **Privacy**: admins and coaches see full names; everybody else sees "Firstname L.". The search `q`
+        only looks at the displayed name, so it cannot be used to find out a hidden last name.
+      parameters:
+        - $ref: '#/components/parameters/XLicensee'
+        - $ref: '#/components/parameters/XSeason'
+        - name: group
+          in: query
+          description: Only the members of this group (the id of a group of the club), or `none` for the members without a group. Anything else is a `400`.
+          schema:
+            type: string
+            pattern: '^(none|[1-9][0-9]*)$'
+        - name: q
+          in: query
+          description: Search in the displayed name, ignoring case and accents.
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Starts at 1. Larger than 100000 is a `400`.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100000
+            default: 1
+        - name: per_page
+          in: query
+          description: Larger values are not rejected, they are capped to 100.
+          schema:
+            type: integer
+            minimum: 1
+            default: 30
+      responses:
+        '200':
+          description: One page of members.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/PrivateNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberPage'
+        '400':
+          description: |
+            A parameter is invalid: `page` is not an integer between 1 and 100000, `per_page` is not a
+            positive integer, `group` is not a group of this club, or one of the context headers is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /licensees/{id}:
+    get:
+      tags: [Licensees]
+      operationId: getLicensee
+      summary: A licensee's profile
+      description: |
+        Allowed for the licensee's own account, for admins, and for club admins and coaches who share a club
+        with the licensee in the **current** season. Anybody else gets `403`. `X-Licensee` has no effect here:
+        the licensee is the one in the path. `X-Season` only chooses which season's license is described.
+      parameters:
+        - $ref: '#/components/parameters/LicenseeId'
+        - $ref: '#/components/parameters/XSeason'
+      responses:
+        '200':
+          description: The profile.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/PrivateNoStore'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [licensee]
+                properties:
+                  licensee:
+                    $ref: '#/components/schemas/LicenseeProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /licensees/{id}/picture:
+    get:
+      tags: [Licensees]
+      operationId: getLicenseePicture
+      summary: A licensee's profile picture
+      description: |
+        Streams the image. Allowed for the same people as the profile **and any member of the same club in the
+        selected season**, since the directory shows every member's picture. Authorized on every request: there is no public or
+        long-lived link. Send the bearer token with the image request (`expo-image` and `expo-file-system`
+        accept headers).
+
+        `404` when the licensee has no picture: show a placeholder.
+      parameters:
+        - $ref: '#/components/parameters/LicenseeId'
+        - $ref: '#/components/parameters/XSeason'
+        - $ref: '#/components/parameters/IfModifiedSince'
+      responses:
+        '200':
+          description: The image.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlRevalidate'
+            Last-Modified:
+              $ref: '#/components/headers/LastModified'
+            Content-Length:
+              schema:
+                type: integer
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /licensees/{id}/attachments/{attachmentId}:
+    get:
+      tags: [Licensees]
+      operationId: getLicenseeAttachment
+      summary: A file attached to a licensee (medical certificate, license application...)
+      description: |
+        Streams the file. Attachments are sensitive: allowed only for the licensee's own account, admins, and
+        club admins and coaches who share a club with the licensee in the current season (the rule of the
+        profile, **not** of the picture). The attachment must belong to the licensee in the path, otherwise `404`.
+
+        Only plain images (JPEG, PNG, WebP, GIF) and PDF files are served `inline`; any other type is always
+        sent as a download (`Content-Disposition: attachment`).
+      parameters:
+        - $ref: '#/components/parameters/LicenseeId'
+        - name: attachmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - $ref: '#/components/parameters/XSeason'
+        - name: download
+          in: query
+          description: 'Ask for `Content-Disposition: attachment` instead of `inline`.'
+          schema:
+            type: boolean
+            default: false
+        - $ref: '#/components/parameters/IfModifiedSince'
+      responses:
+        '200':
+          description: The file, with its own media type.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlRevalidate'
+            Last-Modified:
+              $ref: '#/components/headers/LastModified'
+            Content-Length:
+              schema:
+                type: integer
+            Content-Disposition:
+              schema:
+                type: string
+              description: '`inline` or `attachment`, with the original file name.'
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: The opaque `access_token` returned by `/auth/login` or `/auth/refresh`.
+
+  parameters:
+    XLicensee:
+      name: X-Licensee
+      in: header
+      description: |
+        FFTA member code of the licensee the request acts as. Must be a licensee of the authenticated account
+        (`403` otherwise). Defaults to the account's first licensee.
+      schema:
+        type: string
+    XSeason:
+      name: X-Season
+      in: header
+      description: The season to use, as the year it ends (the 2026/2027 season is `2027`). Defaults to the current season.
+      schema:
+        type: integer
+        minimum: 2000
+        maximum: 2100
+    LicenseeId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    IfModifiedSince:
+      name: If-Modified-Since
+      in: header
+      description: 'Conditional request: answers `304` when the file did not change.'
+      schema:
+        type: string
+
+  headers:
+    NoStore:
+      description: Tokens are never cached.
+      schema:
+        type: string
+        examples: ['no-store, private']
+    PrivateNoStore:
+      description: The answer depends on the authenticated user and is never stored.
+      schema:
+        type: string
+        examples: ['no-store, private']
+    CacheControlRevalidate:
+      description: Files are private and must be revalidated before each reuse.
+      schema:
+        type: string
+        examples: ['must-revalidate, max-age=0, private']
+    LastModified:
+      description: Modification time of the stored file.
+      schema:
+        type: string
+
+  responses:
+    NotModified:
+      description: The file did not change since `If-Modified-Since`.
+      headers:
+        Cache-Control:
+          $ref: '#/components/headers/CacheControlRevalidate'
+        Last-Modified:
+          $ref: '#/components/headers/LastModified'
+    BadRequest:
+      description: |
+        The request is invalid: malformed JSON or body (`bad_request`), an invalid `X-Season` header, or an
+        invalid parameter.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: |
+        No token (`authentication_required`), or an unknown, expired or revoked access token (`invalid_token`),
+        or a locked account (`account_locked`). The response carries a `WWW-Authenticate: Bearer` challenge.
+        On `invalid_token`, refresh the tokens once and retry.
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: |
+        Authenticated but not allowed (`forbidden`): no license for the selected season, a licensee that
+        is not yours in `X-Licensee`, or no right on the requested licensee.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Unknown resource (`not_found`), or no picture / file to serve.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooManyAttempts:
+      description: Too many login attempts (`too_many_attempts`).
+      headers:
+        Retry-After:
+          description: Seconds to wait.
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      required: [error, message]
+      additionalProperties: false
+      properties:
+        error:
+          type: string
+          description: Stable machine-readable code. Branch on this, never on `message`.
+          enum:
+            - authentication_required
+            - invalid_token
+            - invalid_credentials
+            - account_locked
+            - too_many_attempts
+            - invalid_request
+            - invalid_refresh_token
+            - bad_request
+            - unauthorized
+            - forbidden
+            - not_found
+            - method_not_allowed
+            - not_acceptable
+            - conflict
+            - payload_too_large
+            - unsupported_media_type
+            - unprocessable_entity
+            - too_many_requests
+            - service_unavailable
+            - http_error
+            - server_error
+        message:
+          type: string
+          description: English, for logs and developers. Not meant to be shown to users.
+
+    Health:
+      type: object
+      required: [status, version]
+      properties:
+        status:
+          type: string
+          const: ok
+        version:
+          type: string
+          const: v1
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        device_name:
+          type: string
+          maxLength: 255
+          description: Free text shown later in the list of devices, e.g. "Pixel 9". Ignored when not a string; cut to 255 characters.
+
+    RefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+          maxLength: 255
+
+    TokenPair:
+      type: object
+      required: [token_type, access_token, expires_in, refresh_token]
+      properties:
+        token_type:
+          type: string
+          const: Bearer
+        access_token:
+          type: string
+        expires_in:
+          type: integer
+          description: Seconds before the access token expires (900).
+        refresh_token:
+          type: string
+          description: Valid 30 days and usable once.
+
+    EnumValue:
+      type: object
+      description: A value of the club's domain vocabulary.
+      required: [code, label]
+      properties:
+        code:
+          type: string
+          description: Stable code, e.g. `CL`.
+        label:
+          type: string
+          description: French display label, e.g. "Classique".
+
+    Reference:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: [integer, 'null']
+        name:
+          type: [string, 'null']
+
+    Me:
+      type: object
+      required: [user, licensees, context]
+      properties:
+        user:
+          type: object
+          required: [id, email, firstname, lastname]
+          properties:
+            id:
+              type: integer
+            email:
+              type: string
+            firstname:
+              type: [string, 'null']
+            lastname:
+              type: [string, 'null']
+        licensees:
+          type: array
+          description: The licensees of the account (a parent can have several).
+          items:
+            type: object
+            required: [ffta_member_code, firstname, lastname]
+            properties:
+              ffta_member_code:
+                type: [string, 'null']
+                description: The value to send in `X-Licensee`.
+              firstname:
+                type: string
+              lastname:
+                type: string
+        context:
+          type: object
+          description: What the headers resolved to.
+          required: [licensee, season]
+          properties:
+            licensee:
+              type: [string, 'null']
+              description: FFTA member code of the licensee in use, `null` when the account has none.
+            season:
+              type: integer
+
+    Home:
+      oneOf:
+        - $ref: '#/components/schemas/HomeBlankAccount'
+        - $ref: '#/components/schemas/HomeNoLicense'
+        - $ref: '#/components/schemas/HomeDashboard'
+      discriminator:
+        propertyName: state
+        mapping:
+          blank_account: '#/components/schemas/HomeBlankAccount'
+          no_license: '#/components/schemas/HomeNoLicense'
+          dashboard: '#/components/schemas/HomeDashboard'
+
+    HomeLicensee:
+      type: object
+      required: [id, firstname, ffta_member_code]
+      properties:
+        id:
+          type: integer
+        firstname:
+          type: [string, 'null']
+        ffta_member_code:
+          type: [string, 'null']
+
+    HomeBlankAccount:
+      type: object
+      required: [state, season, licensee]
+      properties:
+        state:
+          type: string
+          const: blank_account
+        season:
+          type: integer
+        licensee:
+          type: 'null'
+
+    HomeNoLicense:
+      type: object
+      required: [state, season, licensee, applications]
+      properties:
+        state:
+          type: string
+          const: no_license
+        season:
+          type: integer
+        licensee:
+          $ref: '#/components/schemas/HomeLicensee'
+        applications:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClubApplication'
+
+    HomeDashboard:
+      type: object
+      required: [state, season, licensee, next_events, last_results]
+      properties:
+        state:
+          type: string
+          const: dashboard
+        season:
+          type: integer
+        licensee:
+          $ref: '#/components/schemas/HomeLicensee'
+        next_events:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/EventSummary'
+        last_results:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/ResultSummary'
+
+    ClubApplication:
+      type: object
+      required: [id, club, season, status, admin_message, created_at]
+      properties:
+        id:
+          type: integer
+        club:
+          oneOf:
+            - $ref: '#/components/schemas/Reference'
+            - type: 'null'
+        season:
+          type: [integer, 'null']
+        status:
+          type: string
+          enum: [pending, validated, waiting_list, rejected, cancelled]
+        admin_message:
+          type: [string, 'null']
+          description: French message written by the club admin.
+        created_at:
+          type: [string, 'null']
+          format: date-time
+
+    EventSummary:
+      type: object
+      description: Compact event, as listed on the dashboard. The full event resource comes with the events screens.
+      required: [id, slug, title, type, starts_at, ends_at, all_day, address, participation_state, participants_count]
+      properties:
+        id:
+          type: integer
+        slug:
+          type: [string, 'null']
+        title:
+          type: string
+        type:
+          type: string
+          enum: [contest_official, contest_hobby, training, free_training, other]
+        starts_at:
+          type: [string, 'null']
+          format: date-time
+        ends_at:
+          type: [string, 'null']
+          format: date-time
+        all_day:
+          type: boolean
+        address:
+          type: [string, 'null']
+        participation_state:
+          type: [string, 'null']
+          enum: [not_going, interested, registered, null]
+          description: |
+            The licensee's answer, including the web app's defaults (training events default to `registered`
+            for the members of the assigned groups). `null` means "no answer yet".
+        participants_count:
+          type: integer
+          description: Participants of the event whose answer is not `not_going` (including those without an answer yet).
+
+    ResultSummary:
+      type: object
+      required: [id, event, distance, target_type, target_size, total]
+      properties:
+        id:
+          type: integer
+        event:
+          type:
+            - object
+            - 'null'
+          required: [id, slug, title, starts_at, ends_at]
+          properties:
+            id:
+              type: integer
+            slug:
+              type: [string, 'null']
+            title:
+              type: string
+            starts_at:
+              type: [string, 'null']
+              format: date-time
+            ends_at:
+              type: [string, 'null']
+              format: date-time
+        distance:
+          type: [integer, 'null']
+          description: Meters.
+        target_type:
+          oneOf:
+            - $ref: '#/components/schemas/EnumValue'
+            - type: 'null'
+        target_size:
+          type: [integer, 'null']
+          description: Centimeters.
+        total:
+          type: [integer, 'null']
+
+    Club:
+      type: object
+      required: [id, name, city, contact_email, ffta_code, primary_color, logo_url]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        city:
+          type: [string, 'null']
+        contact_email:
+          type: [string, 'null']
+        ffta_code:
+          type: [string, 'null']
+        primary_color:
+          type: [string, 'null']
+          description: Hexadecimal color, e.g. `#0a7d33`.
+        logo_url:
+          type: [string, 'null']
+          description: Path or URL of the club logo (public, no token needed), `null` when the club has none.
+
+    Group:
+      type: object
+      required: [id, name, description, member_count]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        member_count:
+          type: integer
+          description: Members of the group among the club's members of the selected season.
+
+    ClubOverview:
+      type: object
+      required: [club, season, member_count, groups, without_group_count]
+      properties:
+        club:
+          $ref: '#/components/schemas/Club'
+        season:
+          type: integer
+        member_count:
+          type: integer
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/Group'
+        without_group_count:
+          type: integer
+
+    MemberSummary:
+      type: object
+      description: A member as shown on a directory card.
+      required: [id, display_name, groups, activities, picture_url]
+      properties:
+        id:
+          type: integer
+        display_name:
+          type: string
+          description: Full name for admins and coaches, "Firstname L." for everybody else.
+        groups:
+          type: array
+          description: The groups of the club the member is in (groups of a previous club are not listed).
+          items:
+            $ref: '#/components/schemas/Reference'
+        activities:
+          type: array
+          description: The activities of the license of the selected season.
+          items:
+            $ref: '#/components/schemas/EnumValue'
+        picture_url:
+          type: [string, 'null']
+          description: Path (from the host root) of the picture endpoint, `null` when there is no picture. Needs the bearer token.
+
+    MemberPage:
+      type: object
+      required: [data, meta, filters]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemberSummary'
+        meta:
+          type: object
+          required: [page, per_page, total, total_in_club]
+          properties:
+            page:
+              type: integer
+            per_page:
+              type: integer
+            total:
+              type: integer
+              description: Members matching the filters, over all pages.
+            total_in_club:
+              type: integer
+              description: Members of the club, whatever the filters.
+        filters:
+          type: object
+          description: What the filter chips of the directory need.
+          required: [groups, without_group_count]
+          properties:
+            groups:
+              type: array
+              items:
+                $ref: '#/components/schemas/Group'
+            without_group_count:
+              type: integer
+
+    LicenseDetails:
+      type: object
+      required: [season, club, type, category, age_category, activities]
+      properties:
+        season:
+          type: [integer, 'null']
+        club:
+          oneOf:
+            - $ref: '#/components/schemas/Reference'
+            - type: 'null'
+        type:
+          oneOf:
+            - $ref: '#/components/schemas/EnumValue'
+            - type: 'null'
+        category:
+          oneOf:
+            - $ref: '#/components/schemas/EnumValue'
+            - type: 'null'
+        age_category:
+          oneOf:
+            - $ref: '#/components/schemas/EnumValue'
+            - type: 'null'
+        activities:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnumValue'
+
+    Attachment:
+      type: object
+      required: [id, type, season, document_date, file_name, mime_type, size, url]
+      properties:
+        id:
+          type: integer
+        type:
+          oneOf:
+            - $ref: '#/components/schemas/EnumValue'
+            - type: 'null'
+        season:
+          type: [integer, 'null']
+        document_date:
+          type: [string, 'null']
+          format: date
+        file_name:
+          type: [string, 'null']
+          description: Original file name.
+        mime_type:
+          type: [string, 'null']
+        size:
+          type: [integer, 'null']
+          description: Bytes.
+        url:
+          type: string
+          description: Path (from the host root) of the attachment endpoint. Needs the bearer token.
+
+    LicenseeProfile:
+      allOf:
+        - $ref: '#/components/schemas/MemberSummary'
+        - type: object
+          required: [firstname, lastname, full_name, gender, ffta_member_code, license, attachments]
+          properties:
+            firstname:
+              type: [string, 'null']
+            lastname:
+              type: [string, 'null']
+            full_name:
+              type: string
+            gender:
+              $ref: '#/components/schemas/EnumValue'
+            ffta_member_code:
+              type: [string, 'null']
+            license:
+              oneOf:
+                - $ref: '#/components/schemas/LicenseDetails'
+                - type: 'null'
+              description: The license of the selected season, `null` when there is none.
+            attachments:
+              type: array
+              items:
+                $ref: '#/components/schemas/Attachment'

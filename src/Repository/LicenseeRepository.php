@@ -101,6 +101,30 @@ class LicenseeRepository extends ServiceEntityRepository
     }
 
     /**
+     * The members of a club for a season, with what the member directory needs and nothing more
+     * (no attachments, which can be many and heavy), in a stable order.
+     *
+     * Careful: licenses are fetch-joined for the requested season only, so the `licenses` collection of
+     * the returned licensees must not be relied upon for another season within the same request.
+     *
+     * @return list<Licensee>
+     */
+    public function findForDirectory(Club $club, int $season): array
+    {
+        return $this->createQueryBuilder('l')
+            ->select('l', 'li', 'g')
+            ->innerJoin('l.licenses', 'li')
+            ->leftJoin('l.groups', 'g')
+            ->where('li.season = :season')
+            ->andWhere('li.club = :club')
+            ->orderBy('l.id', 'ASC')
+            ->setParameter('season', $season)
+            ->setParameter('club', $club)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @throws NonUniqueResultException
      */
     public function findOneByCalendarToken(string $token): ?Licensee
