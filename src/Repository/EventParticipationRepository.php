@@ -59,6 +59,52 @@ class EventParticipationRepository extends ServiceEntityRepository
         return $counts;
     }
 
+    /**
+     * The answers a licensee gave to these events, in one query.
+     *
+     * @param list<Event> $events
+     *
+     * @return array<int, EventParticipation> event id => participation (events never answered are absent)
+     */
+    public function indexedByEventFor(Licensee $licensee, array $events): array
+    {
+        if ([] === $events) {
+            return [];
+        }
+
+        $participations = $this->createQueryBuilder('ep')
+            ->where('ep.participant = :licensee')
+            ->andWhere('ep.event IN (:events)')
+            ->setParameter('licensee', $licensee)
+            ->setParameter('events', $events)
+            ->getQuery()
+            ->getResult();
+
+        $indexed = [];
+        foreach ($participations as $participation) {
+            $indexed[$participation->getEvent()->getId()] = $participation;
+        }
+
+        return $indexed;
+    }
+
+    /**
+     * The answers given to an event, with their participants, in one query.
+     *
+     * @return list<EventParticipation>
+     */
+    public function findForEventWithParticipants(Event $event): array
+    {
+        return $this->createQueryBuilder('ep')
+            ->select('ep', 'p')
+            ->join('ep.participant', 'p')
+            ->where('ep.event = :event')
+            ->orderBy('ep.id', 'ASC')
+            ->setParameter('event', $event)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function add(EventParticipation $entity, bool $flush = true): void
     {
         $this->getEntityManager()->persist($entity);

@@ -193,6 +193,19 @@ final class EventVoterTest extends TestCase
         $this->assertSame(VoterInterface::ACCESS_GRANTED, $voter->vote($token, $event, [EventVoter::VIEW]));
     }
 
+    public function testAnEventWithoutClubIsVisibleToEveryMemberButNotEditable(): void
+    {
+        $voter = $this->createVoter();
+        $user = $this->createUser(['ROLE_USER']);
+        $this->addLicenseeWithClub($user, $this->createStub(Club::class));
+        $token = $this->createToken($user);
+        $event = $this->createEvent(null);
+
+        $this->assertSame(VoterInterface::ACCESS_GRANTED, $voter->vote($token, $event, [EventVoter::VIEW]));
+        $this->assertSame(VoterInterface::ACCESS_DENIED, $voter->vote($token, $event, [EventVoter::EDIT]));
+        $this->assertSame(VoterInterface::ACCESS_DENIED, $voter->vote($token, $event, [EventVoter::DELETE]));
+    }
+
     public function testRegularUserInDifferentClubCannotViewEvent(): void
     {
         $userClub = $this->createStub(Club::class);

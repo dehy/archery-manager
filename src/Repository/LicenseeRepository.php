@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Club;
+use App\Entity\Group;
 use App\Entity\Licensee;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -122,6 +123,36 @@ class LicenseeRepository extends ServiceEntityRepository
             ->setParameter('club', $club)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * The licensees of these groups who hold a license for the season (in $club, when given): the people
+     * a group-assigned event is for.
+     *
+     * @param list<Group> $groups
+     *
+     * @return list<Licensee>
+     */
+    public function findInGroupsForSeason(array $groups, int $season, ?Club $club): array
+    {
+        if ([] === $groups) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('l')
+            ->select('DISTINCT l')
+            ->innerJoin('l.groups', 'g')
+            ->innerJoin('l.licenses', 'li')
+            ->where('g IN (:groups)')
+            ->andWhere('li.season = :season')
+            ->orderBy('l.id', 'ASC')
+            ->setParameter('groups', $groups)
+            ->setParameter('season', $season);
+        if ($club instanceof Club) {
+            $qb->andWhere('li.club = :club')->setParameter('club', $club);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
