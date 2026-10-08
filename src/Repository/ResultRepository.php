@@ -21,6 +21,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ResultRepository extends ServiceEntityRepository
 {
+    private const string OF_LICENSEE = 'r.licensee = :licensee';
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Result::class);
@@ -46,7 +48,7 @@ class ResultRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('r')
             ->join('r.event', 'e')
-            ->where('r.licensee = :licensee')
+            ->where(self::OF_LICENSEE)
             ->orderBy('e.endsAt', Criteria::DESC)
             ->setMaxResults($count)
             ->setParameter('licensee', $licensee)
@@ -80,7 +82,7 @@ class ResultRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')
             ->select('r', 'e')
             ->join('r.event', 'e')
-            ->where('r.licensee = :licensee')
+            ->where(self::OF_LICENSEE)
             ->orderBy('e.startsAt', Criteria::DESC)
             ->addOrderBy('r.id', Criteria::DESC)
             ->setParameter('licensee', $licensee)
@@ -92,7 +94,7 @@ class ResultRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('r')
             ->join('r.event', 'e')
-            ->where('r.licensee = :licensee')
+            ->where(self::OF_LICENSEE)
             ->orderBy('e.startsAt', Criteria::ASC)
             ->setParameter('licensee', $licensee)
             ->getQuery()

@@ -31,14 +31,7 @@ final readonly class ResultPresenter
         $event = $result->getEvent();
 
         return [
-            'event' => $event instanceof Event ? [
-                'id' => $event->getId(),
-                'slug' => $event->getSlug(),
-                'title' => $event->getTitle(),
-                'starts_at' => $event->getStartsAt()?->format(\DATE_ATOM),
-                'ends_at' => $event->getEndsAt()?->format(\DATE_ATOM),
-                'season' => $event->getEndsAt() instanceof \DateTimeImmutable ? Season::seasonForDate($event->getEndsAt()) : null,
-            ] : null,
+            'event' => $event instanceof Event ? $this->contest($event) : null,
             ...$this->scores($result),
         ];
     }
@@ -56,6 +49,23 @@ final readonly class ResultPresenter
             'licensee' => ['id' => $licensee->getId(), 'display_name' => $this->licenseePresenter->displayName($licensee)],
             'is_mine' => $mine,
             ...$this->scores($result),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function contest(Event $event): array
+    {
+        $endsAt = $event->getEndsAt();
+
+        return [
+            'id' => $event->getId(),
+            'slug' => $event->getSlug(),
+            'title' => $event->getTitle(),
+            'starts_at' => $event->getStartsAt()?->format(\DATE_ATOM),
+            'ends_at' => $endsAt?->format(\DATE_ATOM),
+            'season' => $endsAt instanceof \DateTimeImmutable ? Season::seasonForDate($endsAt) : null,
         ];
     }
 
