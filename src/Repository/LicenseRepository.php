@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\License;
+use App\Entity\Licensee;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,6 +22,41 @@ class LicenseRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, License::class);
+    }
+
+    /**
+     * Among $targets, the licensees holding a license for $season in a club where one of $viewers also holds
+     * one for that season: the "shares a club" rule of LicenseeAccessVoter, for a whole list in one query.
+     *
+     * @param list<Licensee> $targets
+     * @param list<Licensee> $viewers
+     *
+     * @return list<int> licensee ids
+     */
+    public function idsSharingAClubWith(array $targets, array $viewers, int $season): array
+    {
+        if ([] === $targets || [] === $viewers) {
+            return [];
+        }
+
+        $viewerClubs = $this->createQueryBuilder('v')
+            ->select('IDENTITY(v.club)')
+            ->where('v.season = :season')
+            ->andWhere('v.licensee IN (:viewers)')
+            ->andWhere('v.club IS NOT NULL');
+
+        $rows = $this->createQueryBuilder('t')
+            ->select('DISTINCT IDENTITY(t.licensee) AS licenseeId')
+            ->where('t.season = :season')
+            ->andWhere('t.licensee IN (:targets)')
+            ->andWhere(\sprintf('t.club IN (%s)', $viewerClubs->getDQL()))
+            ->setParameter('season', $season)
+            ->setParameter('targets', $targets)
+            ->setParameter('viewers', $viewers)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        return array_map(intval(...), $rows);
     }
 
     public function add(License $entity, bool $flush = true): void

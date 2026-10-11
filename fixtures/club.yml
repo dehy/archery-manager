@@ -9,7 +9,7 @@ App\Entity\Club:
     club_ladb:
         name: Les Archers du Bosquet
         city: Le Bouscat
-        logoName: les-archers-du-bosquet.png
+        logoName: les-archers-du-bosquet.svg
         primaryColor: '#b0c7da'
         fftaCode: '1033078'
         contactEmail: 'usb.archers.bosquet@free.fr'

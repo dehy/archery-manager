@@ -71,6 +71,7 @@ services:
     App\DataFixtures\Faker\Provider\DateTimeImmutableProvider: ~
     App\DataFixtures\Faker\Provider\RecurringDateTimeProvider: ~
     App\DataFixtures\Faker\Provider\FftaCodeProvider: ~
+    App\DataFixtures\Faker\Provider\EmbeddedFileProvider: ~
 
     App\Tests\FakePublicUrlGenerator: ~
 

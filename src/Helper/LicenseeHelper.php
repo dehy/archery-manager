@@ -89,7 +89,10 @@ class LicenseeHelper
             return $user->getLicensees()->first() ?: null;
         }
 
-        return $user->getLicenseeWithCode($code)
+        // The licensee id; an FFTA member code is still accepted (codes always end with a letter, ids are digits).
+        $licensee = ctype_digit($code) ? $user->getLicenseeWithId((int) $code) : $user->getLicenseeWithCode($code);
+
+        return $licensee
             ?? throw new AccessDeniedHttpException(\sprintf('Unknown licensee in %s header.', ApiRequest::HEADER_LICENSEE));
     }
 }

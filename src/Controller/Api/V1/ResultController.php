@@ -7,6 +7,7 @@ namespace App\Controller\Api\V1;
 use App\Api\V1\LicenseePresenter;
 use App\Api\V1\MemberContext;
 use App\Api\V1\PrivateJson;
+use App\Api\V1\ProfileAccess;
 use App\Api\V1\ResultPresenter;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
@@ -31,6 +32,7 @@ final readonly class ResultController
         private ResultRepository $results,
         private ResultPresenter $presenter,
         private LicenseePresenter $licenseePresenter,
+        private ProfileAccess $profileAccess,
     ) {
     }
 
@@ -69,8 +71,10 @@ final readonly class ResultController
             fn (Result $result): string => $this->licenseePresenter->displayName($result->getLicensee()),
         );
 
+        $viewable = $this->profileAccess->viewable(array_map(static fn (Result $result): \App\Entity\Licensee => $result->getLicensee(), $results));
+
         return PrivateJson::response(['results' => array_map(
-            fn (Result $result): array => $this->presenter->contestEntry($result, $result->getLicensee() === $mine),
+            fn (Result $result): array => $this->presenter->contestEntry($result, $result->getLicensee() === $mine, isset($viewable[$result->getLicensee()->getId()])),
             $results,
         )]);
     }

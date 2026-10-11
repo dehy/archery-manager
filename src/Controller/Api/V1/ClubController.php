@@ -8,6 +8,7 @@ use App\Api\V1\ClubPresenter;
 use App\Api\V1\LicenseePresenter;
 use App\Api\V1\MemberContext;
 use App\Api\V1\PrivateJson;
+use App\Api\V1\ProfileAccess;
 use App\Entity\Club;
 use App\Entity\Group;
 use App\Entity\Licensee;
@@ -45,6 +46,7 @@ final readonly class ClubController
         private LicenseeAttachmentRepository $attachments,
         private ClubPresenter $clubPresenter,
         private LicenseePresenter $licenseePresenter,
+        private ProfileAccess $profileAccess,
     ) {
     }
 
@@ -83,10 +85,14 @@ final readonly class ClubController
         $perPage = min($this->positiveInt($request, 'per_page', self::DEFAULT_PAGE_SIZE), self::MAX_PAGE_SIZE);
         $pageLicensees = array_map(static fn (array $entry): Licensee => $entry['licensee'], \array_slice($matching, ($page - 1) * $perPage, $perPage));
         $withPicture = $this->attachments->profilePictureOwners($pageLicensees);
+        $viewable = $this->profileAccess->viewable($pageLicensees);
 
         return PrivateJson::response([
             'data' => array_map(
-                fn (Licensee $licensee): array => $this->licenseePresenter->summary($licensee, $season, $club, isset($withPicture[$licensee->getId()])),
+                fn (Licensee $licensee): array => [
+                    ...$this->licenseePresenter->summary($licensee, $season, $club, isset($withPicture[$licensee->getId()])),
+                    'can_view_profile' => isset($viewable[$licensee->getId()]),
+                ],
                 $pageLicensees,
             ),
             'meta' => [

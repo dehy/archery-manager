@@ -467,6 +467,47 @@ final class AuthControllerTest extends WebTestCase
         $this->assertSame($code, $data['context']['licensee']);
     }
 
+    public function testMeListsEachLicenseeWithItsIdAndSeasons(): void
+    {
+        $client = self::createClient();
+        $tokens = $this->login($client);
+
+        $data = $this->get($client, self::ME_URL, $tokens['access_token']);
+
+        $this->assertIsInt($data['licensees'][0]['id']);
+        $this->assertSame($data['licensees'][0]['id'], $data['context']['licensee_id']);
+        $this->assertContains(2027, $data['licensees'][0]['seasons']);
+        $seasons = $data['licensees'][0]['seasons'];
+        $sorted = $seasons;
+        rsort($sorted);
+        $this->assertSame($sorted, $seasons, 'Newest season first.');
+    }
+
+    public function testLicenseeHeaderSelectsAnOwnedLicenseeById(): void
+    {
+        $client = self::createClient();
+        $tokens = $this->login($client);
+        $licensees = $this->get($client, self::ME_URL, $tokens['access_token'])['licensees'];
+        $last = array_last($licensees);
+
+        $data = $this->get($client, self::ME_URL, $tokens['access_token'], ['HTTP_X_LICENSEE' => (string) $last['id']]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSame($last['id'], $data['context']['licensee_id']);
+    }
+
+    public function testLicenseeHeaderCannotSelectAnotherUsersLicenseeById(): void
+    {
+        $client = self::createClient();
+        $tokens = $this->login($client);
+        $coach = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'coach@ladg.com']);
+        $this->assertInstanceOf(User::class, $coach);
+
+        $this->get($client, self::ME_URL, $tokens['access_token'], ['HTTP_X_LICENSEE' => (string) $coach->getLicensees()->first()->getId()]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+    }
+
     public function testLicenseeHeaderCannotSelectAnotherUsersLicensee(): void
     {
         $client = self::createClient();

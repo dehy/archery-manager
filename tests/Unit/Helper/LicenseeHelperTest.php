@@ -24,9 +24,9 @@ final class LicenseeHelperTest extends TestCase
 
     private const int FOREIGN_ID = 99;
 
-    private const string ANOTHER_CODE = '654321';
+    private const string ANOTHER_CODE = '0654321B';
 
-    private const string INVALID_CODE = '999999';
+    private const string INVALID_CODE = '0999999Z';
 
     private \PHPUnit\Framework\MockObject\MockObject $requestStack;
 
@@ -154,6 +154,26 @@ final class LicenseeHelperTest extends TestCase
         $this->security->method('getUser')->willReturn($user);
 
         $this->assertSame($second, $this->licenseeHelper->getLicenseeFromSession());
+    }
+
+    public function testApiRequestSelectsTheLicenseeByIdIncludingOneWithoutFftaCode(): void
+    {
+        $this->requestStack->method('getCurrentRequest')->willReturn(Request::create('/api/v1/me', server: ['HTTP_X_LICENSEE' => (string) self::ANOTHER_ID]));
+
+        $applicant = new Licensee();
+        $this->setId($applicant, self::ANOTHER_ID);
+        $this->user([$this->licensee(self::LICENSEE_ID), $applicant]);
+
+        $this->assertSame($applicant, $this->licenseeHelper->getLicenseeFromSession());
+    }
+
+    public function testApiRequestWithTheIdOfAnotherAccountsLicenseeIsForbidden(): void
+    {
+        $this->requestStack->method('getCurrentRequest')->willReturn(Request::create('/api/v1/me', server: ['HTTP_X_LICENSEE' => (string) self::FOREIGN_ID]));
+        $this->user([$this->licensee(self::LICENSEE_ID)]);
+
+        $this->expectException(AccessDeniedHttpException::class);
+        $this->licenseeHelper->getLicenseeFromSession();
     }
 
     public function testApiRequestWithoutHeaderUsesTheFirstLicensee(): void

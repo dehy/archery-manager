@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Api\V1;
 
+use App\Entity\License;
 use App\Entity\User;
 use App\Helper\LicenseeHelper;
 use App\Helper\SeasonHelper;
@@ -24,13 +25,18 @@ final readonly class MeController
     {
         $licensees = [];
         foreach ($user->getLicensees() as $licensee) {
+            $seasons = array_values(array_unique(array_map(static fn (License $license): int => (int) $license->getSeason(), $licensee->getLicenses()->toArray())));
+            rsort($seasons);
             $licensees[] = [
+                'id' => $licensee->getId(),
                 'ffta_member_code' => $licensee->getFftaMemberCode(),
                 'firstname' => $licensee->getFirstname(),
                 'lastname' => $licensee->getLastname(),
+                'seasons' => $seasons,
             ];
         }
 
+        $selected = $this->licenseeHelper->getLicenseeFromSession();
         $response = new JsonResponse([
             'user' => [
                 'id' => $user->getId(),
@@ -40,7 +46,8 @@ final readonly class MeController
             ],
             'licensees' => $licensees,
             'context' => [
-                'licensee' => $this->licenseeHelper->getLicenseeFromSession()?->getFftaMemberCode(),
+                'licensee_id' => $selected?->getId(),
+                'licensee' => $selected?->getFftaMemberCode(),
                 'season' => $this->seasonHelper->getSelectedSeason(),
             ],
         ]);

@@ -45,13 +45,36 @@ final class ResultControllerTest extends ApiWebTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertResponseMatchesSchema($client, 'ResultHistory');
-        $results = $this->json($client)['results'];
-        $this->assertSame([560, 540], array_column($results, 'total'));
+        // Only the contests of this test: the fixtures hold results for this member too.
+        $results = array_values(array_filter(
+            $this->json($client)['results'],
+            static fn (array $result): bool => \in_array($result['event']['id'], [$old->getId(), $recent->getId()], true),
+        ));
+        $this->assertSame([560, 540], array_column($results, 'total'), 'Only my results, newest contest first.');
         $this->assertSame($mine->getId(), $results[0]['id']);
         $this->assertSame(2027, $results[0]['event']['season']);
         $this->assertSame(600, $results[0]['max_total']);
         $this->assertSame(['9', '10'], $results[0]['tie_break_labels']);
         $this->assertSame('monospot', $results[0]['target_type']['code']);
+    }
+
+    /**
+     * The mobile app is checked against these fixtures (fixtures/result_ladg.yml): keep them meaningful.
+     */
+    public function testTheFixturesGiveTheMemberResultsInTwoFormatsOfOneSeason(): void
+    {
+        $client = self::createClient();
+
+        $this->get($client, self::HISTORY_URL, $this->tokenFor(self::MEMBER));
+
+        $fixtures = array_values(array_filter(
+            $this->json($client)['results'],
+            static fn (array $result): bool => str_ends_with((string) $result['event']['title'], 'Salle de Mérignac')
+                || str_ends_with((string) $result['event']['title'], 'Challenge 33 de Guyenne'),
+        ));
+        $this->assertCount(2, $fixtures, 'An official and a hobby contest.');
+        $this->assertEqualsCanonicalizing([600, 300], array_column($fixtures, 'max_total'));
+        $this->assertCount(1, array_unique(array_column(array_column($fixtures, 'event'), 'season')), 'Both in one season.');
     }
 
     public function testCompoundTieBreaksAreTenAndX(): void
@@ -104,6 +127,7 @@ final class ResultControllerTest extends ApiWebTestCase
         foreach ($results as $result) {
             $this->assertMatchesRegularExpression('/^\S+ \p{Lu}\.$/u', $result['licensee']['display_name'], 'A member sees "Firstname L.".');
             $this->assertSame($result['licensee']['id'] === $me->getId(), $result['is_mine']);
+            $this->assertSame($result['is_mine'], $result['licensee']['can_view_profile'], 'A member only opens their own profile.');
         }
 
         $names = array_column(array_column($results, 'licensee'), 'display_name');
@@ -124,6 +148,7 @@ final class ResultControllerTest extends ApiWebTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertSame($archer->getFullname(), $this->json($client)['results'][0]['licensee']['display_name']);
+        $this->assertTrue($this->json($client)['results'][0]['licensee']['can_view_profile'], 'A coach opens the profiles of the club.');
     }
 
     public function testAContestWithoutResultsIsAnEmptyList(): void

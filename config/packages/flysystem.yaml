@@ -33,3 +33,37 @@ when@test:
             events_storage:
                 adapter: 'memory'
                 public_url_generator: 'App\Tests\FakePublicUrlGenerator'
+# Local development: the files live on disk under public/uploads/<storage> and are served as static files
+# (there is no object storage locally). `make fixtures` copies the sample files of fixtures/files there.
+when@dev:
+    services:
+        app.dev.uploads_url.clubs:
+            class: App\Storage\PublicPathUrlGenerator
+            arguments: ['/uploads/clubs']
+        app.dev.uploads_url.licensees:
+            class: App\Storage\PublicPathUrlGenerator
+            arguments: ['/uploads/licensees']
+        app.dev.uploads_url.events:
+            class: App\Storage\PublicPathUrlGenerator
+            arguments: ['/uploads/events']
+
+    flysystem:
+        storages:
+            clubs_logos_storage:
+                adapter: 'local'
+                options:
+                    directory: '%kernel.project_dir%/public/uploads/clubs'
+                public_url_generator: 'app.dev.uploads_url.clubs'
+                temporary_url_generator: 'app.dev.uploads_url.clubs'
+            licensees_storage:
+                adapter: 'local'
+                options:
+                    directory: '%kernel.project_dir%/public/uploads/licensees'
+                public_url_generator: 'app.dev.uploads_url.licensees'
+                temporary_url_generator: 'app.dev.uploads_url.licensees'
+            events_storage:
+                adapter: 'local'
+                options:
+                    directory: '%kernel.project_dir%/public/uploads/events'
+                public_url_generator: 'app.dev.uploads_url.events'
+                temporary_url_generator: 'app.dev.uploads_url.events'

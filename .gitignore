@@ -342,6 +342,7 @@ modules.xml
 # Assets and user uploads
 /web/bundles/
 /web/uploads/
+/public/uploads/
 
 # PHPUnit
 

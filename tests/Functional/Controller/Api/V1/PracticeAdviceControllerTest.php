@@ -9,6 +9,7 @@ use App\Entity\PracticeAdvice;
 use App\Entity\PracticeAdviceAttachment;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Flysystem\FilesystemOperator;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Vich\UploaderBundle\Entity\File as EmbeddedFile;
@@ -35,17 +36,39 @@ final class PracticeAdviceControllerTest extends ApiWebTestCase
         $older = $this->advice($me, 'Ancien', '2027-01-10');
         $newer = $this->advice($me, 'Récent', '2027-03-10');
         $archived = $this->advice($me, 'Archivé', '2027-02-10', archived: true);
-        $this->advice($this->licenseeOf(self::OTHER_MEMBER), 'Pour un autre', '2027-04-10');
+        $theirs = $this->advice($this->licenseeOf(self::OTHER_MEMBER), 'Pour un autre', '2027-04-10');
         $token = $this->tokenFor(self::MEMBER);
 
         $this->get($client, self::URL, $token);
 
         $this->assertResponseIsSuccessful();
         $this->assertResponseMatchesSchema($client, 'PracticeAdviceList');
-        $this->assertSame([$newer->getId(), $older->getId()], array_column($this->json($client)['advices'], 'id'));
+        $created = [$older->getId(), $newer->getId(), $archived->getId(), $theirs->getId()];
+        $this->assertSame([$newer->getId(), $older->getId()], $this->listedAmong($client, $created));
 
         $this->get($client, self::URL.'?archived=true', $token);
-        $this->assertSame([$newer->getId(), $archived->getId(), $older->getId()], array_column($this->json($client)['advices'], 'id'));
+        $this->assertSame([$newer->getId(), $archived->getId(), $older->getId()], $this->listedAmong($client, $created));
+    }
+
+    /**
+     * The mobile app is checked against this fixture (fixtures/practice_advice_ladg.yml): keep it meaningful.
+     */
+    public function testTheFixtureAdviceRendersItsMarkdownAndListsItsDocument(): void
+    {
+        $client = self::createClient();
+        $token = $this->tokenFor(self::MEMBER);
+
+        $this->get($client, self::URL, $token);
+        $fixture = array_values(array_filter($this->json($client)['advices'], static fn (array $advice): bool => 'Posture et ancrage' === $advice['title']));
+        $this->assertCount(1, $fixture);
+        $this->assertSame(1, $fixture[0]['attachments_count']);
+
+        $this->get($client, self::URL.'/'.$fixture[0]['id'], $token);
+        $advice = $this->json($client)['advice'];
+        $this->assertStringContainsString('<h2>Ancrage</h2>', (string) $advice['advice_html']);
+        $this->assertStringContainsString('<a href="https://www.ffta.fr">échauffement</a>', (string) $advice['advice_html'], 'Alice escaping did not leak into the text.');
+        $this->assertSame('Posture et ancrage.pdf', $advice['attachments'][0]['file_name']);
+        $this->assertSame('application/pdf', $advice['attachments'][0]['mime_type']);
     }
 
     public function testTheListCountsTheAttachments(): void
@@ -173,6 +196,18 @@ final class PracticeAdviceControllerTest extends ApiWebTestCase
         $this->get($client, self::URL.'/'.$second->getId().'/attachments/'.$attachment->getId(), $this->tokenFor(self::MEMBER));
 
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+    }
+
+    /**
+     * The listed advice among $ids, in the listed order (the fixtures hold advice for this member too).
+     *
+     * @param list<int|null> $ids
+     *
+     * @return list<int>
+     */
+    private function listedAmong(KernelBrowser $client, array $ids): array
+    {
+        return array_values(array_filter(array_column($this->json($client)['advices'], 'id'), static fn (int $id): bool => \in_array($id, $ids, true)));
     }
 
     private function entityManager(): EntityManagerInterface

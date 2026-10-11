@@ -34,6 +34,8 @@ migratedb: start
 
 fixtures: migratedb
 	$(BASE_EXEC) php bin/console hautelook:fixtures:load -n
+	# Sample files the fixtures refer to (club logos, advice attachment), into the local dev storage
+	$(BASE_EXEC) sh -c 'mkdir -p public/uploads && cp -R fixtures/files/. public/uploads/'
 
 qa:
 	$(BASE_EXEC) php vendor/bin/rector process; \
