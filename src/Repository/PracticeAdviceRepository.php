@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Licensee;
 use App\Entity\PracticeAdvice;
+use App\Entity\PracticeAdviceAttachment;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,6 +41,71 @@ class PracticeAdviceRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    /**
+     * The advice given to a licensee, newest first (archived advice only when asked for), with its author.
+     *
+     * @return list<PracticeAdvice>
+     */
+    public function findForLicenseeNewestFirst(Licensee $licensee, bool $includeArchived): array
+    {
+        $qb = $this->createQueryBuilder('pa')
+            ->select('pa', 'a')
+            ->join('pa.author', 'a')
+            ->where('pa.licensee = :licensee')
+            ->orderBy('pa.createdAt', 'DESC')
+            ->addOrderBy('pa.id', 'DESC')
+            ->setParameter('licensee', $licensee);
+        if (!$includeArchived) {
+            $qb->andWhere('pa.archivedAt IS NULL');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @param list<PracticeAdvice> $advices
+     *
+     * @return array<int, int> advice id => number of attachments
+     */
+    public function countAttachments(array $advices): array
+    {
+        if ([] === $advices) {
+            return [];
+        }
+
+        $rows = $this->getEntityManager()->createQueryBuilder()
+            ->select('IDENTITY(at.practiceAdvice) AS adviceId', 'COUNT(at.id) AS total')
+            ->from(PracticeAdviceAttachment::class, 'at')
+            ->where('at.practiceAdvice IN (:advices)')
+            ->groupBy('at.practiceAdvice')
+            ->setParameter('advices', $advices)
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row['adviceId']] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * @return list<PracticeAdviceAttachment>
+     */
+    public function attachmentsOf(PracticeAdvice $advice): array
+    {
+        // Not getRepository(): PracticeAdviceAttachment is mapped with EventAttachmentRepository.
+        return $this->getEntityManager()->createQueryBuilder()
+            ->select('at')
+            ->from(PracticeAdviceAttachment::class, 'at')
+            ->where('at.practiceAdvice = :advice')
+            ->orderBy('at.id', 'ASC')
+            ->setParameter('advice', $advice)
+            ->getQuery()
+            ->getResult();
     }
 
     public function findForLicensee(Licensee $licensee): array

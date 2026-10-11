@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\DBAL\Types\EventAttachmentType;
 use App\DBAL\Types\EventParticipationStateType;
-use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\TargetTypeType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
@@ -22,6 +21,7 @@ use App\Form\EventParticipationType;
 use App\Form\EventResultsType;
 use App\Helper\EventHelper;
 use App\Helper\LicenseeHelper;
+use App\Helper\ResultHelper;
 use App\Helper\SeasonHelper;
 use App\Repository\ContestEventRepository;
 use App\Repository\EventAttachmentRepository;
@@ -401,19 +401,6 @@ class EventController extends BaseController
      */
     private function sortResults(array &$results): void
     {
-        $rankMap = array_flip(array_values(LicenseAgeCategoryType::getOrderedChoices()));
-        usort($results, static function (Result $a, Result $b) use ($rankMap): int {
-            $rankA = $rankMap[$a->getAgeCategory()] ?? \PHP_INT_MAX;
-            $rankB = $rankMap[$b->getAgeCategory()] ?? \PHP_INT_MAX;
-            if ($rankA !== $rankB) {
-                return $rankA <=> $rankB;
-            }
-
-            if ($a->getActivity() !== $b->getActivity()) {
-                return $a->getActivity() <=> $b->getActivity();
-            }
-
-            return $a->getLicensee()->getFullname() <=> $b->getLicensee()->getFullname();
-        });
+        $results = ResultHelper::sort($results, static fn (Result $result): string => $result->getLicensee()->getFullname());
     }
 }
