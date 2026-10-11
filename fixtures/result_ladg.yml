@@ -1,0 +1,71 @@
+# Past contests of the LADG club with results, so the results screens have real data (user1@ladg.com and
+# user2@ladg.com). Two formats in one season: an official indoor contest (max 600) and a Challenge 33
+# hobby contest (max 300). Dates are relative to "now", like the other event fixtures.
+App\Entity\ContestEvent:
+    event_contest_ladg_past_indoor:
+        club: '@club_ladg'
+        contestType: 'individual'
+        name: 'Salle de Mérignac'
+        startsAt: '<recurringDateTimeImmutable("last saturday", "week", -2)>'
+        endsAt: '<($startsAt->modify("+1 day"))>'
+        allDay: true
+        address: '<address()>'
+        discipline: 'indoor'
+
+App\Entity\HobbyContestEvent:
+    event_hobby_ladg_past_challenge33:
+        club: '@club_ladg'
+        contestType: 'individual'
+        name: 'Challenge 33 de Guyenne'
+        startsAt: '<recurringDateTimeImmutable("last saturday", "week", -1)>'
+        endsAt: '<($startsAt)>'
+        allDay: true
+        address: '<address()>'
+        discipline: 'indoor'
+
+App\Entity\Result:
+    result_ladg_1_indoor:
+        licensee: '@licensee_ladg_1'
+        event: '@event_contest_ladg_past_indoor'
+        discipline: 'indoor'
+        ageCategory: 'S1'
+        activity: 'CL'
+        distance: 18
+        targetType: 'trispot'
+        targetSize: 40
+        score1: 281
+        score2: 287
+        total: 568
+        nb10: 21
+        nb10p: 9
+        position: 4
+    result_ladg_2_indoor:
+        licensee: '@licensee_ladg_2'
+        event: '@event_contest_ladg_past_indoor'
+        discipline: 'indoor'
+        ageCategory: 'S1'
+        activity: 'CL'
+        distance: 18
+        targetType: 'trispot'
+        targetSize: 40
+        score1: 270
+        score2: 274
+        total: 544
+        nb10: 14
+        nb10p: 11
+        position: 9
+    result_ladg_1_challenge33:
+        licensee: '@licensee_ladg_1'
+        event: '@event_hobby_ladg_past_challenge33'
+        discipline: 'indoor'
+        ageCategory: 'S1'
+        activity: 'CL'
+        distance: 18
+        targetType: 'monospot'
+        targetSize: 60
+        score1: 138
+        score2: 141
+        total: 279
+        nb10: 12
+        nb10p: 8
+        position: 2

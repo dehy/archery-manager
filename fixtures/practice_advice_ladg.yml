@@ -1,0 +1,28 @@
+# A piece of practice advice for user1@ladg.com, written by the coach in Markdown, with a PDF attachment
+# (fixtures/files/licensees/advice/posture-et-ancrage.pdf, copied to the local storage by `make fixtures`).
+App\Entity\PracticeAdvice:
+    practice_advice_ladg_1:
+        licensee: '@licensee_ladg_1'
+        author: '@licensee_ladg_coach_1'
+        title: 'Posture et ancrage'
+        createdAt: '<recurringDateTimeImmutable("now", "day", -5)>'
+        advice: |
+            ## Posture
+
+            Gardez le **dos droit** et les épaules basses. Les pieds sont écartés de la largeur des épaules,
+            perpendiculaires à la cible.
+
+            ## Ancrage
+
+            - La corde touche le *milieu du menton* et le bout du nez.
+            - Gardez le même point d'ancrage à chaque flèche.
+            - Relâchez en reculant la main, sans ouvrir les doigts.
+
+            Le document joint reprend ces points. Exemple en vidéo : \[échauffement](https://www.ffta.fr).
+
+App\Entity\PracticeAdviceAttachment:
+    practice_advice_ladg_1_document:
+        practiceAdvice: '@practice_advice_ladg_1'
+        type: 'misc'
+        file: '<embeddedFile("advice/posture-et-ancrage.pdf", "Posture et ancrage.pdf", "application/pdf", 670)>'
+        updatedAt: '<recurringDateTimeImmutable("now", "day", -5)>'

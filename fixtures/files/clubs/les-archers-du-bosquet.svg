@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Les Archers du Bosquet">
+  <circle cx="60" cy="60" r="56" fill="#ffffff" stroke="#b0c7da" stroke-width="8"/>
+  <circle cx="60" cy="60" r="36" fill="#b0c7da"/>
+  <circle cx="60" cy="60" r="16" fill="#ffd400"/>
+  <text x="60" y="66" font-family="sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#1d1d1d">LADB</text>
+</svg>
