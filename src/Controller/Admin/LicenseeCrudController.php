@@ -59,8 +59,8 @@ class LicenseeCrudController extends AbstractCrudController
             'fa-solid fa-user-secret'
         )->linkToUrl(static fn (Licensee $licensee): string => \sprintf(
             '/?_switch_user=%s&_switch_licensee=%s',
-            $licensee->getUser()->getEmail(),
-            $licensee->getFftaMemberCode()
+            rawurlencode((string) $licensee->getUser()->getEmail()),
+            $licensee->getId()
         ));
 
         $resendWelcomeEmail = Action::new(

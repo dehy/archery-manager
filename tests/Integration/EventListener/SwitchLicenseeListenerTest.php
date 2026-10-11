@@ -8,12 +8,14 @@ use App\Entity\Licensee;
 use App\Entity\User;
 use App\EventListener\SwitchLicenseeListener;
 use App\Helper\LicenseeHelper;
+use App\Tests\MakePropertyAccessibleTrait;
 use App\Tests\SecurityTrait;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -22,6 +24,7 @@ use Symfony\Component\Mailer\MailerInterface;
 
 final class SwitchLicenseeListenerTest extends KernelTestCase
 {
+    use MakePropertyAccessibleTrait;
     use SecurityTrait;
 
     private EventDispatcher $dispatcher;
@@ -55,9 +58,11 @@ final class SwitchLicenseeListenerTest extends KernelTestCase
             ->setFftaMemberCode('1234567A')
             ->setUser($user);
 
+        // A second licensee without an FFTA member code yet (a new applicant): it can be selected too.
         $licensee2 = new Licensee()
-            ->setFftaMemberCode('1234567B')
             ->setUser($user);
+        $this->set($licensee, 1);
+        $this->set($licensee2, 2);
 
         $this->login($user);
 
@@ -69,7 +74,7 @@ final class SwitchLicenseeListenerTest extends KernelTestCase
         $this->dispatcher->addListener('onKernelRequest', $listener->onKernelRequest(...));
 
         $query_params = [
-            '_switch_licensee' => $licensee2->getFftaMemberCode(),
+            '_switch_licensee' => (string) $licensee2->getId(),
         ];
         $request = new Request($query_params);
 
@@ -77,7 +82,9 @@ final class SwitchLicenseeListenerTest extends KernelTestCase
         $event = new RequestEvent(self::$kernel, $request, HttpKernelInterface::MAIN_REQUEST);
         $this->dispatcher->dispatch($event, 'onKernelRequest');
 
-        $this->assertEquals($licensee2, $licenseeHelper->getLicenseeFromSession());
+        $this->assertSame($licensee2, $licenseeHelper->getLicenseeFromSession());
+        $this->assertSame(Response::HTTP_FOUND, $event->getResponse()?->getStatusCode());
+        $this->assertStringNotContainsString('_switch_licensee', (string) $event->getResponse()?->headers->get('Location'));
 
         $this->logout();
     }

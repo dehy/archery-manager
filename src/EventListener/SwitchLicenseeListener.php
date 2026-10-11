@@ -26,9 +26,10 @@ class SwitchLicenseeListener
     {
         $request = $event->getRequest();
 
-        $licenseeCode = $request->query->get('_switch_licensee');
+        // The licensee id (the switch links in the menus and the admin "impersonate" action send it).
+        $licenseeId = $request->query->get('_switch_licensee');
 
-        if (null === $licenseeCode || '' === $licenseeCode) {
+        if (null === $licenseeId || '' === $licenseeId) {
             return;
         }
 
@@ -38,7 +39,7 @@ class SwitchLicenseeListener
             return;
         }
 
-        $licensee = $user->getLicenseeWithCode($licenseeCode);
+        $licensee = ctype_digit($licenseeId) ? $user->getLicenseeWithId((int) $licenseeId) : null;
         if ($licensee instanceof Licensee) {
             $this->licenseeHelper->setSelectedLicensee($licensee);
         }

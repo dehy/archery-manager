@@ -304,6 +304,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         return $this;
     }
 
+    /**
+     * One of this account's licensees, by id (every licensee has one, unlike the FFTA member code).
+     */
+    public function getLicenseeWithId(int $id): ?Licensee
+    {
+        return $this->getLicensees()->findFirst(static fn (int $key, Licensee $licensee): bool => $licensee->getId() === $id);
+    }
+
     public function hasLicenseeWithCode(string $fftaCode): bool
     {
         return $this->getLicenseeWithCode($fftaCode) instanceof Licensee;

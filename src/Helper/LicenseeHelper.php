@@ -52,32 +52,34 @@ class LicenseeHelper
             return;
         }
 
+        // The id, not the FFTA member code: a licensee may not have a code yet (a new applicant, for instance).
         $this->requestStack
             ->getSession()
-            ->set(self::SESSION_KEY, $licensee?->getFftaMemberCode());
+            ->set(self::SESSION_KEY, $licensee?->getId());
     }
 
+    /**
+     * The licensee selected in the session, or the account's first one when none is selected or the
+     * selection is not one of the account's licensees (a session from before ids, holding a code, included).
+     */
     private function getLicenseeFromWebSession(User $user): ?Licensee
     {
-        $licenseeCode = $this->requestStack
+        $licenseeId = $this->requestStack
             ->getSession()
             ->get(self::SESSION_KEY);
-        if (null !== $licenseeCode && !$user->hasLicenseeWithCode($licenseeCode)) {
-            $licenseeCode = null;
+        $selected = \is_int($licenseeId) ? $user->getLicenseeWithId($licenseeId) : null;
+        if ($selected instanceof Licensee) {
+            return $selected;
         }
 
-        if (null === $licenseeCode) {
-            if (0 === $user->getLicensees()->count()) {
-                return null;
-            }
-
-            $licensee = $user->getLicensees()->first();
-            $this->setSelectedLicensee($licensee);
-
-            return $licensee;
+        $first = $user->getLicensees()->first();
+        if (!$first instanceof Licensee) {
+            return null;
         }
 
-        return $user->getLicenseeWithCode($licenseeCode);
+        $this->setSelectedLicensee($first);
+
+        return $first;
     }
 
     private function getLicenseeFromHeader(User $user, ?Request $request): ?Licensee

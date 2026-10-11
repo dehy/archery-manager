@@ -18,7 +18,11 @@ use Symfony\Component\Mailer\MailerInterface;
 
 final class LicenseeHelperTest extends TestCase
 {
-    private const string LICENSEE_CODE = '123456';
+    private const int LICENSEE_ID = 11;
+
+    private const int ANOTHER_ID = 22;
+
+    private const int FOREIGN_ID = 99;
 
     private const string ANOTHER_CODE = '654321';
 
@@ -46,108 +50,93 @@ final class LicenseeHelperTest extends TestCase
         );
     }
 
-    public function testGetLicenseeFromSessionReturnsLicenseeWhenCodeInSession(): void
+    public function testGetLicenseeFromSessionReturnsTheLicenseeSelectedInSession(): void
     {
         $this->requestStack->method('getSession')->willReturn($this->session);
-        $this->session->method('get')->with('selectedLicensee')->willReturn(self::LICENSEE_CODE);
+        $this->session->method('get')->with('selectedLicensee')->willReturn(self::LICENSEE_ID);
 
-        $licensee = $this->createMock(Licensee::class);
-        $licensee->method('getFftaMemberCode')->willReturn(self::LICENSEE_CODE);
+        $licensee = $this->licensee(self::LICENSEE_ID);
+        $this->user([$licensee]);
 
-        $user = $this->createMock(User::class);
-        $user->method('getLicensees')->willReturn(new ArrayCollection([$licensee]));
-
-        $this->security->method('getUser')->willReturn($user);
-
-        $result = $this->licenseeHelper->getLicenseeFromSession();
-
-        $this->assertSame($licensee, $result);
+        $this->assertSame($licensee, $this->licenseeHelper->getLicenseeFromSession());
     }
 
-    public function testGetLicenseeFromSessionReturnsFirstLicenseeWhenNoCodeInSession(): void
+    public function testGetLicenseeFromSessionReturnsFirstLicenseeWhenNothingIsSelected(): void
     {
         $this->requestStack->method('getSession')->willReturn($this->session);
         $this->session->method('get')->with('selectedLicensee')->willReturn(null);
 
-        $licensee = $this->createStub(Licensee::class);
+        $licensee = $this->licensee(self::LICENSEE_ID);
+        $this->user([$licensee]);
 
-        $user = $this->createMock(User::class);
-        $user->method('getLicensees')->willReturn(new ArrayCollection([$licensee]));
-
-        $this->security->method('getUser')->willReturn($user);
-
-        $result = $this->licenseeHelper->getLicenseeFromSession();
-
-        $this->assertSame($licensee, $result);
+        $this->assertSame($licensee, $this->licenseeHelper->getLicenseeFromSession());
     }
 
     public function testGetLicenseeFromSessionReturnsNullWhenUserHasNoLicensees(): void
     {
         $this->requestStack->method('getSession')->willReturn($this->session);
+        $this->user([]);
 
-        $user = $this->createMock(User::class);
-        $user->method('getLicensees')->willReturn(new ArrayCollection([]));
-
-        $this->security->method('getUser')->willReturn($user);
-
-        $result = $this->licenseeHelper->getLicenseeFromSession();
-
-        $this->assertNotInstanceOf(Licensee::class, $result);
+        $this->assertNotInstanceOf(Licensee::class, $this->licenseeHelper->getLicenseeFromSession());
     }
 
-    public function testGetLicenseeFromSessionReturnsFirstWhenCodeNotFound(): void
+    public function testGetLicenseeFromSessionFallsBackToTheFirstWhenTheSelectionIsNotOneOfTheAccount(): void
     {
         $this->requestStack->method('getSession')->willReturn($this->session);
-        $this->session->method('get')->with('selectedLicensee')->willReturn(self::INVALID_CODE);
+        $this->session->method('get')->with('selectedLicensee')->willReturn(self::FOREIGN_ID);
 
-        $licensee = $this->createMock(Licensee::class);
-        $licensee->method('getFftaMemberCode')->willReturn(self::LICENSEE_CODE);
+        $licensee = $this->licensee(self::LICENSEE_ID);
+        $this->user([$licensee]);
+        $this->session->expects($this->once())->method('set')->with('selectedLicensee', self::LICENSEE_ID);
 
-        $user = $this->createMock(User::class);
-        $user->method('getLicensees')->willReturn(new ArrayCollection([$licensee]));
-
-        $this->security->method('getUser')->willReturn($user);
-
-        $result = $this->licenseeHelper->getLicenseeFromSession();
-
-        $this->assertSame($licensee, $result);
+        $this->assertSame($licensee, $this->licenseeHelper->getLicenseeFromSession());
     }
 
-    public function testSetSelectedLicenseeStoresCodeInSession(): void
+    public function testASessionFromBeforeIdsHoldingAnFftaCodeFallsBackToTheFirst(): void
     {
         $this->requestStack->method('getSession')->willReturn($this->session);
+        // A code made of digits must not be mistaken for an id.
+        $this->session->method('get')->with('selectedLicensee')->willReturn((string) self::ANOTHER_ID);
 
-        $licensee = $this->createMock(Licensee::class);
-        $licensee->method('getFftaMemberCode')->willReturn(self::LICENSEE_CODE);
+        $first = $this->licensee(self::LICENSEE_ID);
+        $this->user([$first, $this->licensee(self::ANOTHER_ID)]);
+
+        $this->assertSame($first, $this->licenseeHelper->getLicenseeFromSession());
+    }
+
+    public function testSetSelectedLicenseeStoresTheIdInSession(): void
+    {
+        $this->requestStack->method('getSession')->willReturn($this->session);
 
         $this->session->expects($this->once())
             ->method('set')
-            ->with('selectedLicensee', self::LICENSEE_CODE);
+            ->with('selectedLicensee', self::LICENSEE_ID);
 
-        $this->licenseeHelper->setSelectedLicensee($licensee);
+        $this->licenseeHelper->setSelectedLicensee($this->licensee(self::LICENSEE_ID));
+    }
+
+    public function testALicenseeWithoutFftaCodeCanBeSelected(): void
+    {
+        $this->requestStack->method('getSession')->willReturn($this->session);
+        $this->session->method('get')->with('selectedLicensee')->willReturn(self::ANOTHER_ID);
+
+        $applicant = new Licensee();
+        $this->setId($applicant, self::ANOTHER_ID);
+        $this->user([$this->licensee(self::LICENSEE_ID), $applicant]);
+
+        $this->assertNull($applicant->getFftaMemberCode());
+        $this->assertSame($applicant, $this->licenseeHelper->getLicenseeFromSession());
     }
 
     public function testGetLicenseeFromSessionWithMultipleLicenseesSelectsCorrectOne(): void
     {
         $this->requestStack->method('getSession')->willReturn($this->session);
-        $this->session->method('get')->with('selectedLicensee')->willReturn(self::ANOTHER_CODE);
+        $this->session->method('get')->with('selectedLicensee')->willReturn(self::ANOTHER_ID);
 
-        $licensee1 = $this->createMock(Licensee::class);
-        $licensee1->method('getFftaMemberCode')->willReturn(self::LICENSEE_CODE);
+        $second = $this->licensee(self::ANOTHER_ID);
+        $this->user([$this->licensee(self::LICENSEE_ID), $second]);
 
-        $licensee2 = $this->createMock(Licensee::class);
-        $licensee2->method('getFftaMemberCode')->willReturn(self::ANOTHER_CODE);
-
-        $user = $this->createMock(User::class);
-        $user->method('getLicensees')->willReturn(new ArrayCollection([$licensee1, $licensee2]));
-        $user->method('hasLicenseeWithCode')->with(self::ANOTHER_CODE)->willReturn(true);
-        $user->method('getLicenseeWithCode')->with(self::ANOTHER_CODE)->willReturn($licensee2);
-
-        $this->security->method('getUser')->willReturn($user);
-
-        $result = $this->licenseeHelper->getLicenseeFromSession();
-
-        $this->assertSame($licensee2, $result);
+        $this->assertSame($second, $this->licenseeHelper->getLicenseeFromSession());
     }
 
     // ── Stateless mobile API: the licensee comes from the X-Licensee header, never from the session ──
@@ -215,5 +204,35 @@ final class LicenseeHelperTest extends TestCase
         $this->requestStack->method('getCurrentRequest')->willReturn(Request::create('/api/v1/me'));
 
         $this->licenseeHelper->setSelectedLicensee($this->createStub(Licensee::class));
+    }
+
+    private function licensee(int $id): Licensee
+    {
+        $licensee = new Licensee();
+        $this->setId($licensee, $id);
+
+        return $licensee;
+    }
+
+    /**
+     * A real User (getLicenseeWithId() is the code under test), logged in.
+     *
+     * @param list<Licensee> $licensees
+     */
+    private function user(array $licensees): User
+    {
+        $user = new User();
+        foreach ($licensees as $licensee) {
+            $user->addLicensee($licensee);
+        }
+
+        $this->security->method('getUser')->willReturn($user);
+
+        return $user;
+    }
+
+    private function setId(Licensee $licensee, int $id): void
+    {
+        new \ReflectionProperty(Licensee::class, 'id')->setValue($licensee, $id);
     }
 }
