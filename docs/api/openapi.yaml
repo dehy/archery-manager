@@ -493,8 +493,7 @@ paths:
         license in, and the events without any club. Needs a license for the selected season.
 
         `participation_state` includes the defaults of the web app (a training defaults to `registered` for the
-        members of its assigned groups). `participants_count` counts the *recorded* answers other than
-        `not_going`; the participants endpoint also lists the members who only have the default answer.
+        members of its assigned groups). `participants_count` is defined in `EventSummary`.
       parameters:
         - $ref: '#/components/parameters/XLicensee'
         - $ref: '#/components/parameters/XSeason'
@@ -945,8 +944,9 @@ components:
       name: X-Licensee
       in: header
       description: |
-        FFTA member code of the licensee the request acts as. Must be a licensee of the authenticated account
-        (`403` otherwise). Defaults to the account's first licensee.
+        Id of the licensee the request acts as (`licensees[].id` in `/me`). Must be a licensee of the
+        authenticated account (`403` otherwise). Defaults to the account's first licensee. An FFTA member code is
+        still accepted, but not every licensee has one (a new applicant does not): send the id.
       schema:
         type: string
     XSeason:
@@ -1198,23 +1198,34 @@ components:
           description: The licensees of the account (a parent can have several).
           items:
             type: object
-            required: [ffta_member_code, firstname, lastname]
+            required: [id, ffta_member_code, firstname, lastname, seasons]
             properties:
+              id:
+                type: integer
+                description: The value to send in `X-Licensee`.
               ffta_member_code:
                 type: [string, 'null']
-                description: The value to send in `X-Licensee`.
+                description: '`null` until the licensee is registered with the FFTA (a new applicant).'
               firstname:
                 type: string
               lastname:
                 type: string
+              seasons:
+                type: array
+                description: The seasons the licensee holds a license for, newest first (values for `X-Season`).
+                items:
+                  type: integer
         context:
           type: object
           description: What the headers resolved to.
-          required: [licensee, season]
+          required: [licensee_id, licensee, season]
           properties:
+            licensee_id:
+              type: [integer, 'null']
+              description: Id of the licensee in use, `null` when the account has none.
             licensee:
               type: [string, 'null']
-              description: FFTA member code of the licensee in use, `null` when the account has none.
+              description: FFTA member code of the licensee in use (`null` when it has none). Prefer `licensee_id`.
             season:
               type: integer
 
@@ -1333,6 +1344,12 @@ components:
         ends_at:
           type: [string, 'null']
           format: date-time
+          description: |
+            For a timed event, the end time. For an all-day event (`all_day: true`) only the **dates** count and
+            the end is **inclusive**: the event runs from the date of `starts_at` to the date of `ends_at`, both
+            days included, and the times are meaningless (usually midnight). A contest on Saturday 10 and Sunday
+            11 October has `starts_at` 2026-10-10T00:00 and `ends_at` 2026-10-11T00:00; a one-day event has
+            the same date in both. This is what the web calendar and the iCal export do.
         all_day:
           type: boolean
         address:
@@ -1345,7 +1362,11 @@ components:
             for the members of the assigned groups). `null` means "no answer yet".
         participants_count:
           type: integer
-          description: Participants of the event whose answer is not `not_going` (including those without an answer yet).
+          description: |
+            How many members answered something other than `not_going`, counting **recorded** answers only (the
+            same number as the web dashboard, on every endpoint). Members of a training's groups who never
+            answered (and only have the default `registered`) are not counted;
+            `GET /events/{id}/participants` lists them.
 
     CalendarSubscriptionResponse:
       type: object
@@ -1537,12 +1558,14 @@ components:
       allOf:
         - $ref: '#/components/schemas/EventParticipationAnswer'
         - type: object
-          required: [licensee_id, display_name]
+          required: [licensee_id, display_name, can_view_profile]
           properties:
             licensee_id:
               type: integer
             display_name:
               type: string
+            can_view_profile:
+              $ref: '#/components/schemas/CanViewProfile'
 
     ResultScores:
       type: object
@@ -1634,12 +1657,14 @@ components:
           properties:
             licensee:
               type: object
-              required: [id, display_name]
+              required: [id, display_name, can_view_profile]
               properties:
                 id:
                   type: integer
                 display_name:
                   type: string
+                can_view_profile:
+                  $ref: '#/components/schemas/CanViewProfile'
             is_mine:
               type: boolean
               description: The result is the selected licensee's.
@@ -1784,7 +1809,10 @@ components:
           description: Hexadecimal color, e.g. `#0a7d33`.
         logo_url:
           type: [string, 'null']
-          description: Path or URL of the club logo (public, no token needed), `null` when the club has none.
+          description: |
+            The club logo (public, no token needed), `null` when the club has none: an absolute URL in production
+            (object storage), a path from the host root on a development server (`/uploads/clubs/...`). Resolve
+            it against the API host when it starts with `/`.
 
     Group:
       type: object
@@ -1841,6 +1869,13 @@ components:
           type: [string, 'null']
           description: Path (from the host root) of the picture endpoint, `null` when there is no picture. Needs the bearer token.
 
+    CanViewProfile:
+      type: boolean
+      description: |
+        Whether `GET /licensees/{id}` will open for the viewer: their own licensees, and for admins, club admins
+        and coaches the members sharing a club with them in the current season. Make the row tappable only then
+        (anybody else gets `403`).
+
     MemberPage:
       type: object
       required: [data, meta, filters]
@@ -1848,7 +1883,13 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/MemberSummary'
+            allOf:
+              - $ref: '#/components/schemas/MemberSummary'
+              - type: object
+                required: [can_view_profile]
+                properties:
+                  can_view_profile:
+                    $ref: '#/components/schemas/CanViewProfile'
         meta:
           type: object
           required: [page, per_page, total, total_in_club]

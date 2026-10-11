@@ -11,6 +11,7 @@ use App\Api\V1\LicenseePresenter;
 use App\Api\V1\MemberContext;
 use App\Api\V1\ParticipationWriter;
 use App\Api\V1\PrivateJson;
+use App\Api\V1\ProfileAccess;
 use App\Entity\Club;
 use App\Entity\Event;
 use App\Entity\EventAttachment;
@@ -54,6 +55,7 @@ final readonly class EventController
         private EventPresenter $presenter,
         private LicenseePresenter $licenseePresenter,
         private ParticipationWriter $writer,
+        private ProfileAccess $profileAccess,
         private FileStreamer $fileStreamer,
         private EntityManagerInterface $entityManager,
         private FilesystemOperator $eventsStorage,
@@ -158,12 +160,16 @@ final readonly class EventController
         $this->context->requireLicense();
         $this->denyUnlessVisible($event);
 
+        $participations = $this->participantsOf($event);
+        $viewable = $this->profileAccess->viewable(array_map(static fn (EventParticipation $participation): Licensee => $participation->getParticipant(), $participations));
+
         $participants = [];
-        foreach ($this->participantsOf($event) as $participation) {
+        foreach ($participations as $participation) {
             $participant = $participation->getParticipant();
             $participants[] = [
                 'licensee_id' => $participant->getId(),
                 'display_name' => $this->licenseePresenter->displayName($participant),
+                'can_view_profile' => isset($viewable[$participant->getId()]),
                 ...$this->presenter->participation($participation, null === $participation->getId()),
             ];
         }

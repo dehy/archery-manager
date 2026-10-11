@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller\Api\V1;
 
 use App\Entity\Group;
+use App\Entity\Licensee;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpFoundation\Request;
@@ -98,6 +99,48 @@ final class ClubControllerTest extends ApiWebTestCase
         $this->assertContains($licensee->getFullname(), $names);
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function viewers(): iterable
+    {
+        yield 'member' => [self::MEMBER];
+        yield 'coach' => [self::COACH];
+        yield 'admin' => [self::ADMIN];
+    }
+
+    /**
+     * The flag must say exactly whether the profile opens: checked against the profile endpoint itself.
+     */
+    #[DataProvider('viewers')]
+    public function testCanViewProfileTellsWhetherTheProfileOpens(string $viewer): void
+    {
+        $client = self::createClient();
+        $token = $this->tokenFor($viewer);
+
+        $this->get($client, self::MEMBERS_URL.'?per_page=100', $token);
+        $members = $this->json($client)['data'];
+        $this->assertNotEmpty($members);
+
+        $openable = 0;
+        foreach (\array_slice($members, 0, 12) as $member) {
+            $this->get($client, '/api/v1/licensees/'.$member['id'], $token);
+            $opens = Response::HTTP_OK === $client->getResponse()->getStatusCode();
+            $this->assertSame($opens, $member['can_view_profile'], \sprintf('Licensee %d as seen by %s.', $member['id'], $viewer));
+            $openable += (int) $opens;
+        }
+
+        if (self::MEMBER === $viewer) {
+            $own = array_map(static fn (Licensee $licensee): int => (int) $licensee->getId(), array_values($this->user(self::MEMBER)->getLicensees()->toArray()));
+            $flagged = array_column(array_filter($members, static fn (array $member): bool => $member['can_view_profile']), 'id');
+            sort($own);
+            sort($flagged);
+            $this->assertSame($own, $flagged, 'A member can only open their own profiles.');
+        } else {
+            $this->assertGreaterThan(1, $openable, 'Coaches and admins open the profiles of the club.');
+        }
+    }
+
     public function testEachMemberCarriesWhatTheDirectoryCardShows(): void
     {
         $client = self::createClient();
@@ -105,7 +148,7 @@ final class ClubControllerTest extends ApiWebTestCase
         $this->get($client, self::MEMBERS_URL, $this->tokenFor(self::MEMBER));
 
         $member = $this->json($client)['data'][0];
-        $this->assertSame(['id', 'display_name', 'groups', 'activities', 'picture_url'], array_keys($member));
+        $this->assertSame(['id', 'display_name', 'groups', 'activities', 'picture_url', 'can_view_profile'], array_keys($member));
         $this->assertIsList($member['groups']);
         foreach ($member['activities'] as $activity) {
             $this->assertSame(['code', 'label'], array_keys($activity));

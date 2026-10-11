@@ -253,7 +253,8 @@ Stateless JSON API for the React Native app. The contract is [`docs/api/openapi.
 
 - **Code layout**: controllers in `src/Controller/Api/V1/` (plain `final readonly` classes, route names `api_v1_*`), payload builders in `src/Api/V1/` (presenters), auth in `src/Security/Api/`.
 - **Auth**: separate stateless firewalls (`security.yaml`): `api_login` (json_login + throttling), `api_refresh` (refresh/logout/health, no bearer auth) and `api` (opaque bearer tokens, hashed in `api_session`). Don't add authenticators to `api_login`: login attempts and rejected tokens must not share one throttle.
-- **Context**: the selected licensee and season come from the `X-Licensee` / `X-Season` headers (`LicenseeHelper` / `SeasonHelper` read them on API requests, never the session).
+- **Context**: the selected licensee and season come from the `X-Licensee` / `X-Season` headers (`LicenseeHelper` / `SeasonHelper` read them on API requests, never the session). `X-Licensee` carries the licensee **id** (not every licensee has an FFTA code yet); an FFTA code is still accepted (codes end with a letter, ids are digits). The web session also stores the id.
+- **Profile links**: lists that link to profiles (directory, participants, contest results) carry `can_view_profile`, computed for the whole list by `ProfileAccess` (same rule as `LicenseeAccessVoter::VIEW`). Don't call the voter row by row there: directory licensees hold only the selected season's licenses.
 - **Errors**: always `{"error": "<stable_code>", "message": "<English text>"}` through `ApiErrorResponse` (and `ApiExceptionListener` for everything else). All technical text is English; French only for display labels and club content (e.g. `EnumValue` labels).
 - **Authorization**: reuse or add a voter (`LicenseeAccessVoter`); authorize on every request, and stream files through the API instead of handing out long-lived storage URLs.
 - **Privacy**: mirror the web rules (members see "Firstname L."; only admins and coaches see full names) and never search or sort on data the viewer cannot see.
@@ -274,6 +275,13 @@ Stateless JSON API for the React Native app. The contract is [`docs/api/openapi.
 - **database**: MariaDB 12.1
 - **redis**: Rate limiter backend
 - **adminer**: Database GUI (http://localhost:8081)
+
+#### Local files (uploads)
+In `dev`, the three storages (club logos, licensee files, event files) are local directories under
+`public/uploads/<storage>` (ignored by version control) served as static files, instead of the Scaleway
+object storage of production (see `when@dev` in `config/packages/flysystem.yaml`). `make fixtures` copies the
+sample files the fixtures refer to (`fixtures/files/`: club logos, the practice advice PDF) there. Tests use
+in-memory storages.
 
 #### Database Access
 - URL: http://localhost:8081

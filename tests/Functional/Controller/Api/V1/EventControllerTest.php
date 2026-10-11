@@ -308,6 +308,7 @@ final class EventControllerTest extends ApiWebTestCase
             $this->assertMatchesRegularExpression('/^\S+ \p{Lu}\.$/u', $participant['display_name'], 'A member sees "Firstname L.".');
             $this->assertSame($participant['licensee_id'] === $mine ? 'not_going' : 'registered', $participant['participation_state']);
             $this->assertSame($participant['licensee_id'] !== $mine, $participant['is_default']);
+            $this->assertSame($participant['licensee_id'] === $mine, $participant['can_view_profile'], 'A member only opens their own profile.');
         }
 
         $this->assertSame(array_unique(array_column($participants, 'licensee_id')), array_column($participants, 'licensee_id'), 'Nobody is listed twice.');

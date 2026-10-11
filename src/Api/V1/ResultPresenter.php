@@ -41,12 +41,16 @@ final readonly class ResultPresenter
      *
      * @return array<string, mixed>
      */
-    public function contestEntry(Result $result, bool $mine): array
+    public function contestEntry(Result $result, bool $mine, bool $canViewProfile): array
     {
         $licensee = $result->getLicensee();
 
         return [
-            'licensee' => ['id' => $licensee->getId(), 'display_name' => $this->licenseePresenter->displayName($licensee)],
+            'licensee' => [
+                'id' => $licensee->getId(),
+                'display_name' => $this->licenseePresenter->displayName($licensee),
+                'can_view_profile' => $canViewProfile,
+            ],
             'is_mine' => $mine,
             ...$this->scores($result),
         ];
