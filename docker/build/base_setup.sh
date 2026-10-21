@@ -34,6 +34,16 @@ apt-get install -y --no-install-recommends \
     supervisor \
     unzip
 
+# --- Minimum patched PHP (PHP2Shell: CVE-2026-109618, CVE-2026-109619, USN-8948-1) ---
+# Ubuntu backports security fixes without bumping upstream versions; fail the build
+# rather than ship a vulnerable PHP from a stale mirror or cached layer.
+PHP_MIN_VERSION=8.5.4-0ubuntu1.5
+PHP_INSTALLED_VERSION=$(dpkg-query -W -f='${Version}' php8.5-fpm)
+if ! dpkg --compare-versions "$PHP_INSTALLED_VERSION" ge "$PHP_MIN_VERSION"; then
+    echo "php8.5 $PHP_INSTALLED_VERSION is older than $PHP_MIN_VERSION" >&2
+    exit 1
+fi
+
 # --- symfony user (UID/GID 1000) ---
 # Official ubuntu:26.04 images ship a built-in 'ubuntu' user/group at UID/GID 1000;
 # rename it when present, otherwise create symfony explicitly.
