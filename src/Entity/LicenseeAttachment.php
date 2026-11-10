@@ -31,6 +31,12 @@ class LicenseeAttachment extends Attachment
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $documentDate = null;
 
+    /**
+     * Uploaded by the licensee or a club admin rather than fetched from the FFTA: the FFTA sync leaves it alone.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    private bool $manualUpload = false;
+
     #[Vich\UploadableField(
         mapping: 'licensees',
         fileNameProperty: 'file.name',
@@ -94,6 +100,18 @@ class LicenseeAttachment extends Attachment
         return $this;
     }
 
+    public function isManualUpload(): bool
+    {
+        return $this->manualUpload;
+    }
+
+    public function setManualUpload(bool $manualUpload): self
+    {
+        $this->manualUpload = $manualUpload;
+
+        return $this;
+    }
+
     public function setUploadedFile(?File $file = null): void
     {
         $this->uploadedFile = $file;
@@ -116,14 +134,16 @@ class LicenseeAttachment extends Attachment
     public function generateFilename(): string
     {
         $licensee = $this->getLicensee();
+        // Licensees created by hand may have no FFTA code yet.
+        $owner = $licensee?->getFftaMemberCode() ?? \sprintf('licensee-%d', $licensee?->getId() ?? 0);
         $type = $this->getType();
         $randomStr = bin2hex(random_bytes(4));
 
         if (null !== $this->getSeason() && 0 !== $this->getSeason()) {
-            return \sprintf('%s-%s-%s-%s', $licensee->getFftaMemberCode(), $this->getSeason(), $type, $randomStr);
+            return \sprintf('%s-%s-%s-%s', $owner, $this->getSeason(), $type, $randomStr);
         }
 
-        return \sprintf('%s-%s-%s', $licensee->getFftaMemberCode(), $type, $randomStr);
+        return \sprintf('%s-%s-%s', $owner, $type, $randomStr);
     }
 
     public function __serialize()
