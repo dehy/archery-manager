@@ -26,6 +26,9 @@ use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
  * VIEW_PICTURE (profile picture): additionally any member of the same club in the **selected** season,
  * since the member directory of that season shows every member's picture.
  *
+ * EDIT_PICTURE (upload, replace or delete the profile picture): the licensee's own account, an admin, or a
+ * club admin (not a coach) who shares a club with the licensee in the **current** season.
+ *
  * Known limit, shared with the web: ROLE_COACH / ROLE_CLUB_ADMIN belong to the account, not to a club.
  * A coach of club A whose account also holds a licensee in club B is a coach for club B too. Fixing it
  * needs per-club roles.
@@ -38,6 +41,8 @@ final class LicenseeAccessVoter extends Voter
 
     public const string VIEW_PICTURE = 'LICENSEE_VIEW_PICTURE';
 
+    public const string EDIT_PICTURE = 'LICENSEE_EDIT_PICTURE';
+
     public function __construct(
         private readonly SeasonHelper $seasonHelper,
         private readonly RoleHierarchyInterface $roleHierarchy,
@@ -48,7 +53,7 @@ final class LicenseeAccessVoter extends Voter
     #[\Override]
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return \in_array($attribute, [self::VIEW, self::VIEW_PICTURE], true) && $subject instanceof Licensee;
+        return \in_array($attribute, [self::VIEW, self::VIEW_PICTURE, self::EDIT_PICTURE], true) && $subject instanceof Licensee;
     }
 
     #[\Override]
@@ -64,11 +69,14 @@ final class LicenseeAccessVoter extends Voter
             return true;
         }
 
-        $privileged = \in_array('ROLE_CLUB_ADMIN', $roles, true) || \in_array('ROLE_COACH', $roles, true);
+        $clubAdmin = \in_array('ROLE_CLUB_ADMIN', $roles, true);
+        $privileged = $clubAdmin || \in_array('ROLE_COACH', $roles, true);
+        $currentSeason = Season::seasonForDate($this->clock->now());
 
         return match ($attribute) {
             self::VIEW_PICTURE => $this->sharesClub($user, $subject, $this->seasonHelper->getSelectedSeason()),
-            default => $privileged && $this->sharesClub($user, $subject, Season::seasonForDate($this->clock->now())),
+            self::EDIT_PICTURE => $clubAdmin && $this->sharesClub($user, $subject, $currentSeason),
+            default => $privileged && $this->sharesClub($user, $subject, $currentSeason),
         };
     }
 
