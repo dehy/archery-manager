@@ -1,0 +1,59 @@
+{# Profile picture upload / delete modal. Parameters: licensee, picture_form #}
+{% form_theme picture_form 'bootstrap_5_layout.html.twig' %}
+{% set picture = licensee.profilePicture %}
+
+<div class="modal fade" id="profilePictureModal" tabindex="-1" aria-labelledby="profilePictureModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" data-controller="picture-preview">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="profilePictureModalLabel">
+                    <em class="fa-solid fa-camera text-primary me-2"></em>
+                    Photo de profil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+
+            {{ form_start(picture_form) }}
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <img src="{{ picture ? picture|temporary_url : asset('build/profilePictureVertical.svg') }}"
+                         alt="Aperçu de la photo de profil"
+                         class="img-thumbnail"
+                         style="width: 150px; height: 150px; object-fit: cover;"
+                         data-picture-preview-target="image" />
+                    {% if picture and picture.manualUpload %}
+                        <div class="mt-2">
+                            <span class="badge text-bg-secondary">Photo importée manuellement</span>
+                        </div>
+                    {% endif %}
+                </div>
+                {{ form_row(picture_form.picture) }}
+                <p class="small text-muted mb-0">
+                    Une photo importée ici n'est pas remplacée par celle de la FFTA lors des synchronisations.
+                </p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-primary">
+                    <em class="fa-solid fa-floppy-disk me-1"></em>
+                    Enregistrer
+                </button>
+            </div>
+            {{ form_end(picture_form) }}
+
+            {% if picture %}
+                <form method="post" action="{{ path('app_licensee_picture_delete', {id: licensee.id}) }}"
+                      class="border-top px-3 py-2 text-end">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_picture_' ~ licensee.id) }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                            data-controller="confirm-action"
+                            data-confirm-action-message-value="Supprimer la photo de profil ?"
+                            data-action="click->confirm-action#confirm">
+                        <em class="fa-solid fa-trash me-1"></em>
+                        Supprimer la photo
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
