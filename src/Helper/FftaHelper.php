@@ -168,62 +168,79 @@ class FftaHelper
                     $licensee->getFftaMemberCode(),
                 ),
             );
-            $syncResult = $licensee->mergeWith($fftaLicensee);
-            $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
-            $fftaProfilePictureContent = $fftaProfilePicture?->getUploadedFile()?->getContent();
-            $fftaProfilePictureChecksum = $fftaProfilePicture instanceof LicenseeAttachment ? sha1((string) $fftaProfilePictureContent) : null;
-            $dbProfilePicture = $licensee->getProfilePicture();
-
-            try {
-                $dbProfilePictureChecksum = $dbProfilePicture ?
-                    $this->licenseesStorage->checksum(
-                        $dbProfilePicture->getFile()->getName(),
-                        ['checksum_algo' => 'sha1']
-                    ) : null;
-            } catch (UnableToProvideChecksum|NoSuchKeyException) {
-                $dbProfilePicture = null;
-                $dbProfilePictureChecksum = null;
-            }
-
-            if ($dbProfilePicture && $fftaProfilePicture instanceof LicenseeAttachment) {
-                // Licensee has already a profile picture
-                if ($dbProfilePictureChecksum !== $fftaProfilePictureChecksum) {
-                    $this->logger->notice('  ~ Updating profile picture.');
-                    $licensee->removeAttachment($dbProfilePicture);
-                    $this->entityManager->remove($dbProfilePicture);
-
-                    $licensee->addAttachment($fftaProfilePicture);
-                    $licensee->setUpdatedAt(new \DateTimeImmutable());
-                    $this->entityManager->persist($fftaProfilePicture);
-                    $syncResult = SyncReturnValues::UPDATED;
-                } else {
-                    $this->logger->notice('  = Same profile picture. Not updating.');
-                }
-            }
-
-            if ($dbProfilePicture && !$fftaProfilePicture instanceof LicenseeAttachment) {
-                $this->logger->notice('  - Removing profile picture');
-                $licensee->removeAttachment($dbProfilePicture);
-                $this->entityManager->remove($dbProfilePicture);
-                $syncResult = SyncReturnValues::UPDATED;
-            }
-
-            if (!$dbProfilePicture && $fftaProfilePicture instanceof LicenseeAttachment) {
-                $this->logger->notice('  + Adding profile picture');
-                $licensee->addAttachment($fftaProfilePicture);
-                $licensee->setUpdatedAt(new \DateTimeImmutable());
-                $this->entityManager->persist($fftaProfilePicture);
-                $syncResult = SyncReturnValues::UPDATED;
-            }
-
-            if (!$dbProfilePicture && !$fftaProfilePicture instanceof LicenseeAttachment) {
-                $this->logger->notice('  ! No profile picture');
-            }
+            $syncResult = $this->syncProfilePicture($club, $licensee, $licensee->mergeWith($fftaLicensee));
         }
 
         $this->entityManager->flush();
 
         return $this->syncLicenseForLicensee($club, $licensee, $season);
+    }
+
+    /**
+     * Brings the licensee's picture in line with the FFTA one, unless it was uploaded by hand: that one wins.
+     *
+     * @throws \Exception
+     */
+    private function syncProfilePicture(Club $club, Licensee $licensee, SyncReturnValues $syncResult): SyncReturnValues
+    {
+        if (true === $licensee->getProfilePicture()?->isManualUpload()) {
+            $this->logger->notice('  = Manual profile picture, keeping it.');
+
+            return $syncResult;
+        }
+
+        $fftaProfilePicture = $this->profilePictureAttachmentForLicensee($club, $licensee);
+        $fftaProfilePictureContent = $fftaProfilePicture?->getUploadedFile()?->getContent();
+        $fftaProfilePictureChecksum = $fftaProfilePicture instanceof LicenseeAttachment ? sha1((string) $fftaProfilePictureContent) : null;
+        $dbProfilePicture = $licensee->getProfilePicture();
+
+        try {
+            $dbProfilePictureChecksum = $dbProfilePicture instanceof \App\Entity\LicenseeAttachment ?
+                $this->licenseesStorage->checksum(
+                    $dbProfilePicture->getFile()->getName(),
+                    ['checksum_algo' => 'sha1']
+                ) : null;
+        } catch (UnableToProvideChecksum|NoSuchKeyException) {
+            $dbProfilePicture = null;
+            $dbProfilePictureChecksum = null;
+        }
+
+        if ($dbProfilePicture instanceof \App\Entity\LicenseeAttachment && $fftaProfilePicture instanceof LicenseeAttachment) {
+            // Licensee has already a profile picture
+            if ($dbProfilePictureChecksum !== $fftaProfilePictureChecksum) {
+                $this->logger->notice('  ~ Updating profile picture.');
+                $licensee->removeAttachment($dbProfilePicture);
+                $this->entityManager->remove($dbProfilePicture);
+
+                $licensee->addAttachment($fftaProfilePicture);
+                $licensee->setUpdatedAt(new \DateTimeImmutable());
+                $this->entityManager->persist($fftaProfilePicture);
+                $syncResult = SyncReturnValues::UPDATED;
+            } else {
+                $this->logger->notice('  = Same profile picture. Not updating.');
+            }
+        }
+
+        if ($dbProfilePicture instanceof \App\Entity\LicenseeAttachment && !$fftaProfilePicture instanceof LicenseeAttachment) {
+            $this->logger->notice('  - Removing profile picture');
+            $licensee->removeAttachment($dbProfilePicture);
+            $this->entityManager->remove($dbProfilePicture);
+            $syncResult = SyncReturnValues::UPDATED;
+        }
+
+        if (!$dbProfilePicture && $fftaProfilePicture instanceof LicenseeAttachment) {
+            $this->logger->notice('  + Adding profile picture');
+            $licensee->addAttachment($fftaProfilePicture);
+            $licensee->setUpdatedAt(new \DateTimeImmutable());
+            $this->entityManager->persist($fftaProfilePicture);
+            $syncResult = SyncReturnValues::UPDATED;
+        }
+
+        if (!$dbProfilePicture && !$fftaProfilePicture instanceof LicenseeAttachment) {
+            $this->logger->notice('  ! No profile picture');
+        }
+
+        return $syncResult;
     }
 
     public function fetchProfilePictureForLicensee(Club $club, Licensee $licensee): ?string
