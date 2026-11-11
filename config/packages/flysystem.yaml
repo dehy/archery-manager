@@ -30,6 +30,7 @@ when@test:
             licensees_storage:
                 adapter: 'memory'
                 public_url_generator: 'App\Tests\FakePublicUrlGenerator'
+                temporary_url_generator: 'App\Tests\FakePublicUrlGenerator'
             events_storage:
                 adapter: 'memory'
                 public_url_generator: 'App\Tests\FakePublicUrlGenerator'

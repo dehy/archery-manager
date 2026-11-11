@@ -70,6 +70,11 @@ final class LicenseeAccessVoterTest extends TestCase
         yield 'an admin, another club: picture' => ['other', ['ROLE_ADMIN'], LicenseeAccessVoter::VIEW_PICTURE, true];
         yield 'someone without license: profile' => ['none', ['ROLE_COACH'], LicenseeAccessVoter::VIEW, false];
         yield 'someone without license: picture' => ['none', ['ROLE_USER'], LicenseeAccessVoter::VIEW_PICTURE, false];
+        yield 'a member, the same club: edit picture' => ['same', ['ROLE_USER'], LicenseeAccessVoter::EDIT_PICTURE, false];
+        yield 'a coach, the same club: edit picture' => ['same', ['ROLE_COACH', 'ROLE_USER'], LicenseeAccessVoter::EDIT_PICTURE, false];
+        yield 'a club admin, the same club: edit picture' => ['same', ['ROLE_CLUB_ADMIN'], LicenseeAccessVoter::EDIT_PICTURE, true];
+        yield 'a club admin, another club: edit picture' => ['other', ['ROLE_CLUB_ADMIN'], LicenseeAccessVoter::EDIT_PICTURE, false];
+        yield 'an admin, another club: edit picture' => ['other', ['ROLE_ADMIN'], LicenseeAccessVoter::EDIT_PICTURE, true];
     }
 
     /**
@@ -95,6 +100,16 @@ final class LicenseeAccessVoterTest extends TestCase
 
         $this->assertSame(VoterInterface::ACCESS_GRANTED, $this->vote($viewer, LicenseeAccessVoter::VIEW, $own));
         $this->assertSame(VoterInterface::ACCESS_GRANTED, $this->vote($viewer, LicenseeAccessVoter::VIEW_PICTURE, $own));
+        $this->assertSame(VoterInterface::ACCESS_GRANTED, $this->vote($viewer, LicenseeAccessVoter::EDIT_PICTURE, $own));
+    }
+
+    public function testAClubAdminCannotEditThePictureOfSomeoneWhoLeftTheClub(): void
+    {
+        $clubAdmin = $this->user(['ROLE_CLUB_ADMIN'], $this->licensee($this->club, self::PAST_SEASON, self::SEASON));
+        $leftTheClub = $this->licensee($this->club, self::PAST_SEASON);
+        $this->selectedSeason = self::PAST_SEASON;
+
+        $this->assertSame(VoterInterface::ACCESS_DENIED, $this->vote($clubAdmin, LicenseeAccessVoter::EDIT_PICTURE, $leftTheClub));
     }
 
     public function testAUserWithSeveralLicenseesSeesAnyOfThem(): void

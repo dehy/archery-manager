@@ -58,6 +58,14 @@
                              class="img-thumbnail bg-white" 
                              style="width: 150px; height: 150px; object-fit: cover;" />
                     </div>
+                    {% if picture_form %}
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#profilePictureModal">
+                                <em class="fa-solid fa-camera me-1"></em>
+                                Modifier la photo
+                            </button>
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="card-body">
@@ -307,6 +315,10 @@
             </div>
         </div>
     </div>
+
+    {% if picture_form %}
+        {% include 'licensee/_picture_modal.html.twig' with {licensee: licensee, picture_form: picture_form} only %}
+    {% endif %}
 {% endblock %}
 
 {% block javascripts %}

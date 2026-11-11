@@ -15,8 +15,10 @@ use App\Entity\Group;
 use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\LicenseeAttachment;
+use App\Security\Voter\LicenseeAccessVoter;
 use App\Twig\LicenseeDisplayExtension;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class LicenseePresenter
 {
@@ -24,6 +26,7 @@ final readonly class LicenseePresenter
         private LicenseeDisplayExtension $displayName,
         private ClubPresenter $clubPresenter,
         private UrlGeneratorInterface $urlGenerator,
+        private AuthorizationCheckerInterface $authorizationChecker,
     ) {
     }
 
@@ -89,6 +92,7 @@ final readonly class LicenseePresenter
             'ffta_member_code' => $licensee->getFftaMemberCode(),
             'license' => $this->license($licensee->getLicenseForSeason($season)),
             'attachments' => array_values(array_map($this->attachment(...), $licensee->getAttachments()->toArray())),
+            'can_edit_picture' => $this->authorizationChecker->isGranted(LicenseeAccessVoter::EDIT_PICTURE, $licensee),
         ];
     }
 

@@ -423,6 +423,77 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Licensees]
+      operationId: uploadLicenseePicture
+      summary: Replace a licensee's profile picture
+      description: |
+        Uploads a new picture as the multipart field `picture` (POST, not PUT: PHP only parses multipart bodies on
+        POST). Allowed when the profile says `can_edit_picture`: the licensee's own account, admins, and club admins
+        (not coaches) who share a club with the licensee in the current season.
+
+        The file must be a JPEG, PNG or WebP image of at most 5 MB and at least 100×100 pixels. A picture uploaded
+        this way is kept by the FFTA sync: it is no longer replaced by the FFTA picture.
+      parameters:
+        - $ref: '#/components/parameters/LicenseeId'
+        - $ref: '#/components/parameters/XSeason'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [picture]
+              properties:
+                picture:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: The profile, with the new picture.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/PrivateNoStore'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [licensee]
+                properties:
+                  licensee:
+                    $ref: '#/components/schemas/LicenseeProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: The file is not an acceptable picture (`validation_failed`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags: [Licensees]
+      operationId: deleteLicenseePicture
+      summary: Remove a licensee's profile picture
+      description: |
+        Same permission as the upload. Removing a picture is harmless to repeat. The next FFTA sync may add the FFTA
+        picture again.
+      parameters:
+        - $ref: '#/components/parameters/LicenseeId'
+      responses:
+        '204':
+          description: The picture is removed (or there was none).
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /licensees/{id}/attachments/{attachmentId}:
     get:
@@ -1974,7 +2045,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/MemberSummary'
         - type: object
-          required: [firstname, lastname, full_name, gender, ffta_member_code, license, attachments]
+          required: [firstname, lastname, full_name, gender, ffta_member_code, license, attachments, can_edit_picture]
           properties:
             firstname:
               type: [string, 'null']
@@ -1995,3 +2066,8 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/Attachment'
+            can_edit_picture:
+              type: boolean
+              description: |
+                Whether the viewer may upload or delete this licensee's picture: their own account, admins, and club
+                admins (not coaches) who share a club with the licensee in the current season.

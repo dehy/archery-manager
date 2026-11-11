@@ -14,6 +14,7 @@ use App\Entity\Result;
 use App\Entity\Season;
 use App\Entity\User;
 use App\Form\Type\LicenseeFormType;
+use App\Form\Type\ProfilePictureType;
 use App\Helper\ClubHelper;
 use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
@@ -24,13 +25,17 @@ use App\Repository\EquipmentLoanRepository;
 use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
 use App\Repository\ResultRepository;
+use App\Security\Voter\LicenseeAccessVoter;
+use App\Service\ProfilePictureManager;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -43,7 +48,7 @@ use Symfony\UX\Chartjs\Model\Chart;
 
 class LicenseeController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly FilesystemOperator $licenseesStorage, private readonly EntityManagerInterface $entityManager)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly FilesystemOperator $licenseesStorage, private readonly EntityManagerInterface $entityManager, private readonly ProfilePictureManager $pictureManager)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -133,12 +138,61 @@ class LicenseeController extends BaseController
             $licenseeSyncForm = $this->createSyncForm($licensee);
         }
 
+        $pictureForm = null;
+        if ($this->isGranted(LicenseeAccessVoter::EDIT_PICTURE, $licensee)) {
+            $pictureForm = $this->createPictureForm($licensee);
+        }
+
         return $this->render('licensee/show.html.twig', [
             'licensee' => $licensee,
             'seasons' => $seasons,
             'results_charts' => $resultsCharts,
             'licensee_sync_form' => $licenseeSyncForm?->createView(),
+            'picture_form' => $pictureForm?->createView(),
             'activeLoans' => $activeLoans,
+        ]);
+    }
+
+    #[Route('/licensee/{id}/picture', name: 'app_licensee_picture_upload', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function uploadPicture(Licensee $licensee, Request $request): RedirectResponse
+    {
+        $this->denyAccessUnlessGranted(LicenseeAccessVoter::EDIT_PICTURE, $licensee);
+
+        $form = $this->createPictureForm($licensee);
+        $form->handleRequest($request);
+
+        $file = $form->get('picture')->getData();
+        if ($form->isSubmitted() && $form->isValid() && $file instanceof UploadedFile) {
+            $this->pictureManager->replace($licensee, $file);
+            $this->addFlash('success', 'Photo de profil mise à jour.');
+        } else {
+            $error = $form->getErrors(true)->current();
+            $this->addFlash('danger', $error instanceof FormError ? $error->getMessage() : 'La photo n\'a pas pu être enregistrée.');
+        }
+
+        return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
+    }
+
+    #[Route('/licensee/{id}/picture/delete', name: 'app_licensee_picture_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deletePicture(Licensee $licensee, Request $request): RedirectResponse
+    {
+        $this->denyAccessUnlessGranted(LicenseeAccessVoter::EDIT_PICTURE, $licensee);
+
+        if ($this->isCsrfTokenValid('delete_picture_'.$licensee->getId(), $request->getPayload()->getString('_token'))) {
+            $this->pictureManager->remove($licensee);
+            $this->addFlash('success', 'Photo de profil supprimée.');
+        } else {
+            $this->addFlash('danger', 'Jeton de sécurité invalide, veuillez réessayer.');
+        }
+
+        return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
+    }
+
+    private function createPictureForm(Licensee $licensee): FormInterface
+    {
+        return $this->createForm(ProfilePictureType::class, null, [
+            'action' => $this->generateUrl('app_licensee_picture_upload', ['id' => $licensee->getId()]),
+            'method' => 'POST',
         ]);
     }
 
