@@ -916,9 +916,9 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
     {
         $client = self::createClient();
         /** @var LicenseeRepository $licenseeRepo */
-        $licenseeRepo = static::getContainer()->get(LicenseeRepository::class);
+        $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
         $licensee = $licenseeRepo->findOneBy([]);
-        self::assertNotNull($licensee);
+        $this->assertInstanceOf(\App\Entity\Licensee::class, $licensee);
 
         $client->request(
             \Symfony\Component\HttpFoundation\Request::METHOD_POST,
@@ -933,9 +933,9 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
     {
         $client = self::createLoggedInAsUserClient();
         /** @var LicenseeRepository $licenseeRepo */
-        $licenseeRepo = static::getContainer()->get(LicenseeRepository::class);
+        $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
         $licensee = $licenseeRepo->findOneBy([]);
-        self::assertNotNull($licensee);
+        $this->assertInstanceOf(\App\Entity\Licensee::class, $licensee);
 
         $client->request(
             \Symfony\Component\HttpFoundation\Request::METHOD_POST,
@@ -950,13 +950,13 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsClubAdminClient();
 
         /** @var UserRepository $userRepo */
-        $userRepo = static::getContainer()->get(UserRepository::class);
+        $userRepo = self::getContainer()->get(UserRepository::class);
         /** @var LicenseeRepository $licenseeRepo */
-        $licenseeRepo = static::getContainer()->get(LicenseeRepository::class);
+        $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
 
         // Find a licensee that is NOT the club admin (avoid self-lock)
         $clubAdmin = $userRepo->findOneByEmail('clubadmin@ladg.com');
-        self::assertNotNull($clubAdmin);
+        $this->assertInstanceOf(\App\Entity\User::class, $clubAdmin);
         $licensee = null;
         foreach ($licenseeRepo->findAll() as $l) {
             if ($l->getUser()?->getId() !== $clubAdmin->getId()) {
@@ -964,8 +964,9 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
                 break;
             }
         }
-        self::assertNotNull($licensee, 'Could not find a non-admin licensee.');
-        self::assertNotNull($licensee->getUser(), 'Licensee must have a user account.');
+
+        $this->assertInstanceOf(\App\Entity\Licensee::class, $licensee, 'Could not find a non-admin licensee.');
+        $this->assertInstanceOf(\App\Entity\User::class, $licensee->getUser(), 'Licensee must have a user account.');
 
         $client->request(
             \Symfony\Component\HttpFoundation\Request::METHOD_POST,
@@ -977,7 +978,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         // Refresh entity from DB
         self::getContainer()->get(EntityManagerInterface::class)->clear();
         $updatedUser = $userRepo->find($licensee->getUser()->getId());
-        self::assertNotNull($updatedUser?->getAccountLockedUntil());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $updatedUser?->getAccountLockedUntil());
     }
 
     public function testLockPreventsSelfLock(): void
@@ -985,12 +986,12 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsClubAdminClient();
 
         /** @var UserRepository $userRepo */
-        $userRepo = static::getContainer()->get(UserRepository::class);
+        $userRepo = self::getContainer()->get(UserRepository::class);
         /** @var LicenseeRepository $licenseeRepo */
-        $licenseeRepo = static::getContainer()->get(LicenseeRepository::class);
+        $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
 
         $clubAdmin = $userRepo->findOneByEmail('clubadmin@ladg.com');
-        self::assertNotNull($clubAdmin);
+        $this->assertInstanceOf(\App\Entity\User::class, $clubAdmin);
 
         $licensee = null;
         foreach ($licenseeRepo->findAll() as $l) {
@@ -999,7 +1000,8 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
                 break;
             }
         }
-        self::assertNotNull($licensee, 'Club admin must have a linked licensee.');
+
+        $this->assertInstanceOf(\App\Entity\Licensee::class, $licensee, 'Club admin must have a linked licensee.');
 
         $client->request(
             \Symfony\Component\HttpFoundation\Request::METHOD_POST,
@@ -1011,7 +1013,7 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         // Account must NOT be locked
         self::getContainer()->get(EntityManagerInterface::class)->clear();
         $updatedUser = $userRepo->find($clubAdmin->getId());
-        self::assertNull($updatedUser?->getAccountLockedUntil());
+        $this->assertNotInstanceOf(\DateTimeImmutable::class, $updatedUser?->getAccountLockedUntil());
     }
 
     public function testUnlockClearsAccountLockedUntil(): void
@@ -1019,12 +1021,12 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsClubAdminClient();
 
         /** @var UserRepository $userRepo */
-        $userRepo = static::getContainer()->get(UserRepository::class);
+        $userRepo = self::getContainer()->get(UserRepository::class);
         /** @var LicenseeRepository $licenseeRepo */
-        $licenseeRepo = static::getContainer()->get(LicenseeRepository::class);
+        $licenseeRepo = self::getContainer()->get(LicenseeRepository::class);
 
         $clubAdmin = $userRepo->findOneByEmail('clubadmin@ladg.com');
-        self::assertNotNull($clubAdmin);
+        $this->assertInstanceOf(\App\Entity\User::class, $clubAdmin);
 
         $licensee = null;
         foreach ($licenseeRepo->findAll() as $l) {
@@ -1033,8 +1035,9 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
                 break;
             }
         }
-        self::assertNotNull($licensee, 'Could not find a non-admin licensee.');
-        self::assertNotNull($licensee->getUser());
+
+        $this->assertInstanceOf(\App\Entity\Licensee::class, $licensee, 'Could not find a non-admin licensee.');
+        $this->assertInstanceOf(\App\Entity\User::class, $licensee->getUser());
 
         // Lock the account first
         $licensee->getUser()->lockPermanently();
@@ -1049,6 +1052,6 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
 
         self::getContainer()->get(EntityManagerInterface::class)->clear();
         $updatedUser = $userRepo->find($licensee->getUser()->getId());
-        self::assertNull($updatedUser?->getAccountLockedUntil());
+        $this->assertNotInstanceOf(\DateTimeImmutable::class, $updatedUser?->getAccountLockedUntil());
     }
 }
