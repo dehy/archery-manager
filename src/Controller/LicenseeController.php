@@ -29,6 +29,7 @@ use App\Security\Voter\LicenseeAccessVoter;
 use App\Service\ProfilePictureManager;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemException;
@@ -91,8 +92,8 @@ class LicenseeController extends BaseController
         /** @var ArrayCollection<int, Licensee> $orderedLicensees */
         $orderedLicensees = $licensees->matching(
             Criteria::create()->orderBy([
-                'firstname' => 'ASC',
-                'lastname' => 'ASC',
+                'firstname' => Order::Ascending,
+                'lastname' => Order::Ascending,
             ]),
         );
 

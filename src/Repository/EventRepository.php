@@ -11,7 +11,6 @@ use App\Entity\Licensee;
 use App\Entity\Season;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -68,8 +67,8 @@ class EventRepository extends ServiceEntityRepository
                     ),
                     'g IN (:groups)',
                 )
-                ->orderBy('e.startsAt', Criteria::ASC)
-                ->addOrderBy('e.endsAt', Criteria::ASC)
+                ->orderBy('e.startsAt', 'ASC')
+                ->addOrderBy('e.endsAt', 'ASC')
                 ->groupBy('e.id')
                 ->setParameter('now', new \DateTime())
                 ->setParameter('groups', $licensee->getGroups())

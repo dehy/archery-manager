@@ -8,7 +8,6 @@ use App\Entity\ContestEvent;
 use App\Entity\Licensee;
 use App\Entity\Result;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -49,7 +48,7 @@ class ResultRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')
             ->join('r.event', 'e')
             ->where(self::OF_LICENSEE)
-            ->orderBy('e.endsAt', Criteria::DESC)
+            ->orderBy('e.endsAt', 'DESC')
             ->setMaxResults($count)
             ->setParameter('licensee', $licensee)
             ->getQuery()
@@ -83,8 +82,8 @@ class ResultRepository extends ServiceEntityRepository
             ->select('r', 'e')
             ->join('r.event', 'e')
             ->where(self::OF_LICENSEE)
-            ->orderBy('e.startsAt', Criteria::DESC)
-            ->addOrderBy('r.id', Criteria::DESC)
+            ->orderBy('e.startsAt', 'DESC')
+            ->addOrderBy('r.id', 'DESC')
             ->setParameter('licensee', $licensee)
             ->getQuery()
             ->getResult();
@@ -95,7 +94,7 @@ class ResultRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')
             ->join('r.event', 'e')
             ->where(self::OF_LICENSEE)
-            ->orderBy('e.startsAt', Criteria::ASC)
+            ->orderBy('e.startsAt', 'ASC')
             ->setParameter('licensee', $licensee)
             ->getQuery()
             ->getResult();
