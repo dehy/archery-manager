@@ -16,7 +16,7 @@ class SecurityNotificationService
 {
     private const string MAILER_FROM_EMAIL = 'noreply@admds.net';
 
-    private const string MAILER_FROM_NAME = 'Archery Manager';
+    private const string MAILER_FROM_NAME = 'Karkwa';
 
     public function __construct(
         private readonly MailerInterface $mailer,

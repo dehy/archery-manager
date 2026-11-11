@@ -70,7 +70,7 @@ class RegistrationController extends AbstractController
                     ->from(
                         new Address(
                             'archerie@admds.net',
-                            'Archery Manager',
+                            'Karkwa',
                         ),
                     )
                     ->to($user->getEmail())
