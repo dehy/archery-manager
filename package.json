@@ -14,7 +14,7 @@
     "@grafana/faro-web-tracing": "^1.11.0",
     "@hotwired/stimulus": "^3.2.2",
     "@popperjs/core": "^2.11.8",
-    "@symfony/stimulus-bridge": "^3.2.2",
+    "@symfony/stimulus-bridge": "^4.0.2",
     "@symfony/stimulus-bridge-types": "^1.0.0",
     "@symfony/ux-chartjs": "file:vendor/symfony/ux-chartjs/assets",
     "@symfony/webpack-encore": "^6.0.0",
@@ -40,7 +40,7 @@
     "ts-loader": "^9.6.2",
     "typescript": "^5.2.2",
     "vanilla-cookieconsent": "^3.3.0",
-    "webpack": "^5.89.0",
+    "webpack": "^5.112.2",
     "webpack-cli": "^6.0.0",
     "webpack-notifier": "^1.17.0",
     "zxcvbn": "^4.4.2"
