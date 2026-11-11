@@ -14,6 +14,8 @@ class LicenseeVoter extends Voter
 {
     final public const string RENEW = 'RENEW';
 
+    final public const string CHANGE_USER = 'CHANGE_USER';
+
     public function __construct(
         private readonly ClubHelper $clubHelper,
     ) {
@@ -22,7 +24,7 @@ class LicenseeVoter extends Voter
     #[\Override]
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return self::RENEW === $attribute && $subject instanceof Licensee;
+        return \in_array($attribute, [self::RENEW, self::CHANGE_USER], true) && $subject instanceof Licensee;
     }
 
     #[\Override]
@@ -38,12 +40,12 @@ class LicenseeVoter extends Voter
         $licensee = $subject;
 
         return match ($attribute) {
-            self::RENEW => $this->canRenew($licensee, $user),
+            self::RENEW, self::CHANGE_USER => $this->canManage($licensee, $user),
             default => false,
         };
     }
 
-    private function canRenew(Licensee $licensee, User $user): bool
+    private function canManage(Licensee $licensee, User $user): bool
     {
         if (\in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             return true;
