@@ -11,6 +11,7 @@ use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -43,8 +44,8 @@ class ClubController extends BaseController
         /** @var ArrayCollection<int, Licensee> $orderedLicensees */
         $orderedLicensees = $licensees->matching(
             Criteria::create()->orderBy([
-                'firstname' => 'ASC',
-                'lastname' => 'ASC',
+                'firstname' => Order::Ascending,
+                'lastname' => Order::Ascending,
             ]),
         );
         // Compter les licenciés sans groupe
