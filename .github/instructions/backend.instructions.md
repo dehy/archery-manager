@@ -98,9 +98,9 @@ All enums are custom Doctrine DBAL types in `src/DBAL/Types/`. Use them — neve
 | Entity | Key Relationships | Notes |
 |--------|------------------|-------|
 | `User` | hasMany Licensees | Auth account (email-based) |
-| `Licensee` | belongsTo User, hasMany Licenses, belongsToMany Groups | Archer profile; FFTA synced |
+| `Licensee` | belongsTo User, hasMany Licenses, belongsToMany Groups | Archer profile; created/updated by the FFTA CSV import |
 | `License` | belongsTo Licensee, Season, Club | Annual membership; unique per (licensee, season) |
-| `Club` | hasMany Licenses, ClubEquipments | Stores FFTA credentials |
+| `Club` | hasMany Licenses, ClubEquipments | Club identity and FFTA club code |
 | `Season` | — | `Season::seasonForDate()` auto-detects current season |
 | `Group` | belongsToMany Licensees, Events | Org unit for access control |
 | `Event` (abstract) | hasMany EventParticipations, assignedGroups | ContestEvent / HobbyContestEvent / TrainingEvent / FreeTrainingEvent |
@@ -110,7 +110,7 @@ All enums are custom Doctrine DBAL types in `src/DBAL/Types/`. Use them — neve
 | `ClubEquipment` | belongsTo Club, hasMany EquipmentLoans | quantity, purchasePrice, purchaseDate, bowType, brand, model |
 | `EquipmentLoan` | ClubEquipment ↔ Licensee | startDate, returnDate, quantity, notes, createdBy |
 | `Bow` / `Arrow` / `SightAdjustment` | belongsTo Licensee | Personal equipment tracking |
-| `Result` | belongsTo ContestEvent, Licensee | Scores, rankings, FFTA sync status |
+| `Result` | belongsTo ContestEvent, Licensee | Scores, rankings |
 
 ## Helper Services (Business Logic)
 
@@ -123,7 +123,6 @@ Never put business logic in controllers — use the service layer:
 | `LicenseHelper` | Current license detection, season-based queries |
 | `SeasonHelper` | Current season detection, season selection (stored in session) |
 | `ClubHelper` | Club-related utilities |
-| `FftaHelper` | FFTA API integration helpers |
 | `ResultHelper` | Results processing |
 | `MapHelper` | Geocoding and mapping |
 

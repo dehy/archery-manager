@@ -102,22 +102,6 @@ final class ClubTest extends TestCase
         $this->assertSame('Le club est complet.', $club->getApplicationClosureMessage());
     }
 
-    public function testSetAndGetFftaUsername(): void
-    {
-        $club = new Club();
-        $club->setFftaUsername('ffta_user');
-
-        $this->assertSame('ffta_user', $club->getFftaUsername());
-    }
-
-    public function testSetAndGetFftaPassword(): void
-    {
-        $club = new Club();
-        $club->setFftaPassword('secret_password');
-
-        $this->assertSame('secret_password', $club->getFftaPassword());
-    }
-
     public function testAddAndRemoveLicense(): void
     {
         $club = new Club();

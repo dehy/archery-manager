@@ -8,8 +8,6 @@ use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\LicenseActivityType;
 use App\DBAL\Types\LicenseAgeCategoryType;
 use App\Repository\ResultRepository;
-use App\Scrapper\CategoryParser;
-use App\Scrapper\FftaResult;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -76,28 +74,6 @@ class Result
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER, nullable: true)]
     #[Assert\GreaterThanOrEqual(1)]
     private ?int $position = null;
-
-    public static function fromFftaResult(
-        FftaResult $fftaResult,
-        Event $event,
-        Licensee $licensee,
-        string $discipline,
-    ): self {
-        [$ageCategory, $activity] = CategoryParser::parseString(
-            $fftaResult->getCategory(),
-        );
-
-        return new self()
-            ->setEvent($event)
-            ->setLicensee($licensee)
-            ->setDiscipline($discipline)
-            ->setActivity($activity)
-            ->setScore1($fftaResult->getScore1())
-            ->setScore2($fftaResult->getScore2())
-            ->setTotal($fftaResult->getTotal())
-            ->setNb10($fftaResult->getNb10())
-            ->setNb10p($fftaResult->getNb10p());
-    }
 
     public function getId(): ?int
     {

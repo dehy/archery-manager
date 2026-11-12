@@ -473,15 +473,6 @@ final class LicenseeManagementControllerTest extends LoggedInTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    public function testNewFromFftaWithInvalidCodeRedirects(): void
-    {
-        $client = self::createLoggedInAsAdminClient();
-
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/licensees/manage/new/sync/INVALID1');
-
-        $this->assertResponseRedirects(self::URL_CHOICE);
-    }
-
     public function testUserRoleCannotAccessManagement(): void
     {
         $client = self::createLoggedInAsUserClient();

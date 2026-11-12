@@ -21,7 +21,7 @@ This document contains important context and guidelines for AI coding assistants
 - **Participation Tracking**: Event participation with dynamic states
 - **Equipment Management**: Bows, arrows, sight adjustments
 - **Results & Competitions**: Contest results tracking and imports
-- **FFTA Integration**: Synchronization with French Archery Federation (FFTA) system
+- **FFTA Integration**: Import of the French Archery Federation (FFTA) licensee CSV export
 - **Practice Advice**: Training tips and attachments
 - **Club Applications**: Membership application management (pending/validated/waiting_list/rejected/cancelled)
 - **GDPR Compliance**: Cookie consent tracking (ConsentLog entity with anonymized audit trail)
@@ -85,12 +85,12 @@ For language-specific patterns, refer to the scoped instruction files in `.githu
 - **Licensee**: Archer profile (can have multiple licenses across seasons)
   - Properties: gender, name, birthdate, FFTA member code/ID, profile picture
   - Relationships: belongs to User, has many Licenses, belongs to many Groups
-  - FFTA integration: Synced from FFTA "Espace Dirigeant"
+  - FFTA integration: created/updated by the FFTA CSV import
 - **License**: Annual membership for a season
   - Properties: season, type (competitive/recreational), category, age category, activities, club
   - Validation: Unique per (licensee, season)
 - **Club**: Archery club entity
-  - Properties: name, FFTA credentials for sync, address, contact info
+  - Properties: name, FFTA club code, address, contact info
 - **Season**: Represents archery season (e.g., 2025)
   - Auto-detection: `Season::seasonForDate()` determines current season
 - **Group**: Organizational unit for licensees
@@ -101,10 +101,10 @@ For language-specific patterns, refer to the scoped instruction files in `.githu
 - **Event** (abstract base class)
   - Common properties: name, description, starts/ends at, location, assigned groups
   - **ContestEvent**: Official competitions with FFTA integration
-    - Properties: contest type, discipline, FFTA event ID
+    - Properties: contest type, discipline
     - Features: Results tracking, target types, departures
   - **HobbyContestEvent**: Informal competitions
-    - Similar to ContestEvent but no FFTA sync
+    - Similar to ContestEvent, for unofficial competitions
   - **TrainingEvent**: Scheduled training sessions
     - Features: Default attendance for group members
   - **FreeTrainingEvent**: Open practice sessions
@@ -115,8 +115,7 @@ For language-specific patterns, refer to the scoped instruction files in `.githu
   - States: NOT_GOING, INTERESTED (contests only), REGISTERED
   - Dynamic defaults: Training events default to REGISTERED for authorized licensees
 - **Result**: Contest performance records
-  - Properties: scores, rankings, FFTA sync status
-  - Import: ARC format supported via command
+  - Properties: scores, rankings (entered by hand)
 
 #### Equipment
 - **Bow**: Archer's bow configuration
@@ -186,27 +185,16 @@ Custom Doctrine DBAL types for type-safe enumerations:
   - Current season detection
   - Season selection
 - **ClubHelper**: Club-related utilities
-- **FftaHelper**: FFTA API integration helpers
 - **ResultHelper**: Results processing
 - **MapHelper**: Geocoding and mapping
 - **EmailHelper**: Email utilities
 - **StringHelper**: String manipulation
 
-#### Scrappers
-- **FftaScrapper**: Web scraping for FFTA "Espace Dirigeant" and "Mon Espace"
-  - Licensee synchronization
-  - License data retrieval
-  - Event fetching
-  - Profile picture downloads
-  - 724 lines of complex HTTP client + DOM parsing logic
+#### Services
+- **FftaLicenseeCsvImportService**: Parses the FFTA licensee CSV export (the only FFTA data source, see FFTA Integration)
 
 #### Commands
-- **FftaSyncLicenseesCommand**: Bulk sync all licensees from FFTA
-- **FftaSyncLicenseeCommand**: Sync individual licensee
-- **FftaFetchParticipatingEvent**: Fetch events from FFTA
-- **FftaFindId**: Find FFTA ID for licensees
 - **RecurringEventGenerateCommand**: Generate recurring events (via Scheduler)
-- **ResultArcImportCommand**: Import results from ARC format
 - **DiscordBotRunCommand**: Run Discord bot
 
 #### Controllers
@@ -279,7 +267,6 @@ Stateless JSON API for the React Native app. The contract is [`docs/api/openapi.
 #### Docker Compose Services
 - **app**: Main Symfony application (FrankenPHP)
 - **messenger-async**: Async message consumer
-- **scheduler-ffta-licensees**: Scheduled FFTA sync
 - **database**: MariaDB 12.1
 - **redis**: Rate limiter backend
 - **adminer**: Database GUI (http://localhost:8081)
@@ -607,7 +594,6 @@ make migratedb       # Run database migrations
 - `src/Helper/` - Business logic services
 - `src/DBAL/Types/` - Custom Doctrine enum types
 - `src/Command/` - Console commands
-- `src/Scrapper/` - FFTA web scraping
 - `src/Security/` - Security-related services
 - `src/EventListener/` - Event subscribers
 - `src/Twig/` - Custom Twig extensions
@@ -779,41 +765,14 @@ For training events, `EventHelper::getAllParticipantsForEvent()` returns:
 
 ### FFTA Integration
 
-#### Data Sources
-- **Espace Dirigeant** (dirigeant.ffta.fr):
-  - Club manager interface
-  - Licensee data (name, birthdate, gender, member code, license info)
-  - Requires club credentials stored in `Club` entity
-- **Mon Espace** (monespace.ffta.fr):
-  - Individual member interface
-  - Profile pictures
-  - Additional details
+FFTA data only enters the app through the **CSV import** of the licensee list exported from the FFTA
+"Espace Dirigeant" (`FftaLicenseeCsvImportService`, routes `app_licensee_csv_import*`): it creates or updates
+licensees and their license for the season, matched by FFTA member code.
 
-#### Synchronization Strategy
-1. **FftaScrapper** uses Symfony HttpClient + BrowserKit
-2. **Authentication**:
-   - Logs in with club credentials
-   - Maintains session cookies
-   - Separate clients for "Espace Dirigeant" and "Mon Espace"
-3. **Data scraping**:
-   - Parses HTML tables with DomCrawler
-   - Extracts JSON from AJAX responses
-   - Downloads profile pictures as binary
-4. **Entity creation/update**:
-   - Matches by FFTA member code or ID
-   - Updates existing or creates new Licensee
-   - Updates License for current season
-   - Uses `ObjectComparator` to detect changes
-5. **Commands**:
-   - `FftaSyncLicenseesCommand`: Bulk sync (all club members)
-   - `FftaSyncLicenseeCommand`: Single licensee sync
-   - `FftaFetchParticipatingEvent`: Import events
-   - `FftaFindId`: Resolve FFTA ID from member code
-
-#### Sync Triggers
-- **Manual**: Admin button in UI
-- **Scheduled**: `scheduler-ffta-licensees` service (cron expression)
-- **Command**: Direct CLI invocation
+There is **no live connection to the FFTA websites**: the former web scraper (licensee/event/result sync, profile
+picture download, member code checks) was removed because the FFTA sites can no longer be scraped. Don't add
+features that query them. FFTA member codes and ids stay plain data fields; when activating a club application,
+the club admin enters the code created on the FFTA side and the app only checks that no other licensee holds it.
 
 ### Season Management
 
@@ -890,12 +849,6 @@ For training events, `EventHelper::getAllParticipantsForEvent()` returns:
 - **Symptom**: "Connection refused" to database
 - **Check**: Services running (`docker compose ps`)
 - **Solution**: `make start` and wait for healthcheck
-
-#### FFTA Sync Failures
-- **Symptom**: Scrapper errors, login failures
-- **Check**: Club FFTA credentials in database
-- **Debug**: Check `var/log/dev.log` for HTTP errors
-- **Common**: FFTA site changes break scraper (HTML structure)
 
 #### Migration Errors
 - **Symptom**: "Table already exists" or "Column not found"
@@ -1072,7 +1025,7 @@ Use this loop for every non-trivial change so work is traceable and reviewable.
 5. **Entity Changes**: Always generate and review migrations
 6. **Authorization**: Check group membership for event participation
 7. **Form Themes**: Specify `bootstrap_5_layout.html.twig` for consistency
-8. **FFTA Sync**: Scrapper is fragile, expect HTML changes to break it
+8. **FFTA data**: CSV import only, never query the FFTA websites
 9. **Enums**: Use DBAL types (e.g., `EventParticipationStateType`) for type safety
 10. **Helpers**: Use service layer (EventHelper, LicenseHelper) for business logic
 

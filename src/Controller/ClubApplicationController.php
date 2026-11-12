@@ -14,13 +14,11 @@ use App\Form\ClubApplicationType;
 use App\Form\FftaMemberCodeType;
 use App\Form\Type\LicenseFormType;
 use App\Helper\EmailHelper;
-use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
 use App\Helper\LicenseHelper;
 use App\Helper\SeasonHelper;
 use App\Repository\ClubApplicationRepository;
 use App\Repository\LicenseeRepository;
-use App\Scrapper\FftaProfile;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,7 +39,6 @@ class ClubApplicationController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly ClubApplicationRepository $applicationRepository,
         private readonly EmailHelper $emailHelper,
-        private readonly FftaHelper $fftaHelper,
         private readonly LicenseeRepository $licenseeRepository,
         private readonly LicenseHelper $licenseHelper,
     ) {
@@ -300,19 +297,20 @@ class ClubApplicationController extends AbstractController
         $codeForm = $this->createForm(FftaMemberCodeType::class);
         $codeForm->handleRequest($request);
 
-        $fftaProfile = null;
+        $codeAccepted = false;
         $searchedCode = null;
 
         if ($codeForm->isSubmitted() && $codeForm->isValid()) {
             $searchedCode = strtoupper(trim((string) $codeForm->get('fftaMemberCode')->getData()));
-            $fftaProfile = $this->findFftaProfile($searchedCode, $licensee, $club, $season);
+            $codeAccepted = $this->isCodeAvailableFor($searchedCode, $licensee);
         } elseif ($request->isMethod('POST') && self::ACTIVATION_STAGE_CONFIRM === $request->request->get('activation_stage')) {
             $searchedCode = strtoupper(trim((string) $request->request->get('activation_ffta_member_code')));
-            $fftaProfile = $this->findFftaProfile($searchedCode, $licensee, $club, $season);
+            $codeAccepted = 1 === preg_match(FftaMemberCodeType::PATTERN, $searchedCode)
+                && $this->isCodeAvailableFor($searchedCode, $licensee);
         }
 
         $licenseForm = null;
-        if ($fftaProfile instanceof FftaProfile) {
+        if ($codeAccepted) {
             $license = $this->buildActivationLicense($licensee, $club, $season);
             $licenseForm = $this->createForm(LicenseFormType::class, $license);
             if (self::ACTIVATION_STAGE_CONFIRM === $request->request->get('activation_stage')) {
@@ -320,7 +318,7 @@ class ClubApplicationController extends AbstractController
             }
 
             if ($licenseForm->isSubmitted() && $licenseForm->isValid()) {
-                $this->updateLicenseeFromFftaProfile($licensee, $fftaProfile);
+                $licensee->setFftaMemberCode($searchedCode);
                 $this->entityManager->persist($license);
                 $this->entityManager->flush();
 
@@ -334,9 +332,25 @@ class ClubApplicationController extends AbstractController
             'application' => $application,
             'codeForm' => $codeForm,
             'licenseForm' => $licenseForm,
-            'fftaProfile' => $fftaProfile,
+            'codeAccepted' => $codeAccepted,
             'searchedCode' => $searchedCode,
         ]);
+    }
+
+    /**
+     * The FFTA website can no longer be queried: the club admin checks the code on the FFTA side,
+     * and we only make sure it is not already held by another licensee.
+     */
+    private function isCodeAvailableFor(string $code, Licensee $licensee): bool
+    {
+        $holder = $this->licenseeRepository->findOneByCode($code);
+        if ($holder instanceof Licensee && $holder !== $licensee) {
+            $this->addFlash('danger', 'Ce code FFTA est déjà associé à un autre licencié.');
+
+            return false;
+        }
+
+        return true;
     }
 
     private function buildActivationLicense(Licensee $licensee, \App\Entity\Club $club, int $season): License
@@ -358,56 +372,6 @@ class ClubApplicationController extends AbstractController
         }
 
         return $license;
-    }
-
-    private function findFftaProfile(string $code, Licensee $licensee, \App\Entity\Club $club, int $season): ?FftaProfile
-    {
-        $profile = null;
-        $localLicensee = $this->licenseeRepository->findOneByCode($code);
-        if ($localLicensee instanceof Licensee && $localLicensee !== $licensee) {
-            $this->addFlash('danger', 'Ce code FFTA est déjà associé à un autre licencié.');
-        } else {
-            try {
-                $scrapper = $this->fftaHelper->getScrapper($club);
-                $fftaId = $scrapper->findLicenseeIdFromCode($code);
-                if (null === $fftaId || 0 === $fftaId) {
-                    $this->addFlash('warning', 'Ce code FFTA n’a pas été trouvé.');
-                } else {
-                    $candidate = $scrapper->fetchLicenseeProfile($fftaId, $season);
-                    if ($this->matchesLicenseeIdentity($licensee, $candidate)) {
-                        $profile = $candidate;
-                    } else {
-                        $this->addFlash('danger', 'Les informations FFTA ne correspondent pas au candidat.');
-                    }
-                }
-            } catch (\Throwable) {
-                $this->addFlash('danger', 'Impossible de vérifier ce code FFTA pour le moment.');
-            }
-        }
-
-        return $profile;
-    }
-
-    private function matchesLicenseeIdentity(Licensee $licensee, FftaProfile $profile): bool
-    {
-        $birthdate = $licensee->getBirthdate();
-
-        return $birthdate instanceof \DateTimeInterface
-            && $this->normalizeIdentity($licensee->getLastname()) === $this->normalizeIdentity($profile->getNom())
-            && $this->normalizeIdentity($licensee->getFirstname()) === $this->normalizeIdentity($profile->getPrenom())
-            && $profile->getDateNaissance() instanceof \DateTime
-            && $birthdate->format('Y-m-d') === $profile->getDateNaissance()->format('Y-m-d');
-    }
-
-    private function normalizeIdentity(?string $value): string
-    {
-        return mb_strtolower(trim((string) $value));
-    }
-
-    private function updateLicenseeFromFftaProfile(Licensee $licensee, FftaProfile $profile): void
-    {
-        $licensee->setFftaId($profile->getId());
-        $licensee->setFftaMemberCode(strtoupper((string) $profile->getCodeAdherent()));
     }
 
     #[Route('/club-application/{id}/waiting-list', name: 'app_club_application_waiting_list', methods: ['GET', 'POST'])]

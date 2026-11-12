@@ -39,7 +39,6 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
-            - '../src/Scrapper/FftaScrapper.php'
 
     App\Command\DiscordBotRunCommand:
         arguments:

@@ -13,7 +13,7 @@ A web application for managing an archery club — originally built for [Les Arc
 Archery Manager is the tool that keeps your club organised. Here is what it does:
 
 ### Member Directory (Trombinoscope)
-Browse and search the full list of club members with photos, contact details, and current licence information. Profiles are synchronised automatically with the FFTA (French Archery Federation) so data stays up to date without manual entry.
+Browse and search the full list of club members with photos, contact details, and current licence information. Club admins keep profiles and licences up to date by importing the licensee list exported from the FFTA (French Archery Federation).
 
 ### Events & Participation
 - **Training sessions** — see who is coming, mark yourself present or absent.
@@ -137,7 +137,7 @@ docker compose exec -u symfony -w /app app bin/phpunit --exclude-group=disabled
 
 ### FFTA Integration
 
-The application synchronises member and licence data from the FFTA "Espace Dirigeant" portal via a custom web scraper (`FftaScrapper`). Synchronisation can be triggered manually from the admin panel or runs automatically via the `scheduler-ffta-licensees` Docker service.
+Club admins import the licensee CSV exported from the FFTA "Espace Dirigeant" portal (members → licensees → import CSV). The import creates or updates licensees and their licence for the season, matched by FFTA member code. The app has no live connection to the FFTA websites.
 
 ### Makefile Reference
 
@@ -161,8 +161,7 @@ src/
   Repository/     Custom Doctrine queries
   Helper/         Business logic services
   DBAL/Types/     Custom Doctrine enum types
-  Command/        Console commands (FFTA sync, result import…)
-  Scrapper/       FFTA web scraping
+  Command/        Console commands (recurring events, Discord bot…)
 assets/
   controllers/    Stimulus controllers (TypeScript)
   styles/         SCSS stylesheets

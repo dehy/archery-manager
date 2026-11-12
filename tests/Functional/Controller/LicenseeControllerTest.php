@@ -199,29 +199,6 @@ final class LicenseeControllerTest extends LoggedInTestCase
 
     // ── Sync ───────────────────────────────────────────────────────────
 
-    public function testSyncRequiresPostMethod(): void
-    {
-        $client = self::createLoggedInAsAdminClient();
-
-        /** @var User $user */
-        $user = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
-        $licensee = $user->getLicensees()->first();
-        $this->assertInstanceOf(Licensee::class, $licensee);
-
-        // GET should not be allowed
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$licensee->getId().'/sync');
-        $this->assertResponseStatusCodeSame(405);
-    }
-
-    public function testSyncNonExistentLicensee(): void
-    {
-        $client = self::createLoggedInAsAdminClient();
-
-        // Post to non-existent licensee
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_LICENSEE.'99999/sync');
-        $this->assertResponseStatusCodeSame(404);
-    }
-
     // ── Access Control ─────────────────────────────────────────────────
 
     public function testUserCannotAccessOtherLicenseeProfile(): void
@@ -437,15 +414,6 @@ final class LicenseeControllerTest extends LoggedInTestCase
     }
 
     // ── Sync (POST) ───────────────────────────────────────────────────
-
-    public function testSyncRequiresAuthentication(): void
-    {
-        $client = self::createClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, self::URL_LICENSEE.'1/sync');
-
-        $this->assertResponseRedirects();
-        $this->assertStringContainsString('/login', (string) $client->getResponse()->headers->get('Location'));
-    }
 
     // ── Index with valid group filter ──────────────────────────────────
 

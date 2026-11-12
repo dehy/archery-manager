@@ -11,6 +11,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class FftaMemberCodeType extends AbstractType
 {
+    public const string PATTERN = '/^[A-Za-z0-9]{7,8}$/';
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->add('fftaMemberCode', TextType::class, [
@@ -20,7 +22,7 @@ final class FftaMemberCodeType extends AbstractType
             'constraints' => [
                 new Assert\NotBlank(message: 'Veuillez saisir un code licence FFTA.'),
                 new Assert\Regex(
-                    pattern: '/^[A-Za-z0-9]{7,8}$/',
+                    pattern: self::PATTERN,
                     message: 'Le code licence FFTA doit contenir 7 ou 8 caractères alphanumériques.',
                 ),
             ],

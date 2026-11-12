@@ -11,13 +11,10 @@ use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\Season;
 use App\Entity\User;
-use App\Helper\FftaHelper;
 use App\Repository\ClubRepository;
 use App\Repository\ClubApplicationRepository;
 use App\Repository\LicenseeRepository;
 use App\Repository\UserRepository;
-use App\Scrapper\FftaProfile;
-use App\Scrapper\FftaScrapper;
 use App\Tests\application\LoggedInTestCase;
 
 final class ClubApplicationControllerTest extends LoggedInTestCase
@@ -325,10 +322,9 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         $this->assertStringContainsString('7 ou 8 caractères alphanumériques', (string) $client->getResponse()->getContent());
     }
 
-    public function testActivationCreatesLicenseAfterFftaConfirmation(): void
+    public function testActivationCreatesLicenseAfterCodeConfirmation(): void
     {
         $client = self::createLoggedInAsAdminClient();
-        $client->disableReboot();
 
         $applicationId = $this->createTestApplication($client);
 
@@ -337,32 +333,16 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         $licensee = $application->getLicensee();
         $this->assertInstanceOf(Licensee::class, $licensee);
         $fftaCode = $licensee->getFftaMemberCode() ?? 'Z1234567';
-        $fftaId = $licensee->getFftaId() ?? 987654;
-
-        $profile = new FftaProfile();
-        $profile->setId($fftaId);
-        $profile->setCodeAdherent($fftaCode);
-        $profile->setNom($licensee->getLastname());
-        $profile->setPrenom($licensee->getFirstname());
-        $profile->setDateNaissance(\DateTime::createFromInterface($licensee->getBirthdate()));
-
-        $scrapper = $this->createMock(FftaScrapper::class);
-        $scrapper->method('findLicenseeIdFromCode')->willReturn($fftaId);
-        $scrapper->method('fetchLicenseeProfile')->willReturn($profile);
-        $fftaHelper = $this->createMock(FftaHelper::class);
-        $fftaHelper->method('getScrapper')->willReturn($scrapper);
-        // Must be replaced before the first request instantiates the real helper
-        self::getContainer()->set(FftaHelper::class, $fftaHelper);
 
         $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/club-application/'.$applicationId.'/validate');
         $client->submit($crawler->selectButton('Accepter la demande')->form());
 
         $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_ACTIVATE_PREFIX.$applicationId.self::URL_ACTIVATE_SUFFIX);
         $crawler = $client->submit($crawler->selectButton('Vérifier le code FFTA')->form([
-            'ffta_member_code[fftaMemberCode]' => $fftaCode,
+            'ffta_member_code[fftaMemberCode]' => strtolower($fftaCode),
         ]));
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('.alert-success', 'Licence FFTA trouvée');
+        $this->assertSelectorTextContains('.alert-success', 'Code '.strtoupper($fftaCode).' disponible');
 
         $licenseForm = $crawler->selectButton('Activer la licence')->form();
         $licenseForm['license_form[activities]'][0]->tick();
@@ -373,7 +353,6 @@ final class ClubApplicationControllerTest extends LoggedInTestCase
         $license = $licensee->getLicenseForSeason(2099);
         $this->assertInstanceOf(License::class, $license);
         $this->assertSame($application->getClub()->getId(), $license->getClub()->getId());
-        $this->assertSame($fftaId, $licensee->getFftaId());
         $this->assertSame(strtoupper($fftaCode), $licensee->getFftaMemberCode());
     }
 

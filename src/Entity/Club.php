@@ -8,7 +8,6 @@ use App\Repository\ClubRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use SpecShaper\EncryptBundle\Annotations\Encrypted;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\AsciiSlugger;
@@ -73,14 +72,6 @@ class Club implements \Stringable
      */
     #[ORM\OneToMany(targetEntity: License::class, mappedBy: 'club')]
     private Collection $licenses;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Encrypted]
-    private ?string $fftaUsername = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Encrypted]
-    private ?string $fftaPassword = null;
 
     public function __construct()
     {
@@ -306,29 +297,5 @@ class Club implements \Stringable
     public function generateLogoName(): string
     {
         return strtolower(new AsciiSlugger()->slug($this->getName())->toString());
-    }
-
-    public function getFftaUsername(): ?string
-    {
-        return $this->fftaUsername;
-    }
-
-    public function setFftaUsername(?string $fftaUsername): self
-    {
-        $this->fftaUsername = $fftaUsername;
-
-        return $this;
-    }
-
-    public function getFftaPassword(): ?string
-    {
-        return $this->fftaPassword;
-    }
-
-    public function setFftaPassword(?string $fftaPassword): self
-    {
-        $this->fftaPassword = $fftaPassword;
-
-        return $this;
     }
 }
