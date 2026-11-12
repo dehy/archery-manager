@@ -1,0 +1,47 @@
+# Generates a CycloneDX SBOM of the repository (composer.lock, package-lock.json…) and uploads it to Dependency-Track.
+# Authenticates with the job's GitHub OIDC token (workload identity federation): no secret to store.
+name: SBOM
+
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # lets the job request an OIDC token for Dependency-Track
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - # v0.24.3
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c
+        env:
+          # Webpack Encore keeps the front-end packages in devDependencies, but they ship in the built JS bundle
+          SYFT_JAVASCRIPT_INCLUDE_DEV_DEPENDENCIES: 'true'
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: bom.json
+          upload-artifact: false
+
+      - # v4.3.0
+        uses: DependencyTrack/gh-upload-sbom@331f980a6eba119842052f447c54b09e4888b4c6
+        with:
+          server-hostname: dtrack.admds.net
+          workload-identity-provider: github-actions
+          service-account: github-ci
+          oidc-audience: https://dtrack.admds.net
+          project-name: ${{ github.event.repository.name }}
+          # main on pushes, the tag on releases
+          project-version: ${{ github.event_name == 'release' && github.ref_name || 'main' }}
+          is-latest: ${{ github.event_name == 'release' }}
+          project-tags: github,${{ github.repository_owner }}
+          bom-filename: bom.json
+          auto-create: true
