@@ -172,9 +172,6 @@ fi
 if [[ "${1:-}" == "messenger-async" ]]; then
   echo "+ Launch bin/console messenger:consume async"
   exec "${SETPRIV[@]}" php /app/bin/console messenger:consume async
-elif [[ "${1:-}" == "scheduler-ffta_licensees" ]]; then
-  echo "+ Launch bin/console messenger:consume scheduler_ffta_licensees"
-  exec "${SETPRIV[@]}" php /app/bin/console messenger:consume scheduler_ffta_licensees
 else
   echo "+ Launching services..."
   exec supervisord -c /etc/supervisor/supervisord.conf

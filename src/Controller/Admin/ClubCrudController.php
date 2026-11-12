@@ -12,7 +12,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 
 class ClubCrudController extends AbstractCrudController
 {
@@ -35,8 +34,6 @@ class ClubCrudController extends AbstractCrudController
             BooleanField::new('acceptingApplications', 'Accepte les inscriptions'),
             TextareaField::new('applicationClosureMessage', 'Message de fermeture')
                 ->setHelp('Affiché aux candidats lorsque les inscriptions sont fermées.'),
-            TextField::new('fftaUsername')->onlyOnForms(),
-            TextField::new('fftaPassword')->onlyOnForms()->setFormType(PasswordType::class),
         ];
     }
 }

@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\LicenseActivityType;
-use App\DBAL\Types\UserRoleType;
 use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\LicenseeAttachment;
@@ -15,8 +14,6 @@ use App\Entity\Season;
 use App\Entity\User;
 use App\Form\Type\LicenseeFormType;
 use App\Form\Type\ProfilePictureType;
-use App\Helper\ClubHelper;
-use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
 use App\Helper\LicenseHelper;
 use App\Helper\ResultHelper;
@@ -42,14 +39,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 
 class LicenseeController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly FilesystemOperator $licenseesStorage, private readonly EntityManagerInterface $entityManager, private readonly ProfilePictureManager $pictureManager)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FilesystemOperator $licenseesStorage, private readonly EntityManagerInterface $entityManager, private readonly ProfilePictureManager $pictureManager)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -134,11 +130,6 @@ class LicenseeController extends BaseController
         // Fetch active equipment loans for this licensee
         $activeLoans = $this->loanRepository->findActiveLoansByBorrower($licensee);
 
-        $licenseeSyncForm = null;
-        if ($this->isGranted('ROLE_CLUB_ADMIN')) {
-            $licenseeSyncForm = $this->createSyncForm($licensee);
-        }
-
         $pictureForm = null;
         if ($this->isGranted(LicenseeAccessVoter::EDIT_PICTURE, $licensee)) {
             $pictureForm = $this->createPictureForm($licensee);
@@ -148,7 +139,6 @@ class LicenseeController extends BaseController
             'licensee' => $licensee,
             'seasons' => $seasons,
             'results_charts' => $resultsCharts,
-            'licensee_sync_form' => $licenseeSyncForm?->createView(),
             'picture_form' => $pictureForm?->createView(),
             'activeLoans' => $activeLoans,
         ]);
@@ -195,60 +185,6 @@ class LicenseeController extends BaseController
             'action' => $this->generateUrl('app_licensee_picture_upload', ['id' => $licensee->getId()]),
             'method' => 'POST',
         ]);
-    }
-
-    /**
-     * @throws NonUniqueResultException
-     * @throws TransportExceptionInterface
-     */
-    #[Route('/licensee/{id}/sync', name: 'app_licensee_sync', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function sync(
-        int $id,
-        Request $request,
-    ): RedirectResponse {
-        $this->assertHasValidLicense();
-        $this->isGranted(UserRoleType::ADMIN);
-
-        $licensee = $this->licenseeRepository->find($id);
-        if (!$licensee instanceof Licensee) {
-            throw $this->createNotFoundException();
-        }
-
-        $form = $this->createSyncForm($licensee);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            try {
-                $this->fftaHelper->syncLicenseeWithId(
-                    $this->clubHelper->activeClub(),
-                    $licensee->getFftaId(),
-                    $this->seasonHelper->getSelectedSeason(),
-                );
-                $this->addFlash(
-                    'success',
-                    \sprintf('Le profil de %s a été synchronisé avec succès !', $licensee->getFirstname())
-                );
-            } catch (\Exception $e) {
-                if ($this->getParameter('kernel.debug')) {
-                    throw $e;
-                }
-
-                $this->addFlash(
-                    'danger',
-                    \sprintf('Une erreur est survenue durant la synchronisation: %s', $e->getMessage())
-                );
-            }
-        }
-
-        return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
-    }
-
-    private function createSyncForm(Licensee $licensee): FormInterface
-    {
-        return $this->createFormBuilder(null, [
-            'action' => $this->generateUrl('app_licensee_sync', ['id' => $licensee->getId()]),
-            'method' => 'POST',
-        ])->getForm();
     }
 
     /**

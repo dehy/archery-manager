@@ -11,7 +11,6 @@ use App\DBAL\Types\LicenseType;
 use App\Entity\Club;
 use App\Entity\License;
 use App\Entity\Licensee;
-use App\Helper\SyncReturnValues;
 use PHPUnit\Framework\TestCase;
 
 final class LicenseTest extends TestCase
@@ -90,53 +89,6 @@ final class LicenseTest extends TestCase
         $license->setClub($club);
 
         $this->assertSame($club, $license->getClub());
-    }
-
-    public function testMergeWithWhenLicensesAreDifferent(): void
-    {
-        $license1 = new License();
-        $license1->setSeason(2024)
-            ->setType(LicenseType::ADULTES_CLUB)
-            ->setCategory(LicenseCategoryType::ADULTES)
-            ->setAgeCategory(LicenseAgeCategoryType::SENIOR_1)
-            ->setActivities([LicenseActivityType::CL]);
-
-        $license2 = new License();
-        $license2->setSeason(2025)
-            ->setType(LicenseType::JEUNES)
-            ->setCategory(LicenseCategoryType::JEUNES)
-            ->setAgeCategory(LicenseAgeCategoryType::U15)
-            ->setActivities([LicenseActivityType::CO, LicenseActivityType::TL]);
-
-        $result = $license1->mergeWith($license2);
-
-        $this->assertSame(SyncReturnValues::UPDATED, $result);
-        $this->assertSame(2025, $license1->getSeason());
-        $this->assertSame(LicenseType::JEUNES, $license1->getType());
-        $this->assertSame(LicenseCategoryType::JEUNES, $license1->getCategory());
-        $this->assertSame(LicenseAgeCategoryType::U15, $license1->getAgeCategory());
-        $this->assertSame([LicenseActivityType::CO, LicenseActivityType::TL], $license1->getActivities());
-    }
-
-    public function testMergeWithWhenLicensesAreEqual(): void
-    {
-        $license1 = new License();
-        $license1->setSeason(2025)
-            ->setType(LicenseType::ADULTES_CLUB)
-            ->setCategory(LicenseCategoryType::ADULTES)
-            ->setAgeCategory(LicenseAgeCategoryType::SENIOR_1)
-            ->setActivities([LicenseActivityType::CL]);
-
-        $license2 = new License();
-        $license2->setSeason(2025)
-            ->setType(LicenseType::ADULTES_CLUB)
-            ->setCategory(LicenseCategoryType::ADULTES)
-            ->setAgeCategory(LicenseAgeCategoryType::SENIOR_1)
-            ->setActivities([LicenseActivityType::CL]);
-
-        $result = $license1->mergeWith($license2);
-
-        $this->assertSame(SyncReturnValues::UNTOUCHED, $result);
     }
 
     public function testFluentInterface(): void

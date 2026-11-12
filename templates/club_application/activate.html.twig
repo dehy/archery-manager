@@ -18,7 +18,7 @@
                             <strong>Candidat :</strong>
                             {{ application.licensee.firstname }} {{ application.licensee.lastname }}
                             <br>
-                            <small>La demande est acceptée. Saisissez le code créé sur le site FFTA pour activer l'accès à Archery Manager.</small>
+                            <small>La demande est acceptée. Saisissez le code licence créé dans l'Espace Dirigeant FFTA pour activer l'accès à Archery Manager.</small>
                         </div>
 
                         {% form_theme codeForm 'bootstrap_5_layout.html.twig' %}
@@ -30,14 +30,13 @@
                             </button>
                         {{ form_end(codeForm) }}
 
-                        {% if fftaProfile %}
+                        {% if codeAccepted %}
                             <hr class="my-4">
                             <div class="alert alert-success">
-                                <strong>Licence FFTA trouvée :</strong>
-                                {{ fftaProfile.prenom|default(application.licensee.firstname) }}
-                                {{ fftaProfile.nom|default(application.licensee.lastname) }}
+                                <strong>Code {{ searchedCode }} disponible</strong>
+                                pour {{ application.licensee.firstname }} {{ application.licensee.lastname }}.
                                 <br>
-                                <small>Vérifiez les informations de licence avant l'activation.</small>
+                                <small>Vérifiez dans l'Espace Dirigeant FFTA que ce code correspond bien à ce candidat, puis contrôlez les informations de licence avant l'activation.</small>
                             </div>
 
                             {% form_theme licenseForm 'bootstrap_5_layout.html.twig' %}

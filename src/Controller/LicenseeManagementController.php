@@ -19,7 +19,6 @@ use App\Form\Type\LicenseeUserLinkType;
 use App\Form\Type\LicenseFormType;
 use App\Form\Type\FftaLicenseeCsvUploadType;
 use App\Helper\ClubHelper;
-use App\Helper\FftaHelper;
 use App\Helper\LicenseeHelper;
 use App\Helper\LicenseHelper;
 use App\Helper\SeasonHelper;
@@ -41,7 +40,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CLUB_ADMIN')]
 class LicenseeManagementController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly FftaHelper $fftaHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly LicenseeRepository $licenseeRepository, private readonly UserRepository $userRepository, private readonly FftaLicenseeCsvImportService $csvImportService, private readonly LicenseeImportNotificationEmailSender $notificationEmailSender, private readonly EntityManagerInterface $entityManager, private readonly LoggerInterface $logger)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly ClubHelper $clubHelper, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly LicenseeRepository $licenseeRepository, private readonly UserRepository $userRepository, private readonly FftaLicenseeCsvImportService $csvImportService, private readonly LicenseeImportNotificationEmailSender $notificationEmailSender, private readonly EntityManagerInterface $entityManager, private readonly LoggerInterface $logger)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -407,7 +406,7 @@ class LicenseeManagementController extends BaseController
         $licensee = $this->licenseeRepository->findOneByCode($fftaMemberCode);
 
         if (!$licensee instanceof Licensee) {
-            $this->addFlash('warning', 'Aucun licencié trouvé localement avec ce code. La synchronisation FFTA est temporairement indisponible.');
+            $this->addFlash('warning', 'Aucun licencié trouvé avec ce code. Créez-le manuellement ou importez le fichier CSV des licenciés FFTA.');
 
             return $this->render('licensee_management/choice.html.twig', [
                 'not_found_code' => $fftaMemberCode,
@@ -439,60 +438,6 @@ class LicenseeManagementController extends BaseController
         return $this->redirectToRoute('app_licensee_renew', ['id' => $licensee->getId()]);
     }
 
-    #[Route('/licensees/manage/new/sync/{fftaMemberCode}', name: 'app_licensee_new_sync', methods: ['GET', 'POST'])]
-    public function newFromFfta(
-        string $fftaMemberCode,
-        Request $request,
-    ): Response {
-        $club = $this->clubHelper->getClubForUser($this->getUser());
-        if (!$club instanceof Club) {
-            $this->addFlash('danger', 'Impossible de déterminer votre club.');
-
-            return $this->redirectToRoute('app_licensee_new_choice');
-        }
-
-        try {
-            return $this->processFftaImport($club, $fftaMemberCode, $request);
-        } catch (\Exception $exception) {
-            $this->addFlash('danger', 'Erreur lors de la synchronisation FFTA : '.$exception->getMessage());
-
-            return $this->redirectToRoute('app_licensee_new_choice');
-        }
-    }
-
-    private function processFftaImport(
-        Club $club,
-        string $fftaMemberCode,
-        Request $request,
-    ): Response {
-        $scrapper = $this->fftaHelper->getScrapper($club);
-        $fftaId = $scrapper->findLicenseeIdFromCode($fftaMemberCode);
-
-        if (null === $fftaId || 0 === $fftaId) {
-            $this->addFlash('danger', 'Licencié non trouvé sur le site FFTA.');
-
-            return $this->redirectToRoute('app_licensee_new_choice');
-        }
-
-        $currentSeason = $this->seasonHelper->getSelectedSeason();
-        $fftaLicensee = $scrapper->fetchLicenseeProfile($fftaId, $currentSeason);
-
-        if (!$fftaLicensee) {
-            $this->addFlash('danger', 'Impossible de récupérer les données du licencié.');
-
-            return $this->redirectToRoute('app_licensee_new_choice');
-        }
-
-        // Store FFTA data in session for next steps
-        $session = $request->getSession();
-        $session->set('licensee_creation', [
-            'from_ffta' => true,
-            'ffta_data' => $fftaLicensee,
-        ]);
-
-        return $this->redirectToRoute('app_licensee_new_step1');
-    }
-
     #[Route('/licensees/manage/new/manual', name: 'app_licensee_new_manual', methods: ['GET'])]
     public function newManual(Request $request): Response
     {
@@ -500,7 +445,6 @@ class LicenseeManagementController extends BaseController
         // code (if any) so step 1 can pre-fill it.
         $session = $request->getSession();
         $session->set('licensee_creation', [
-            'from_ffta' => false,
             'prefill_ffta_member_code' => strtoupper(trim((string) $request->query->get('ffta_member_code'))) ?: null,
         ]);
 
@@ -520,18 +464,7 @@ class LicenseeManagementController extends BaseController
 
         $licensee = new Licensee();
 
-        // Pre-fill from FFTA if available
-        if (!empty($creationData['from_ffta']) && !empty($creationData['ffta_data'])) {
-            $fftaData = $creationData['ffta_data'];
-            $licensee->setFirstname($fftaData['firstname'] ?? '');
-            $licensee->setLastname($fftaData['lastname'] ?? '');
-            $licensee->setGender($fftaData['gender'] ?? '');
-            $licensee->setFftaMemberCode($fftaData['memberCode'] ?? null);
-            $licensee->setFftaId($fftaData['id'] ?? null);
-            if (!empty($fftaData['birthdate'])) {
-                $licensee->setBirthdate(new \DateTime($fftaData['birthdate']));
-            }
-        } elseif (!empty($creationData['prefill_ffta_member_code'])) {
+        if (!empty($creationData['prefill_ffta_member_code'])) {
             $licensee->setFftaMemberCode($creationData['prefill_ffta_member_code']);
         }
 
@@ -555,7 +488,6 @@ class LicenseeManagementController extends BaseController
 
         return $this->render('licensee_management/step1_licensee.html.twig', [
             'form' => $form,
-            'from_ffta' => !empty($creationData['from_ffta']),
         ]);
     }
 
@@ -579,7 +511,7 @@ class LicenseeManagementController extends BaseController
 
         [$suggestedAgeCategory, $suggestedCategory, $birthdateDisplay] = $this->calculateLicenseSuggestions($creationData);
 
-        $this->prefillLicenseData($license, $creationData, $suggestedAgeCategory, $suggestedCategory);
+        $this->prefillLicenseData($license, $suggestedAgeCategory, $suggestedCategory);
 
         $form = $this->createForm(LicenseFormType::class, $license);
         $form->handleRequest($request);
@@ -771,22 +703,11 @@ class LicenseeManagementController extends BaseController
     }
 
     /**
-     * Pre-fill license data from FFTA or suggestions.
+     * Pre-fill license data from the suggestions computed from the birthdate.
      */
-    private function prefillLicenseData(License $license, array $creationData, ?string $suggestedAgeCategory, ?string $suggestedCategory): void
+    private function prefillLicenseData(License $license, ?string $suggestedAgeCategory, ?string $suggestedCategory): void
     {
-        if (!empty($creationData['from_ffta']) && !empty($creationData['ffta_data'])) {
-            $fftaData = $creationData['ffta_data'];
-            if (!empty($fftaData['license'])) {
-                $licenseData = $fftaData['license'];
-                $license->setType($licenseData['type'] ?? null);
-                $license->setCategory($licenseData['category'] ?? null);
-                $license->setAgeCategory($licenseData['ageCategory'] ?? null);
-                if (!empty($licenseData['activities'])) {
-                    $license->setActivities($licenseData['activities']);
-                }
-            }
-        } elseif ($suggestedAgeCategory && $suggestedCategory) {
+        if ($suggestedAgeCategory && $suggestedCategory) {
             $license->setAgeCategory($suggestedAgeCategory);
             $license->setCategory($suggestedCategory);
         }

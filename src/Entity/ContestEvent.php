@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\DBAL\Types\ContestType;
 use App\DBAL\Types\DisciplineType;
 use App\DBAL\Types\EventAttachmentType;
 use App\DBAL\Types\EventParticipationStateType;
 use App\DBAL\Types\EventType;
 use App\Repository\ContestEventRepository;
-use App\Scrapper\FftaEvent;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -43,20 +41,6 @@ class ContestEvent extends Event
             DisciplineType::getReadableValue($this->getDiscipline()),
             $this->getName(),
         );
-    }
-
-    public static function fromFftaEvent(FftaEvent $fftaEvent): self
-    {
-        $event = new self();
-        $event
-            ->setContestType(ContestType::INDIVIDUAL)
-            ->setAddress($fftaEvent->getLocation())
-            ->setDiscipline($fftaEvent->getDiscipline())
-            ->setEndsAt($fftaEvent->getTo())
-            ->setName($fftaEvent->getName())
-            ->setStartsAt($fftaEvent->getFrom());
-
-        return $event;
     }
 
     public function getContestType(): ?string
@@ -97,11 +81,6 @@ class ContestEvent extends Event
         }
 
         return $this;
-    }
-
-    public function canImportResults(): bool
-    {
-        return $this->getDiscipline() && $this->getContestType();
     }
 
     public function getSeason(): int
