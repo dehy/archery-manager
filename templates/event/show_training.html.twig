@@ -64,13 +64,12 @@
                 {% set wrapperAttrs = {} %}
                 {% set buttonAttrs = {'type': 'button', 'class': 'btn btn-' ~ participationButtonColor} %}
                 
+                {% set unavailableReason = null %}
                 {% if isDisabled %}
-                    {% set buttonAttrs = buttonAttrs|merge({'class': buttonAttrs.class ~ ' disabled', 'style': 'pointer-events: none;'}) %}
-                    {% if not can_participate %}
-                        {% set wrapperAttrs = {'class': 'd-inline-block', 'data-bs-toggle': 'tooltip', 'data-bs-placement': 'top', 'title': "Cet entraînement est réservé à d'autres groupes"} %}
-                    {% elseif not canAttend %}
-                        {% set wrapperAttrs = {'class': 'd-inline-block', 'data-bs-toggle': 'tooltip', 'data-bs-placement': 'top', 'title': "Cet entraînement est terminé"} %}
-                    {% endif %}
+                    {% set unavailableReason = not can_participate ? "Cet entraînement est réservé à d'autres groupes" : "Cet entraînement est terminé" %}
+                    {# A real disabled button (not only styled), whose reason is visible text, not just a hover tooltip #}
+                    {% set buttonAttrs = buttonAttrs|merge({'class': buttonAttrs.class ~ ' disabled', 'disabled': 'disabled', 'aria-describedby': 'participation-unavailable'}) %}
+                    {% set wrapperAttrs = {'class': 'd-inline-block', 'data-bs-toggle': 'tooltip', 'data-bs-placement': 'top', 'title': unavailableReason} %}
                 {% else %}
                     {% set buttonAttrs = buttonAttrs|merge({'data-bs-toggle': 'modal', 'data-bs-target': '#participationModal'}) %}
                 {% endif %}
@@ -84,6 +83,9 @@
                 </button>
                 {% if wrapperAttrs %}
                 </span>
+                {% endif %}
+                {% if unavailableReason %}
+                <p id="participation-unavailable" class="small text-muted mt-1 mb-0">{{ unavailableReason }}</p>
                 {% endif %}
             </div>
         </div>

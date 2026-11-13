@@ -105,3 +105,23 @@ when@test:
                 $secret: 'test-secret'
                 $logger: '@logger'
                 $enabled: false
+
+# Browser tests (Playwright): production security headers (CSP included) so the browser enforces them,
+# and no captcha to solve
+when@e2e:
+    services:
+        App\EventListener\ResponseHeadersSubscriber:
+            autoconfigure: true
+            arguments:
+                $environment: 'prod'
+                $cspDirectives: '%app.security.csp_directives%'
+                $matomoUrl: '%env(default::MATOMO_URL)%'
+                $reportingUrl: '%env(default::REPORTING_URL)%'
+                $cspReportUrl: '%env(default::CSP_REPORT_URL)%'
+
+        App\Service\FriendlyCaptchaService:
+            arguments:
+                $siteKey: 'test-site-key'
+                $secret: 'test-secret'
+                $logger: '@logger'
+                $enabled: false

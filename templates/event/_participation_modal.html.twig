@@ -16,7 +16,7 @@
                     <i class="fa-solid fa-user-check {{ isContest ? 'me-2' : 'text-primary me-2' }}"></i>
                     Ma participation
                 </h5>
-                <button type="button" class="btn-close {{ isContest ? 'btn-close-white' : '' }}" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close {{ isContest ? 'btn-close-white' : '' }}" data-bs-dismiss="modal" aria-label="Fermer"></button>
             </div>
             
             <div class="modal-body {{ isContest ? 'p-4' : 'pt-0' }}">
@@ -34,18 +34,18 @@
                 <div class="{{ isContest ? 'row g-4' : '' }}">
                     <div class="{{ isContest ? 'col-12' : 'participation-options mb-4' }}">
                         {% if isContest %}
-                            <label class="form-label fw-bold">État de ma participation</label>
+                            <div id="participationStateLabel" class="form-label fw-bold">État de ma participation</div>
                         {% endif %}
                         {{ form_widget(event_participation_form.participationState, {
-                            'attr': {'class': 'form-check-input-lg'}
+                            'attr': {'class': 'form-check-input-lg', 'role': 'radiogroup', 'aria-label': isContest ? 'État de ma participation' : 'Ma participation'}
                         }) }}
                     </div>
                     
                     {# Activity field - shown for all event types #}
                     <div class="{{ isContest ? 'col-12' : 'mb-3' }}">
                         <div class="{{ isContest ? 'mb-3' : '' }}">
-                            <label class="form-label fw-bold">
-                                <i class="fa-solid fa-bullseye text-primary me-2"></i>
+                            <label class="form-label fw-bold" for="{{ event_participation_form.activity.vars.id }}">
+                                <i class="fa-solid fa-bullseye text-primary me-2" aria-hidden="true"></i>
                                 Activité
                             </label>
                             {{ form_widget(event_participation_form.activity, {

@@ -130,30 +130,6 @@
                                                 </div>
                                             </td>
                                         </tr>
-
-                                        <!-- Modal de suppression -->
-                                        <div class="modal fade" id="deleteModal{{ event.id }}" tabindex="-1">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Confirmer la suppression</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <p>Êtes-vous sûr de vouloir supprimer l'événement :</p>
-                                                        <strong>{{ event.name }}</strong>
-                                                        <p class="text-muted mt-2">Cette action est irréversible.</p>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                        <form method="post" action="{{ path('app_event_manage_delete', {id: event.id}) }}" class="d-inline">
-                                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
-                                                            <button type="submit" class="btn btn-danger">Supprimer</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     {% endfor %}
                                 </tbody>
                             </table>
@@ -200,6 +176,32 @@
                         </div>
                     {% endif %}
                 </div>
+                {# Outside the table (invalid inside <tbody>) and outside the card (its hover transform would move them) #}
+                {% for event in events %}
+                    <!-- Modal de suppression -->
+                    <div class="modal fade" id="deleteModal{{ event.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ event.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel{{ event.id }}">Confirmer la suppression</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Êtes-vous sûr de vouloir supprimer l'événement :</p>
+                                    <strong>{{ event.name }}</strong>
+                                    <p class="text-muted mt-2">Cette action est irréversible.</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                    <form method="post" action="{{ path('app_event_manage_delete', {id: event.id}) }}" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
             {% else %}
                 <div class="text-center py-5">
                     <div class="mb-4">

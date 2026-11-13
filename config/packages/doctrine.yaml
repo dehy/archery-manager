@@ -68,3 +68,9 @@ when@prod:
                     adapter: cache.app
                 doctrine.system_cache_pool:
                     adapter: cache.system
+
+# Browser tests (Playwright) get their own database, so they never touch dev or PHPUnit data
+when@e2e:
+    doctrine:
+        dbal:
+            dbname_suffix: '_e2e'

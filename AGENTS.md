@@ -477,6 +477,19 @@ docker compose exec -e APP_ENV=test -u symfony -w /app app bin/phpunit tests/Fun
 docker compose exec -u symfony -w /app app bin/console encrypt:genkey
 ```
 
+#### Browser tests (Playwright)
+
+`e2e/` holds end-to-end tests in a real browser, run on every pull request (`.github/workflows/e2e.yml`) and locally with
+`docker compose -p archery_e2e -f docker-compose.e2e.yml up --build --abort-on-container-exit --exit-code-from playwright`.
+Details in [`e2e/README.md`](e2e/README.md). Rules that matter when changing templates:
+
+- **The app runs in its own `e2e` Symfony environment** (`when@e2e` blocks, `.env.e2e`, database `app_e2e`): a config
+  change made only `when@test` doesn't reach these tests; add it to `when@e2e` too when it should.
+- **Tests find elements by role, accessible name or label**, never by CSS class. Renaming a button, a heading or a
+  field label can break them; keep labels stable or update the spec in the same commit. An element without an accessible
+  name (icon-only link, unlabelled field) can't be reached: name it.
+- Fixtures are loaded once per run; a test that writes creates its own uniquely named data.
+
 #### Working in a git worktree
 
 The running `app` / `messenger-async` containers mount the **main checkout**, not a worktree. To run

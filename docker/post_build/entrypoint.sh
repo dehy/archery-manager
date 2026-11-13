@@ -86,6 +86,28 @@ while ! nc -w 1 -vz "${DATABASE_HOST}" "${DATABASE_PORT}"; do
     sleep 1;
 done
 
+# Browser tests (docker-compose.e2e.yml): build the assets, load the fixtures once, then serve the app
+if [[ "${1:-}" == "e2e" ]]; then
+    mkdir -p "${APP_ROOT_PATH}/node_modules" "${APP_ROOT_PATH}/.npm" "${APP_ROOT_PATH}/public/uploads" "${APP_ROOT_PATH}/var"
+    if [[ "$(id -u)" == "0" ]]; then
+        chown symfony: "${APP_ROOT_PATH}/node_modules" "${APP_ROOT_PATH}/public/uploads"
+        chown -R symfony: "${APP_ROOT_PATH}/.npm" "${APP_ROOT_PATH}/var" "${APP_ROOT_PATH}/public"
+    fi
+
+    "${SETPRIV[@]}" composer install --prefer-dist --no-interaction
+    "${SETPRIV[@]}" npm ci
+    "${SETPRIV[@]}" npm run build
+
+    "${SETPRIV[@]}" php bin/console doctrine:migrations:migrate --no-interaction
+    "${SETPRIV[@]}" php bin/console hautelook:fixtures:load --no-interaction
+    # Sample files the fixtures refer to (club logos, advice attachment), into the local storage
+    "${SETPRIV[@]}" cp -R fixtures/files/. public/uploads/
+    "${SETPRIV[@]}" php bin/console cache:warmup
+
+    echo "+ Launching services for the browser tests..."
+    exec supervisord -c /etc/supervisor/supervisord.conf
+fi
+
 if [[ -z "${1:-}" ]]; then
     # Executing migrations
     "${SETPRIV[@]}" php bin/console doctrine:migrations:migrate --no-interaction

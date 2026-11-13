@@ -35,7 +35,7 @@
         data-env-matomo-user-id="{{ app.user ? app.user.id : '' }}"
         {{ stimulus_controller('modal') }}
 >
-<div class="mobile-tab-bar navbar navbar-expand navbar-dark bg-primary">
+<nav class="mobile-tab-bar navbar navbar-expand navbar-dark bg-primary" aria-label="Onglets">
     <ul class="navbar-nav w-100">
         <li class="nav-item">
             <a href="{{ path('app_homepage') }}" class="nav-link {{ _self.isActive('app_homepage') }}">
@@ -91,7 +91,7 @@
             </a>
         </li>
     </ul>
-</div>
+</nav>
 <nav class="top-navbar navbar navbar-expand-lg navbar-dark bg-primary mb-3">
     <div class="container">
         <img src="{{ clubHelper.activeClub and clubHelper.activeClub.logoName ? clubHelper.activeClub|public_url('logo') : asset('/build/logo-horizontal-dark.svg') }}" height="32" class="me-2 d-none d-md-inline" alt="">

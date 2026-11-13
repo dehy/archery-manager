@@ -94,7 +94,7 @@ security:
         ROLE_CLUB_ADMIN: [ ROLE_USER ]
         ROLE_ADMIN: [ ROLE_CLUB_ADMIN, ROLE_ALLOWED_TO_SWITCH ]
 
-when@test:
+when@test: &fast_security
     security:
         firewalls:
             api_login:
@@ -110,3 +110,5 @@ when@test:
                 cost: 4 # Lowest possible value for bcrypt
                 time_cost: 3 # Lowest possible value for argon
                 memory_cost: 10 # Lowest possible value for argon
+
+when@e2e: *fast_security

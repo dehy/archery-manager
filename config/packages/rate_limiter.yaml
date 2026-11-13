@@ -24,7 +24,7 @@ framework:
             limit: 5
             interval: '10 minutes'
 
-when@test:
+when@test: &no_rate_limits
     framework:
         rate_limiter:
             login:
@@ -35,3 +35,5 @@ when@test:
                 policy: 'no_limit'
             consent:
                 policy: 'no_limit'
+
+when@e2e: *no_rate_limits
