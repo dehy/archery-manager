@@ -442,6 +442,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         return $this;
     }
 
+    public function lockPermanently(): self
+    {
+        $this->accountLockedUntil = new \DateTimeImmutable('9999-12-31 23:59:59');
+
+        return $this;
+    }
+
+    public function unlockAccount(): self
+    {
+        $this->accountLockedUntil = null;
+        $this->resetFailedAttempts();
+
+        return $this;
+    }
+
     public function getSuspiciousActivityNotifiedAt(): ?\DateTimeImmutable
     {
         return $this->suspiciousActivityNotifiedAt;
