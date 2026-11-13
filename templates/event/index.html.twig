@@ -18,15 +18,15 @@
     {% set previous_month = start_of_month|date_modify('previous month') %}
     {% set next_month = start_of_month|date_modify('next month') %}
     <div class="d-flex justify-content-between align-items-center mb-4 calendar-controls">
-        <div class="btn-group" role="group">
+        <div class="btn-group" role="group" aria-label="Changer de mois">
             <a href="{{ path('app_event_index', {'m': previous_month|date('n'), 'y': previous_month|date('Y')}) }}"
-               class="btn btn-outline-secondary">
-                <i class="fa-solid fa-chevron-left"></i>
+               class="btn btn-outline-secondary" aria-label="Mois précédent">
+                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
             </a>
             <a href="{{ path('app_event_index') }}" class="btn btn-outline-secondary">Aujourd'hui</a>
             <a href="{{ path('app_event_index', {'m': next_month|date('n'), 'y': next_month|date('Y')}) }}"
-               class="btn btn-outline-secondary">
-                <i class="fa-solid fa-chevron-right"></i>
+               class="btn btn-outline-secondary" aria-label="Mois suivant">
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
             </a>
         </div>
         <h3 class="mb-0">
