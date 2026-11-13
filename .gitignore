@@ -404,3 +404,8 @@ yarn-error.log
 ###> phpstan/phpstan ###
 phpstan.neon
 ###< phpstan/phpstan ###
+
+# Browser tests output (e2e/)
+/e2e/.auth/
+/e2e/test-results/
+/e2e/playwright-report/
