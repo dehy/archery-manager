@@ -18,6 +18,8 @@ twig:
         adminUrlGenerator: '@EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator'
 
 
-when@test:
+when@test: &strict_twig
     twig:
         strict_variables: true
+
+when@e2e: *strict_twig

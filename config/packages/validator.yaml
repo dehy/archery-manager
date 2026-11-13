@@ -7,7 +7,9 @@ framework:
         #auto_mapping:
         #    App\Entity\: []
 
-when@test:
+when@test: &offline_validation
     framework:
         validation:
             not_compromised_password: false
+
+when@e2e: *offline_validation

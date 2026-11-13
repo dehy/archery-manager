@@ -36,7 +36,7 @@ when@test:
                 public_url_generator: 'App\Tests\FakePublicUrlGenerator'
 # Local development: the files live on disk under public/uploads/<storage> and are served as static files
 # (there is no object storage locally). `make fixtures` copies the sample files of fixtures/files there.
-when@dev:
+when@dev: &local_storages
     services:
         app.dev.uploads_url.clubs:
             class: App\Storage\PublicPathUrlGenerator
@@ -68,3 +68,5 @@ when@dev:
                     directory: '%kernel.project_dir%/public/uploads/events'
                 public_url_generator: 'app.dev.uploads_url.events'
                 temporary_url_generator: 'app.dev.uploads_url.events'
+
+when@e2e: *local_storages

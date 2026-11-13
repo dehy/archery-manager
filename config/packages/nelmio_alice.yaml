@@ -11,3 +11,5 @@ when@dev: &dev
             - 'sha1'
 
 when@test: *dev
+
+when@e2e: *dev
