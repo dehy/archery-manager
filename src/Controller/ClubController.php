@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\Event;
+use App\Entity\FreeTrainingEvent;
 use App\Entity\Licensee;
+use App\Entity\TrainingEvent;
+use App\Entity\User;
 use App\Form\ClubRegistrationSettingsType;
 use App\Helper\ClubHelper;
+use App\Repository\EventRepository;
 use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,7 +25,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class ClubController extends BaseController
 {
-    public function __construct(\App\Helper\LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly ClubHelper $clubHelper, private readonly GroupRepository $groupRepository, private readonly LicenseeRepository $licenseeRepository, private readonly EntityManagerInterface $entityManager)
+    public function __construct(\App\Helper\LicenseeHelper $licenseeHelper, \App\Helper\SeasonHelper $seasonHelper, private readonly ClubHelper $clubHelper, private readonly GroupRepository $groupRepository, private readonly LicenseeRepository $licenseeRepository, private readonly EntityManagerInterface $entityManager, private readonly EventRepository $eventRepository)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -51,13 +56,29 @@ class ClubController extends BaseController
         // Compter les licenciés sans groupe
         $noGroupLicenseesCount = $licensees->filter(static fn ($licensee) => $licensee->getGroups()->isEmpty())->count();
 
-        return $this->render('club/show.html.twig', [
+        $parameters = [
             'club' => $club,
             'groups' => $groups,
             'licensees' => $orderedLicensees,
             'season' => $season,
             'noGroupLicenseesCount' => $noGroupLicenseesCount,
-        ]);
+        ];
+        $template = 'club/show.html.twig';
+
+        /** @var User $user */
+        $user = $this->getUser();
+        if ($user->hasNewInterface()) {
+            $template = 'club/show_next.html.twig';
+            // The club's trainings of the coming week stand for its training times (the club has no schedule field)
+            $now = new \DateTimeImmutable();
+            $parameters['trainings'] = array_values(array_filter(
+                $this->eventRepository->findInRangeForClubs([$club], $now, $now->modify('+7 days')),
+                static fn (Event $event): bool => $event->getClub() === $club
+                    && ($event instanceof TrainingEvent || $event instanceof FreeTrainingEvent),
+            ));
+        }
+
+        return $this->render($template, $parameters);
     }
 
     #[Route('/my-club/settings', name: 'app_club_settings', methods: ['GET', 'POST'])]
