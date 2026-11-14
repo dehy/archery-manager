@@ -334,7 +334,7 @@ class LicenseeController extends BaseController
             return $this->redirectToRoute('app_licensee_profile', ['id' => $licensee->getId()]);
         }
 
-        return $this->render('licensee/edit.html.twig', [
+        return $this->render($user->hasNewInterface() ? 'licensee/edit_next.html.twig' : 'licensee/edit.html.twig', [
             'licensee' => $licensee,
             'form' => $form,
         ]);
