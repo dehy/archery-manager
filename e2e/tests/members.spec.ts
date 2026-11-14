@@ -10,7 +10,7 @@ test.describe('directory privacy', () => {
 
         test('members only see "Firstname L."', async ({ page }) => {
             await page.goto('/licensees');
-            const names = page.getByRole('heading', { level: 5 }).filter({ hasNotText: /^Filtrer/ });
+            const names = page.getByRole('heading', { level: ui === 'next' ? 2 : 5 }).filter({ hasNotText: /^Filtrer/ });
             await expect(names.first()).toBeVisible();
 
             for (const name of await names.allTextContents()) {
@@ -24,7 +24,7 @@ test.describe('directory privacy', () => {
 
         test('club admins see full names', async ({ page }) => {
             await page.goto('/licensees');
-            const names = page.getByRole('heading', { level: 5 }).filter({ hasNotText: /^Filtrer/ });
+            const names = page.getByRole('heading', { level: ui === 'next' ? 2 : 5 }).filter({ hasNotText: /^Filtrer/ });
             await expect(names.first()).toBeVisible();
 
             const fullNames = (await names.allTextContents()).filter((name) => !SHORT_NAME.test(name.trim()));
