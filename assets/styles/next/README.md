@@ -16,7 +16,8 @@ Stylesheet of the redesigned interface (redesign roadmap, milestone M2). It is b
 | `_profile.scss` | Archer profile head `.am-profile-*`, "Plus" menu `.am-menu-*` |
 | `_directory.scss` | Search and filters `.am-filters`, club directory cards `.am-directory` / `.am-person` |
 | `_club.scss` | Club page: logo tile `.am-club-logo`, group cards `.am-group-grid` / `.am-group` |
-| `app.scss` | Entry: tokens → Bootstrap → shared page styles (`../_events`, `../_pages`) → themes → status → shell → agenda → event → calendar → appearance → profile → directory → club |
+| `_results.scss` | Key figures `.am-stats`, contest results tables `.am-results` |
+| `app.scss` | Entry: tokens → Bootstrap → shared page styles (`../_events`, `../_pages`) → themes → status → shell → agenda → event → calendar → appearance → profile → directory → club → results |
 
 Encore entry: `theme_next` (`assets/theme_next.ts`, which also loads the self-hosted fonts). Scripts stay in `app`.
 
@@ -26,7 +27,7 @@ Encore entry: `theme_next` (`assets/theme_next.ts`, which also loads the self-ho
 otherwise. Page bodies don't change: Bootstrap classes take the kit's colours, radii and fonts from the variables.
 A page migrated in M3 to M6 gets its own `*_next.html.twig` body, which its controller renders for opted-in users
 (`homepage/index_next.html.twig`, `event/show_next.html.twig`, `event/index_next.html.twig`,
-`licensee/show_next.html.twig`, `mobile/other_menu_next.html.twig`, `licensee/index_next.html.twig`, `club/show_next.html.twig`), and uses the `am-*` classes directly. Event pieces shared by the
+`licensee/show_next.html.twig`, `mobile/other_menu_next.html.twig`, `licensee/index_next.html.twig`, `club/show_next.html.twig`, `event/results_next.html.twig`), and uses the `am-*` classes directly. Event pieces shared by the
 screens that list events (type, date line, status chip, one-tap presence) are macros in
 `templates/_next/event_macros.html.twig`.
 

@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\DBAL\Types\EventAttachmentType;
 use App\DBAL\Types\EventParticipationStateType;
+use App\DBAL\Types\LicenseAgeCategoryType;
 use App\DBAL\Types\TargetTypeType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
@@ -30,6 +31,7 @@ use App\Repository\EventAttachmentRepository;
 use App\Repository\EventRepository;
 use App\Repository\ResultRepository;
 use App\Security\Voter\EventVoter;
+use App\Twig\LicenseeDisplayExtension;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemOperator;
@@ -53,6 +55,7 @@ class EventController extends BaseController
         private readonly RouterInterface $router,
         private readonly EventHelper $eventHelper,
         private readonly EntityManagerInterface $entityManager,
+        private readonly LicenseeDisplayExtension $licenseeDisplay,
     ) {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -399,6 +402,19 @@ class EventController extends BaseController
         $resultRepository = $this->entityManager->getRepository(Result::class);
         $results = $resultRepository->findBy(['event' => $event]);
 
+        $user = $this->getUser();
+        if ($user instanceof User && $user->hasNewInterface()) {
+            $results = $this->rankResults($results);
+            $totals = array_map(static fn (Result $result): int => $result->getTotal(), $results);
+
+            return $this->render('event/results_next.html.twig', [
+                'event' => $event,
+                'results' => $results,
+                'podiums' => \count(array_filter($results, static fn (Result $result): bool => null !== $result->getPosition() && $result->getPosition() <= 3)),
+                'best' => [] === $totals ? null : max($totals),
+            ]);
+        }
+
         $this->sortResults($results);
 
         return $this->render('event/results.html.twig', [
@@ -490,6 +506,29 @@ class EventController extends BaseController
             'event' => $event,
             'results_form' => $resultsForm,
         ]);
+    }
+
+    /**
+     * Results by category and activity (as ResultHelper::sort), then by place and score within each: the redesigned
+     * results page. Ties are broken on the name the viewer may see, never on a hidden last name.
+     *
+     * @param Result[] $results
+     *
+     * @return Result[]
+     */
+    private function rankResults(array $results): array
+    {
+        $categoryOrder = array_flip(array_values(LicenseAgeCategoryType::getOrderedChoices()));
+        $key = fn (Result $result): array => [
+            $categoryOrder[$result->getAgeCategory()] ?? \PHP_INT_MAX,
+            $result->getActivity(),
+            $result->getPosition() ?? \PHP_INT_MAX,
+            -$result->getTotal(),
+            $this->licenseeDisplay->getLicenseeDisplayName($result->getLicensee()),
+        ];
+        usort($results, static fn (Result $a, Result $b): int => $key($a) <=> $key($b));
+
+        return $results;
     }
 
     /**
