@@ -1,5 +1,6 @@
 # Browser tests (Playwright) on every pull request: the app runs as in production against freshly loaded fixtures
-# (docker-compose.e2e.yml). The HTML report, traces and screenshots are kept as an artifact.
+# (docker-compose.e2e.yml). The suite runs once per interface while the redesign is built: today's (legacy) and the
+# redesigned one (next, turned on per account from Mon compte). The HTML report, traces and screenshots are kept.
 name: E2E
 
 on:
@@ -17,8 +18,13 @@ concurrency:
 
 jobs:
   playwright:
+    name: playwright (${{ matrix.ui }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        ui: [legacy, next]
     steps:
       - # v6.0.2
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -34,13 +40,14 @@ jobs:
         run: docker compose -p archery_e2e -f docker-compose.e2e.yml up --build --abort-on-container-exit --exit-code-from playwright
         env:
           CI: 'true'
+          E2E_UI: ${{ matrix.ui }}
 
       - name: Keep the report, traces and screenshots
         if: ${{ !cancelled() }}
         # v7.0.2
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.ui }}
           path: |
             e2e/playwright-report/
             e2e/test-results/

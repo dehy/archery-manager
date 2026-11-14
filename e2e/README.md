@@ -31,6 +31,12 @@ docker compose -p archery_e2e -f docker-compose.e2e.yml run --rm --no-deps playw
   sh -c "npm ci && npx playwright test tests/events.spec.ts"
 ```
 
+**Both interfaces.** While the redesign is built, CI runs the suite twice: `E2E_UI=legacy` (today's interface, the
+default) and `E2E_UI=next`, where `tests/auth.setup.ts` turns the redesigned interface on from Mon compte for every
+account in `support/fixtures.ts`. Run the redesigned pass locally with `E2E_UI=next docker compose … up …`.
+`tests/shell.spec.ts` (sidebar, account menu) only runs in the `next` pass; check `ui` from `support/fixtures.ts`
+when a test has to differ between the two.
+
 Some tests change the fixtures (accepting a membership request, for example): restart the `app` service
 (`up -d --force-recreate app`) to reload them before a full rerun.
 
