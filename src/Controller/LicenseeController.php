@@ -25,6 +25,7 @@ use App\Repository\PracticeAdviceRepository;
 use App\Repository\ResultRepository;
 use App\Security\Voter\LicenseeAccessVoter;
 use App\Service\ProfilePictureManager;
+use App\Twig\LicenseeDisplayExtension;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
@@ -46,7 +47,7 @@ use Symfony\UX\Chartjs\Model\Chart;
 
 class LicenseeController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FilesystemOperator $licenseesStorage, private readonly EntityManagerInterface $entityManager, private readonly ProfilePictureManager $pictureManager, private readonly PracticeAdviceRepository $practiceAdviceRepository)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FilesystemOperator $licenseesStorage, private readonly EntityManagerInterface $entityManager, private readonly ProfilePictureManager $pictureManager, private readonly PracticeAdviceRepository $practiceAdviceRepository, private readonly LicenseeDisplayExtension $licenseeDisplay)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -86,6 +87,25 @@ class LicenseeController extends BaseController
             $licensees = $licensees->filter(static fn ($licensee) => $licensee->getGroups()->isEmpty());
         }
 
+        // Search and activity (redesigned directory). The search only looks at the name the viewer may see:
+        // a member searching "Martin" must not find "Camille M." through her hidden last name.
+        $search = $this->searchable($request->query->getString('q'));
+        if ('' !== $search) {
+            $licensees = $licensees->filter(fn (Licensee $licensee): bool => str_contains(
+                $this->searchable($this->licenseeDisplay->getLicenseeDisplayName($licensee)),
+                $search,
+            ));
+        }
+
+        $activity = $request->query->getString('activity');
+        if (LicenseActivityType::isValueExist($activity)) {
+            $licensees = $licensees->filter(static fn (Licensee $licensee): bool => \in_array(
+                $activity,
+                $licensee->getLicenseForSeason($season)?->getActivities() ?? [],
+                true,
+            ));
+        }
+
         /** @var ArrayCollection<int, Licensee> $orderedLicensees */
         $orderedLicensees = $licensees->matching(
             Criteria::create()->orderBy([
@@ -97,7 +117,13 @@ class LicenseeController extends BaseController
         // Récupérer tous les groupes pour l'affichage des filtres
         $allGroups = $this->groupRepository->findBy(['club' => $club], ['name' => 'ASC']);
 
-        return $this->render('licensee/index.html.twig', [
+        /** @var User $user */
+        $user = $this->getUser();
+
+        return $this->render($user->hasNewInterface() ? 'licensee/index_next.html.twig' : 'licensee/index.html.twig', [
+            'search' => $request->query->getString('q'),
+            'activity' => $activity,
+            'activities' => LicenseActivityType::getChoices(),
             'licensees' => $orderedLicensees,
             'year' => $season,
             'selectedGroup' => $selectedGroup,
@@ -323,6 +349,14 @@ class LicenseeController extends BaseController
      *   3. The user holds ROLE_CLUB_ADMIN or ROLE_COACH AND shares the same
      *      club as the licensee in the currently selected season.
      */
+    /** Lower case, without accents or extra spaces: "Héloïse " and "heloise" match. */
+    private function searchable(string $text): string
+    {
+        $ascii = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', trim($text));
+
+        return (string) preg_replace('/\s+/', ' ', false === $ascii ? mb_strtolower(trim($text)) : $ascii);
+    }
+
     private function checkLicenseeAccess(User $user, Licensee $licensee): void
     {
         $hasAccess = $user->getLicensees()->contains($licensee) || $this->isGranted('ROLE_ADMIN');

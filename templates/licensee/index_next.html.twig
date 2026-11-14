@@ -1,0 +1,124 @@
+{% extends 'base.html.twig' %}
+{#
+    Club directory of the redesigned interface (canvas board Directory): photo-first cards, search, group and activity
+    filters. Members see "Firstname L." and search on that only (LicenseeController::index); admins and coaches see full
+    names. Profiles open for club admins and coaches, as today. Today's interface keeps licensee/index.html.twig.
+#}
+
+{% block title %}Annuaire{% endblock %}
+
+{% block body %}
+    {% set staff = is_granted('ROLE_CLUB_ADMIN') or is_granted('ROLE_COACH') %}
+    {% set group_filter = isNoGroupFilter ? 'no-group' : (selectedGroup ? selectedGroup.id : '') %}
+    {% set filtered = search is not empty or activity is not empty or group_filter is not empty %}
+
+    <header class="am-page-head">
+        <div>
+            <h1>Annuaire</h1>
+            <p class="text-body-secondary mb-0">
+                Saison {{ year }} · {{ totalLicensees }} licencié{{ totalLicensees > 1 ? 's' }}
+            </p>
+        </div>
+        {% if is_granted('ROLE_CLUB_ADMIN') %}
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ path('app_licensee_new_choice') }}" class="btn btn-primary">
+                    <em class="fa-solid fa-user-plus me-1" aria-hidden="true"></em>Ajouter ou renouveler
+                </a>
+                <a href="{{ path('app_licensee_csv_import') }}" class="btn btn-outline-dark">
+                    <em class="fa-solid fa-file-csv me-1" aria-hidden="true"></em>Importer un CSV FFTA
+                </a>
+            </div>
+        {% endif %}
+    </header>
+
+    <form method="get" action="{{ path('app_licensee_index') }}" class="am-filters" role="search" aria-label="Filtrer l'annuaire">
+        <div class="am-filters-search">
+            <label class="visually-hidden" for="am-directory-search">Rechercher un nom</label>
+            <em class="fa-solid fa-magnifying-glass" aria-hidden="true"></em>
+            <input type="search" id="am-directory-search" name="q" value="{{ search }}" class="form-control"
+                   placeholder="{{ staff ? 'Rechercher un nom' : 'Rechercher un prénom' }}">
+        </div>
+        <div>
+            <label class="visually-hidden" for="am-directory-group">Groupe</label>
+            <select id="am-directory-group" name="group" class="form-select">
+                <option value="">Tous les groupes</option>
+                {% for group in allGroups %}
+                    <option value="{{ group.id }}"{{ selectedGroup and selectedGroup.id == group.id ? ' selected' }}>{{ group.name }}</option>
+                {% endfor %}
+                <option value="no-group"{{ isNoGroupFilter ? ' selected' }}>Sans groupe ({{ noGroupLicenseesCount }})</option>
+            </select>
+        </div>
+        <div>
+            <label class="visually-hidden" for="am-directory-activity">Activité</label>
+            <select id="am-directory-activity" name="activity" class="form-select">
+                <option value="">Toutes les activités</option>
+                {% for label, value in activities %}
+                    <option value="{{ value }}"{{ activity == value ? ' selected' }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-outline-dark">Filtrer</button>
+            {% if filtered %}
+                <a href="{{ path('app_licensee_index') }}" class="btn btn-link">Tout afficher</a>
+            {% endif %}
+        </div>
+    </form>
+
+    {% if filtered %}
+        <p class="text-body-secondary" role="status">
+            {{ licensees|length }} résultat{{ licensees|length > 1 ? 's' }}
+        </p>
+    {% endif %}
+
+    {% if licensees is empty %}
+        <section class="card">
+            <div class="card-body text-center py-5">
+                <h2>Personne ne correspond</h2>
+                <p class="text-body-secondary mb-0">Changez la recherche ou les filtres.</p>
+            </div>
+        </section>
+    {% else %}
+        <ul class="am-directory" aria-label="Licenciés">
+            {% for licensee in licensees %}
+                {% set name = licensee_display_name(licensee) %}
+                {% set license = licensee.licenseForSeason(year) %}
+                <li>
+                    {% if staff %}
+                        <a class="card am-person" href="{{ path('app_licensee_profile', {id: licensee.id}) }}">
+                            {{ _self.person(licensee, name, license) }}
+                        </a>
+                    {% else %}
+                        <div class="card am-person">
+                            {{ _self.person(licensee, name, license) }}
+                        </div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <p class="small text-body-secondary mt-4 mb-0">
+        {{ staff
+            ? 'Vous voyez les noms complets, comme les autres administrateurs et coachs.'
+            : 'Les membres voient « Prénom N. » ; les noms complets sont réservés aux administrateurs et coachs.' }}
+    </p>
+{% endblock %}
+
+{% macro person(licensee, name, license) %}
+    {% if licensee.profilePicture %}
+        <img class="am-person-photo" src="{{ licensee.profilePicture|temporary_url }}" alt="" width="96" height="96" loading="lazy">
+    {% else %}
+        {% set initials = name|split(' ')|slice(0, 2)|map(part => part|first|upper)|join %}
+        <span class="am-person-photo am-person-initials" aria-hidden="true">{{ initials }}</span>
+    {% endif %}
+    <h2 class="am-person-name">{{ name }}</h2>
+    <span class="d-flex flex-wrap justify-content-center gap-1">
+        {% for activity in license.activities ?? [] %}
+            <span class="am-tag">{{ activity|readable_enum('LicenseActivityType') }}</span>
+        {% endfor %}
+    </span>
+    {% if licensee.groups is not empty %}
+        <span class="small text-body-secondary">{{ licensee.groups|map(group => group.name)|join(', ') }}</span>
+    {% endif %}
+{% endmacro %}
