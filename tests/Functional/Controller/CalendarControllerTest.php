@@ -10,6 +10,7 @@ use App\Repository\LicenseeRepository;
 use App\Repository\UserRepository;
 use App\Tests\application\LoggedInTestCase;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -37,6 +38,15 @@ final class CalendarControllerTest extends LoggedInTestCase
         $this->assertInstanceOf(Licensee::class, $licensee);
 
         return $licensee;
+    }
+
+    /**
+     * Submits the form of Mon compte that posts to $url, with its CSRF token.
+     */
+    private function submitFromAccountPage(KernelBrowser $client, string $url): void
+    {
+        $crawler = $client->request(Request::METHOD_GET, '/my-account');
+        $client->submit($crawler->filter(\sprintf('form[action="%s"]', $url))->form());
     }
 
     // ── Feed ───────────────────────────────────────────────────────────
@@ -87,7 +97,7 @@ final class CalendarControllerTest extends LoggedInTestCase
         $client = self::createLoggedInAsAdminClient();
         $licensee = $this->getAdminLicensee();
 
-        $client->request(Request::METHOD_POST, \sprintf(self::URL_GENERATE, $licensee->getId()));
+        $this->submitFromAccountPage($client, \sprintf(self::URL_GENERATE, $licensee->getId()));
 
         $this->assertResponseRedirects('/my-account');
 
@@ -126,11 +136,11 @@ final class CalendarControllerTest extends LoggedInTestCase
         $licensee = $this->getAdminLicensee();
 
         // Generate first
-        $client->request(Request::METHOD_POST, \sprintf(self::URL_GENERATE, $licensee->getId()));
+        $this->submitFromAccountPage($client, \sprintf(self::URL_GENERATE, $licensee->getId()));
         $this->assertResponseRedirects('/my-account');
 
         // Then revoke
-        $client->request(Request::METHOD_POST, \sprintf(self::URL_REVOKE, $licensee->getId()));
+        $this->submitFromAccountPage($client, \sprintf(self::URL_REVOKE, $licensee->getId()));
         $this->assertResponseRedirects('/my-account');
 
         /** @var LicenseeRepository $licenseeRepository */
@@ -148,5 +158,46 @@ final class CalendarControllerTest extends LoggedInTestCase
         $client->request(Request::METHOD_POST, \sprintf(self::URL_REVOKE, $licensee->getId()));
 
         $this->assertResponseStatusCodeSame(403);
+    }
+
+    // ── CSRF ───────────────────────────────────────────────────────────
+
+    public function testGenerateTokenRefusesAPostWithoutTheFormToken(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $licensee = $this->getAdminLicensee();
+        $before = $licensee->getCalendarToken();
+
+        // What a form on another site could send on behalf of the logged-in member
+        $client->request(Request::METHOD_POST, \sprintf(self::URL_GENERATE, $licensee->getId()), ['_token' => 'forged']);
+
+        $this->assertResponseStatusCodeSame(403);
+        $this->assertSame($before, $this->reloadedCalendarToken($client, $licensee));
+    }
+
+    public function testRevokeTokenRefusesAPostWithoutTheFormToken(): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+        $licensee = $this->getAdminLicensee();
+        $this->submitFromAccountPage($client, \sprintf(self::URL_GENERATE, $licensee->getId()));
+        $token = $this->reloadedCalendarToken($client, $licensee);
+        $this->assertNotNull($token);
+
+        $client->request(Request::METHOD_POST, \sprintf(self::URL_REVOKE, $licensee->getId()));
+
+        $this->assertResponseStatusCodeSame(403);
+        $this->assertSame($token, $this->reloadedCalendarToken($client, $licensee));
+    }
+
+    private function reloadedCalendarToken(KernelBrowser $client, Licensee $licensee): ?string
+    {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $client->getContainer()->get(EntityManagerInterface::class);
+        $entityManager->clear();
+
+        $reloaded = $entityManager->find(Licensee::class, $licensee->getId());
+        $this->assertInstanceOf(Licensee::class, $reloaded);
+
+        return $reloaded->getCalendarToken();
     }
 }
