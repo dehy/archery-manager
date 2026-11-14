@@ -34,6 +34,6 @@
 // Tag (event type, group): sand, so it never reads as a status
 .am-tag {
   @extend .am-status;
-  color: #5C2A10;
+  color: var(--am-tag);
   background: $am-sand;
 }

@@ -2,12 +2,7 @@
 
 // ---- Kinds of event -----------------------------------------------------------------------------------------------
 // A kind is told by its colour AND its label (legend, list meta, event page): never by colour alone.
-// Text on each background is above 7:1.
-
-$am-type-contest-bg: #F4E8D2;   $am-type-contest: #5C2A10;
-$am-type-training-bg: #E1E8F8;  $am-type-training: #1E3C9E;
-$am-type-free-bg: #E9E4DD;      $am-type-free: #4A3F37;
-$am-type-other-bg: #FFFFFF;     $am-type-other: $am-ink;
+// Colours: the kind-* tokens of each look (_tokens.scss).
 
 .am-type {
   display: inline-flex;
@@ -18,13 +13,10 @@ $am-type-other-bg: #FFFFFF;     $am-type-other: $am-ink;
   font-weight: 600;
 }
 
-@each $key, $bg, $fg in (contest, $am-type-contest-bg, $am-type-contest),
-                        (training, $am-type-training-bg, $am-type-training),
-                        (free, $am-type-free-bg, $am-type-free),
-                        (other, $am-type-other-bg, $am-type-other) {
+@each $key in contest, training, free, other {
   .am-type-#{$key} {
-    background: $bg;
-    color: $fg;
+    background: var(--am-kind-#{$key}-bg);
+    color: var(--am-kind-#{$key}-fg);
   }
 }
 
@@ -60,7 +52,7 @@ $am-type-other-bg: #FFFFFF;     $am-type-other: $am-ink;
 
 .am-calendar-weekday {
   padding: 12px;
-  background: #FAF4E6;
+  background: var(--am-weekday);
   font-size: .8125rem;
   font-weight: 600;
   color: $am-soft;
@@ -80,7 +72,7 @@ $am-type-other-bg: #FFFFFF;     $am-type-other: $am-ink;
   }
 
   &.is-outside {
-    background: rgba($am-sand, .45);
+    background: var(--am-outside);
 
     .am-calendar-date {
       color: $am-soft;

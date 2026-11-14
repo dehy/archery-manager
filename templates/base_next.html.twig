@@ -7,8 +7,11 @@
 {% set licensee = licenseeHelper.licenseeFromSession %}
 {% set hasLicense = licenseHelper.currentLicenseeCurrentLicense is not null %}
 {% set club = clubHelper.activeClub %}
+{# Look chosen in Mon compte → Apparence: theme and mode select the colour tokens (assets/styles/next/_themes.scss) #}
+{% set theme = app.user ? app.user.interfaceTheme.value : 'soft' %}
+{% set mode = app.user ? app.user.interfaceMode.value : 'system' %}
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-am-theme="{{ theme }}" data-am-mode="{{ mode }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -17,7 +20,13 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#C93A0C">
-    <meta name="theme-color" content="#FBF3E4">
+    {# Browser chrome colour: the ground of the look; "system" lets the browser pick the light or the dark one #}
+    {% if mode == 'system' %}
+        <meta name="theme-color" content="#FBF3E4" media="(prefers-color-scheme: light)">
+        <meta name="theme-color" content="#17120F" media="(prefers-color-scheme: dark)">
+    {% else %}
+        <meta name="theme-color" content="{{ mode == 'dark' ? '#17120F' : '#FBF3E4' }}">
+    {% endif %}
 
     {% block stylesheets %}
         {{ encore_entry_link_tags('theme_next') }}
@@ -48,12 +57,12 @@
 
         <nav aria-label="Navigation principale">
             <ul class="am-nav">
-                <li>{{ _self.navLink('app_homepage', 'Accueil', 'house', '/^app_homepage/') }}</li>
+                <li>{{ _self.navLink('app_homepage', 'Accueil', 'house', '/^app_homepage/', 0, 1) }}</li>
                 {% if hasLicense %}
-                    <li>{{ _self.navLink('app_event_index', 'Calendrier', 'calendar', '/^app_event_(index|show|results)/') }}</li>
-                    <li>{{ _self.navLink('app_licensee_index', 'Annuaire', 'users', '/^app_licensee_(index|profile)/') }}</li>
-                    <li>{{ _self.navLink('app_club_show', 'Le club', 'building', '/^app_club_show/') }}</li>
-                    <li>{{ _self.navLink('app_licensee_my_profile', 'Moi', 'user', '/^app_licensee_my_profile/') }}</li>
+                    <li>{{ _self.navLink('app_event_index', 'Calendrier', 'calendar', '/^app_event_(index|show|results)/', 0, 2) }}</li>
+                    <li>{{ _self.navLink('app_licensee_index', 'Annuaire', 'users', '/^app_licensee_(index|profile)/', 0, 3) }}</li>
+                    <li>{{ _self.navLink('app_club_show', 'Le club', 'building', '/^app_club_show/', 0, 4) }}</li>
+                    <li>{{ _self.navLink('app_licensee_my_profile', 'Moi', 'user', '/^app_licensee_my_profile/', 0, 5) }}</li>
                 {% else %}
                     <li>{{ _self.navLink('app_club_application_new', 'Demande d\'adhésion', 'id-badge', '/^app_club_application_new/') }}</li>
                     <li>{{ _self.navLink('app_club_application_status', 'Mes demandes', 'list-check', '/^app_club_application_status/') }}</li>
@@ -151,9 +160,10 @@
 {% macro isCurrent(pattern) %}{% if app.request.attributes.get('_route') matches pattern %}aria-current="page"{% endif %}{% endmacro %}
 
 {# activePattern: regex on the current route name that marks the link as the current page #}
-{% macro navLink(route, label, icon, activePattern, count = 0) %}
-    <a class="am-nav-link" href="{{ path(route) }}" {{ _self.isCurrent(activePattern) }}>
-        <em class="am-nav-icon fa-solid fa-{{ icon }}" aria-hidden="true"></em>
+{# tint: 1 to 5, the icon colour of the main entries in the Coloré theme (--am-nav-1-bg…) #}
+{% macro navLink(route, label, icon, activePattern, count = 0, tint = 0) %}
+    <a class="am-nav-link{{ tint ? ' am-nav-tint-' ~ tint }}" href="{{ path(route) }}" {{ _self.isCurrent(activePattern) }}>
+        <span class="am-nav-icon" aria-hidden="true"><em class="fa-solid fa-{{ icon }}"></em></span>
         {{ label }}
         {% if count > 0 %}<span class="badge text-bg-warning">{{ count }}<span class="visually-hidden"> en attente</span></span>{% endif %}
     </a>
@@ -190,6 +200,11 @@
     <li>
         <a class="dropdown-item" href="{{ path('app_user_account') }}">
             <em class="fa-solid fa-user-gear me-2" aria-hidden="true"></em>Mon compte
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item" href="{{ path('app_user_appearance') }}">
+            <em class="fa-solid fa-palette me-2" aria-hidden="true"></em>Apparence
         </a>
     </li>
     {% if is_granted('ROLE_ADMIN') %}

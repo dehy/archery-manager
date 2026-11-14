@@ -61,7 +61,7 @@
                                 {% set participation = eventHelper.licenseeParticipationToEvent(licensee, event) %}
                                 {% set canParticipate = eventHelper.canLicenseeParticipateInEvent(licensee, event) %}
                                 <li class="am-agenda-item">
-                                    <div class="am-agenda-date" aria-hidden="true">
+                                    <div class="am-agenda-date am-tile-{{ ev.typeKey(event) }}" aria-hidden="true">
                                         <b>{{ event.startsAt|date('j') }}</b>
                                         <span>{{ event.startsAt|format_date(pattern='MMM', locale='fr') }}</span>
                                     </div>
@@ -89,7 +89,7 @@
         </div>
 
         <aside class="col-xl-4 d-flex flex-column gap-4" aria-label="Ma saison">
-            <section class="card" aria-labelledby="am-license-title">
+            <section class="card am-card-strip" aria-labelledby="am-license-title">
                 <div class="card-body">
                     <h2 id="am-license-title">Ma licence</h2>
                     <dl class="am-facts">
@@ -102,11 +102,11 @@
             </section>
 
             {% if latestAdvice %}
-                <section class="card am-card-sand" aria-labelledby="am-advice-title">
+                <section class="card am-card-advice" aria-labelledby="am-advice-title">
                     <div class="card-body">
                         <h2 id="am-advice-title">Conseil de votre coach</h2>
                         <p class="mb-1 fw-semibold">{{ latestAdvice.title }}</p>
-                        <p class="text-body-secondary small">
+                        <p class="am-card-advice-sub small">
                             {{ latestAdvice.createdAt|format_date(pattern='d MMMM yyyy', locale='fr') }}
                         </p>
                         <a href="{{ path('app_practice_advice_show', {advice: latestAdvice.id}) }}" class="btn btn-outline-dark btn-sm">Lire le conseil</a>

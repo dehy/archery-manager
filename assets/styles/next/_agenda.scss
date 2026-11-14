@@ -1,10 +1,6 @@
 // Page heading, next-event hero and event lists of the redesigned screens (canvas boards Main, MobileHome).
 // Markup: templates/homepage/index_next.html.twig, templates/_next/event_macros.html.twig.
 
-// Light text on the ink hero (all above 7:1 on $am-ink)
-$am-on-ink-label: #F2B79F;
-$am-on-ink-soft: #E7D9C0;
-
 .am-page-head {
   display: flex;
   flex-wrap: wrap;
@@ -27,8 +23,9 @@ $am-on-ink-soft: #E7D9C0;
   gap: 24px;
   padding: 28px;
   border-radius: $card-border-radius;
-  background: $am-ink;
-  color: $am-ground;
+  background: var(--am-hero-bg);
+  color: var(--am-hero-fg);
+  box-shadow: var(--am-hero-shadow);
 
   p {
     margin: 0;
@@ -37,7 +34,7 @@ $am-on-ink-soft: #E7D9C0;
   h2 {
     margin: 4px 0;
     font-size: 1.75rem;
-    color: $am-ground;
+    color: var(--am-hero-fg);
 
     a {
       color: inherit;
@@ -47,6 +44,30 @@ $am-on-ink-soft: #E7D9C0;
         text-decoration: underline;
       }
     }
+  }
+
+  // Buttons on the hero: the look's own colours (white on the orange hero of Coloré)
+  .btn-primary {
+    --#{$prefix}btn-color: var(--am-hero-btn-fg);
+    --#{$prefix}btn-bg: var(--am-hero-btn-bg);
+    --#{$prefix}btn-border-color: var(--am-hero-btn-bg);
+    --#{$prefix}btn-hover-color: var(--am-hero-btn-fg);
+    --#{$prefix}btn-hover-bg: var(--am-hero-btn-hover-bg);
+    --#{$prefix}btn-hover-border-color: var(--am-hero-btn-hover-bg);
+    --#{$prefix}btn-active-color: var(--am-hero-btn-fg);
+    --#{$prefix}btn-active-bg: var(--am-hero-btn-hover-bg);
+    --#{$prefix}btn-active-border-color: var(--am-hero-btn-hover-bg);
+  }
+
+  .btn-outline-light {
+    --#{$prefix}btn-color: var(--am-hero-outline);
+    --#{$prefix}btn-border-color: var(--am-hero-outline);
+    --#{$prefix}btn-hover-color: var(--am-hero-outline-hover-fg);
+    --#{$prefix}btn-hover-bg: var(--am-hero-outline);
+    --#{$prefix}btn-hover-border-color: var(--am-hero-outline);
+    --#{$prefix}btn-active-color: var(--am-hero-outline-hover-fg);
+    --#{$prefix}btn-active-bg: var(--am-hero-outline);
+    --#{$prefix}btn-active-border-color: var(--am-hero-outline);
   }
 }
 
@@ -58,13 +79,15 @@ $am-on-ink-soft: #E7D9C0;
   justify-content: center;
   height: 96px;
   border-radius: 18px;
-  background: rgba($am-ground, .1);
+  background: var(--am-hero-tile-bg);
+  color: var(--am-hero-tile-fg);
   font-size: .8125rem;
   line-height: 1.1;
 
   b {
     font-family: $am-font-heading;
     font-size: 2.25rem;
+    color: var(--am-hero-tile-num);
   }
 }
 
@@ -78,11 +101,11 @@ $am-on-ink-soft: #E7D9C0;
   font-weight: 600;
   letter-spacing: .05em;
   text-transform: uppercase;
-  color: $am-on-ink-label;
+  color: var(--am-hero-eyebrow);
 }
 
 .am-hero-meta {
-  color: $am-on-ink-soft;
+  color: var(--am-hero-meta);
 }
 
 // ---- Event list ---------------------------------------------------------------------------------------------------
@@ -116,7 +139,20 @@ $am-on-ink-soft: #E7D9C0;
   span {
     font-size: .6875rem;
     text-transform: uppercase;
-    color: $am-soft;
+  }
+}
+
+// Date of an event in a list, tinted by its kind in Coloré (tile-* tokens; Doux: no background)
+@each $kind in contest, training, free, other {
+  .am-tile-#{$kind} {
+    padding: var(--am-tile-pad) 0;
+    border-radius: 12px;
+    background: var(--am-tile-#{$kind}-bg);
+    color: var(--am-tile-#{$kind}-fg);
+
+    span {
+      color: var(--am-tile-#{$kind}-sub);
+    }
   }
 }
 
@@ -146,6 +182,32 @@ $am-on-ink-soft: #E7D9C0;
 
 .am-card-sand {
   --#{$prefix}card-bg: #{$am-sand};
+}
+
+// Coach's advice (advice-* tokens: sand in Doux, yellow in Coloré)
+.am-card-advice {
+  --#{$prefix}card-bg: var(--am-advice-bg);
+  color: var(--am-advice-fg);
+
+  h2 {
+    color: inherit;
+  }
+}
+
+.am-card-advice-sub {
+  color: var(--am-advice-sub);
+}
+
+// Band on top of a card (licence): none in Doux, four colours in Coloré
+.am-card-strip {
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    display: block;
+    height: var(--am-strip-height);
+    background: var(--am-strip);
+  }
 }
 
 // Key facts as label / value rows (licence)
