@@ -49,6 +49,24 @@ test.describe('profile', () => {
 
         await expect(page.getByText('Photo de profil mise à jour.')).toBeVisible();
     });
+
+    test('a member opens the edit form of their profile and saves it', async ({ page }) => {
+        // Today's profile shows "Modifier" to coaches and club admins only, although members may edit their own archer
+        test.skip(ui !== 'next', 'No edit link for members on today\'s profile');
+        await page.goto('/my-profile');
+        const fullName = (await pageTitle(page).textContent())!.trim();
+        await page.getByRole('link', { name: 'Modifier', exact: true }).click();
+
+        // The form holds the archer's identity; saving it unchanged leaves the profile as it was
+        const firstname = await page.getByLabel('Prénom').inputValue();
+        expect(firstname).not.toBe('');
+        expect(fullName.startsWith(firstname)).toBe(true);
+        await expect(page.getByLabel('Code licence FFTA')).toBeVisible();
+        await page.getByRole('button', { name: 'Enregistrer' }).click();
+
+        await expect(page.getByText('Licencié modifié avec succès.')).toBeVisible();
+        await expect(pageTitle(page)).toHaveText(fullName);
+    });
 });
 
 test.describe('several archers on one account', () => {
