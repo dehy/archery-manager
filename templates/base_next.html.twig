@@ -3,15 +3,17 @@
     Canvas boards: Main (sidebar), AccountMenu (account block menu), MobileHome / MobilePlus (tab bar, "Plus").
     Same blocks as base_legacy.html.twig: title, stylesheets, javascripts, body, return_link, return_text.
     Styles: assets/styles/next/ (Encore entry theme_next).
+    Variables set here are prefixed am_: pages render in this template's context, so a plain name (licensee, club)
+    would replace the one the controller passed to the page.
 #}
-{% set licensee = licenseeHelper.licenseeFromSession %}
-{% set hasLicense = licenseHelper.currentLicenseeCurrentLicense is not null %}
-{% set club = clubHelper.activeClub %}
+{% set am_licensee = licenseeHelper.licenseeFromSession %}
+{% set am_has_license = licenseHelper.currentLicenseeCurrentLicense is not null %}
+{% set am_club = clubHelper.activeClub %}
 {# Look chosen in Mon compte → Apparence: theme and mode select the colour tokens (assets/styles/next/_themes.scss) #}
-{% set theme = app.user ? app.user.interfaceTheme.value : 'soft' %}
-{% set mode = app.user ? app.user.interfaceMode.value : 'system' %}
+{% set am_theme = app.user ? app.user.interfaceTheme.value : 'soft' %}
+{% set am_mode = app.user ? app.user.interfaceMode.value : 'system' %}
 <!DOCTYPE html>
-<html lang="fr" data-am-theme="{{ theme }}" data-am-mode="{{ mode }}">
+<html lang="fr" data-am-theme="{{ am_theme }}" data-am-mode="{{ am_mode }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -21,11 +23,11 @@
     <link rel="manifest" href="/site.webmanifest">
     <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#C93A0C">
     {# Browser chrome colour: the ground of the look; "system" lets the browser pick the light or the dark one #}
-    {% if mode == 'system' %}
+    {% if am_mode == 'system' %}
         <meta name="theme-color" content="#FBF3E4" media="(prefers-color-scheme: light)">
         <meta name="theme-color" content="#17120F" media="(prefers-color-scheme: dark)">
     {% else %}
-        <meta name="theme-color" content="{{ mode == 'dark' ? '#17120F' : '#FBF3E4' }}">
+        <meta name="theme-color" content="{{ am_mode == 'dark' ? '#17120F' : '#FBF3E4' }}">
     {% endif %}
 
     {% block stylesheets %}
@@ -51,14 +53,14 @@
 <div class="am-shell">
     <aside class="am-sidebar">
         <a class="am-brand" href="{{ path('app_homepage') }}">
-            <img src="{{ club and club.logoName ? club|public_url('logo') : asset('build/logo.svg') }}" alt="">
-            <span>{{ club.name ?? 'Mon Club de Tir à l\'Arc' }}</span>
+            <img src="{{ am_club and am_club.logoName ? am_club|public_url('logo') : asset('build/logo.svg') }}" alt="">
+            <span>{{ am_club.name ?? 'Mon Club de Tir à l\'Arc' }}</span>
         </a>
 
         <nav aria-label="Navigation principale">
             <ul class="am-nav">
                 <li>{{ _self.navLink('app_homepage', 'Accueil', 'house', '/^app_homepage/', 0, 1) }}</li>
-                {% if hasLicense %}
+                {% if am_has_license %}
                     <li>{{ _self.navLink('app_event_index', 'Calendrier', 'calendar', '/^app_event_(index|show|results)/', 0, 2) }}</li>
                     <li>{{ _self.navLink('app_licensee_index', 'Annuaire', 'users', '/^app_licensee_(index|profile)/', 0, 3) }}</li>
                     <li>{{ _self.navLink('app_club_show', 'Le club', 'building', '/^app_club_show/', 0, 4) }}</li>
@@ -86,15 +88,15 @@
             {# Fixed positioning: the menu must not be clipped by the scrolling sidebar #}
             <button type="button" class="am-me" data-bs-toggle="dropdown" aria-expanded="false"
                     data-bs-popper-config='{"strategy":"fixed"}'>
-                {{ _self.avatar(licensee) }}
+                {{ _self.avatar(am_licensee) }}
                 <span class="flex-grow-1 min-w-0">
-                    <span class="am-me-name">{{ licensee ? licensee_display_name(licensee) : app.user.firstname }}</span>
+                    <span class="am-me-name">{{ am_licensee ? licensee_display_name(am_licensee) : app.user.firstname }}</span>
                     <span class="am-me-season">Saison {{ seasonHelper.selectedSeason }}</span>
                 </span>
                 <em class="fa-solid fa-chevron-up small" aria-hidden="true"></em>
             </button>
             <ul class="dropdown-menu am-account-menu">
-                {{ _self.accountMenuItems(licensee) }}
+                {{ _self.accountMenuItems(am_licensee) }}
             </ul>
         </div>
     </aside>
@@ -143,7 +145,7 @@
 <nav class="am-tabbar" aria-label="Onglets">
     <ul>
         <li>{{ _self.tabLink('app_homepage', 'Accueil', 'house', '/^app_homepage/') }}</li>
-        {% if hasLicense %}
+        {% if am_has_license %}
             <li>{{ _self.tabLink('app_event_index', 'Calendrier', 'calendar', '/^app_event_(index|show|results)/') }}</li>
             <li>{{ _self.tabLink('app_licensee_my_profile', 'Moi', 'user', '/^(app_licensee_my_profile|app_practice_advice)/') }}</li>
         {% else %}

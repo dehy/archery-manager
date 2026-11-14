@@ -57,6 +57,13 @@ final class ProfileNextTest extends LoggedInTestCase
         $client->request(Request::METHOD_GET, \sprintf('/licensee/%d', $member->getId()));
 
         $this->assertResponseIsSuccessful();
+        // The member's own data, not the coach's selected archer (the layout once replaced `licensee`)
+        $this->assertSelectorTextContains('h1', $member->getFullname());
+        $this->assertSelectorExists(\sprintf('.am-main a[href="/licensee/%d/edit"]', $member->getId()));
+        if (null !== $member->getFftaMemberCode()) {
+            $this->assertAnySelectorTextContains('dd', $member->getFftaMemberCode());
+        }
+
         $this->assertSelectorTextContains('#am-license-title', 'Licence');
         // Advice is personal: only the archer's own account reads it
         $this->assertSelectorNotExists('#am-advice-title');
