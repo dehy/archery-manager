@@ -49,7 +49,7 @@
         {# The answer comes first on a phone, beside the details on a wide screen #}
         <aside class="col-lg-4 order-lg-2 d-flex flex-column gap-4">
             {{ _self.answer(event, event_participation_form, participation, can_participate, license, contest, ended, states) }}
-            {% if is_granted('ROLE_CLUB_ADMIN') %}
+            {% if is_granted('EVENT_EDIT', event) %}
                 {{ _self.management(event, contest) }}
             {% endif %}
         </aside>
