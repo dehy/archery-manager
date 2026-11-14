@@ -1,4 +1,4 @@
-import { accounts, expect, test } from '../support/fixtures';
+import { accounts, expect, pageTitle, test, ui } from '../support/fixtures';
 
 test.use({ storageState: accounts.member.state });
 
@@ -10,7 +10,8 @@ test('the mobile tab bar reaches the calendar, the home page and the "other" men
 
     await tabs.getByRole('link', { name: 'Calendrier' }).click();
     await expect(page).toHaveURL(/\/events/);
-    await expect(page.getByRole('heading', { level: 2, name: 'Calendrier' })).toBeVisible();
+    // The redesign titles the calendar with the month and shows it as a list on a phone
+    await expect(ui === 'next' ? pageTitle(page) : page.getByRole('heading', { level: 2, name: 'Calendrier' })).toBeVisible();
 
     await tabs.getByRole('link', { name: 'Accueil' }).click();
     await expect(page).toHaveURL(/\/$/);

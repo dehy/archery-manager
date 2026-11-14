@@ -10,6 +10,7 @@ use App\DBAL\Types\TargetTypeType;
 use App\Entity\ContestEvent;
 use App\Entity\Event;
 use App\Entity\EventAttachment;
+use App\Entity\EventParticipation;
 use App\Entity\FreeTrainingEvent;
 use App\Entity\HobbyContestEvent;
 use App\Entity\Result;
@@ -40,6 +41,9 @@ use Symfony\Component\Routing\RouterInterface;
 
 class EventController extends BaseController
 {
+    /** Local pages a one-tap answer may return to: the calendar, with its month and view (no other host, no other path) */
+    private const string PRESENCE_RETURN_PATHS = '#^/events(\?[A-Za-z0-9=&]*)?$#';
+
     public function __construct(
         LicenseeHelper $licenseeHelper,
         SeasonHelper $seasonHelper,
@@ -100,6 +104,18 @@ class EventController extends BaseController
                 return $a->getStartsAt() <=> $b->getStartsAt();
             });
             $calendar[$currentDate->format('Y-m-j')] = $eventsForThisDay;
+        }
+
+        $user = $this->getUser();
+        if ($user instanceof User && $user->hasNewInterface()) {
+            return $this->render('event/index_next.html.twig', [
+                'month' => $month,
+                'year' => $year,
+                'calendar' => $calendar,
+                'season' => Season::seasonForDate(new \DateTimeImmutable(\sprintf('%d-%d-01', $year, $month))),
+                'list_view' => 'list' === $request->query->getString('view'),
+                'participations' => $this->participationsByEvent($events),
+            ]);
         }
 
         return $this->render('event/index.html.twig', [
@@ -331,7 +347,34 @@ class EventController extends BaseController
 
         $this->addFlash('success', \sprintf('C\'est noté : %s à « %s ».', $present ? 'présent·e' : 'absent·e', $event->getTitle()));
 
-        return $this->redirectToRoute('app_homepage');
+        // Back to the list the answer came from: the calendar (any month or view), otherwise the dashboard
+        $returnTo = $request->getPayload()->getString('return_to');
+
+        return $this->redirect(1 === preg_match(self::PRESENCE_RETURN_PATHS, $returnTo) ? $returnTo : $this->generateUrl('app_homepage'));
+    }
+
+    /**
+     * The licensee's answer to each event of a list (one query), or the default one (no query) when they never
+     * answered: what the calendar shows as a status.
+     *
+     * @param Event[] $events
+     *
+     * @return array<int, EventParticipation>
+     */
+    private function participationsByEvent(array $events): array
+    {
+        $licensee = $this->licenseeHelper->getLicenseeFromSession();
+        $answered = [];
+        foreach ($this->entityManager->getRepository(EventParticipation::class)->findBy(['participant' => $licensee, 'event' => $events]) as $participation) {
+            $answered[$participation->getEvent()->getId()] = $participation;
+        }
+
+        $participations = [];
+        foreach ($events as $event) {
+            $participations[(int) $event->getId()] = $answered[$event->getId()] ?? $this->eventHelper->defaultParticipation($licensee, $event);
+        }
+
+        return $participations;
     }
 
     #[Route('/events/{slug}/results', name: 'app_event_results')]

@@ -98,7 +98,8 @@ test.describe('events for a member', () => {
     test("an event for other groups can't be answered, and says why", async ({ page }) => {
         await page.goto('/events');
         // The member is in Groupe Compétiteurs only; Loisir trainings are reserved to Groupe Loisir
-        await page.getByRole('link', { name: 'Loisir', exact: true }).first().click();
+        // Today's calendar shows the event name, the redesign its title with the answer before it
+        await page.getByRole('link', ui === 'next' ? { name: /Entraînement Loisir$/ } : { name: 'Loisir', exact: true }).first().click();
 
         if (ui === 'next') {
             const form = page.getByRole('region', { name: 'Ma réponse' });
@@ -115,7 +116,8 @@ test.describe('events for a member', () => {
 
     test('the calendar moves between months', async ({ page }) => {
         await page.goto('/events');
-        const month = page.getByRole('heading', { level: 3 });
+        // The redesign titles the page with the month itself
+        const month = ui === 'next' ? pageTitle(page) : page.getByRole('heading', { level: 3 });
         const current = (await month.textContent())!.trim();
 
         await page.getByRole('link', { name: 'Mois suivant' }).click();
@@ -125,5 +127,21 @@ test.describe('events for a member', () => {
         await page.getByRole('link', { name: 'Mois suivant' }).click();
         await page.getByRole('link', { name: "Aujourd'hui" }).click();
         await expect(month).toHaveText(current);
+    });
+
+    test('from the calendar list, a member misses a training in one tap and stays on the calendar', async ({ page }) => {
+        test.skip(ui !== 'next', 'Calendar list with one-tap answers: redesigned calendar only');
+        await page.goto('/events');
+        await page.getByRole('link', { name: 'Liste' }).click();
+        await expect(page.getByRole('link', { name: 'Liste' })).toHaveAttribute('aria-current', 'page');
+
+        const absent = page.getByRole('button', { name: /^Je serai absent·e : / }).first();
+        const name = (await absent.getAttribute('aria-label'))!.replace(/^Je serai absent·e : /, '');
+        await absent.click();
+        await expect(page.getByRole('alert').filter({ hasText: "C'est noté : absent·e" })).toBeVisible();
+        await expect(page).toHaveURL(/\/events\?.*view=list/);
+
+        await page.getByRole('button', { name: `Je viens finalement : ${name}` }).click();
+        await expect(page.getByRole('button', { name: `Je serai absent·e : ${name}` })).toBeVisible();
     });
 });

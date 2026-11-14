@@ -10,7 +10,8 @@ Stylesheet of the redesigned interface (redesign roadmap, milestone M2). It is b
 | `_shell.scss` | Sidebar, account block, mobile tab bar (`templates/base_next.html.twig`) |
 | `_agenda.scss` | Page heading `.am-page-head`, next-event hero `.am-hero`, event list `.am-agenda`, `.am-facts`, `.am-card-sand` |
 | `_event.scss` | Event page: back link `.am-crumb`, answer choices as option cards `.am-options` / `.am-option` |
-| `app.scss` | Entry: tokens → Bootstrap → shared page styles (`../_events`, `../_pages`) → status → shell → agenda → event |
+| `_calendar.scss` | Calendar: kinds of event `.am-type-{contest,training,free,other}`, month grid `.am-calendar-*` |
+| `app.scss` | Entry: tokens → Bootstrap → shared page styles (`../_events`, `../_pages`) → status → shell → agenda → event → calendar |
 
 Encore entry: `theme_next` (`assets/theme_next.ts`, which also loads the self-hosted fonts). Scripts stay in `app`.
 
@@ -19,7 +20,7 @@ Encore entry: `theme_next` (`assets/theme_next.ts`, which also loads the self-ho
 `templates/base.html.twig` extends `base_next.html.twig` when `app.user.hasNewInterface`, `base_legacy.html.twig`
 otherwise. Page bodies don't change: Bootstrap classes take the kit's colours, radii and fonts from the variables.
 A page migrated in M3 to M6 gets its own `*_next.html.twig` body, which its controller renders for opted-in users
-(`homepage/index_next.html.twig`, `event/show_next.html.twig`), and uses the `am-*` classes directly. Event pieces shared by the
+(`homepage/index_next.html.twig`, `event/show_next.html.twig`, `event/index_next.html.twig`), and uses the `am-*` classes directly. Event pieces shared by the
 screens that list events (type, date line, status chip, one-tap presence) are macros in
 `templates/_next/event_macros.html.twig`.
 

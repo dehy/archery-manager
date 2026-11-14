@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+{#
+    Calendar of the redesigned interface (canvas board Calendar): a month grid on wide screens, the same events as a
+    list on phones (or with "Liste"), each with its kind and the licensee's answer; one-tap answer to trainings in the list.
+    Today's interface keeps event/index.html.twig.
+#}
+{% import '_next/event_macros.html.twig' as ev %}
+
+{% block title %}Calendrier{% endblock %}
+
+{% block body %}
+    {% set licensee = licenseeHelper.licenseeFromSession %}
+    {% set start_of_month = date(year ~ '-' ~ month ~ '-01') %}
+    {% set previous_month = start_of_month|date_modify('first day of previous month') %}
+    {% set next_month = start_of_month|date_modify('first day of next month') %}
+    {% set view = list_view ? {view: 'list'} : {} %}
+    {% set here = path('app_event_index', {m: month, y: year}|merge(view)) %}
+    {% set today = 'now'|date('Y-m-j') %}
+
+    <header class="am-page-head">
+        <div>
+            <h1>{{ start_of_month|format_date(pattern='MMMM yyyy', locale='fr')|capitalize }}</h1>
+            <p class="text-body-secondary mb-0">Saison {{ season }}</p>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <nav class="nav nav-pills d-none d-lg-flex" aria-label="Affichage">
+                <a class="nav-link{{ list_view ? '' : ' active' }}" href="{{ path('app_event_index', {m: month, y: year}) }}"{{ list_view ? '' : ' aria-current="page"' }}>Mois</a>
+                <a class="nav-link{{ list_view ? ' active' : '' }}" href="{{ path('app_event_index', {m: month, y: year, view: 'list'}) }}"{{ list_view ? ' aria-current="page"' : '' }}>Liste</a>
+            </nav>
+            <a href="{{ path('app_event_index', {m: previous_month|date('n'), y: previous_month|date('Y')}|merge(view)) }}"
+               class="btn btn-outline-dark btn-sm" aria-label="Mois précédent">
+                <em class="fa-solid fa-chevron-left" aria-hidden="true"></em>
+            </a>
+            <a href="{{ path('app_event_index', view) }}" class="btn btn-outline-dark btn-sm">Aujourd'hui</a>
+            <a href="{{ path('app_event_index', {m: next_month|date('n'), y: next_month|date('Y')}|merge(view)) }}"
+               class="btn btn-outline-dark btn-sm" aria-label="Mois suivant">
+                <em class="fa-solid fa-chevron-right" aria-hidden="true"></em>
+            </a>
+            {% if is_granted('ROLE_CLUB_ADMIN') %}
+                <a href="{{ path('app_event_manage_create') }}" class="btn btn-primary btn-sm">
+                    <em class="fa-solid fa-plus me-1" aria-hidden="true"></em>Nouvel événement
+                </a>
+            {% endif %}
+        </div>
+    </header>
+
+    <p class="am-calendar-legend small">
+        <span class="am-type am-type-contest">Concours</span>
+        <span class="am-type am-type-training">Entraînement</span>
+        <span class="am-type am-type-free">Entraînement libre</span>
+        <span class="am-type am-type-other">Autre</span>
+        <span class="text-body-secondary">
+            Ma réponse :
+            <em class="fa-solid fa-check" aria-hidden="true"></em> présent·e ou inscrit·e ·
+            <em class="fa-solid fa-clock" aria-hidden="true"></em> intéressé·e ·
+            <em class="fa-solid fa-xmark" aria-hidden="true"></em> absent·e ·
+            <em class="fa-solid fa-lock" aria-hidden="true"></em> réservé à d'autres groupes
+        </span>
+    </p>
+
+    {# ---- Month grid (wide screens) ---- #}
+    {% if not list_view %}
+        <section class="card am-calendar d-none d-lg-block" aria-label="Mois de {{ start_of_month|format_date(pattern='MMMM yyyy', locale='fr') }}">
+            <div class="am-calendar-grid" role="presentation">
+                {% for day in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] %}
+                    <div class="am-calendar-weekday" aria-hidden="true">{{ day }}</div>
+                {% endfor %}
+                {% for date_key, events in calendar %}
+                    {% set day = date(date_key) %}
+                    {% set outside = day|date('n') != month %}
+                    <div class="am-calendar-day{{ outside ? ' is-outside' }}{{ date_key == today ? ' is-today' }}">
+                        <span class="am-calendar-date">
+                            {{- day|date('j') }}{% if date_key == today %} · aujourd'hui{% endif -%}
+                        </span>
+                        {% for event in events %}
+                            {% set participation = participations[event.id] %}
+                            {% set canParticipate = eventHelper.canLicenseeParticipateInEvent(licensee, event) %}
+                            <a href="{{ path('app_event_show', {slug: event.slug}) }}" class="am-type am-type-{{ ev.typeKey(event) }} am-calendar-event">
+                                {{ ev.statusIcon(event, participation, canParticipate) }}
+                                {% if not event.allDay %}<span class="am-calendar-time">{{ event.startsAt|format_datetime(pattern="H'h'mm", locale='fr') }}</span>{% endif %}
+                                <span class="text-truncate">{{ event.title }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {# ---- List (phones, or "Liste"): days of the month that have events ---- #}
+    {% set days = calendar|filter((events, key) => events is not empty and date(key)|date('n') == month) %}
+    <div class="{{ list_view ? '' : 'd-lg-none' }}">
+        {% if days is empty %}
+            <section class="card">
+                <div class="card-body text-center py-5">
+                    <h2>Aucun événement ce mois-ci</h2>
+                    <p class="text-body-secondary mb-0">Changez de mois pour voir les suivants.</p>
+                </div>
+            </section>
+        {% else %}
+            <section class="card" aria-label="Événements de {{ start_of_month|format_date(pattern='MMMM yyyy', locale='fr') }}">
+                {% for date_key, events in days %}
+                    {% set day = date(date_key) %}
+                    <h2 class="am-calendar-list-day{{ date_key == today ? ' is-today' }}">
+                        {{ day|format_date(pattern='EEEE d MMMM', locale='fr')|capitalize }}{% if date_key == today %} · aujourd'hui{% endif %}
+                    </h2>
+                    <ul class="am-agenda">
+                        {% for event in events %}
+                            {% set participation = participations[event.id] %}
+                            {% set canParticipate = eventHelper.canLicenseeParticipateInEvent(licensee, event) %}
+                            <li class="am-agenda-item">
+                                <span class="am-type am-type-{{ ev.typeKey(event) }} am-type-dot" aria-hidden="true"></span>
+                                <a href="{{ path('app_event_show', {slug: event.slug}) }}" class="am-agenda-link">
+                                    <span class="am-agenda-title">{{ event.title }}</span>
+                                    <span class="am-agenda-meta">
+                                        {{ ev.typeLabel(event) }} ·
+                                        {%- if event.allDay %} Toute la journée{% else %} {{ event.startsAt|format_datetime(pattern="H'h'mm", locale='fr') }} à {{ event.endsAt|format_datetime(pattern="H'h'mm", locale='fr') }}{% endif %}
+                                        {%- if event.address %} · {{ event.address }}{% endif %}
+                                    </span>
+                                </a>
+                                {{ ev.participationStatus(event, participation, canParticipate) }}
+                                {% if event.startsAt > date() %}
+                                    {{ ev.presenceToggle(event, participation, canParticipate, 'btn-outline-dark', here) }}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+            </section>
+        {% endif %}
+    </div>
+{% endblock %}

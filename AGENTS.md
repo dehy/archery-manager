@@ -524,7 +524,9 @@ The web interface is being redesigned screen by screen. Until the switch-over, b
 - **Redesigned screens**: a migrated page gets a `*_next.html.twig` body that its controller renders when
   `User::hasNewInterface()` (e.g. `HomepageController` → `homepage/index_next.html.twig`); today's template stays
   untouched until the switch-over. Shared pieces live in `templates/_next/`. Trainings can be answered in one tap
-  from a list (`app_event_presence`, POST, present or absent); contests are always answered on their page.
+  from a list (`app_event_presence`, POST, present or absent); contests are always answered on their page. The
+  answer goes back to the dashboard, or to the calendar page given in `return_to` (only `/events` with its query
+  string is accepted, so the form can't send anyone elsewhere).
   The redesigned event page (`event/show_next.html.twig`, every kind of event) shows the participation form inline
   instead of `_participation_modal.html.twig`, and states why an event can't be answered (other groups, ended,
   licence) as visible text instead of a disabled button.
