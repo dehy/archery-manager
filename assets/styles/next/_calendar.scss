@@ -1,0 +1,132 @@
+// Calendar of the redesigned interface (canvas board Calendar). Markup: templates/event/index_next.html.twig.
+
+// ---- Kinds of event -----------------------------------------------------------------------------------------------
+// A kind is told by its colour AND its label (legend, list meta, event page): never by colour alone.
+// Text on each background is above 7:1.
+
+$am-type-contest-bg: #F4E8D2;   $am-type-contest: #5C2A10;
+$am-type-training-bg: #E1E8F8;  $am-type-training: #1E3C9E;
+$am-type-free-bg: #E9E4DD;      $am-type-free: #4A3F37;
+$am-type-other-bg: #FFFFFF;     $am-type-other: $am-ink;
+
+.am-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+@each $key, $bg, $fg in (contest, $am-type-contest-bg, $am-type-contest),
+                        (training, $am-type-training-bg, $am-type-training),
+                        (free, $am-type-free-bg, $am-type-free),
+                        (other, $am-type-other-bg, $am-type-other) {
+  .am-type-#{$key} {
+    background: $bg;
+    color: $fg;
+  }
+}
+
+.am-type-other {
+  box-shadow: inset 0 0 0 1px $am-line;
+}
+
+// Coloured mark in front of a list item
+.am-type-dot {
+  flex: 0 0 12px;
+  height: 12px;
+  padding: 0;
+}
+
+.am-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+// ---- Month grid ---------------------------------------------------------------------------------------------------
+
+.am-calendar {
+  overflow: hidden;
+}
+
+.am-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.am-calendar-weekday {
+  padding: 12px;
+  background: #FAF4E6;
+  font-size: .8125rem;
+  font-weight: 600;
+  color: $am-soft;
+}
+
+.am-calendar-day {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 112px;
+  padding: 8px;
+  border-top: 1px solid $am-row-line;
+  border-right: 1px solid $am-row-line;
+
+  &:nth-child(7n) {
+    border-right: 0;
+  }
+
+  &.is-outside {
+    background: rgba($am-sand, .45);
+
+    .am-calendar-date {
+      color: $am-soft;
+    }
+  }
+
+  &.is-today {
+    background: $am-accent-bg;
+
+    .am-calendar-date {
+      color: $am-accent-text;
+    }
+  }
+}
+
+.am-calendar-date {
+  font-size: .8125rem;
+  font-weight: 700;
+}
+
+.am-calendar-event {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: .75rem;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.am-calendar-time {
+  flex: 0 0 auto;
+}
+
+// ---- List ---------------------------------------------------------------------------------------------------------
+
+.am-calendar-list-day {
+  margin: 0;
+  padding: 16px $card-spacer-x 4px;
+  font-size: 1rem;
+
+  &.is-today {
+    color: $am-accent-text;
+  }
+}

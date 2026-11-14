@@ -16,6 +16,31 @@
     {%- endif -%}
 {% endmacro %}
 
+{# Kind of event as a class suffix for .am-type-* (calendar colours, assets/styles/next/_calendar.scss) #}
+{% macro typeKey(event) %}
+    {%- set kind = event|get_short_class -%}
+    {%- if kind in ['ContestEvent', 'HobbyContestEvent'] -%}contest
+    {%- elseif kind == 'TrainingEvent' -%}training
+    {%- elseif kind == 'FreeTrainingEvent' -%}free
+    {%- else -%}other
+    {%- endif -%}
+{% endmacro %}
+
+{# The licensee's answer as a small icon with a hidden label, for compact places (calendar grid) #}
+{% macro statusIcon(event, participation, canParticipate) %}
+    {%- set contest = _self.isContest(event) is not empty -%}
+    {%- set state = participation.participationState -%}
+    {%- if state == constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') -%}
+        <em class="fa-solid fa-check" aria-hidden="true"></em><span class="visually-hidden">{{ contest ? 'Inscrit·e' : 'Présent·e' }}, </span>
+    {%- elseif state == constant('App\\DBAL\\Types\\EventParticipationStateType::INTERESTED') -%}
+        <em class="fa-solid fa-clock" aria-hidden="true"></em><span class="visually-hidden">Intéressé·e, </span>
+    {%- elseif state == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') -%}
+        <em class="fa-solid fa-xmark" aria-hidden="true"></em><span class="visually-hidden">Absent·e, </span>
+    {%- elseif not canParticipate -%}
+        <em class="fa-solid fa-lock" aria-hidden="true"></em><span class="visually-hidden">Réservé à d'autres groupes, </span>
+    {%- endif -%}
+{% endmacro %}
+
 {# "Mardi · 18h30 · Salle Ginko": day, start time (unless all day), place #}
 {% macro when(event, withDate = false) %}
     {%- set parts = [withDate ? event.startsAt|format_date(pattern='EEEE d MMMM', locale='fr')|capitalize : event.startsAt|format_date(pattern='EEEE', locale='fr')|capitalize] -%}
@@ -44,14 +69,16 @@
 {#
     One-tap answer to a training (app_event_presence): "Je serai absent·e" when counted present, "Je viens finalement"
     when absent. Nothing for contests (answered on their page) or for events the licensee can't answer.
+    returnTo: the calendar page to come back to (see EventController::PRESENCE_RETURN_PATHS), the dashboard otherwise.
 #}
-{% macro presenceToggle(event, participation, canParticipate, buttonClass = 'btn-outline-dark') %}
+{% macro presenceToggle(event, participation, canParticipate, buttonClass = 'btn-outline-dark', returnTo = null) %}
     {%- if _self.isContest(event) is empty and canParticipate and participation.activity -%}
         {%- set present = participation.participationState != constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') -%}
         {%- set date = event.startsAt|format_date(pattern='d MMMM', locale='fr') -%}
         <form method="post" action="{{ path('app_event_presence', {slug: event.slug}) }}" class="flex-shrink-0">
             <input type="hidden" name="_token" value="{{ csrf_token('presence' ~ event.id) }}">
             <input type="hidden" name="present" value="{{ present ? '0' : '1' }}">
+            {%- if returnTo %}<input type="hidden" name="return_to" value="{{ returnTo }}">{% endif %}
             <button type="submit" class="btn btn-sm {{ buttonClass }}"
                     aria-label="{{ present ? 'Je serai absent·e' : 'Je viens finalement' }} : {{ event.title }} du {{ date }}">
                 {{- present ? 'Je serai absent·e' : 'Je viens finalement' -}}
