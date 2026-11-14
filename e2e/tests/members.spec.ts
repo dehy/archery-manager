@@ -57,6 +57,19 @@ test.describe('several archers on one account', () => {
         await login(page, accounts.member.email, accounts.member.password);
         await page.goto('/my-account');
 
+        if (ui === 'next') {
+            // The redesigned account lists the archers with a "Passer à …" button for the others
+            await expect(page.getByRole('heading', { name: 'Archers du compte' })).toBeVisible();
+            const switchTo = page.getByRole('link', { name: /^Passer à / }).first();
+            const fullName = (await switchTo.textContent())!.replace(/^\s*Passer à\s*/, '').trim();
+            await switchTo.click();
+            await expect(page.getByRole('link', { name: new RegExp(`^Passer à ${fullName}`) })).toHaveCount(0);
+
+            await page.goto('/');
+            await expect(pageTitle(page)).toContainText(fullName.split(' ')[0]);
+            return;
+        }
+
         await expect(page.getByRole('heading', { name: /^Mes licenciés/ })).toBeVisible();
         // Each archer of the account is a link; the current one says "Sélectionné"
         const other = page.getByRole('link').filter({ has: page.getByRole('heading', { level: 5 }) }).filter({ hasNotText: 'Sélectionné' }).first();
