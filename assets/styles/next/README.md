@@ -31,7 +31,7 @@ A page migrated in M3 to M6 gets its own `*_next.html.twig` body, which its cont
 (`homepage/index_next.html.twig`, `event/show_next.html.twig`, `event/index_next.html.twig`,
 `licensee/show_next.html.twig`, `mobile/other_menu_next.html.twig`, `licensee/index_next.html.twig`,
 `club/show_next.html.twig`, `event/results_next.html.twig`, `practice_advice/index_next.html.twig`,
-`practice_advice/show_next.html.twig`, `user/account_next.html.twig`), and uses the `am-*` classes directly. Event pieces shared by the
+`practice_advice/show_next.html.twig`, `user/account_next.html.twig`, `licensee/edit_next.html.twig`), and uses the `am-*` classes directly. Event pieces shared by the
 screens that list events (type, date line, status chip, one-tap presence) are macros in
 `templates/_next/event_macros.html.twig`.
 
