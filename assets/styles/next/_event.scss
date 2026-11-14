@@ -1,0 +1,71 @@
+// Event page of the redesigned interface (canvas boards Event, Training, MobileEvent).
+// Markup: templates/event/show_next.html.twig.
+
+// Back link above a page title
+.am-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-bottom: 8px;
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ---- Answer: choices as large option cards ------------------------------------------------------------------------
+
+.am-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    margin-bottom: 8px;
+    font-size: .8125rem;
+    font-weight: 600;
+    color: $am-no;
+  }
+}
+
+.am-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 2px solid $am-line;
+  border-radius: 14px;
+  background: $am-surface;
+  font-weight: 600;
+  cursor: pointer;
+
+  input {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: $am-accent;
+  }
+
+  &:has(input:checked) {
+    border-color: $am-accent;
+    background: $am-accent-bg;
+  }
+
+  &:has(input:focus-visible) {
+    outline: 3px solid $am-accent;
+    outline-offset: 2px;
+  }
+}
+
+// "Je n'y vais pas" / "Absent·e": the target face and the start don't apply
+.am-answer:has(input[value="not_going"]:checked) .am-answer-details {
+  display: none;
+}
