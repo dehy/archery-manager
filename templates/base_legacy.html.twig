@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Required meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#FF4F19">
+    <meta name="theme-color" content="#FBF3E4">
+
+    {% block stylesheets %}
+        {{ encore_entry_link_tags('theme_legacy') }}
+        {{ encore_entry_link_tags('app') }}
+        <style>
+            .text-bg-primary, .bg-primary {
+                background-color: {{ clubHelper.activeClub.primaryColor ?? '#999999' }} !important;
+            }
+        </style>
+    {% endblock %}
+
+    {% block javascripts %}
+        {{ encore_entry_script_tags('app') }}
+    {% endblock %}
+
+    <title>{{ block('title') }}{{ block('title') is defined ? ' • ' }}Mon Club</title>
+</head>
+<body
+        data-env-app-environment="{{ appEnvironment }}"
+        data-env-api-url="{{ apiUrl }}"
+        data-env-observability-collector-url="{{ observabilityCollectorUrl }}"
+        data-env-matomo-url="{{ matomoUrl ?? '' }}"
+        data-env-matomo-site-id="{{ matomoSiteId ?? '' }}"
+        data-env-matomo-user-id="{{ app.user ? app.user.id : '' }}"
+        {{ stimulus_controller('modal') }}
+>
+<nav class="mobile-tab-bar navbar navbar-expand navbar-dark bg-primary" aria-label="Onglets">
+    <ul class="navbar-nav w-100">
+        <li class="nav-item">
+            <a href="{{ path('app_homepage') }}" class="nav-link {{ _self.isActive('app_homepage') }}">
+                <div class="icon">
+                    <em class="fa-solid fa-gauge-high"></em>
+                </div>
+                Accueil
+            </a>
+        </li>
+        {% if licenseHelper.currentLicenseeCurrentLicense %}
+        <li class="nav-item">
+            <a href="{{ path('app_club_show') }}" class="nav-link {{ _self.isActive('app_club_') }}">
+                <div class="icon">
+                    <em class="fa-solid fa-building"></em>
+                </div>
+                Mon Club
+            </a>
+        </li>
+        {% if is_granted('ROLE_CLUB_ADMIN') %}
+        <li class="nav-item">
+            <a href="{{ path('app_club_equipment_index') }}" class="nav-link {{ _self.isActive('app_club_equipment_') }}">
+                <div class="icon">
+                    <em class="fa-solid fa-bullseye"></em>
+                </div>
+                Matériel
+            </a>
+        </li>
+        {% endif %}
+        <li class="nav-item">
+            <a href="{{ path('app_event_index') }}" class="nav-link {{ _self.isActive('app_event_') }}">
+                <div class="icon">
+                    <em class="fa-solid fa-calendar"></em>
+                </div>
+                Calendrier
+            </a>
+        </li>
+        {% else %}
+        <li class="nav-item">
+            <a href="{{ path('app_club_application_status') }}" class="nav-link {{ _self.isActive('app_club_application') }}">
+                <div class="icon">
+                    <em class="fa-solid fa-id-badge"></em>
+                </div>
+                Demandes
+            </a>
+        </li>
+        {% endif %}
+        <li class="nav-item">
+            <a href="{{ path('app_mobile_othermenu') }}" class="nav-link {{ _self.isActive('app_mobile_othermenu') }}">
+                <div class="icon">
+                    <em class="fa-solid fa-ellipsis"></em>
+                </div>
+                {{ licenseeHelper.licenseeFromSession.firstname ?? app.user.firstname }}
+            </a>
+        </li>
+    </ul>
+</nav>
+<nav class="top-navbar navbar navbar-expand-lg navbar-dark bg-primary mb-3">
+    <div class="container">
+        <img src="{{ clubHelper.activeClub and clubHelper.activeClub.logoName ? clubHelper.activeClub|public_url('logo') : asset('/build/logo-horizontal-dark.svg') }}" height="32" class="me-2 d-none d-md-inline" alt="">
+        <h1 class="navbar-brand mb-0 h1 d-none d-md-inline">
+            {{ clubHelper.activeClub.name ?? 'Mon Club de Tir à l\'Arc' }}
+        </h1>
+        {% if block('return_link') is defined %}
+        <div class="d-inline d-md-none text-white mt-2 h6">
+            <a href="{{- block('return_link') -}}" class="text-bg-primary text-decoration-none">
+                <em class="fa-solid fa-arrow-left me-1"></em>
+                {{- block('return_text') -}}
+            </a>
+        </div>
+        {% else %}
+            <img src="{{ clubHelper.activeClub and clubHelper.activeClub.logoName ? clubHelper.activeClub|public_url('logo') : asset('/build/logo.svg') }}" height="40" class="me-2 d-md-none" alt="">
+        {% endif %}
+        <h1 class="text-bg-primary mx-auto h5 mt-1 overflow-auto d-md-none">{{ block('title') }}</h1>
+        <button class="navbar-toggler ms-auto d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                {% if licenseHelper.currentLicenseeCurrentLicense %}
+                <li class="nav-item">
+                    <a class="nav-link {{ _self.isActive('app_homepage') }}" href="{{ path('app_homepage') }}">
+                        <em class="fa-solid fa-gauge-high"></em>
+                        Tableau de bord
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ _self.isActive('app_club_') }}"
+                       href="{{ path('app_club_show') }}">
+                        <em class="fa-solid fa-building"></em>
+                        Mon Club
+                    </a>
+                </li>
+                {% if is_granted('ROLE_CLUB_ADMIN') %}
+                <li class="nav-item">
+                    <a class="nav-link {{ _self.isActive('app_club_equipment_') }}"
+                       href="{{ path('app_club_equipment_index') }}">
+                        <em class="fa-solid fa-bullseye"></em>
+                        Matériel
+                    </a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link {{ _self.isActive('app_event_') }}" href="{{ path('app_event_index') }}">
+                        <em class="fa-solid fa-calendar"></em>
+                        Calendrier
+                    </a>
+                </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link {{ _self.isActive('app_club_application') }}" href="{{ path('app_club_application_new') }}">
+                            <em class="fa-solid fa-id-badge"></em>
+                            Demande d'adhésion
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ _self.isActive('app_club_application') }}" href="{{ path('app_club_application_status') }}">
+                            <em class="fa-solid fa-list-check"></em>
+                            Mes demandes
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link d-flex flex-row align-items-center {{ _self.isActive('app_licensee_my_profile') }} {{ _self.isActive('app_user_account') }} dropdown-toggle text-end p-0"
+                       href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img class="rounded-circle me-3" style="height:40px;width:40px;object-fit: cover" src="{{ licenseeHelper.licenseeFromSession and licenseeHelper.licenseeFromSession.profilePicture ? licenseeHelper.licenseeFromSession.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}" alt="">
+                        <div class="d-inline-flex flex-column me-1" style="line-height: 1.1rem">
+                            {{ licenseeHelper.licenseeFromSession ? licensee_display_name(licenseeHelper.licenseeFromSession) : app.user.firstname }}
+                            <small><em>Saison {{ seasonHelper.selectedSeason }}</em></small>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                        {% if is_granted("ROLE_ADMIN") %}
+                            <li>
+                                <a class="dropdown-item" href="{{ path('admin') }}">
+                                    <em class="fa-solid fa-screwdriver-wrench"></em>
+                                    Administration
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if is_granted("ROLE_CLUB_ADMIN") %}
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_event_manage_index') }}">
+                                    <em class="fa-solid fa-calendar"></em>
+                                    Gestion des évènements
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if is_granted("ROLE_CLUB_ADMIN") %}
+                            <li>
+                                <a class="dropdown-item {{ _self.isActive('app_club_member') }}" href="{{ path('app_club_members') }}">
+                                    <em class="fa-solid fa-users-gear"></em>
+                                    Gestion des membres
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if (is_granted("ROLE_CLUB_ADMIN")) %}
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_club_application_manage') }}">
+                                    <em class="fa-solid fa-clipboard-check"></em>
+                                    Demandes d'adhésion
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if (is_granted("ROLE_CLUB_ADMIN")) %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                        {% endif %}
+                        {% if licenseHelper.currentLicenseeCurrentLicense %}
+                            <li>
+                                <a class="dropdown-item {{ _self.isActive('app_licensee_my_profile') }}"
+                                   href="{{ path('app_licensee_my_profile') }}">
+                                    <em class="fa-solid fa-address-card"></em>
+                                    Mon profil
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if app.user.licensees|length > 1 %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            {% for licensee in app.user.licensees|filter(l => l.id is not same as(licenseeHelper.licenseeFromSession.id)) %}
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="{{ path(app.request.get('_route'), app.request.get('_route_params')|merge({'_switch_licensee': licensee.id })) }}">
+                                        <em class="fa-solid fa-arrows-rotate"></em>
+                                        {{ licensee_display_name(licensee) }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        {% endif %}
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item {{ _self.isActive('app_user_account') }}"
+                               href="{{ path('app_user_account') }}">
+                                <em class="fa-solid fa-user-gear"></em>
+                                Mon compte
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_logout') }}">
+                                <em class="fa-solid fa-arrow-right-from-bracket"></em>
+                                Se déconnecter
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    {% if is_granted('IS_IMPERSONATOR') %}
+        <div class="row">
+            <div class="col">
+                <div class="alert alert-warning text-center mb-3">
+                    Navigation en tant que {{ app.user.email }} -
+                    <a href="{{ impersonation_exit_path(path('app_homepage') ) }}">Arrêter</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    {% if is_granted('ROLE_CLUB_ADMIN') %}
+        {% set pendingCount = pending_club_applications_count() %}
+        {% if pendingCount > 0 %}
+            <div class="alert alert-warning d-flex align-items-center justify-content-between mb-3">
+                <span>
+                    <em class="fa-solid fa-bell me-2"></em>
+                    <strong>{{ pendingCount }} demande{{ pendingCount > 1 ? 's' : '' }} d'adhésion</strong>
+                    en attente de traitement.
+                </span>
+                <a href="{{ path('app_club_application_manage') }}" class="btn btn-warning btn-sm ms-3">
+                    <em class="fa-solid fa-list me-2"></em>
+                    Gérer les demandes
+                </a>
+            </div>
+        {% endif %}
+    {% endif %}
+    {% for label, messages in app.flashes(['success', 'warning', 'danger']) %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} flash-{{ label }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% block body %}{% endblock %}
+</div>
+
+{% include '_footer.html.twig' %}
+{% include '_modal.html.twig' %}
+</body>
+</html>
+
+{% macro isActive(path) %}
+    {% if app.request.attributes.get('_route') starts with path %}active{% endif %}
+{% endmacro %}

@@ -36,6 +36,28 @@ class UserController extends BaseController
         ]);
     }
 
+    /** Switches the current user between today's interface and the redesigned one (opt-in while it is built). */
+    #[Route('/my-account/interface', name: 'app_user_interface_toggle', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function toggleInterface(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('toggle_interface', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        /** @var User $user */
+        $user = $this->getUser();
+        $user->setNewInterface(!$user->hasNewInterface());
+
+        $this->entityManager->flush();
+
+        $this->addFlash('success', $user->hasNewInterface()
+            ? 'Vous utilisez la nouvelle interface. Vous pouvez revenir à l\'ancienne depuis Mon compte.'
+            : 'Vous êtes revenu·e à l\'interface actuelle.');
+
+        return $this->redirectToRoute('app_user_account');
+    }
+
     #[Route('/user/{id}', name: 'app_user_show', requirements: ['id' => '\d+'])]
     #[IsGranted('ROLE_USER')]
     public function show(User $user): Response

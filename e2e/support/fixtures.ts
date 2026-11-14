@@ -10,6 +10,12 @@ export const accounts = {
     applicant: { email: 'applicant1@ladg.com', password: 'user', state: '.auth/applicant.json' },
 } as const;
 
+/**
+ * Which interface the run tests (`E2E_UI`): today's (`legacy`, the default) or the redesigned one (`next`), which
+ * `tests/auth.setup.ts` turns on from Mon compte for every account above. CI runs the suite once per interface.
+ */
+export const ui: 'legacy' | 'next' = process.env.E2E_UI === 'next' ? 'next' : 'legacy';
+
 /** A suffix that keeps the data a test creates apart from the fixtures and from earlier runs */
 export function unique(prefix: string): string {
     return `${prefix} ${Date.now().toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;

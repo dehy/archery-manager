@@ -87,6 +87,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $suspiciousActivityNotifiedAt = null;
 
+    /** Opt-in to the redesigned interface while it is being built (removed once it becomes the only one). */
+    #[ORM\Column(type: \Doctrine\DBAL\Types\Types::BOOLEAN, options: ['default' => false])]
+    private bool $newInterface = false;
+
     public function __construct()
     {
         $this->licensees = new ArrayCollection();
@@ -450,6 +454,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     public function setSuspiciousActivityNotifiedAt(?\DateTimeImmutable $suspiciousActivityNotifiedAt): self
     {
         $this->suspiciousActivityNotifiedAt = $suspiciousActivityNotifiedAt;
+
+        return $this;
+    }
+
+    public function hasNewInterface(): bool
+    {
+        return $this->newInterface;
+    }
+
+    public function setNewInterface(bool $newInterface): self
+    {
+        $this->newInterface = $newInterface;
 
         return $this;
     }

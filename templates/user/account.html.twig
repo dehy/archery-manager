@@ -149,6 +149,32 @@
         </div>
     </div>
 
+    <!-- Nouvelle interface (bêta) -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <section class="card" aria-labelledby="new-interface-title">
+                <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div>
+                        <h4 class="card-title mb-1" id="new-interface-title">Nouvelle interface (bêta)</h4>
+                        <p class="text-muted mb-0">
+                            {% if user.hasNewInterface %}
+                                Vous testez la nouvelle interface. Certains écrans gardent encore l'ancien style.
+                            {% else %}
+                                Essayez la nouvelle interface du site. Vous pourrez revenir à l'interface actuelle à tout moment.
+                            {% endif %}
+                        </p>
+                    </div>
+                    <form method="post" action="{{ path('app_user_interface_toggle') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('toggle_interface') }}">
+                        <button type="submit" class="btn {{ user.hasNewInterface ? 'btn-outline-secondary' : 'btn-primary' }}">
+                            {{ user.hasNewInterface ? 'Revenir à l\'interface actuelle' : 'Essayer la nouvelle interface' }}
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+
     <!-- Abonnement au calendrier -->
     <div class="row">
         <div class="col-12 mb-4">

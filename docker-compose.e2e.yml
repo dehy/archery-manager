@@ -56,6 +56,7 @@ services:
       - BASE_URL=http://archery-manager
       - MAILPIT_URL=http://mailpit:8025
       - CI=${CI:-}
+      - E2E_UI=${E2E_UI:-legacy}
     volumes:
       - ./e2e:/e2e
     ipc: host

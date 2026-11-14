@@ -1,0 +1,39 @@
+// Status chips (canvas kit .chip): one vocabulary for every domain. Always give them an icon and a label.
+//   ok    present, registered, licence validated, loan returned
+//   maybe interested, pending, answer expected
+//   no    absent, cancelled, inactive
+//   bad   rejected, overdue, missing document
+//   info  neutral information
+// Usage: <span class="am-status am-status-ok"><em class="fa-solid fa-check" aria-hidden="true"></em>Présent</span>
+
+.am-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 50rem;
+  font-size: .8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+@each $name, $text, $background in
+  (ok $am-ok $am-ok-bg),
+  (maybe $am-maybe $am-maybe-bg),
+  (no $am-no $am-no-bg),
+  (bad $am-bad $am-bad-bg),
+  (info $am-info $am-info-bg)
+{
+  .am-status-#{$name} {
+    color: $text;
+    background: $background;
+  }
+}
+
+// Tag (event type, group): sand, so it never reads as a status
+.am-tag {
+  @extend .am-status;
+  color: #5C2A10;
+  background: $am-sand;
+}
