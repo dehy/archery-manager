@@ -14,6 +14,7 @@ use App\Repository\EventParticipationRepository;
 use App\Repository\LicenseeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -72,14 +73,9 @@ class CalendarController extends AbstractController
      */
     #[Route('/my-account/calendar/{id}/generate-token', name: 'app_calendar_generate_token', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function generateToken(Licensee $licensee): Response
+    public function generateToken(Licensee $licensee, Request $request): Response
     {
-        /** @var User $user */
-        $user = $this->getUser();
-
-        if (!$user->getLicensees()->contains($licensee)) {
-            throw $this->createAccessDeniedException();
-        }
+        $this->assertOwnLicenseeAndValidToken($licensee, $request);
 
         $licensee->generateCalendarToken();
 
@@ -95,14 +91,9 @@ class CalendarController extends AbstractController
      */
     #[Route('/my-account/calendar/{id}/revoke-token', name: 'app_calendar_revoke_token', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function revokeToken(Licensee $licensee): Response
+    public function revokeToken(Licensee $licensee, Request $request): Response
     {
-        /** @var User $user */
-        $user = $this->getUser();
-
-        if (!$user->getLicensees()->contains($licensee)) {
-            throw $this->createAccessDeniedException();
-        }
+        $this->assertOwnLicenseeAndValidToken($licensee, $request);
 
         $licensee->revokeCalendarToken();
 
@@ -111,5 +102,20 @@ class CalendarController extends AbstractController
         $this->addFlash('success', 'Votre lien d\'abonnement au calendrier a été révoqué.');
 
         return $this->redirectToRoute('app_user_account');
+    }
+
+    /**
+     * Only the account's own archers, and only from the Mon compte forms: without the CSRF token another site could
+     * renew or delete a member's link (token id: calendar_token_<licensee id>).
+     */
+    private function assertOwnLicenseeAndValidToken(Licensee $licensee, Request $request): void
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$user->getLicensees()->contains($licensee)
+            || !$this->isCsrfTokenValid('calendar_token_'.$licensee->getId(), $request->getPayload()->getString('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
     }
 }

@@ -232,6 +232,7 @@
                                               data-controller="confirm-action"
                                               data-action="submit->confirm-action#confirm"
                                               data-confirm-action-message-value="Êtes-vous sûr ? L'ancien lien cessera de fonctionner.">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('calendar_token_' ~ licensee.id) }}">
                                             <button type="submit" class="btn btn-warning btn-sm"
                                                     title="Générer un nouveau lien (l'ancien ne fonctionnera plus)">
                                                 <em class="fa-solid fa-rotate-right me-1"></em>
@@ -242,6 +243,7 @@
                                               data-controller="confirm-action"
                                               data-action="submit->confirm-action#confirm"
                                               data-confirm-action-message-value="Êtes-vous sûr ? Le lien cessera de fonctionner immédiatement.">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('calendar_token_' ~ licensee.id) }}">
                                             <button type="submit" class="btn btn-danger btn-sm"
                                                     title="Révoquer le lien d'abonnement">
                                                 <em class="fa-solid fa-xmark me-1"></em>
@@ -251,6 +253,7 @@
                                     </div>
                                 {% else %}
                                     <form method="post" action="{{ path('app_calendar_generate_token', {id: licensee.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('calendar_token_' ~ licensee.id) }}">
                                         <button type="submit" class="btn btn-primary btn-sm">
                                             <em class="fa-solid fa-calendar-plus me-1"></em>
                                             Générer un lien d'abonnement
