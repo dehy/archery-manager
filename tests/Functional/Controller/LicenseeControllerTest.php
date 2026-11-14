@@ -197,6 +197,38 @@ final class LicenseeControllerTest extends LoggedInTestCase
         $this->assertResponseRedirects(self::URL_LICENSEE.$licensee->getId());
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function requiredLicenseeFields(): iterable
+    {
+        yield 'first name' => ['firstname'];
+        yield 'last name' => ['lastname'];
+        yield 'gender' => ['gender'];
+        yield 'birthdate' => ['birthdate'];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('requiredLicenseeFields')]
+    public function testEditRejectsABlankRequiredField(string $field): void
+    {
+        $client = self::createLoggedInAsAdminClient();
+
+        /** @var User $user */
+        $user = $client->getContainer()->get('security.token_storage')->getToken()->getUser();
+        $licensee = $user->getLicensees()->first();
+        $this->assertInstanceOf(Licensee::class, $licensee);
+
+        $crawler = $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, self::URL_LICENSEE.$licensee->getId().'/edit');
+        $form = $crawler->selectButton('Enregistrer')->form();
+        // Posted as is: the browser's `required` would stop the form, the server must too
+        $values = $form->getPhpValues();
+        $values['licensee_form'][$field] = '';
+        $client->request($form->getMethod(), $form->getUri(), $values);
+
+        $this->assertResponseStatusCodeSame(422);
+        $this->assertSelectorExists(\sprintf('#licensee_form_%s.is-invalid', $field));
+    }
+
     // ── Sync ───────────────────────────────────────────────────────────
 
     // ── Access Control ─────────────────────────────────────────────────
