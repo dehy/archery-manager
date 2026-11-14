@@ -1,0 +1,61 @@
+{#
+    Event pieces of the redesigned interface, shared by the screens that list events (dashboard, then calendar).
+    Status chips: assets/styles/next/_status.scss. Always an icon and a label, never colour alone.
+#}
+
+{% macro isContest(event) %}{{ event is instanceof('App\\Entity\\ContestEvent') or event is instanceof('App\\Entity\\HobbyContestEvent') ? '1' }}{% endmacro %}
+
+{# Kind of event, as a word: "Concours", "Entraînement"… #}
+{% macro typeLabel(event) %}
+    {%- set kind = event|get_short_class -%}
+    {%- if kind == 'ContestEvent' -%}Concours
+    {%- elseif kind == 'HobbyContestEvent' -%}Concours amical
+    {%- elseif kind == 'TrainingEvent' -%}Entraînement
+    {%- elseif kind == 'FreeTrainingEvent' -%}Entraînement libre
+    {%- else -%}Événement
+    {%- endif -%}
+{% endmacro %}
+
+{# "Mardi · 18h30 · Salle Ginko": day, start time (unless all day), place #}
+{% macro when(event, withDate = false) %}
+    {%- set parts = [withDate ? event.startsAt|format_date(pattern='EEEE d MMMM', locale='fr')|capitalize : event.startsAt|format_date(pattern='EEEE', locale='fr')|capitalize] -%}
+    {%- if not event.allDay -%}{% set parts = parts|merge([event.startsAt|format_datetime(pattern="H'h'mm", locale='fr')]) %}{%- endif -%}
+    {%- if event.address -%}{% set parts = parts|merge([event.address]) %}{%- endif -%}
+    {{- parts|join(' · ') -}}
+{% endmacro %}
+
+{# The licensee's answer to the event, as a status chip #}
+{% macro participationStatus(event, participation, canParticipate) %}
+    {%- set contest = _self.isContest(event) is not empty -%}
+    {%- set state = participation.participationState -%}
+    {%- if state == constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED') -%}
+        <span class="am-status am-status-ok"><em class="fa-solid fa-check" aria-hidden="true"></em>{{ contest ? 'Inscrit·e' : 'Présent·e' }}</span>
+    {%- elseif state == constant('App\\DBAL\\Types\\EventParticipationStateType::INTERESTED') -%}
+        <span class="am-status am-status-maybe"><em class="fa-solid fa-clock" aria-hidden="true"></em>Intéressé·e</span>
+    {%- elseif state == constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') -%}
+        <span class="am-status am-status-no"><em class="fa-solid fa-xmark" aria-hidden="true"></em>Absent·e</span>
+    {%- elseif not canParticipate -%}
+        <span class="am-status am-status-info"><em class="fa-solid fa-lock" aria-hidden="true"></em>Réservé à d'autres groupes</span>
+    {%- else -%}
+        <span class="am-status am-status-maybe"><em class="fa-solid fa-clock" aria-hidden="true"></em>Réponse attendue</span>
+    {%- endif -%}
+{% endmacro %}
+
+{#
+    One-tap answer to a training (app_event_presence): "Je serai absent·e" when counted present, "Je viens finalement"
+    when absent. Nothing for contests (answered on their page) or for events the licensee can't answer.
+#}
+{% macro presenceToggle(event, participation, canParticipate, buttonClass = 'btn-outline-dark') %}
+    {%- if _self.isContest(event) is empty and canParticipate and participation.activity -%}
+        {%- set present = participation.participationState != constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING') -%}
+        {%- set date = event.startsAt|format_date(pattern='d MMMM', locale='fr') -%}
+        <form method="post" action="{{ path('app_event_presence', {slug: event.slug}) }}" class="flex-shrink-0">
+            <input type="hidden" name="_token" value="{{ csrf_token('presence' ~ event.id) }}">
+            <input type="hidden" name="present" value="{{ present ? '0' : '1' }}">
+            <button type="submit" class="btn btn-sm {{ buttonClass }}"
+                    aria-label="{{ present ? 'Je serai absent·e' : 'Je viens finalement' }} : {{ event.title }} du {{ date }}">
+                {{- present ? 'Je serai absent·e' : 'Je viens finalement' -}}
+            </button>
+        </form>
+    {%- endif -%}
+{% endmacro %}

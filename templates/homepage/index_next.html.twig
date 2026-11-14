@@ -1,0 +1,118 @@
+{% extends 'base.html.twig' %}
+{#
+    Dashboard of the redesigned interface (canvas boards Main and MobileHome): the next event first, the following
+    ones with a one-tap answer for trainings, then the licence and the coach's latest advice.
+    Today's interface keeps homepage/index.html.twig.
+#}
+{% import '_next/event_macros.html.twig' as ev %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block body %}
+    {% set licensee = licenseeHelper.licenseeFromSession %}
+    {% set next = events|first %}
+
+    <header class="am-page-head">
+        <div>
+            <p class="text-body-secondary mb-1">{{ 'now'|format_date(pattern='EEEE d MMMM', locale='fr')|capitalize }}</p>
+            <h1>Bonjour {{ licensee.firstname }}</h1>
+        </div>
+        <a href="{{ path('app_event_index') }}" class="btn btn-outline-dark">Voir le calendrier</a>
+    </header>
+
+    <div class="row g-4">
+        <div class="col-xl-8 d-flex flex-column gap-4">
+            {% if next %}
+                {% set participation = eventHelper.licenseeParticipationToEvent(licensee, next) %}
+                {% set canParticipate = eventHelper.canLicenseeParticipateInEvent(licensee, next) %}
+                <article class="am-hero" aria-labelledby="am-next-title">
+                    <div class="am-hero-date" aria-hidden="true">
+                        <span>{{ next.startsAt|format_date(pattern='EEE', locale='fr')|upper }}</span>
+                        <b>{{ next.startsAt|date('j') }}</b>
+                        <span>{{ next.startsAt|format_date(pattern='MMM', locale='fr') }}</span>
+                    </div>
+                    <div class="am-hero-body">
+                        <p class="am-hero-eyebrow">Prochain rendez-vous · {{ ev.typeLabel(next) }}</p>
+                        <h2 id="am-next-title"><a href="{{ path('app_event_show', {slug: next.slug}) }}">{{ next.title }}</a></h2>
+                        <p class="am-hero-meta">{{ ev.when(next, true) }}</p>
+                        <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                            {{ ev.participationStatus(next, participation, canParticipate) }}
+                            {% if ev.isContest(next) is not empty and canParticipate %}
+                                <a href="{{ path('app_event_show', {slug: next.slug}) }}" class="btn btn-primary btn-sm">
+                                    {{ participation.participationState ? 'Modifier ma réponse' : 'Répondre' }}
+                                </a>
+                            {% endif %}
+                            {{ ev.presenceToggle(next, participation, canParticipate, 'btn-outline-light') }}
+                        </div>
+                    </div>
+                </article>
+
+                <section class="card" aria-labelledby="am-upcoming-title">
+                    <div class="card-body pb-2 d-flex justify-content-between align-items-baseline">
+                        <h2 id="am-upcoming-title" class="mb-0">À venir</h2>
+                        <a href="{{ path('app_event_index') }}">Tout voir</a>
+                    </div>
+                    {% set following = events|slice(1) %}
+                    {% if following is empty %}
+                        <p class="card-body pt-0 text-body-secondary mb-0">Rien d'autre de prévu pour l'instant.</p>
+                    {% else %}
+                        <ul class="am-agenda">
+                            {% for event in following %}
+                                {% set participation = eventHelper.licenseeParticipationToEvent(licensee, event) %}
+                                {% set canParticipate = eventHelper.canLicenseeParticipateInEvent(licensee, event) %}
+                                <li class="am-agenda-item">
+                                    <div class="am-agenda-date" aria-hidden="true">
+                                        <b>{{ event.startsAt|date('j') }}</b>
+                                        <span>{{ event.startsAt|format_date(pattern='MMM', locale='fr') }}</span>
+                                    </div>
+                                    <a class="am-agenda-link" href="{{ path('app_event_show', {slug: event.slug}) }}">
+                                        <span class="am-agenda-title">{{ event.title }}</span>
+                                        <span class="am-agenda-meta">{{ ev.when(event, true) }}</span>
+                                    </a>
+                                    {{ ev.participationStatus(event, participation, canParticipate) }}
+                                    {{ ev.presenceToggle(event, participation, canParticipate) }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </section>
+            {% else %}
+                <section class="card">
+                    <div class="card-body text-center py-5">
+                        <em class="fa-solid fa-calendar-xmark fa-2x text-body-secondary mb-3" aria-hidden="true"></em>
+                        <h2>Aucun événement à venir</h2>
+                        <p class="text-body-secondary">Les prochains concours et entraînements de vos groupes apparaîtront ici.</p>
+                        <a href="{{ path('app_event_index') }}" class="btn btn-outline-dark">Voir le calendrier</a>
+                    </div>
+                </section>
+            {% endif %}
+        </div>
+
+        <aside class="col-xl-4 d-flex flex-column gap-4" aria-label="Ma saison">
+            <section class="card" aria-labelledby="am-license-title">
+                <div class="card-body">
+                    <h2 id="am-license-title">Ma licence</h2>
+                    <dl class="am-facts">
+                        <div><dt>Saison</dt><dd>{{ license.season }}</dd></div>
+                        {% if license.type %}<div><dt>Type</dt><dd>{{ license.type|readable_enum('LicenseType') }}</dd></div>{% endif %}
+                        {% if license.club %}<div><dt>Club</dt><dd>{{ license.club.name }}</dd></div>{% endif %}
+                    </dl>
+                    <span class="am-status am-status-ok"><em class="fa-solid fa-check" aria-hidden="true"></em>Licence active</span>
+                </div>
+            </section>
+
+            {% if latestAdvice %}
+                <section class="card am-card-sand" aria-labelledby="am-advice-title">
+                    <div class="card-body">
+                        <h2 id="am-advice-title">Conseil de votre coach</h2>
+                        <p class="mb-1 fw-semibold">{{ latestAdvice.title }}</p>
+                        <p class="text-body-secondary small">
+                            {{ latestAdvice.createdAt|format_date(pattern='d MMMM yyyy', locale='fr') }}
+                        </p>
+                        <a href="{{ path('app_practice_advice_show', {advice: latestAdvice.id}) }}" class="btn btn-outline-dark btn-sm">Lire le conseil</a>
+                    </div>
+                </section>
+            {% endif %}
+        </aside>
+    </div>
+{% endblock %}

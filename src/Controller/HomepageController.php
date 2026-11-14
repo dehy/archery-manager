@@ -8,10 +8,12 @@ use App\Entity\Event;
 use App\Entity\License;
 use App\Entity\Licensee;
 use App\Entity\Result;
+use App\Entity\User;
 use App\Helper\LicenseeHelper;
 use App\Helper\SeasonHelper;
 use App\Repository\ClubApplicationRepository;
 use App\Repository\EventRepository;
+use App\Repository\PracticeAdviceRepository;
 use App\Repository\ResultRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,7 +22,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class HomepageController extends AbstractController
 {
-    public function __construct(private readonly LicenseeHelper $licenseeHelper, private readonly SeasonHelper $seasonHelper, private readonly ClubApplicationRepository $applicationRepository, private readonly EntityManagerInterface $entityManager)
+    public function __construct(private readonly LicenseeHelper $licenseeHelper, private readonly SeasonHelper $seasonHelper, private readonly ClubApplicationRepository $applicationRepository, private readonly EntityManagerInterface $entityManager, private readonly PracticeAdviceRepository $practiceAdviceRepository)
     {
     }
 
@@ -50,17 +52,27 @@ class HomepageController extends AbstractController
 
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->entityManager->getRepository(Event::class);
-        $events = $eventRepository->findNextForLicensee(
-            $this->licenseeHelper->getLicenseeFromSession(),
-            5,
-        );
-        /** @var ResultRepository $resultRepository */
-        $resultRepository = $this->entityManager->getRepository(Result::class);
-        $results = $resultRepository->findLastForLicensee($this->licenseeHelper->getLicenseeFromSession());
+        $events = $eventRepository->findNextForLicensee($licensee, 5);
 
-        return $this->render('homepage/index.html.twig', [
-            'events' => $events,
-            'results' => $results,
-        ]);
+        $user = $this->getUser();
+        if ($user instanceof User && $user->hasNewInterface()) {
+            // Redesigned dashboard: the next event first, then the following ones, the licence and the coach's advice
+            $template = 'homepage/index_next.html.twig';
+            $parameters = [
+                'events' => $events,
+                'license' => $currentLicense,
+                'latestAdvice' => $this->practiceAdviceRepository->findForLicenseeNewestFirst($licensee, false)[0] ?? null,
+            ];
+        } else {
+            /** @var ResultRepository $resultRepository */
+            $resultRepository = $this->entityManager->getRepository(Result::class);
+            $template = 'homepage/index.html.twig';
+            $parameters = [
+                'events' => $events,
+                'results' => $resultRepository->findLastForLicensee($licensee),
+            ];
+        }
+
+        return $this->render($template, $parameters);
     }
 }

@@ -1,0 +1,173 @@
+// Page heading, next-event hero and event lists of the redesigned screens (canvas boards Main, MobileHome).
+// Markup: templates/homepage/index_next.html.twig, templates/_next/event_macros.html.twig.
+
+// Light text on the ink hero (all above 7:1 on $am-ink)
+$am-on-ink-label: #F2B79F;
+$am-on-ink-soft: #E7D9C0;
+
+.am-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+
+  h1 {
+    margin: 0;
+  }
+}
+
+// ---- Next event ---------------------------------------------------------------------------------------------------
+
+.am-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px;
+  padding: 28px;
+  border-radius: $card-border-radius;
+  background: $am-ink;
+  color: $am-ground;
+
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    margin: 4px 0;
+    font-size: 1.75rem;
+    color: $am-ground;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.am-hero-date {
+  display: flex;
+  flex: 0 0 88px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 96px;
+  border-radius: 18px;
+  background: rgba($am-ground, .1);
+  font-size: .8125rem;
+  line-height: 1.1;
+
+  b {
+    font-family: $am-font-heading;
+    font-size: 2.25rem;
+  }
+}
+
+.am-hero-body {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.am-hero-eyebrow {
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: $am-on-ink-label;
+}
+
+.am-hero-meta {
+  color: $am-on-ink-soft;
+}
+
+// ---- Event list ---------------------------------------------------------------------------------------------------
+
+.am-agenda {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.am-agenda-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 14px $card-spacer-x;
+  border-top: 1px solid $am-row-line;
+}
+
+.am-agenda-date {
+  flex: 0 0 44px;
+  line-height: 1.1;
+  text-align: center;
+
+  b {
+    display: block;
+    font-family: $am-font-heading;
+    font-size: 1.25rem;
+  }
+
+  span {
+    font-size: .6875rem;
+    text-transform: uppercase;
+    color: $am-soft;
+  }
+}
+
+.am-agenda-link {
+  flex: 1 1 220px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover .am-agenda-title {
+    text-decoration: underline;
+  }
+}
+
+.am-agenda-title {
+  display: block;
+  font-weight: 600;
+}
+
+.am-agenda-meta {
+  display: block;
+  font-size: .8125rem;
+  color: $am-soft;
+}
+
+// ---- Cards --------------------------------------------------------------------------------------------------------
+
+.am-card-sand {
+  --#{$prefix}card-bg: #{$am-sand};
+}
+
+// Key facts as label / value rows (licence)
+.am-facts {
+  margin: 0 0 16px;
+
+  > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid $am-row-line;
+  }
+
+  dt {
+    font-weight: 400;
+    color: $am-soft;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+  }
+}
