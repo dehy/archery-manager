@@ -525,6 +525,9 @@ The web interface is being redesigned screen by screen. Until the switch-over, b
   `User::hasNewInterface()` (e.g. `HomepageController` → `homepage/index_next.html.twig`); today's template stays
   untouched until the switch-over. Shared pieces live in `templates/_next/`. Trainings can be answered in one tap
   from a list (`app_event_presence`, POST, present or absent); contests are always answered on their page.
+  The redesigned event page (`event/show_next.html.twig`, every kind of event) shows the participation form inline
+  instead of `_participation_modal.html.twig`, and states why an event can't be answered (other groups, ended,
+  licence) as visible text instead of a disabled button.
 - **One product accent** (`#C93A0C`) for every club: never theme the redesigned interface with the club colour.
 - **Fonts are self-hosted** (`@fontsource-variable/*`): don't load Google Fonts or another third-party font CDN.
 
