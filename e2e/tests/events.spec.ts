@@ -30,6 +30,25 @@ test.describe('events for a member', () => {
         await page.getByRole('link', { name: /^Concours salle/ }).first().click();
         await expect(pageTitle(page)).toContainText('Concours');
 
+        if (ui === 'next') {
+            // The answer is a form on the page itself, no dialog
+            const form = page.getByRole('region', { name: 'Ma réponse' });
+            await choose(form, 'Je suis inscrit·e');
+            await expect(form.getByLabel('Activité')).toBeVisible();
+            await form.getByLabel('Blason').selectOption({ label: 'Trispot' });
+            await form.getByLabel('Départ').selectOption({ label: 'n°1' });
+            await form.getByRole('button', { name: 'Enregistrer' }).click();
+
+            await expect(page.getByRole('alert').filter({ hasText: 'Votre réponse est enregistrée' })).toBeVisible();
+            await expect(form.getByRole('radio', { name: 'Je suis inscrit·e' })).toBeChecked();
+            await expect(form.getByLabel('Départ')).toHaveValue('1');
+
+            // "Je n'y vais pas": the target face and the start don't apply
+            await choose(form, "Je n'y vais pas");
+            await expect(form.getByLabel('Blason')).toBeHidden();
+            return;
+        }
+
         const answer = page.getByRole('button', { name: /^(S'inscrire|Inscrit•e|Absent•e)$/ });
         await answer.click();
         const dialog = page.getByRole('dialog', { name: 'Ma participation' });
@@ -50,6 +69,19 @@ test.describe('events for a member', () => {
         await page.goto('/');
         await page.getByRole('link', { name: /^Entraînement Compétiteurs/ }).first().click();
 
+        if (ui === 'next') {
+            const form = page.getByRole('region', { name: 'Ma réponse' });
+            await choose(form, 'Absent·e');
+            await form.getByRole('button', { name: 'Enregistrer' }).click();
+            await expect(page.getByRole('alert').filter({ hasText: 'Votre réponse est enregistrée' })).toBeVisible();
+            await expect(form.getByRole('radio', { name: 'Absent·e' })).toBeChecked();
+
+            await choose(form, 'Présent·e');
+            await form.getByRole('button', { name: 'Enregistrer' }).click();
+            await expect(form.getByRole('radio', { name: 'Présent·e' })).toBeChecked();
+            return;
+        }
+
         await page.getByRole('button', { name: /^(Participe|Absent•e|Définir participation)$/ }).click();
         let dialog = page.getByRole('dialog', { name: 'Ma participation' });
         await choose(dialog, "Je n'y vais pas");
@@ -67,6 +99,13 @@ test.describe('events for a member', () => {
         await page.goto('/events');
         // The member is in Groupe Compétiteurs only; Loisir trainings are reserved to Groupe Loisir
         await page.getByRole('link', { name: 'Loisir', exact: true }).first().click();
+
+        if (ui === 'next') {
+            const form = page.getByRole('region', { name: 'Ma réponse' });
+            await expect(form.getByText(/Réservé au groupe .*Loisir/)).toBeVisible();
+            await expect(form.getByRole('button', { name: 'Enregistrer' })).toHaveCount(0);
+            return;
+        }
 
         const answer = page.getByRole('button', { name: 'Définir participation' });
         await expect(answer).toBeDisabled();
