@@ -1,0 +1,122 @@
+{% extends 'base.html.twig' %}
+{#
+    Contest results of the redesigned interface (canvas board Results): figures, then one table per category and bow,
+    ranked by place. Names follow the privacy rule ("Firstname L." for members, full names for admins and coaches);
+    the profile link only shows for those who may open it. Today's interface keeps event/results.html.twig.
+#}
+
+{% block title %}Résultats · {{ event.title }}{% endblock %}
+
+{% block body %}
+    {% set staff = is_granted('ROLE_CLUB_ADMIN') or is_granted('ROLE_COACH') %}
+    {% set results_file = event.attachments('results')|first %}
+
+    <a href="{{ path('app_event_show', {slug: event.slug}) }}" class="am-crumb">
+        <em class="fa-solid fa-chevron-left" aria-hidden="true"></em>{{ event.title }}
+    </a>
+
+    <header class="am-page-head">
+        <div>
+            <h1>Résultats</h1>
+            <p class="text-body-secondary mb-0">{{ event.title }} · {{ event.startsAt|format_date(pattern='d MMMM yyyy', locale='fr') }}</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            {% if results_file %}
+                <a href="{{ path('events_attachments_download', {attachment: results_file.id}) }}" class="btn btn-outline-dark">
+                    <em class="fa-regular fa-file me-1" aria-hidden="true"></em>Résultats officiels (PDF)
+                </a>
+            {% endif %}
+            {% if is_granted('EVENT_EDIT', event) %}
+                <a href="{{ path('app_event_resultsedit', {slug: event.slug}) }}" class="btn btn-primary"
+                   data-action="modal#open" data-title="Édition des résultats">
+                    <em class="fa-solid fa-pen-to-square me-1" aria-hidden="true"></em>Saisir les résultats
+                </a>
+            {% endif %}
+        </div>
+    </header>
+
+    {% if results is empty %}
+        <section class="card">
+            <div class="card-body text-center py-5">
+                <h2>Pas encore de résultats</h2>
+                <p class="text-body-secondary mb-0">Les résultats des archers du club apparaîtront ici une fois saisis.</p>
+            </div>
+        </section>
+    {% else %}
+        <dl class="am-stats">
+            <div class="card"><dt>Archers du club</dt><dd>{{ results|length }}</dd></div>
+            <div class="card"><dt>Podiums</dt><dd>{{ podiums }}</dd></div>
+            <div class="card"><dt>Meilleur score</dt><dd>{{ best }}</dd></div>
+        </dl>
+
+        {# One table per category and bow: places and tie-breaks only compare within it #}
+        {% set groups = {} %}
+        {% for result in results %}
+            {% set key = result.ageCategory ~ '__' ~ result.activity %}
+            {% set groups = groups|merge({(key): (groups[key] ?? [])|merge([result])}) %}
+        {% endfor %}
+
+        <div class="d-flex flex-column gap-4">
+            {% for key, group in groups %}
+                {% set first = group|first %}
+                {% set compound = first.activity == 'CO' %}
+                {% set caption = first.ageCategory|readable_enum('LicenseAgeCategoryType') ~ ' · ' ~ first.activity|readable_enum('LicenseActivityType') %}
+                <section class="card" aria-label="{{ caption }}">
+                    <div class="card-body pb-2">
+                        <h2 class="h3 mb-0">{{ caption }}</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table am-results mb-0">
+                            <caption class="visually-hidden">Résultats {{ caption }}</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Place</th>
+                                    <th scope="col">Archer</th>
+                                    <th scope="col" class="text-end d-none d-sm-table-cell">Série 1</th>
+                                    <th scope="col" class="text-end d-none d-sm-table-cell">Série 2</th>
+                                    <th scope="col" class="text-end">Score</th>
+                                    <th scope="col" class="text-end d-none d-md-table-cell">
+                                        <abbr title="Départage : nombre de {{ compound ? '10' : '9' }}">{{ compound ? '10' : '9' }}</abbr>
+                                    </th>
+                                    <th scope="col" class="text-end d-none d-md-table-cell">
+                                        <abbr title="Départage : nombre de {{ compound ? 'X' : '10' }}">{{ compound ? 'X' : '10' }}</abbr>
+                                    </th>
+                                    <th scope="col"><span class="visually-hidden">Podium</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in group %}
+                                    <tr>
+                                        <td class="am-results-place">{{ result.position ?? '—' }}</td>
+                                        <td>
+                                            {% if staff %}
+                                                <a href="{{ path('app_licensee_profile', {id: result.licensee.id}) }}">{{ licensee_display_name(result.licensee) }}</a>
+                                            {% else %}
+                                                {{ licensee_display_name(result.licensee) }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end d-none d-sm-table-cell">{{ result.score1 ?? '—' }}</td>
+                                        <td class="text-end d-none d-sm-table-cell">{{ result.score2 ?? '—' }}</td>
+                                        <td class="text-end fw-bold">{{ result.total }}</td>
+                                        <td class="text-end d-none d-md-table-cell">{{ result.nb10 ?? '—' }}</td>
+                                        <td class="text-end d-none d-md-table-cell">{{ result.nb10p ?? '—' }}</td>
+                                        <td>
+                                            {% if result.position and result.position <= 3 %}
+                                                <span class="am-status am-status-ok"><em class="fa-solid fa-trophy" aria-hidden="true"></em>Podium</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <p class="small text-body-secondary mt-4 mb-0">
+        Les places sont celles du classement officiel du concours.
+        {{ staff ? '' : 'Les membres voient « Prénom N. » ; les noms complets sont réservés aux administrateurs et coachs.' }}
+    </p>
+{% endblock %}

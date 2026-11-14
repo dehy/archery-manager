@@ -1,0 +1,77 @@
+// Contest results of the redesigned interface (canvas board Results). Markup: templates/event/results_next.html.twig.
+// Tokens only (see _themes.scss).
+
+// Key figures in a row of small cards
+.am-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0 0 24px;
+
+  .card {
+    padding: 16px 20px;
+  }
+
+  @include media-breakpoint-down(sm) {
+    gap: 8px;
+
+    .card {
+      padding: 12px;
+    }
+
+    dt {
+      font-size: .75rem;
+    }
+
+    dd {
+      font-size: 1.5rem;
+    }
+  }
+
+  dt {
+    font-size: .875rem;
+    font-weight: 400;
+    color: var(--am-soft);
+  }
+
+  dd {
+    margin: 0;
+    font-family: $am-font-heading;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+}
+
+.am-results {
+  --#{$prefix}table-bg: transparent;
+
+  th,
+  td {
+    padding-right: $card-spacer-x;
+    padding-left: $card-spacer-x;
+    vertical-align: middle;
+    border-color: var(--am-row);
+  }
+
+  thead th {
+    font-size: .75rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--am-soft);
+  }
+
+  td:nth-child(2) {
+    white-space: nowrap;
+  }
+
+  abbr {
+    text-decoration: none;
+    cursor: help;
+  }
+}
+
+.am-results-place {
+  font-family: $am-font-heading;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
