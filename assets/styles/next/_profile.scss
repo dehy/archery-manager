@@ -1,0 +1,97 @@
+// Archer profile of the redesigned interface (canvas boards Profile, MobileProfile).
+// Markup: templates/licensee/show_next.html.twig.
+
+.am-profile-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  margin-bottom: 28px;
+
+  h1 {
+    margin: 0 0 8px;
+  }
+}
+
+.am-profile-photo {
+  position: relative;
+  flex: 0 0 96px;
+
+  img {
+    width: 96px;
+    height: 96px;
+    border-radius: 999px;
+    background: $am-sand;
+    object-fit: cover;
+  }
+
+  // "Change the photo": round button on the photo's corner
+  .btn {
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 2px solid $am-ground;
+    border-radius: 999px;
+  }
+}
+
+.am-profile-name {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+// ---- "Plus" menu (canvas board MobilePlus, templates/mobile/other_menu_next.html.twig) ------------------------------
+
+.am-menu-heading {
+  margin: 0 4px 8px;
+  font-family: $am-font-body;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: $am-soft;
+}
+
+.am-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+
+  > .fa-solid:first-child {
+    width: 20px;
+    text-align: center;
+  }
+}
+
+.am-menu-chevron {
+  color: $am-soft;
+}
+
+// Log out: the "bad" colour of the look (Bootstrap's .text-danger is compiled for light only)
+.am-menu-danger,
+.am-menu-danger:hover {
+  color: var(--am-bad);
+}
+
+// On a phone the head is centred, as on the MobileProfile board
+@include media-breakpoint-down(sm) {
+  .am-profile-head {
+    flex-direction: column;
+    text-align: center;
+
+    .am-profile-name .d-flex {
+      justify-content: center;
+    }
+  }
+
+  .am-profile-name {
+    flex-basis: auto;
+  }
+}

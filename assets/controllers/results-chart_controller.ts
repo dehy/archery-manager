@@ -29,8 +29,23 @@ export default class ResultsChartController extends Controller<HTMLCanvasElement
     }
 
     _onPreConnect(event: Event) {
-        // The chart is not yet created
+        // The chart is not yet created. In the redesigned interface, its axes take the colours of the current look
+        // (tokens of assets/styles/next/_themes.scss): today's interface has no tokens and keeps Chart.js defaults.
+        const styles = getComputedStyle(event.currentTarget as HTMLElement);
+        const text = styles.getPropertyValue('--am-soft').trim();
+        const grid = styles.getPropertyValue('--am-row').trim();
+        if (!text || !grid) {
+            return;
+        }
+
         const options = (event as CustomEvent).detail.options;
+        options.scales ??= {};
+        for (const axis of ['x', 'y']) {
+            options.scales[axis] ??= {};
+            options.scales[axis].ticks = { ...options.scales[axis].ticks, color: text };
+            options.scales[axis].grid = { ...options.scales[axis].grid, color: grid };
+            options.scales[axis].border = { ...options.scales[axis].border, color: grid };
+        }
     }
 
     _onConnect(event: Event) {
