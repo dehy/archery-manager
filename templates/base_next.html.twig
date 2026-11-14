@@ -1,0 +1,208 @@
+{#
+    Redesigned shell (roadmap M2), used by users who opted in from Mon compte (see base.html.twig).
+    Canvas boards: Main (sidebar), AccountMenu (account block menu), MobileHome / MobilePlus (tab bar, "Plus").
+    Same blocks as base_legacy.html.twig: title, stylesheets, javascripts, body, return_link, return_text.
+    Styles: assets/styles/next/ (Encore entry theme_next).
+#}
+{% set licensee = licenseeHelper.licenseeFromSession %}
+{% set hasLicense = licenseHelper.currentLicenseeCurrentLicense is not null %}
+{% set club = clubHelper.activeClub %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#C93A0C">
+    <meta name="theme-color" content="#FBF3E4">
+
+    {% block stylesheets %}
+        {{ encore_entry_link_tags('theme_next') }}
+        {{ encore_entry_link_tags('app') }}
+    {% endblock %}
+
+    {% block javascripts %}
+        {{ encore_entry_script_tags('app') }}
+    {% endblock %}
+
+    <title>{{ block('title') }}{{ block('title') is defined ? ' • ' }}Mon Club</title>
+</head>
+<body
+        data-env-app-environment="{{ appEnvironment }}"
+        data-env-api-url="{{ apiUrl }}"
+        data-env-observability-collector-url="{{ observabilityCollectorUrl }}"
+        data-env-matomo-url="{{ matomoUrl ?? '' }}"
+        data-env-matomo-site-id="{{ matomoSiteId ?? '' }}"
+        data-env-matomo-user-id="{{ app.user ? app.user.id : '' }}"
+        {{ stimulus_controller('modal') }}
+>
+<div class="am-shell">
+    <aside class="am-sidebar">
+        <a class="am-brand" href="{{ path('app_homepage') }}">
+            <img src="{{ club and club.logoName ? club|public_url('logo') : asset('build/logo.svg') }}" alt="">
+            <span>{{ club.name ?? 'Mon Club de Tir à l\'Arc' }}</span>
+        </a>
+
+        <nav aria-label="Navigation principale">
+            <ul class="am-nav">
+                <li>{{ _self.navLink('app_homepage', 'Accueil', 'house', '/^app_homepage/') }}</li>
+                {% if hasLicense %}
+                    <li>{{ _self.navLink('app_event_index', 'Calendrier', 'calendar', '/^app_event_(index|show|results)/') }}</li>
+                    <li>{{ _self.navLink('app_licensee_index', 'Annuaire', 'users', '/^app_licensee_(index|profile)/') }}</li>
+                    <li>{{ _self.navLink('app_club_show', 'Le club', 'building', '/^app_club_show/') }}</li>
+                    <li>{{ _self.navLink('app_licensee_my_profile', 'Moi', 'user', '/^app_licensee_my_profile/') }}</li>
+                {% else %}
+                    <li>{{ _self.navLink('app_club_application_new', 'Demande d\'adhésion', 'id-badge', '/^app_club_application_new/') }}</li>
+                    <li>{{ _self.navLink('app_club_application_status', 'Mes demandes', 'list-check', '/^app_club_application_status/') }}</li>
+                {% endif %}
+            </ul>
+
+            {% if is_granted('ROLE_CLUB_ADMIN') %}
+                <p class="am-nav-heading" id="am-nav-management">Gestion</p>
+                <ul class="am-nav" aria-labelledby="am-nav-management">
+                    <li>{{ _self.navLink('app_event_manage_index', 'Événements', 'calendar-check', '/^app_event_manage/') }}</li>
+                    <li>{{ _self.navLink('app_club_members', 'Adhérents', 'users-gear', '/^(app_club_member|app_licensee_(new|csv|renew))/') }}</li>
+                    <li>{{ _self.navLink('app_club_application_manage', 'Demandes', 'clipboard-check', '/^app_club_application_(manage|validate|activate|waiting_list|reject)/', pending_club_applications_count()) }}</li>
+                    <li>{{ _self.navLink('app_club_equipment_index', 'Matériel', 'bullseye', '/^app_club_equipment_/') }}</li>
+                </ul>
+            {% endif %}
+        </nav>
+
+        <div class="flex-grow-1"></div>
+
+        <div class="dropup">
+            {# Fixed positioning: the menu must not be clipped by the scrolling sidebar #}
+            <button type="button" class="am-me" data-bs-toggle="dropdown" aria-expanded="false"
+                    data-bs-popper-config='{"strategy":"fixed"}'>
+                {{ _self.avatar(licensee) }}
+                <span class="flex-grow-1 min-w-0">
+                    <span class="am-me-name">{{ licensee ? licensee_display_name(licensee) : app.user.firstname }}</span>
+                    <span class="am-me-season">Saison {{ seasonHelper.selectedSeason }}</span>
+                </span>
+                <em class="fa-solid fa-chevron-up small" aria-hidden="true"></em>
+            </button>
+            <ul class="dropdown-menu am-account-menu">
+                {{ _self.accountMenuItems(licensee) }}
+            </ul>
+        </div>
+    </aside>
+
+    <main class="am-main">
+        {% if block('return_link') is defined %}
+            <a class="am-mobile-back" href="{{- block('return_link') -}}">
+                <em class="fa-solid fa-arrow-left" aria-hidden="true"></em>
+                {{- block('return_text') -}}
+            </a>
+        {% endif %}
+
+        {% if is_granted('IS_IMPERSONATOR') %}
+            <div class="alert alert-warning text-center">
+                Navigation en tant que {{ app.user.email }} -
+                <a href="{{ impersonation_exit_path(path('app_homepage')) }}">Arrêter</a>
+            </div>
+        {% endif %}
+        {% if is_granted('ROLE_CLUB_ADMIN') %}
+            {% set pendingCount = pending_club_applications_count() %}
+            {% if pendingCount > 0 %}
+                <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <span>
+                        <em class="fa-solid fa-bell me-2" aria-hidden="true"></em>
+                        <strong>{{ pendingCount }} demande{{ pendingCount > 1 ? 's' : '' }} d'adhésion</strong>
+                        en attente de traitement.
+                    </span>
+                    <a href="{{ path('app_club_application_manage') }}" class="btn btn-sm btn-outline-dark">Gérer les demandes</a>
+                </div>
+            {% endif %}
+        {% endif %}
+        {% for label, messages in app.flashes(['success', 'warning', 'danger']) %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} flash-{{ label }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {% block body %}{% endblock %}
+
+        {% include '_footer.html.twig' %}
+    </main>
+</div>
+
+<nav class="am-tabbar" aria-label="Onglets">
+    <ul>
+        <li>{{ _self.tabLink('app_homepage', 'Accueil', 'house', '/^app_homepage/') }}</li>
+        {% if hasLicense %}
+            <li>{{ _self.tabLink('app_event_index', 'Calendrier', 'calendar', '/^app_event_(index|show|results)/') }}</li>
+            <li>{{ _self.tabLink('app_licensee_my_profile', 'Moi', 'user', '/^app_licensee_my_profile/') }}</li>
+        {% else %}
+            <li>{{ _self.tabLink('app_club_application_status', 'Demandes', 'id-badge', '/^app_club_application_(new|status)/') }}</li>
+        {% endif %}
+        <li>{{ _self.tabLink('app_mobile_othermenu', 'Plus', 'ellipsis', '/^(app_mobile_othermenu|app_user_account)/') }}</li>
+    </ul>
+</nav>
+
+{% include '_modal.html.twig' %}
+</body>
+</html>
+
+{% macro isCurrent(pattern) %}{% if app.request.attributes.get('_route') matches pattern %}aria-current="page"{% endif %}{% endmacro %}
+
+{# activePattern: regex on the current route name that marks the link as the current page #}
+{% macro navLink(route, label, icon, activePattern, count = 0) %}
+    <a class="am-nav-link" href="{{ path(route) }}" {{ _self.isCurrent(activePattern) }}>
+        <em class="am-nav-icon fa-solid fa-{{ icon }}" aria-hidden="true"></em>
+        {{ label }}
+        {% if count > 0 %}<span class="badge text-bg-warning">{{ count }}<span class="visually-hidden"> en attente</span></span>{% endif %}
+    </a>
+{% endmacro %}
+
+{% macro tabLink(route, label, icon, activePattern) %}
+    <a href="{{ path(route) }}" {{ _self.isCurrent(activePattern) }}>
+        <em class="am-tab-icon fa-solid fa-{{ icon }}" aria-hidden="true"></em>
+        {{ label }}
+    </a>
+{% endmacro %}
+
+{% macro avatar(licensee, small = false) %}
+    <img class="am-avatar {{ small ? 'am-avatar-sm' }}" alt=""
+         src="{{ licensee and licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}">
+{% endmacro %}
+
+{# The account block menu (AccountMenu board): switch archer, account, administration, log out #}
+{% macro accountMenuItems(licensee) %}
+    {% set others = licensee ? app.user.licensees|filter(l => l.id is not same as(licensee.id)) : [] %}
+    {% if others|length > 0 %}
+        <li><h6 class="dropdown-header">Changer d'archer</h6></li>
+        {% for other in others %}
+            <li>
+                <a class="dropdown-item d-flex align-items-center gap-2"
+                   href="{{ path(app.request.get('_route'), app.request.get('_route_params')|merge({'_switch_licensee': other.id})) }}">
+                    {{ _self.avatar(other, true) }}
+                    {{ licensee_display_name(other) }}
+                </a>
+            </li>
+        {% endfor %}
+        <li><hr class="dropdown-divider"></li>
+    {% endif %}
+    <li>
+        <a class="dropdown-item" href="{{ path('app_user_account') }}">
+            <em class="fa-solid fa-user-gear me-2" aria-hidden="true"></em>Mon compte
+        </a>
+    </li>
+    {% if is_granted('ROLE_ADMIN') %}
+        <li>
+            <a class="dropdown-item" href="{{ path('admin') }}">
+                <em class="fa-solid fa-screwdriver-wrench me-2" aria-hidden="true"></em>Administration
+            </a>
+        </li>
+    {% endif %}
+    <li><hr class="dropdown-divider"></li>
+    <li>
+        <a class="dropdown-item text-danger" href="{{ path('app_logout') }}">
+            <em class="fa-solid fa-arrow-right-from-bracket me-2" aria-hidden="true"></em>Se déconnecter
+        </a>
+    </li>
+{% endmacro %}
