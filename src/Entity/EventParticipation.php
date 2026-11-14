@@ -12,6 +12,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[Auditable]
 class EventParticipation
 {
+    /** The departures (waves of shooters) a contest can offer, for the web form and the API. */
+    public const array DEPARTURES = [1, 2, 3, 4, 5];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::INTEGER)]

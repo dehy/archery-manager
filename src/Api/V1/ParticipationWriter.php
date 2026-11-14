@@ -18,8 +18,6 @@ use App\Entity\Season;
  */
 final readonly class ParticipationWriter
 {
-    private const array DEPARTURES = [1, 2, 3, 4];
-
     public function __construct(private EventPresenter $presenter)
     {
     }
@@ -82,8 +80,8 @@ final readonly class ParticipationWriter
 
     private function departure(mixed $value): ?int
     {
-        if (null !== $value && !\in_array($value, self::DEPARTURES, true)) {
-            throw new InvalidParticipationException('departure must be 1, 2, 3 or 4.');
+        if (null !== $value && !\in_array($value, EventParticipation::DEPARTURES, true)) {
+            throw new InvalidParticipationException(\sprintf('departure must be one of %s.', implode(', ', EventParticipation::DEPARTURES)));
         }
 
         return $value;

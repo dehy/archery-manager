@@ -150,7 +150,7 @@ final class EventControllerTest extends ApiWebTestCase
         $this->assertResponseMatchesSchema($client, 'EventResponse');
         $event = $this->json($client)['event'];
         $this->assertSame(['not_going', 'interested', 'registered'], $event['participation_options']['states']);
-        $this->assertSame([1, 2, 3, 4], $event['participation_options']['departures']);
+        $this->assertSame([1, 2, 3, 4, 5], $event['participation_options']['departures']);
         $this->assertContains('trispot', array_column($event['participation_options']['target_types'], 'code'));
         $this->assertSame('individual', $event['contest_type']['code']);
         $this->assertNull($event['my_participation']['participation_state']);
@@ -252,7 +252,7 @@ final class EventControllerTest extends ApiWebTestCase
         yield 'target type on a training' => ['training', ['participation_state' => 'registered', 'target_type' => 'trispot']];
         yield 'departure on a training' => ['training', ['participation_state' => 'registered', 'departure' => 1]];
         yield 'unknown target type' => ['contest', ['participation_state' => 'registered', 'target_type' => 'nope']];
-        yield 'departure out of range' => ['contest', ['participation_state' => 'registered', 'departure' => 5]];
+        yield 'departure out of range' => ['contest', ['participation_state' => 'registered', 'departure' => 6]];
         yield 'departure as string' => ['contest', ['participation_state' => 'registered', 'departure' => '1']];
     }
 
