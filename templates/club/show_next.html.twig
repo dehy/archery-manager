@@ -1,0 +1,145 @@
+{% extends 'base.html.twig' %}
+{#
+    Club page of the redesigned interface (canvas board Club): who the club is, its trainings of the coming week, its
+    groups, how to reach it. The club has no address, schedule or Discord link fields yet: the coming week's trainings
+    (ClubController::show) stand for the training times. Today's interface keeps club/show.html.twig.
+#}
+{% import '_next/event_macros.html.twig' as ev %}
+
+{% block title %}{{ club.name }}{% endblock %}
+
+{% block body %}
+    <header class="am-page-head am-club-head">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <span class="am-club-logo">
+                <img src="{{ club.logoName ? club|public_url('logo') : asset('build/logo.svg') }}" alt="" width="64" height="64">
+            </span>
+            <div>
+                <h1>{{ club.name }}</h1>
+                <p class="text-body-secondary mb-0">
+                    {{- [club.city, club.fftaCode ? 'Affilié FFTA · ' ~ club.fftaCode : null]|filter(part => part)|join(' · ') -}}
+                </p>
+            </div>
+        </div>
+        {% if is_granted('ROLE_CLUB_ADMIN') %}
+            <a href="{{ path('app_club_settings') }}" class="btn btn-outline-dark">
+                <em class="fa-solid fa-cog me-1" aria-hidden="true"></em>Réglages du club
+            </a>
+        {% endif %}
+    </header>
+
+    <div class="row g-4">
+        <div class="col-lg-8 d-flex flex-column gap-4">
+            <section class="card" aria-labelledby="am-club-trainings-title">
+                <div class="card-body pb-2 d-flex flex-wrap justify-content-between align-items-baseline gap-2">
+                    <h2 id="am-club-trainings-title" class="mb-0">Entraînements de la semaine</h2>
+                    <a href="{{ path('app_event_index', {view: 'list'}) }}">Calendrier</a>
+                </div>
+                {% if trainings is empty %}
+                    <p class="card-body pt-0 text-body-secondary mb-0">Pas d'entraînement prévu dans les 7 prochains jours.</p>
+                {% else %}
+                    <ul class="am-agenda">
+                        {% for training in trainings %}
+                            <li class="am-agenda-item">
+                                <a class="am-agenda-link" href="{{ path('app_event_show', {slug: training.slug}) }}">
+                                    <span class="am-agenda-title">{{ training.title }}</span>
+                                    <span class="am-agenda-meta">{{ ev.when(training, true) }}</span>
+                                </a>
+                                <span class="am-tag">
+                                    {{- training.assignedGroups is empty ? 'Tout le club' : training.assignedGroups|map(group => group.name)|join(', ') -}}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </section>
+
+            <section aria-labelledby="am-club-groups-title">
+                <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-3">
+                    <h2 id="am-club-groups-title" class="mb-0">Groupes</h2>
+                    {% if is_granted('ROLE_CLUB_ADMIN') %}
+                        <a href="{{ path('app_group_create') }}" class="btn btn-outline-dark btn-sm">
+                            <em class="fa-solid fa-plus me-1" aria-hidden="true"></em>Nouveau groupe
+                        </a>
+                    {% endif %}
+                </div>
+                {% if groups is empty %}
+                    <p class="text-body-secondary">Aucun groupe d'entraînement pour l'instant.</p>
+                {% else %}
+                    <ul class="am-group-grid">
+                        {% for group in groups %}
+                            {% set count = group.licensees|length %}
+                            <li class="card am-group">
+                                <h3>{{ group.name }}</h3>
+                                {% if group.description %}
+                                    {# Plain text: the description is typed by club admins #}
+                                    <p class="small text-body-secondary">{{ group.description|striptags|nl2br }}</p>
+                                {% endif %}
+                                <p class="mb-0 mt-auto">{{ count }} membre{{ count > 1 ? 's' }}</p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a href="{{ path('app_licensee_index', {group: group.id}) }}" class="btn btn-outline-dark btn-sm">
+                                        Voir dans l'annuaire<span class="visually-hidden"> : {{ group.name }}</span>
+                                    </a>
+                                    {% if is_granted('ROLE_CLUB_ADMIN') %}
+                                        <a href="{{ path('app_group_manage', {id: group.id}) }}" class="btn btn-link btn-sm">
+                                            Gérer<span class="visually-hidden"> le groupe {{ group.name }}</span>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                        {% if noGroupLicenseesCount > 0 %}
+                            <li class="card am-group am-card-sand">
+                                <h3>Sans groupe</h3>
+                                <p class="small text-body-secondary">Licenciés qui ne sont dans aucun groupe d'entraînement.</p>
+                                <p class="mb-0 mt-auto">{{ noGroupLicenseesCount }} membre{{ noGroupLicenseesCount > 1 ? 's' }}</p>
+                                <div>
+                                    <a href="{{ path('app_licensee_index', {group: 'no-group'}) }}" class="btn btn-outline-dark btn-sm">
+                                        Voir dans l'annuaire<span class="visually-hidden"> : sans groupe</span>
+                                    </a>
+                                </div>
+                            </li>
+                        {% endif %}
+                    </ul>
+                {% endif %}
+            </section>
+        </div>
+
+        <aside class="col-lg-4 d-flex flex-column gap-4">
+            {% if club.contactEmail %}
+                <section class="card" aria-labelledby="am-club-contact-title">
+                    <div class="card-body">
+                        <h2 id="am-club-contact-title">Contact</h2>
+                        <a href="mailto:{{ club.contactEmail }}" class="d-inline-flex align-items-center gap-2">
+                            <em class="fa-solid fa-envelope" aria-hidden="true"></em>{{ club.contactEmail }}
+                        </a>
+                    </div>
+                </section>
+            {% endif %}
+
+            <section class="card am-card-strip" aria-labelledby="am-club-figures-title">
+                <div class="card-body">
+                    <h2 id="am-club-figures-title">Saison {{ season }}</h2>
+                    <dl class="am-facts mb-0">
+                        <div><dt>Licenciés</dt><dd>{{ licensees|length }}</dd></div>
+                        <div><dt>Groupes</dt><dd>{{ groups|length }}</dd></div>
+                    </dl>
+                </div>
+            </section>
+
+            <nav class="card" aria-labelledby="am-club-links-title">
+                <div class="card-body">
+                    <h2 id="am-club-links-title">Raccourcis</h2>
+                    <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+                        <li><a href="{{ path('app_licensee_index') }}">Annuaire</a></li>
+                        <li><a href="{{ path('app_event_index') }}">Calendrier</a></li>
+                        <li><a href="{{ path('app_club_equipment_index') }}">Matériel du club</a></li>
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <li><a href="{{ path('admin') }}">Administration</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+    </div>
+{% endblock %}

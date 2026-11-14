@@ -1,0 +1,41 @@
+// Club page of the redesigned interface (canvas board Club). Markup: templates/club/show_next.html.twig.
+// Tokens only (see _themes.scss).
+
+.am-club-logo {
+  display: flex;
+  flex: 0 0 88px;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  border: 1px solid var(--am-line);
+  border-radius: 22px;
+  background: var(--am-surface);
+
+  img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+  }
+}
+
+.am-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.am-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  padding: 20px;
+
+  h3 {
+    margin: 0;
+  }
+}

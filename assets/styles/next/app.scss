@@ -21,6 +21,7 @@
 @import "appearance";
 @import "profile";
 @import "directory";
+@import "club";
 
 // Today's stylesheet lifts every card on hover. A transform on a card re-anchors the fixed elements inside it
 // (modals, dropdowns), which then move under the pointer (#169): keep only the shadow change.
