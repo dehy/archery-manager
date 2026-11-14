@@ -489,6 +489,8 @@ Details in [`e2e/README.md`](e2e/README.md). Rules that matter when changing tem
   field label can break them; keep labels stable or update the spec in the same commit. An element without an accessible
   name (icon-only link, unlabelled field) can't be reached: name it.
 - Fixtures are loaded once per run; a test that writes creates its own uniquely named data.
+- **Both interfaces are tested**: CI runs the suite with `E2E_UI=legacy` and `E2E_UI=next` (the login setup turns
+  the redesign on from Mon compte). A template change must pass in both; `tests/shell.spec.ts` covers the new shell.
 
 #### Working in a git worktree
 
@@ -507,6 +509,20 @@ docker compose -p archery-manager run --rm --no-deps -T --entrypoint php \
 - **The `app_test` database is shared by all checkouts.** A migration applied from one branch is visible to the others. Before editing a branch migration, roll it back (`bin/console doctrine:migrations:execute --down "DoctrineMigrations\\VersionXXXX"` with `APP_ENV=test`), edit, then migrate again.
 - **`make:migration` does not exist in the test env** (maker is dev-only). Generate with `APP_ENV=test bin/console doctrine:migrations:diff` against `app_test` (which sits at `main`'s schema), then keep only your own changes: the diff may also show unrelated pre-existing drift (e.g. `consent_log` indexes).
 - Rector can be killed by the container memory limit (`Child process error: Killed`); retry with other containers stopped, or rely on the CI `rector` job.
+
+### Redesign (in progress)
+
+The web interface is being redesigned screen by screen. Until the switch-over, both interfaces live side by side:
+
+- **Per-user opt-in**: `User::newInterface`, toggled from Mon compte (`app_user_interface_toggle`).
+  `templates/base.html.twig` extends `base_next.html.twig` for those users, `base_legacy.html.twig` otherwise. Both
+  layouts provide the same blocks (`title`, `stylesheets`, `javascripts`, `body`, `return_link`, `return_text`).
+- **Styles**: `assets/styles/next/` holds the design kit tokens mapped to Bootstrap variables, the status chips and
+  the shell; its README lists the tokens, the kit icon → Font Awesome mapping and the kit class → Bootstrap mapping.
+  Page bodies keep their Bootstrap markup and take the new look from the variables. Page-level styles shared by both
+  layouts live in `assets/styles/_pages.scss` and `_events.scss`.
+- **One product accent** (`#C93A0C`) for every club: never theme the redesigned interface with the club colour.
+- **Fonts are self-hosted** (`@fontsource-variable/*`): don't load Google Fonts or another third-party font CDN.
 
 ### Git Workflow
 
@@ -619,7 +635,9 @@ make migratedb       # Run database migrations
 - `Kernel.php` - Application kernel
 
 ### Templates
-- `templates/base.html.twig` - Base layout with navbar, mobile tab bar, modals
+- `templates/base.html.twig` - What every logged-in page extends: picks the layout per user (see Redesign)
+  - `base_legacy.html.twig` - Today's layout: navbar, mobile tab bar, modals
+  - `base_next.html.twig` - Redesigned shell: sidebar, account menu, mobile tab bar (Accueil · Calendrier · Moi · Plus)
 - `templates/base_public.html.twig` - Public pages layout (login, registration)
 - `templates/app_form_layout.html.twig` - Custom form theme (extends Bootstrap 5)
 - `templates/_modal.html.twig` - Reusable modal component (Stimulus-powered)
@@ -643,7 +661,8 @@ make migratedb       # Run database migrations
 - `templates/admin/` - EasyAdmin customizations
 
 ### Frontend Assets
-- `assets/app.ts` - Main JavaScript entry (Font Awesome, Bootstrap, Stimulus)
+- `assets/app.ts` - Main JavaScript entry (Font Awesome, Bootstrap, Stimulus), shared by both layouts
+- `assets/theme_legacy.ts` / `assets/theme_next.ts` - One stylesheet entry per layout (`styles/app.scss` / `styles/next/`)
 - `assets/bootstrap.ts` - Stimulus app initialization
 - `assets/controllers/` - Stimulus controllers
   - `modal_controller.ts` - Generic modal handler ⭐
