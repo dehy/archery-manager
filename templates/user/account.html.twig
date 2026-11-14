@@ -164,7 +164,13 @@
                             {% endif %}
                         </p>
                     </div>
-                    <form method="post" action="{{ path('app_user_interface_toggle') }}">
+                    <form method="post" action="{{ path('app_user_interface_toggle') }}" class="d-flex flex-wrap gap-2">
+                        {% if user.hasNewInterface %}
+                            {# Themes and dark mode exist in the new interface only #}
+                            <a href="{{ path('app_user_appearance') }}" class="btn btn-outline-dark">
+                                <em class="fa-solid fa-palette me-1" aria-hidden="true"></em>Apparence
+                            </a>
+                        {% endif %}
                         <input type="hidden" name="_token" value="{{ csrf_token('toggle_interface') }}">
                         <button type="submit" class="btn {{ user.hasNewInterface ? 'btn-outline-secondary' : 'btn-primary' }}">
                             {{ user.hasNewInterface ? 'Revenir à l\'interface actuelle' : 'Essayer la nouvelle interface' }}

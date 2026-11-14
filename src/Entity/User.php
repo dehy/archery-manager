@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\InterfaceMode;
+use App\Enum\InterfaceTheme;
 use App\Repository\UserRepository;
 use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -90,6 +92,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     /** Opt-in to the redesigned interface while it is being built (removed once it becomes the only one). */
     #[ORM\Column(type: \Doctrine\DBAL\Types\Types::BOOLEAN, options: ['default' => false])]
     private bool $newInterface = false;
+
+    /** Theme of the redesigned interface (Mon compte → Apparence) */
+    #[ORM\Column(length: 16, enumType: InterfaceTheme::class, options: ['default' => 'soft'])]
+    private InterfaceTheme $interfaceTheme = InterfaceTheme::Soft;
+
+    /** Light, dark, or following the device */
+    #[ORM\Column(length: 16, enumType: InterfaceMode::class, options: ['default' => 'system'])]
+    private InterfaceMode $interfaceMode = InterfaceMode::System;
 
     public function __construct()
     {
@@ -466,6 +476,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     public function setNewInterface(bool $newInterface): self
     {
         $this->newInterface = $newInterface;
+
+        return $this;
+    }
+
+    public function getInterfaceTheme(): InterfaceTheme
+    {
+        return $this->interfaceTheme;
+    }
+
+    public function setInterfaceTheme(InterfaceTheme $interfaceTheme): self
+    {
+        $this->interfaceTheme = $interfaceTheme;
+
+        return $this;
+    }
+
+    public function getInterfaceMode(): InterfaceMode
+    {
+        return $this->interfaceMode;
+    }
+
+    public function setInterfaceMode(InterfaceMode $interfaceMode): self
+    {
+        $this->interfaceMode = $interfaceMode;
 
         return $this;
     }

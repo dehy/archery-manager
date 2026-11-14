@@ -81,9 +81,14 @@ $am-sidebar-width: 248px;
   font-weight: 500;
   text-decoration: none;
 
+  // Icon box: plain icon in Doux, coloured chip in Coloré (nav-* tokens)
   .am-nav-icon {
-    flex: 0 0 20px;
-    text-align: center;
+    display: flex;
+    flex: 0 0 var(--am-nav-chip);
+    align-items: center;
+    justify-content: center;
+    height: var(--am-nav-chip);
+    border-radius: 10px;
   }
 
   .badge {
@@ -92,18 +97,26 @@ $am-sidebar-width: 248px;
 
   &:hover {
     color: $am-ink;
-    background: rgba($am-surface, .6);
+    background: var(--am-hover);
   }
 
   &[aria-current="page"] {
     color: $am-ink;
     font-weight: 600;
     background: $am-surface;
-    box-shadow: 0 1px 2px rgba(60, 40, 10, .08);
+    box-shadow: 0 1px 2px var(--am-shadow);
 
     .am-nav-icon {
-      color: $am-accent;
+      color: var(--am-nav-current-fg);
+      background: var(--am-nav-current-bg);
     }
+  }
+}
+
+@each $tint in 1, 2, 3, 4, 5 {
+  .am-nav-tint-#{$tint}:not([aria-current="page"]) .am-nav-icon {
+    color: var(--am-nav-#{$tint}-fg);
+    background: var(--am-nav-#{$tint}-bg);
   }
 }
 

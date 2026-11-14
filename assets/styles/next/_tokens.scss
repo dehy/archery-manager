@@ -1,29 +1,350 @@
-// Design tokens of the redesign (canvas UI kit, kit.css), then the Bootstrap variables they drive.
+// Design tokens of the redesign (canvas UI kit, kit.css, and the themes canvas), then the Bootstrap variables they drive.
 // Decisions (roadmap M0): one product accent for every club, near-black ink for dark surfaces.
-// Contrast is checked for every text pair: keep it so when changing a value (WCAG AA, 4.5:1 for text, 3:1 for borders).
+//
+// Two themes, Doux (soft) and Coloré (colorful), each light and dark: four "looks" chosen per user in Mon compte →
+// Apparence. Every colour is a token below; _themes.scss turns them into CSS custom properties (--am-<name>)
+// selected by the data-am-theme / data-am-mode attributes of <html>, and the am-* classes only use those.
+//
+// Contrast: every text pair is WCAG AA (4.5:1), borders of fields and icons 3:1. tests/Unit/Theme/ThemeContrastTest.php
+// reads these maps (one `name: value,` per line, literal values only) and checks the pairs: keep it green.
 
-// Surfaces and text
-$am-ground: #FBF3E4;        // page background
-$am-surface: #FFFFFF;       // cards, menus
-$am-sand: #F4E8D2;          // sidebar, quiet cards
-$am-ink: #231B16;           // text, dark surfaces
-$am-soft: #5C5048;          // secondary text (7:1 on ground)
-$am-line: #E6D6B8;          // card and section borders
-$am-row-line: #EFE3CB;      // separators inside lists and tables
-$am-field-border: #8C7C66;  // form fields: 4:1 on white (non-text contrast needs 3:1)
+// ---- Base tokens: the same for both themes, one set per mode -----------------------------------------------------
 
-// Accent: orange of the app icon. White text on it: 5.1:1
-$am-accent: #C93A0C;
-$am-accent-text: #B5330A;   // links and accent text on light surfaces
-$am-accent-hover: #A92F08;
-$am-accent-bg: #FDE9E1;
+$am-base-light: (
+  ground: #FBF3E4,          // page background
+  surface: #FFFFFF,         // cards, menus
+  sand: #F4E8D2,            // sidebar, quiet cards
+  ink: #231B16,             // text
+  soft: #5C5048,            // secondary text
+  line: #E6D6B8,            // card and section borders (decorative)
+  row: #EFE3CB,             // separators inside lists and tables
+  field: #8C7C66,           // form field borders
+  accent: #C93A0C,          // orange of the app icon: primary buttons, current item
+  accent-text: #B5330A,     // links and accent text
+  accent-hover: #A92F08,
+  accent-bg: #FDE9E1,
+  on-accent: #FFFFFF,       // text on accent
+  on-ink: #FFFFFF,          // text on ink (dark buttons)
+  link-hover: #8F2808,
+  hover: rgba(255, 255, 255, .6),
+  row-hover: #FFF8EC,
+  shadow: rgba(60, 40, 10, .08),
+  tag: #5C2A10,             // tags (kind of event, group) on sand
+  weekday: #FAF4E6,         // calendar weekday row
+  outside: rgba(244, 232, 210, .45), // calendar days of the next or previous month
+  focus-border: #E49D86,
+  focus-ring: rgba(201, 58, 12, .25),
+  // Statuses: always shown with an icon and a label, never by colour alone
+  ok: #14503F,              // present, registered, validated
+  ok-bg: #DDF0E8,
+  maybe: #6B4600,           // interested, pending, answer expected
+  maybe-bg: #FBE6B8,
+  no: #4A3F37,              // absent, cancelled, inactive; also the sidebar links
+  no-bg: #E9E4DD,
+  bad: #9A2323,             // rejected, overdue, errors
+  bad-bg: #FBE0DE,
+  info: #1E3C9E,            // information
+  info-bg: #E1E8F8,
+  primary-border: #F6C3AE,  // borders of the Bootstrap "subtle" alerts
+  secondary-border: #D5CCC0,
+  success-border: #B9DDCD,
+  warning-border: #F3CF7E,
+  danger-border: #F2B9B5,
+  info-border: #B9C8EE,
+);
 
-// Statuses: always shown with an icon and a label, never by colour alone
-$am-ok: #14503F;     $am-ok-bg: #DDF0E8;      // present, registered, validated
-$am-maybe: #6B4600;  $am-maybe-bg: #FBE6B8;   // interested, pending, answer expected
-$am-no: #4A3F37;     $am-no-bg: #E9E4DD;      // absent, cancelled, inactive
-$am-bad: #9A2323;    $am-bad-bg: #FBE0DE;     // rejected, overdue, errors
-$am-info: #1E3C9E;   $am-info-bg: #E1E8F8;    // information
+$am-base-dark: (
+  ground: #17120F,
+  surface: #231B16,
+  sand: #2C231D,
+  ink: #F3EBE0,
+  soft: #B9AC9E,
+  line: #3A2F27,
+  row: #2E251F,
+  field: #9C8D7A,
+  accent: #FF8A5C,
+  accent-text: #FF8A5C,
+  accent-hover: #FFA17A,
+  accent-bg: #40231A,
+  on-accent: #17120F,
+  on-ink: #17120F,
+  link-hover: #FFA17A,
+  hover: rgba(255, 255, 255, .07),
+  row-hover: #2A211B,
+  shadow: rgba(0, 0, 0, .4),
+  tag: #F3EBE0,
+  weekday: #1D1713,
+  outside: #1D1713,
+  focus-border: #FF8A5C,
+  focus-ring: rgba(255, 138, 92, .35),
+  ok: #8FD9B8,
+  ok-bg: #17382D,
+  maybe: #F5C86A,
+  maybe-bg: #3D2F10,
+  no: #D6CCC0,
+  no-bg: #3A3430,
+  bad: #FFB3AD,
+  bad-bg: #4A1F1F,
+  info: #A9BDFA,
+  info-bg: #1C2A5C,
+  primary-border: #7A3A22,
+  secondary-border: #4A4038,
+  success-border: #2C5E4C,
+  warning-border: #6B5420,
+  danger-border: #7A3434,
+  info-border: #34478A,
+);
+
+// ---- Look tokens: what changes between the themes ----------------------------------------------------------------
+// hero-*: next-event card of the dashboard. nav-*: icon of the main sidebar entries (nav-chip: its box; Doux keeps
+// plain icons). advice-*: coach's advice card. strip: band on top of the licence card. kind-*: kinds of event
+// (calendar, legend). tile-*: date of an event in a list (Doux: no background).
+
+$am-look-soft: (
+  hero-btn-hover-bg: rgb(170.85, 49.3, 10.2),
+  hero-tile-num: #FBF3E4,
+  tile-pad: 0px,
+  hero-bg: #231B16,
+  hero-fg: #FBF3E4,
+  hero-eyebrow: #F2B79F,
+  hero-meta: #E7D9C0,
+  hero-tile-bg: rgba(251, 243, 228, .1),
+  hero-tile-fg: #FBF3E4,
+  hero-btn-bg: #C93A0C,
+  hero-btn-fg: #FFFFFF,
+  hero-outline: #F4E8D2,
+  hero-outline-hover-fg: #231B16,
+  hero-shadow: none,
+  nav-chip: 20px,
+  nav-1-bg: transparent,
+  nav-1-fg: currentColor,
+  nav-2-bg: transparent,
+  nav-2-fg: currentColor,
+  nav-3-bg: transparent,
+  nav-3-fg: currentColor,
+  nav-4-bg: transparent,
+  nav-4-fg: currentColor,
+  nav-5-bg: transparent,
+  nav-5-fg: currentColor,
+  nav-current-bg: transparent,
+  nav-current-fg: #C93A0C,
+  advice-bg: #F4E8D2,
+  advice-fg: #231B16,
+  advice-sub: #5C5048,
+  strip: transparent,
+  strip-height: 0px,
+  kind-contest-bg: #F4E8D2,
+  kind-contest-fg: #5C2A10,
+  kind-training-bg: #E1E8F8,
+  kind-training-fg: #1E3C9E,
+  kind-free-bg: #E9E4DD,
+  kind-free-fg: #4A3F37,
+  kind-other-bg: #FFFFFF,
+  kind-other-fg: #231B16,
+  tile-contest-bg: transparent,
+  tile-contest-fg: #231B16,
+  tile-contest-sub: #5C5048,
+  tile-training-bg: transparent,
+  tile-training-fg: #231B16,
+  tile-training-sub: #5C5048,
+  tile-free-bg: transparent,
+  tile-free-fg: #231B16,
+  tile-free-sub: #5C5048,
+  tile-other-bg: transparent,
+  tile-other-fg: #231B16,
+  tile-other-sub: #5C5048,
+);
+
+$am-look-colorful: (
+  hero-btn-hover-bg: #FDE9E1,
+  hero-tile-num: #231B16,
+  tile-pad: 6px,
+  hero-bg: #C93A0C,
+  hero-fg: #FFFFFF,
+  hero-eyebrow: #FFFFFF,
+  hero-meta: #FFFFFF,
+  hero-tile-bg: #FFFFFF,
+  hero-tile-fg: #B5330A,
+  hero-btn-bg: #FFFFFF,
+  hero-btn-fg: #B5330A,
+  hero-outline: #FFFFFF,
+  hero-outline-hover-fg: #B5330A,
+  hero-shadow: 0 12px 32px rgba(201, 58, 12, .28),
+  nav-chip: 32px,
+  nav-1-bg: #FDE9E1,
+  nav-1-fg: #B5330A,
+  nav-2-bg: #E1E8F8,
+  nav-2-fg: #1E3C9E,
+  nav-3-bg: #DDF0E8,
+  nav-3-fg: #14503F,
+  nav-4-bg: #FBE6B8,
+  nav-4-fg: #6B4600,
+  nav-5-bg: #EBDDF7,
+  nav-5-fg: #4B2A86,
+  nav-current-bg: #C93A0C,
+  nav-current-fg: #FFFFFF,
+  advice-bg: #FBE6B8,
+  advice-fg: #231B16,
+  advice-sub: #6B4600,
+  strip: linear-gradient(90deg, #C93A0C 0 25%, #F2B233 25% 50%, #2F57D8 50% 75%, #1F8A6A 75%),
+  strip-height: 4px,
+  kind-contest-bg: #FDE9E1,
+  kind-contest-fg: #B5330A,
+  kind-training-bg: #DDF0E8,
+  kind-training-fg: #14503F,
+  kind-free-bg: #E1E8F8,
+  kind-free-fg: #1E3C9E,
+  kind-other-bg: #E9E4DD,
+  kind-other-fg: #4A3F37,
+  tile-contest-bg: #FDE9E1,
+  tile-contest-fg: #B5330A,
+  tile-contest-sub: #B5330A,
+  tile-training-bg: #DDF0E8,
+  tile-training-fg: #14503F,
+  tile-training-sub: #14503F,
+  tile-free-bg: #E1E8F8,
+  tile-free-fg: #1E3C9E,
+  tile-free-sub: #1E3C9E,
+  tile-other-bg: #E9E4DD,
+  tile-other-fg: #4A3F37,
+  tile-other-sub: #4A3F37,
+);
+
+$am-look-soft-dark: (
+  hero-btn-hover-bg: #FFA17A,
+  hero-tile-num: #F3EBE0,
+  tile-pad: 0px,
+  hero-bg: #2C231D,
+  hero-fg: #F3EBE0,
+  hero-eyebrow: #FFB596,
+  hero-meta: #D9CCBB,
+  hero-tile-bg: rgba(243, 235, 224, .1),
+  hero-tile-fg: #F3EBE0,
+  hero-btn-bg: #FF8A5C,
+  hero-btn-fg: #17120F,
+  hero-outline: #F3EBE0,
+  hero-outline-hover-fg: #2C231D,
+  hero-shadow: none,
+  nav-chip: 20px,
+  nav-1-bg: transparent,
+  nav-1-fg: currentColor,
+  nav-2-bg: transparent,
+  nav-2-fg: currentColor,
+  nav-3-bg: transparent,
+  nav-3-fg: currentColor,
+  nav-4-bg: transparent,
+  nav-4-fg: currentColor,
+  nav-5-bg: transparent,
+  nav-5-fg: currentColor,
+  nav-current-bg: transparent,
+  nav-current-fg: #FF8A5C,
+  advice-bg: #2C231D,
+  advice-fg: #F3EBE0,
+  advice-sub: #B9AC9E,
+  strip: transparent,
+  strip-height: 0px,
+  kind-contest-bg: #2C231D,
+  kind-contest-fg: #F3EBE0,
+  kind-training-bg: #1C2A5C,
+  kind-training-fg: #A9BDFA,
+  kind-free-bg: #3A3430,
+  kind-free-fg: #D6CCC0,
+  kind-other-bg: #231B16,
+  kind-other-fg: #F3EBE0,
+  tile-contest-bg: transparent,
+  tile-contest-fg: #F3EBE0,
+  tile-contest-sub: #B9AC9E,
+  tile-training-bg: transparent,
+  tile-training-fg: #F3EBE0,
+  tile-training-sub: #B9AC9E,
+  tile-free-bg: transparent,
+  tile-free-fg: #F3EBE0,
+  tile-free-sub: #B9AC9E,
+  tile-other-bg: transparent,
+  tile-other-fg: #F3EBE0,
+  tile-other-sub: #B9AC9E,
+);
+
+$am-look-colorful-dark: (
+  hero-btn-hover-bg: #FDE9E1,
+  hero-tile-num: #231B16,
+  tile-pad: 6px,
+  hero-bg: #C93A0C,
+  hero-fg: #FFFFFF,
+  hero-eyebrow: #FFFFFF,
+  hero-meta: #FFFFFF,
+  hero-tile-bg: #FFFFFF,
+  hero-tile-fg: #B5330A,
+  hero-btn-bg: #FFFFFF,
+  hero-btn-fg: #B5330A,
+  hero-outline: #FFFFFF,
+  hero-outline-hover-fg: #B5330A,
+  hero-shadow: 0 12px 32px rgba(0, 0, 0, .45),
+  nav-chip: 32px,
+  nav-1-bg: #40231A,
+  nav-1-fg: #FF8A5C,
+  nav-2-bg: #1C2A5C,
+  nav-2-fg: #A9BDFA,
+  nav-3-bg: #17382D,
+  nav-3-fg: #8FD9B8,
+  nav-4-bg: #3D2F10,
+  nav-4-fg: #F5C86A,
+  nav-5-bg: #34234F,
+  nav-5-fg: #CDB6F2,
+  nav-current-bg: #FF8A5C,
+  nav-current-fg: #17120F,
+  advice-bg: #3D2F10,
+  advice-fg: #F3EBE0,
+  advice-sub: #F5C86A,
+  strip: linear-gradient(90deg, #FF8A5C 0 25%, #F5C86A 25% 50%, #A9BDFA 50% 75%, #8FD9B8 75%),
+  strip-height: 4px,
+  kind-contest-bg: #40231A,
+  kind-contest-fg: #FF8A5C,
+  kind-training-bg: #17382D,
+  kind-training-fg: #8FD9B8,
+  kind-free-bg: #1C2A5C,
+  kind-free-fg: #A9BDFA,
+  kind-other-bg: #3A3430,
+  kind-other-fg: #D6CCC0,
+  tile-contest-bg: #40231A,
+  tile-contest-fg: #FF8A5C,
+  tile-contest-sub: #FF8A5C,
+  tile-training-bg: #17382D,
+  tile-training-fg: #8FD9B8,
+  tile-training-sub: #8FD9B8,
+  tile-free-bg: #1C2A5C,
+  tile-free-fg: #A9BDFA,
+  tile-free-sub: #A9BDFA,
+  tile-other-bg: #3A3430,
+  tile-other-fg: #D6CCC0,
+  tile-other-sub: #D6CCC0,
+);
+
+// ---- Compile-time values of the soft light look, for Bootstrap's Sass (its functions need real colours) ----------
+// After Bootstrap, _themes.scss points these same names at the CSS custom properties.
+
+$am-ground: map-get($am-base-light, ground);
+$am-surface: map-get($am-base-light, surface);
+$am-sand: map-get($am-base-light, sand);
+$am-ink: map-get($am-base-light, ink);
+$am-soft: map-get($am-base-light, soft);
+$am-line: map-get($am-base-light, line);
+$am-row-line: map-get($am-base-light, row);
+$am-field-border: map-get($am-base-light, field);
+$am-accent: map-get($am-base-light, accent);
+$am-accent-text: map-get($am-base-light, accent-text);
+$am-accent-hover: map-get($am-base-light, accent-hover);
+$am-accent-bg: map-get($am-base-light, accent-bg);
+$am-ok: map-get($am-base-light, ok);
+$am-ok-bg: map-get($am-base-light, ok-bg);
+$am-maybe: map-get($am-base-light, maybe);
+$am-maybe-bg: map-get($am-base-light, maybe-bg);
+$am-no: map-get($am-base-light, no);
+$am-no-bg: map-get($am-base-light, no-bg);
+$am-bad: map-get($am-base-light, bad);
+$am-bad-bg: map-get($am-base-light, bad-bg);
+$am-info: map-get($am-base-light, info);
+$am-info-bg: map-get($am-base-light, info-bg);
 
 // Fonts, self-hosted through Encore (@fontsource-variable/*): no request leaves for a third-party font service
 $am-font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;

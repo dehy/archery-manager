@@ -1,0 +1,238 @@
+// Themes of the redesigned interface: Doux (soft) and Coloré (colorful), each light and dark (tokens: _tokens.scss).
+//
+// <html data-am-theme="soft|colorful" data-am-mode="system|light|dark"> (templates/base_next.html.twig, from
+// User::interfaceTheme / interfaceMode) selects the look. "system" follows prefers-color-scheme in CSS only: no
+// script, no flash on load, nothing to allow in the CSP. A nested element carrying both attributes takes its own look
+// (theme previews of the Apparence page).
+//
+// Adding a theme: a $am-look-<name> and a $am-look-<name>-dark map in _tokens.scss, two selectors below, a case of
+// App\Enum\InterfaceTheme, and its maps in tests/Unit/Theme/ThemeContrastTest.php.
+
+@use "sass:meta";
+
+// --am-<name> for every token, plus --am-<name>-rgb for opaque colours (Bootstrap's rgba(var(--bs-…-rgb), …) needs it)
+@mixin am-tokens($map) {
+  @each $name, $value in $map {
+    --am-#{$name}: #{$value};
+    @if meta.type-of($value) == color and alpha($value) == 1 {
+      --am-#{$name}-rgb: #{red($value)}, #{green($value)}, #{blue($value)};
+    }
+  }
+}
+
+// ---- Bootstrap in dark mode ---------------------------------------------------------------------------------------
+// Bootstrap's Sass compiled the light base tokens into its components (both themes share them), so light needs
+// nothing here and stays exactly as compiled. In dark, its runtime variables are pointed at the tokens.
+
+@mixin am-bootstrap-dark {
+  --#{$prefix}body-bg: var(--am-ground);
+  --#{$prefix}body-bg-rgb: var(--am-ground-rgb);
+  --#{$prefix}body-color: var(--am-ink);
+  --#{$prefix}body-color-rgb: var(--am-ink-rgb);
+  --#{$prefix}emphasis-color: var(--am-ink);
+  --#{$prefix}emphasis-color-rgb: var(--am-ink-rgb);
+  --#{$prefix}secondary-color: var(--am-soft);
+  --#{$prefix}secondary-color-rgb: var(--am-soft-rgb);
+  --#{$prefix}secondary-bg: var(--am-sand);
+  --#{$prefix}secondary-bg-rgb: var(--am-sand-rgb);
+  --#{$prefix}tertiary-color: var(--am-soft);
+  --#{$prefix}tertiary-bg: var(--am-sand);
+  --#{$prefix}tertiary-bg-rgb: var(--am-sand-rgb);
+  --#{$prefix}border-color: var(--am-line);
+  --#{$prefix}border-color-translucent: var(--am-line);
+  --#{$prefix}link-color: var(--am-accent-text);
+  --#{$prefix}link-color-rgb: var(--am-accent-text-rgb);
+  --#{$prefix}link-hover-color: var(--am-link-hover);
+  --#{$prefix}link-hover-color-rgb: var(--am-link-hover-rgb);
+  --#{$prefix}focus-ring-color: var(--am-focus-ring);
+  --#{$prefix}box-shadow-sm: 0 .125rem .25rem var(--am-shadow);
+
+  @each $name, $text, $bg, $border in
+    (primary, accent-text, accent-bg, primary-border),
+    (secondary, no, no-bg, secondary-border),
+    (success, ok, ok-bg, success-border),
+    (warning, maybe, maybe-bg, warning-border),
+    (danger, bad, bad-bg, danger-border),
+    (info, info, info-bg, info-border),
+    (light, ink, sand, secondary-border),
+    (dark, ink, sand, secondary-border)
+  {
+    --#{$prefix}#{$name}-text-emphasis: var(--am-#{$text});
+    --#{$prefix}#{$name}-bg-subtle: var(--am-#{$bg});
+    --#{$prefix}#{$name}-border-subtle: var(--am-#{$border});
+  }
+
+  .card {
+    --#{$prefix}card-bg: var(--am-surface);
+    --#{$prefix}card-border-color: var(--am-line);
+  }
+
+  .dropdown-menu {
+    --#{$prefix}dropdown-bg: var(--am-surface);
+    --#{$prefix}dropdown-border-color: var(--am-line);
+    --#{$prefix}dropdown-link-hover-bg: var(--am-sand);
+    --#{$prefix}dropdown-link-active-color: var(--am-on-accent);
+    --#{$prefix}dropdown-link-active-bg: var(--am-accent);
+    --#{$prefix}dropdown-divider-bg: var(--am-line);
+    --#{$prefix}dropdown-box-shadow: 0 12px 32px var(--am-shadow);
+  }
+
+  .modal {
+    --#{$prefix}modal-bg: var(--am-surface);
+  }
+
+  .list-group {
+    --#{$prefix}list-group-bg: var(--am-surface);
+    --#{$prefix}list-group-disabled-bg: var(--am-surface);
+    --#{$prefix}list-group-active-color: var(--am-on-accent);
+    --#{$prefix}list-group-active-bg: var(--am-accent);
+    --#{$prefix}list-group-active-border-color: var(--am-accent);
+  }
+
+  .nav-pills {
+    --#{$prefix}nav-pills-link-active-bg: var(--am-accent);
+    --#{$prefix}nav-pills-link-active-color: var(--am-on-accent);
+  }
+
+  .form-control,
+  .form-select {
+    background-color: var(--am-surface);
+    border-color: var(--am-field);
+
+    &:focus {
+      background-color: var(--am-surface);
+      border-color: var(--am-focus-border);
+      box-shadow: 0 0 0 $input-btn-focus-width var(--am-focus-ring);
+    }
+  }
+
+  .form-select {
+    --#{$prefix}form-select-bg-img: #{escape-svg($form-select-indicator-dark)};
+  }
+
+  .form-check-input {
+    --#{$prefix}form-check-bg: var(--am-surface);
+
+    &:checked {
+      background-color: var(--am-accent);
+      border-color: var(--am-accent);
+    }
+  }
+
+  .btn-close {
+    filter: var(--#{$prefix}btn-close-white-filter);
+  }
+
+  .btn-primary {
+    --#{$prefix}btn-color: var(--am-on-accent);
+    --#{$prefix}btn-bg: var(--am-accent);
+    --#{$prefix}btn-border-color: var(--am-accent);
+    --#{$prefix}btn-hover-color: var(--am-on-accent);
+    --#{$prefix}btn-hover-bg: var(--am-accent-hover);
+    --#{$prefix}btn-hover-border-color: var(--am-accent-hover);
+    --#{$prefix}btn-active-color: var(--am-on-accent);
+    --#{$prefix}btn-active-bg: var(--am-accent-hover);
+    --#{$prefix}btn-active-border-color: var(--am-accent-hover);
+    --#{$prefix}btn-disabled-color: var(--am-on-accent);
+    --#{$prefix}btn-disabled-bg: var(--am-accent);
+    --#{$prefix}btn-disabled-border-color: var(--am-accent);
+  }
+
+  .btn-outline-dark {
+    --#{$prefix}btn-color: var(--am-ink);
+    --#{$prefix}btn-border-color: var(--am-ink);
+    --#{$prefix}btn-hover-color: var(--am-on-ink);
+    --#{$prefix}btn-hover-bg: var(--am-ink);
+    --#{$prefix}btn-hover-border-color: var(--am-ink);
+    --#{$prefix}btn-active-color: var(--am-on-ink);
+    --#{$prefix}btn-active-bg: var(--am-ink);
+    --#{$prefix}btn-active-border-color: var(--am-ink);
+    --#{$prefix}btn-disabled-color: var(--am-ink);
+    --#{$prefix}btn-disabled-border-color: var(--am-ink);
+  }
+
+  .btn-dark {
+    --#{$prefix}btn-color: var(--am-on-ink);
+    --#{$prefix}btn-bg: var(--am-ink);
+    --#{$prefix}btn-border-color: var(--am-ink);
+    --#{$prefix}btn-hover-color: var(--am-on-ink);
+    --#{$prefix}btn-hover-bg: var(--am-soft);
+    --#{$prefix}btn-hover-border-color: var(--am-soft);
+  }
+
+  .btn-outline-danger {
+    --#{$prefix}btn-color: var(--am-bad);
+    --#{$prefix}btn-border-color: var(--am-bad);
+    --#{$prefix}btn-hover-color: var(--am-bad-bg);
+    --#{$prefix}btn-hover-bg: var(--am-bad);
+    --#{$prefix}btn-hover-border-color: var(--am-bad);
+    --#{$prefix}btn-active-color: var(--am-bad-bg);
+    --#{$prefix}btn-active-bg: var(--am-bad);
+    --#{$prefix}btn-active-border-color: var(--am-bad);
+  }
+}
+
+@mixin am-dark($look) {
+  @include am-tokens($am-base-dark);
+  @include am-tokens($look);
+  @include am-bootstrap-dark;
+  color-scheme: dark;
+}
+
+// ---- Looks --------------------------------------------------------------------------------------------------------
+// Same specificity for the base, so a later rule wins: light, then colorful, then dark; theme + mode win over both.
+
+:root,
+[data-am-theme] {
+  @include am-tokens($am-base-light);
+  @include am-tokens($am-look-soft);
+  color-scheme: light;
+}
+
+[data-am-theme="colorful"] {
+  @include am-tokens($am-look-colorful);
+}
+
+[data-am-mode="dark"] {
+  @include am-dark($am-look-soft-dark);
+}
+
+[data-am-mode="dark"][data-am-theme="colorful"] {
+  @include am-tokens($am-look-colorful-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-am-mode="system"] {
+    @include am-dark($am-look-soft-dark);
+  }
+
+  [data-am-mode="system"][data-am-theme="colorful"] {
+    @include am-tokens($am-look-colorful-dark);
+  }
+}
+
+// ---- From here on, the am-* styles read the tokens at runtime ---------------------------------------------------
+// No literal colour and no rgba() of a token below this line: add a token instead.
+
+$am-ground: var(--am-ground);
+$am-surface: var(--am-surface);
+$am-sand: var(--am-sand);
+$am-ink: var(--am-ink);
+$am-soft: var(--am-soft);
+$am-line: var(--am-line);
+$am-row-line: var(--am-row);
+$am-field-border: var(--am-field);
+$am-accent: var(--am-accent);
+$am-accent-text: var(--am-accent-text);
+$am-accent-hover: var(--am-accent-hover);
+$am-accent-bg: var(--am-accent-bg);
+$am-ok: var(--am-ok);
+$am-ok-bg: var(--am-ok-bg);
+$am-maybe: var(--am-maybe);
+$am-maybe-bg: var(--am-maybe-bg);
+$am-no: var(--am-no);
+$am-no-bg: var(--am-no-bg);
+$am-bad: var(--am-bad);
+$am-bad-bg: var(--am-bad-bg);
+$am-info: var(--am-info);
+$am-info-bg: var(--am-info-bg);

@@ -5,13 +5,15 @@ Stylesheet of the redesigned interface (redesign roadmap, milestone M2). It is b
 
 | File | Content |
 |---|---|
-| `_tokens.scss` | Kit tokens (`$am-*`) and the Bootstrap variables they drive |
+| `_tokens.scss` | Colour tokens of the four looks (maps `$am-base-*`, `$am-look-*`), and the Bootstrap variables they drive |
+| `_themes.scss` | Tokens as CSS custom properties (`--am-*`) per look, Bootstrap's runtime variables in dark; from here on `$am-*` are `var(--am-*)` |
 | `_status.scss` | Status chips `.am-status-{ok,maybe,no,bad,info}` and `.am-tag` |
 | `_shell.scss` | Sidebar, account block, mobile tab bar (`templates/base_next.html.twig`) |
 | `_agenda.scss` | Page heading `.am-page-head`, next-event hero `.am-hero`, event list `.am-agenda`, `.am-facts`, `.am-card-sand` |
 | `_event.scss` | Event page: back link `.am-crumb`, answer choices as option cards `.am-options` / `.am-option` |
 | `_calendar.scss` | Calendar: kinds of event `.am-type-{contest,training,free,other}`, month grid `.am-calendar-*` |
-| `app.scss` | Entry: tokens → Bootstrap → shared page styles (`../_events`, `../_pages`) → status → shell → agenda → event → calendar |
+| `_appearance.scss` | Mon compte → Apparence: theme cards with their preview, mode segmented control |
+| `app.scss` | Entry: tokens → Bootstrap → shared page styles (`../_events`, `../_pages`) → themes → status → shell → agenda → event → calendar → appearance |
 
 Encore entry: `theme_next` (`assets/theme_next.ts`, which also loads the self-hosted fonts). Scripts stay in `app`.
 
@@ -24,22 +26,53 @@ A page migrated in M3 to M6 gets its own `*_next.html.twig` body, which its cont
 screens that list events (type, date line, status chip, one-tap presence) are macros in
 `templates/_next/event_macros.html.twig`.
 
-## Tokens
+## Themes and tokens
 
-| Token | Value | Use |
+Two themes, each in a light and a dark version, chosen per user in **Mon compte → Apparence**
+(`User::interfaceTheme`, `User::interfaceMode`, page `user/appearance_next.html.twig`):
+
+| Look | Theme | Mode |
 |---|---|---|
-| `$am-ground` | `#FBF3E4` | Page background |
-| `$am-surface` | `#FFFFFF` | Cards, menus |
-| `$am-sand` | `#F4E8D2` | Sidebar, quiet cards |
-| `$am-ink` | `#231B16` | Text, dark surfaces |
-| `$am-soft` | `#5C5048` | Secondary text |
-| `$am-line` | `#E6D6B8` | Borders |
-| `$am-field-border` | `#8C7C66` | Form field borders (4:1 on white) |
-| `$am-accent` | `#C93A0C` | Primary buttons, current item (white text 5.1:1) |
-| `$am-accent-text` | `#B5330A` | Links, accent text |
+| `soft` | Doux (default): warm cream, sand sidebar, ink hero card, neutral icons | light |
+| `colorful` | Coloré: orange hero card, one tint per kind of event, coloured sidebar icons, licence strip | light |
+| `soft-dark`, `colorful-dark` | the same in dark | dark |
 
-Statuses (text / background): ok `#14503F` / `#DDF0E8`, maybe `#6B4600` / `#FBE6B8`, no `#4A3F37` / `#E9E4DD`,
-bad `#9A2323` / `#FBE0DE`, info `#1E3C9E` / `#E1E8F8`. A status always carries an icon and a label.
+`<html data-am-theme="soft|colorful" data-am-mode="system|light|dark">` selects the look; *system* follows
+`prefers-color-scheme` in CSS only (no script, nothing to allow in the CSP, no flash on load). An element carrying
+both attributes takes its own look (the previews of the Apparence page).
+
+Every colour is a token of `_tokens.scss`, written once as a literal: `$am-base-light` / `$am-base-dark` (shared by
+both themes: ground, surface, sand, ink, soft, line, row, field, accent…, statuses) and `$am-look-<look>` (hero-*,
+nav-*, advice-*, strip, kind-*, tile-*). `_themes.scss` turns them into `--am-<name>` (plus `--am-<name>-rgb`).
+
+- **Rule for the am-* styles**: tokens only, `var(--am-*)` or `$am-*` after `_themes.scss`. No literal colour, no
+  `rgba()` of a fixed colour, no per-theme markup: add a token to the four looks instead.
+- **Bootstrap**: compiled with the light base tokens, which both themes share, so light needs nothing more (Doux
+  light is exactly as before the themes). In dark, `_themes.scss` points Bootstrap's runtime variables (body, links,
+  borders, alerts, cards, dropdowns, modals, list groups, forms, buttons) at the tokens.
+- **Contrast**: `tests/Unit/Theme/ThemeContrastTest.php` reads the maps and checks every text pair (4.5:1) and icon
+  or border (3:1) in the four looks; it fails when a look misses a token the others have.
+- **Adding a theme**: a `$am-look-<name>` and a `$am-look-<name>-dark` map (same keys as the others), two selectors in
+  `_themes.scss`, a case of `App\Enum\InterfaceTheme` (label, description), the looks of `ThemeContrastTest`.
+
+Base tokens, light / dark:
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `ground` | `#FBF3E4` | `#17120F` | Page background |
+| `surface` | `#FFFFFF` | `#231B16` | Cards, menus |
+| `sand` | `#F4E8D2` | `#2C231D` | Sidebar, quiet cards |
+| `ink` | `#231B16` | `#F3EBE0` | Text |
+| `soft` | `#5C5048` | `#B9AC9E` | Secondary text |
+| `line` | `#E6D6B8` | `#3A2F27` | Borders (decorative) |
+| `field` | `#8C7C66` | `#9C8D7A` | Form field borders |
+| `accent` | `#C93A0C` | `#FF8A5C` | Primary buttons, current item (text on it: `on-accent`, white / near black) |
+| `accent-text` | `#B5330A` | `#FF8A5C` | Links, accent text |
+
+Statuses (text / background), light: ok `#14503F` / `#DDF0E8`, maybe `#6B4600` / `#FBE6B8`, no `#4A3F37` / `#E9E4DD`,
+bad `#9A2323` / `#FBE0DE`, info `#1E3C9E` / `#E1E8F8`; dark: ok `#8FD9B8` / `#17382D`, maybe `#F5C86A` / `#3D2F10`,
+no `#D6CCC0` / `#3A3430`, bad `#FFB3AD` / `#4A1F1F`, info `#A9BDFA` / `#1C2A5C`. A status always carries an icon and
+a label.
 
 Fonts: Inter (body) and Bricolage Grotesque (headings), self-hosted with `@fontsource-variable/*`, so no visitor
 request goes to a third-party font service.

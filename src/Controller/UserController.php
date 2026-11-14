@@ -6,12 +6,15 @@ namespace App\Controller;
 
 use App\Entity\Club;
 use App\Entity\User;
+use App\Enum\InterfaceMode;
+use App\Enum\InterfaceTheme;
 use App\Form\Type\UserFormType;
 use App\Helper\LicenseeHelper;
 use App\Helper\SeasonHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -56,6 +59,47 @@ class UserController extends BaseController
             : 'Vous êtes revenu·e à l\'interface actuelle.');
 
         return $this->redirectToRoute('app_user_account');
+    }
+
+    /** Theme and mode of the redesigned interface (new interface only: today's interface has a single look). */
+    #[Route('/my-account/appearance', name: 'app_user_appearance', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function appearance(): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        if (!$user->hasNewInterface()) {
+            return $this->redirectToRoute('app_user_account');
+        }
+
+        return $this->render('user/appearance_next.html.twig', [
+            'themes' => InterfaceTheme::cases(),
+            'modes' => InterfaceMode::cases(),
+        ]);
+    }
+
+    #[Route('/my-account/appearance', name: 'app_user_appearance_save', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function saveAppearance(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('appearance', $request->getPayload()->getString('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $theme = InterfaceTheme::tryFrom($request->getPayload()->getString('theme'));
+        $mode = InterfaceMode::tryFrom($request->getPayload()->getString('mode'));
+        if (!$theme instanceof InterfaceTheme || !$mode instanceof InterfaceMode) {
+            throw new BadRequestHttpException('Unknown theme or mode.');
+        }
+
+        /** @var User $user */
+        $user = $this->getUser();
+        $user->setInterfaceTheme($theme)->setInterfaceMode($mode);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', \sprintf('Apparence enregistrée : thème %s, mode %s.', $theme->label(), mb_strtolower($mode->label())));
+
+        return $this->redirectToRoute('app_user_appearance');
     }
 
     #[Route('/user/{id}', name: 'app_user_show', requirements: ['id' => '\d+'])]

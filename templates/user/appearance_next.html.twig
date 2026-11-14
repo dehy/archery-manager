@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+{#
+    Mon compte → Apparence (themes canvas, board "Réglages · Apparence"): theme (Doux, Coloré) and mode (system, light,
+    dark) of the redesigned interface, saved on the account (UserController::saveAppearance). Each theme card shows a
+    small preview in that theme; assets/controllers/appearance_controller.ts previews the choice on the whole page
+    before it is saved. New interface only.
+#}
+
+{% block title %}Apparence{% endblock %}
+
+{% block body %}
+    {% set current_theme = app.user.interfaceTheme %}
+    {% set current_mode = app.user.interfaceMode %}
+
+    <a href="{{ path('app_user_account') }}" class="am-crumb">
+        <em class="fa-solid fa-chevron-left" aria-hidden="true"></em>Mon compte
+    </a>
+
+    <header class="mb-4">
+        <h1>Apparence</h1>
+        <p class="text-body-secondary mb-0">Choisissez le thème de l'application et son mode d'affichage.</p>
+    </header>
+
+    <form method="post" action="{{ path('app_user_appearance_save') }}" class="am-appearance"
+          data-controller="appearance" data-action="change->appearance#apply">
+        <input type="hidden" name="_token" value="{{ csrf_token('appearance') }}">
+
+        <fieldset class="card am-appearance-group">
+            <legend>Thème</legend>
+            <div class="am-theme-grid">
+                {% for theme in themes %}
+                    <label class="am-theme-card" for="theme-{{ theme.value }}">
+                        {# The same mini dashboard in each theme, in the current mode #}
+                        <span class="am-theme-preview" aria-hidden="true" data-appearance-target="preview"
+                              data-am-theme="{{ theme.value }}" data-am-mode="{{ current_mode.value }}">
+                            <span class="am-theme-preview-hero">
+                                <span class="am-theme-preview-eyebrow">Prochain rendez-vous</span>
+                                <span class="am-theme-preview-title">Entraînement</span>
+                                <span class="am-theme-preview-button">Je viens</span>
+                            </span>
+                            <span class="d-flex flex-wrap gap-1">
+                                <span class="am-theme-preview-tile">15 nov.</span>
+                                <span class="am-status am-status-ok">Présent·e</span>
+                                <span class="am-status am-status-maybe">Réponse attendue</span>
+                            </span>
+                        </span>
+                        <span class="am-theme-choice">
+                            <input class="am-theme-radio" type="radio" id="theme-{{ theme.value }}" name="theme"
+                                   value="{{ theme.value }}"{{ theme == current_theme ? ' checked' }}>
+                            <span>
+                                <span class="am-theme-name">{{ theme.label }}</span>
+                                <span class="am-theme-description">{{ theme.description }}</span>
+                            </span>
+                        </span>
+                    </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <fieldset class="card am-appearance-group">
+            <legend>Mode</legend>
+            <div class="am-segmented">
+                {% for mode in modes %}
+                    <label for="mode-{{ mode.value }}">
+                        <input type="radio" id="mode-{{ mode.value }}" name="mode" value="{{ mode.value }}"
+                               data-help="{{ mode.help }}" aria-describedby="am-mode-help"{{ mode == current_mode ? ' checked' }}>
+                        <em class="fa-solid fa-{{ {system: 'display', light: 'sun', dark: 'moon'}[mode.value] }}" aria-hidden="true"></em>
+                        {{ mode.label }}
+                    </label>
+                {% endfor %}
+            </div>
+            <p id="am-mode-help" class="small text-body-secondary mt-3 mb-0" data-appearance-target="help">{{ current_mode.help }}</p>
+        </fieldset>
+
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            <span class="small text-body-secondary">Votre choix est enregistré sur votre compte.</span>
+        </div>
+    </form>
+{% endblock %}

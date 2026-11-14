@@ -1,0 +1,183 @@
+// Mon compte → Apparence (themes canvas, board "Réglages · Apparence"). Markup: templates/user/appearance_next.html.twig.
+// Tokens only: each theme preview takes its own look from its data-am-theme / data-am-mode.
+
+.am-appearance {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 880px;
+}
+
+.am-appearance-group {
+  min-width: 0;
+  margin: 0;
+  padding: 24px;
+
+  // Bootstrap floats the legend inside the fieldset: it reads as the card title
+  legend {
+    margin: 0 0 12px;
+    padding: 0;
+    font-family: $am-font-heading;
+    font-size: 1.375rem;
+    font-weight: 700;
+  }
+}
+
+// ---- Theme cards ----------------------------------------------------------------------------------------------------
+
+.am-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 20px;
+}
+
+.am-theme-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border: 2px solid var(--am-line);
+  border-radius: 20px;
+  background: var(--am-surface);
+  cursor: pointer;
+
+  // Chosen: accent border and ring, plus the filled radio (never colour alone)
+  &:has(input:checked) {
+    border-color: var(--am-accent);
+    box-shadow: 0 0 0 2px var(--am-accent);
+  }
+
+  &:has(input:focus-visible) {
+    outline: 3px solid var(--am-accent-text);
+    outline-offset: 3px;
+  }
+}
+
+.am-theme-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--am-line);
+  border-radius: 14px;
+  background: var(--am-ground);
+  color: var(--am-ink);
+
+  .am-status {
+    padding: 2px 8px;
+    font-size: .6875rem;
+  }
+}
+
+.am-theme-preview-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--am-hero-bg);
+  color: var(--am-hero-fg);
+  box-shadow: var(--am-hero-shadow);
+}
+
+.am-theme-preview-eyebrow {
+  font-size: .625rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--am-hero-eyebrow);
+}
+
+.am-theme-preview-title {
+  margin: 2px 0 8px;
+  font-family: $am-font-heading;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.am-theme-preview-button {
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--am-hero-btn-bg);
+  color: var(--am-hero-btn-fg);
+  font-size: .6875rem;
+  font-weight: 600;
+}
+
+.am-theme-preview-tile {
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--am-kind-contest-bg);
+  color: var(--am-kind-contest-fg);
+  font-size: .6875rem;
+  font-weight: 700;
+}
+
+.am-theme-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.am-theme-radio {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  accent-color: var(--am-accent);
+}
+
+.am-theme-name {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.am-theme-description {
+  display: block;
+  font-size: .875rem;
+  color: var(--am-soft);
+}
+
+// ---- Mode: segmented control ----------------------------------------------------------------------------------------
+
+.am-segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-self: flex-start;
+  padding: 4px;
+  border: 1px solid var(--am-line);
+  border-radius: 999px;
+  background: var(--am-sand);
+
+  label {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 20px;
+    border-radius: 999px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:has(input:checked) {
+      background: var(--am-accent);
+      color: var(--am-on-accent);
+    }
+
+    &:has(input:focus-visible) {
+      outline: 3px solid var(--am-accent-text);
+      outline-offset: 2px;
+    }
+  }
+
+  // The radio stays focusable and announced; the whole segment shows its state
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+}
