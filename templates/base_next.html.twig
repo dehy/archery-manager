@@ -62,7 +62,7 @@
                 <li>{{ _self.navLink('app_homepage', 'Accueil', 'house', '/^app_homepage/', 0, 1) }}</li>
                 {% if am_has_license %}
                     <li>{{ _self.navLink('app_event_index', 'Calendrier', 'calendar', '/^app_event_(index|show|results)/', 0, 2) }}</li>
-                    <li>{{ _self.navLink('app_licensee_index', 'Annuaire', 'users', '/^app_licensee_(index|profile)/', 0, 3) }}</li>
+                    <li>{{ _self.navLink('app_licensee_index', 'Annuaire', 'users', '/^app_licensee_(index|profile|edit)/', 0, 3) }}</li>
                     <li>{{ _self.navLink('app_club_show', 'Le club', 'building', '/^app_club_show/', 0, 4) }}</li>
                     <li>{{ _self.navLink('app_licensee_my_profile', 'Moi', 'user', '/^(app_licensee_my_profile|app_practice_advice)/', 0, 5) }}</li>
                 {% else %}

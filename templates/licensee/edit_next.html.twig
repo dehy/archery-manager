@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+{#
+    Licensee edit page of the redesigned interface. No board of its own: it follows the form of the canvas board
+    MemberWizard (back link, heading, one card of fields two by two, Annuler / Enregistrer). Same form and same access
+    as today (LicenseeController::edit, checkLicenseeAccess). Today's interface keeps licensee/edit.html.twig.
+#}
+
+{% set own = app.user.licensees.contains(licensee) %}
+{% set name = own ? licensee.fullname : licensee_display_name(licensee) %}
+
+{% block title %}Modifier · {{ name }}{% endblock %}
+
+{% block body %}
+    <div class="am-reading">
+        <a href="{{ path('app_licensee_profile', {id: licensee.id}) }}" class="am-crumb">
+            <em class="fa-solid fa-chevron-left" aria-hidden="true"></em>{{ name }}
+        </a>
+
+        <header class="mb-4">
+            <h1>Modifier le profil</h1>
+            <p class="text-body-secondary mb-0">La licence et les groupes sont gérés par le club.</p>
+        </header>
+
+        {{ form_start(form, {attr: {class: 'card'}}) }}
+            <div class="card-body">
+                <h2 class="h4 mb-3">Identité</h2>
+                <div class="row g-3">
+                    <div class="col-md-6">{{ form_row(form.firstname, {row_attr: {class: 'mb-0'}}) }}</div>
+                    <div class="col-md-6">{{ form_row(form.lastname, {row_attr: {class: 'mb-0'}}) }}</div>
+                    <div class="col-md-6">{{ form_row(form.gender, {row_attr: {class: 'mb-0'}}) }}</div>
+                    <div class="col-md-6">{{ form_row(form.birthdate, {row_attr: {class: 'mb-0'}}) }}</div>
+                    <div class="col-md-6">
+                        {{ form_row(form.fftaMemberCode, {
+                            row_attr: {class: 'mb-0'},
+                            help: 'Laissez vide si le licencié n\'a pas encore de code FFTA.',
+                        }) }}
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-between gap-2 mt-4">
+                    <a href="{{ path('app_licensee_profile', {id: licensee.id}) }}" class="btn btn-outline-dark">Annuler</a>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
