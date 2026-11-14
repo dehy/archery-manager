@@ -29,6 +29,7 @@ use App\Repository\ContestEventRepository;
 use App\Repository\EventAttachmentRepository;
 use App\Repository\EventRepository;
 use App\Repository\ResultRepository;
+use App\Security\Voter\EventVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use League\Flysystem\FilesystemOperator;
@@ -200,6 +201,9 @@ class EventController extends BaseController
         if (!$event instanceof Event) {
             throw $this->createNotFoundException();
         }
+
+        // Mandate and results files: the club admins of the event's club (and admins) only
+        $this->denyAccessUnlessGranted(EventVoter::EDIT, $event);
 
         /** @var EventAttachmentRepository $eventAttachmentRepository */
         $eventAttachmentRepository = $this->entityManager->getRepository(EventAttachment::class);
@@ -417,6 +421,9 @@ class EventController extends BaseController
         if (!$event instanceof ContestEvent) {
             throw $this->createNotFoundException();
         }
+
+        // Entering results: the club admins of the event's club (and admins) only
+        $this->denyAccessUnlessGranted(EventVoter::EDIT, $event);
 
         /** @var ResultRepository $resultRepository */
         $resultRepository = $this->entityManager->getRepository(Result::class);
