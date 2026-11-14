@@ -24,6 +24,9 @@ Encore
     .addEntry('unauthenticated', './assets/unauthenticated.ts')
     .addEntry('friendly_captcha', './assets/friendly_captcha.ts')
     .addEntry('app', './assets/app.ts')
+    // One stylesheet per layout while the redesign is built (templates/base.html.twig picks the layout per user)
+    .addEntry('theme_legacy', './assets/theme_legacy.ts')
+    .addEntry('theme_next', './assets/theme_next.ts')
     .addEntry('events_show', './assets/events_show.ts')
     .addEntry('licensees_show', './assets/licensees_show.ts')
 

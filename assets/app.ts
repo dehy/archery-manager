@@ -8,8 +8,8 @@
 import "./observability"
 import "./cookie-consent";
 
-// any CSS you import will output into a single css file (app.css in this case)
-import "./styles/app.scss";
+// The layout's stylesheet comes from its theme entry (theme_legacy.ts or theme_next.ts, see base_*.html.twig);
+// this entry only carries what both layouts share.
 import "tom-select/dist/css/tom-select.bootstrap5.css";
 
 // start the Stimulus application
@@ -51,6 +51,7 @@ import {
   faCheckCircle,
   faChevronLeft,
   faChevronRight,
+  faChevronUp,
   faCircleArrowRight,
   faCircleInfo,
   faCircleRight,
@@ -193,6 +194,7 @@ library.add(
     faCheckCircle,
     faChevronLeft,
     faChevronRight,
+    faChevronUp,
     faCircleArrowRight,
     faCircleInfo,
     faCircleRight,

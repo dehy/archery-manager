@@ -1,0 +1,245 @@
+// Redesigned shell (canvas boards Main, AccountMenu, MobileHome, MobilePlus): a sidebar from the lg breakpoint,
+// a bottom tab bar below it. Markup: templates/base_next.html.twig.
+
+$am-sidebar-width: 248px;
+
+:focus-visible {
+  outline: 2px solid $am-accent;
+  outline-offset: 2px;
+}
+
+.am-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+// ---- Sidebar ------------------------------------------------------------------------------------------------------
+
+.am-sidebar {
+  position: sticky;
+  top: 0;
+  flex: 0 0 $am-sidebar-width;
+  height: 100vh;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+  background: $am-sand;
+  border-right: 1px solid $am-line;
+}
+
+.am-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: $am-ink;
+  font-family: $am-font-heading;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-decoration: none;
+
+  img {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+
+  &:hover {
+    color: $am-ink;
+  }
+}
+
+.am-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.am-nav-heading {
+  margin: 14px 14px 4px;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: $am-soft;
+}
+
+.am-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  color: $am-no;
+  font-weight: 500;
+  text-decoration: none;
+
+  .am-nav-icon {
+    flex: 0 0 20px;
+    text-align: center;
+  }
+
+  .badge {
+    margin-left: auto;
+  }
+
+  &:hover {
+    color: $am-ink;
+    background: rgba($am-surface, .6);
+  }
+
+  &[aria-current="page"] {
+    color: $am-ink;
+    font-weight: 600;
+    background: $am-surface;
+    box-shadow: 0 1px 2px rgba(60, 40, 10, .08);
+
+    .am-nav-icon {
+      color: $am-accent;
+    }
+  }
+}
+
+// Account block at the bottom of the sidebar: opens the account menu (archer, Mon compte, log out)
+.am-me {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid $am-line;
+  border-radius: 14px;
+  background: $am-surface;
+  color: $am-ink;
+  text-align: left;
+
+  &::after {
+    display: none; // no Bootstrap caret: the chevron icon says it opens
+  }
+
+  .am-me-name {
+    display: block;
+    font-size: .875rem;
+    font-weight: 700;
+  }
+
+  .am-me-season {
+    display: block;
+    font-size: .8125rem;
+    color: $am-soft;
+  }
+}
+
+.am-account-menu {
+  min-width: 260px;
+}
+
+.am-avatar {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: $am-sand;
+}
+
+.am-avatar-sm {
+  flex-basis: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+// ---- Content ------------------------------------------------------------------------------------------------------
+
+.am-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 36px 32px 56px;
+
+  @include media-breakpoint-up(xxl) {
+    padding-right: 48px;
+    padding-left: 48px;
+  }
+}
+
+.am-mobile-back {
+  display: none;
+}
+
+.am-tabbar {
+  display: none;
+}
+
+// ---- Small screens: tab bar instead of the sidebar ---------------------------------------------------------------
+
+@include media-breakpoint-down(lg) {
+  .am-sidebar {
+    display: none;
+  }
+
+  .am-main {
+    padding: 24px 16px calc(84px + env(safe-area-inset-bottom));
+  }
+
+  .am-mobile-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    margin-bottom: 12px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .am-tabbar {
+    display: block;
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: $zindex-fixed;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+    background: $am-surface;
+    border-top: 1px solid $am-line;
+
+    ul {
+      display: flex;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      flex: 1 1 0;
+    }
+
+    a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      min-height: 52px;
+      color: $am-soft;
+      font-size: .75rem;
+      font-weight: 500;
+      text-decoration: none;
+
+      &[aria-current="page"] {
+        color: $am-accent-text;
+        font-weight: 600;
+      }
+    }
+
+    .am-tab-icon {
+      font-size: 1.25rem;
+    }
+  }
+}

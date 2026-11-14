@@ -1,0 +1,122 @@
+// Design tokens of the redesign (canvas UI kit, kit.css), then the Bootstrap variables they drive.
+// Decisions (roadmap M0): one product accent for every club, near-black ink for dark surfaces.
+// Contrast is checked for every text pair: keep it so when changing a value (WCAG AA, 4.5:1 for text, 3:1 for borders).
+
+// Surfaces and text
+$am-ground: #FBF3E4;        // page background
+$am-surface: #FFFFFF;       // cards, menus
+$am-sand: #F4E8D2;          // sidebar, quiet cards
+$am-ink: #231B16;           // text, dark surfaces
+$am-soft: #5C5048;          // secondary text (7:1 on ground)
+$am-line: #E6D6B8;          // card and section borders
+$am-row-line: #EFE3CB;      // separators inside lists and tables
+$am-field-border: #8C7C66;  // form fields: 4:1 on white (non-text contrast needs 3:1)
+
+// Accent: orange of the app icon. White text on it: 5.1:1
+$am-accent: #C93A0C;
+$am-accent-text: #B5330A;   // links and accent text on light surfaces
+$am-accent-hover: #A92F08;
+$am-accent-bg: #FDE9E1;
+
+// Statuses: always shown with an icon and a label, never by colour alone
+$am-ok: #14503F;     $am-ok-bg: #DDF0E8;      // present, registered, validated
+$am-maybe: #6B4600;  $am-maybe-bg: #FBE6B8;   // interested, pending, answer expected
+$am-no: #4A3F37;     $am-no-bg: #E9E4DD;      // absent, cancelled, inactive
+$am-bad: #9A2323;    $am-bad-bg: #FBE0DE;     // rejected, overdue, errors
+$am-info: #1E3C9E;   $am-info-bg: #E1E8F8;    // information
+
+// Fonts, self-hosted through Encore (@fontsource-variable/*): no request leaves for a third-party font service
+$am-font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+$am-font-heading: 'Bricolage Grotesque Variable', $am-font-body;
+
+// ---- Bootstrap ----------------------------------------------------------------------------------------------------
+
+$primary: $am-accent;
+$secondary: $am-soft;
+$success: $am-ok;
+$info: $am-info;
+$warning: #D98E04;   // only as a background, with ink text (6.2:1)
+$danger: $am-bad;
+$light: $am-sand;
+$dark: $am-ink;
+$color-contrast-dark: $am-ink;
+
+$primary-text-emphasis: $am-accent-text;    $primary-bg-subtle: $am-accent-bg;    $primary-border-subtle: #F6C3AE;
+$secondary-text-emphasis: $am-no;           $secondary-bg-subtle: $am-no-bg;      $secondary-border-subtle: #D5CCC0;
+$success-text-emphasis: $am-ok;             $success-bg-subtle: $am-ok-bg;        $success-border-subtle: #B9DDCD;
+$warning-text-emphasis: $am-maybe;          $warning-bg-subtle: $am-maybe-bg;     $warning-border-subtle: #F3CF7E;
+$danger-text-emphasis: $am-bad;             $danger-bg-subtle: $am-bad-bg;        $danger-border-subtle: #F2B9B5;
+$info-text-emphasis: $am-info;              $info-bg-subtle: $am-info-bg;         $info-border-subtle: #B9C8EE;
+$light-bg-subtle: $am-ground;
+
+$body-bg: $am-ground;
+$body-color: $am-ink;
+$body-secondary-color: $am-soft;
+$body-tertiary-bg: $am-sand;
+$border-color: $am-line;
+$link-color: $am-accent-text;
+$link-hover-color: #8F2808;
+
+// Bootstrap 5.3 paints components with the body background: surfaces stay white on the warm ground
+$card-bg: $am-surface;
+$dropdown-bg: $am-surface;
+$list-group-bg: $am-surface;
+$modal-content-bg: $am-surface;
+$offcanvas-bg-color: $am-surface;
+$accordion-bg: $am-surface;
+$pagination-bg: $am-surface;
+$input-bg: $am-surface;
+$table-bg: transparent;
+
+$font-family-sans-serif: $am-font-body;
+$headings-font-family: $am-font-heading;
+$headings-font-weight: 700;
+$h1-font-size: 2.25rem;
+$h2-font-size: 1.375rem;
+$h3-font-size: 1.0625rem;
+$h4-font-size: 1.0625rem;
+$h5-font-size: 1rem;
+$h6-font-size: .875rem;
+
+$border-radius: .75rem;
+$border-radius-sm: .5rem;
+$border-radius-lg: 1rem;
+$border-radius-xl: 1.5rem;
+
+$card-border-radius: 1.5rem;
+$card-border-color: $am-line;
+$card-cap-bg: transparent;
+$card-spacer-y: 1.5rem;
+$card-spacer-x: 1.5rem;
+
+$btn-border-radius: 50rem;
+$btn-border-radius-sm: 50rem;
+$btn-border-radius-lg: 50rem;
+$btn-border-width: 2px;
+$btn-font-weight: 600;
+$btn-padding-y: .5625rem;
+$btn-padding-x: 1.25rem;
+
+$input-border-color: $am-field-border;
+$input-border-radius: .75rem;
+$input-padding-y: .75rem;
+$input-padding-x: .875rem;
+$form-label-font-weight: 600;
+
+$table-cell-padding-y: .875rem;
+$table-cell-padding-x: .75rem;
+$table-th-font-weight: 600;
+
+$dropdown-border-radius: 1.125rem;
+$dropdown-border-color: $am-line;
+$dropdown-box-shadow: 0 12px 32px rgba(60, 40, 10, .16);
+$dropdown-link-hover-bg: $am-sand;
+$dropdown-padding-x: .5rem;
+$dropdown-item-padding-y: .625rem;
+
+$alert-border-radius: 1rem;
+$badge-border-radius: 50rem;
+$modal-content-border-radius: 1.5rem;
+
+// Kept from today's stylesheet, used by page bodies
+$discord: #7289da;
