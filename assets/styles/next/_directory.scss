@@ -1,0 +1,89 @@
+// Club directory of the redesigned interface (canvas board Directory). Markup: templates/licensee/index_next.html.twig.
+// Tokens only (see _themes.scss).
+
+// Search and filters above a list
+.am-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  > div {
+    flex: 1 1 200px;
+  }
+
+  > .am-filters-search {
+    flex: 1 1 280px;
+  }
+}
+
+.am-filters-search {
+  position: relative;
+
+  .fa-magnifying-glass,
+  > svg {
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    transform: translateY(-50%);
+    color: var(--am-soft);
+  }
+
+  .form-control {
+    padding-left: 44px;
+  }
+}
+
+// ---- Cards --------------------------------------------------------------------------------------------------------
+
+.am-directory {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.am-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 20px 12px;
+  color: var(--am-ink);
+  text-align: center;
+  text-decoration: none;
+
+  &:is(a):hover {
+    color: var(--am-ink);
+    border-color: var(--am-accent);
+  }
+}
+
+.am-person-photo {
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  background: var(--am-sand);
+  object-fit: cover;
+}
+
+.am-person-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--am-ink);
+  font-family: $am-font-heading;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.am-person-name {
+  margin: 0;
+  font-family: $am-font-body;
+  font-size: 1rem;
+  font-weight: 700;
+}
