@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+{#
+    The archer's practice advice (redesigned interface): current ones, newest first, then the archived ones.
+    Reached from the profile ("Moi").
+#}
+
+{% block title %}Mes conseils{% endblock %}
+
+{% block body %}
+    <a href="{{ path('app_licensee_my_profile') }}" class="am-crumb">
+        <em class="fa-solid fa-chevron-left" aria-hidden="true"></em>Mon profil
+    </a>
+
+    <header class="am-page-head">
+        <div>
+            <h1>Mes conseils</h1>
+            <p class="text-body-secondary mb-0">Les conseils personnels de vos coachs.</p>
+        </div>
+    </header>
+
+    {% if current is empty and archived is empty %}
+        <section class="card">
+            <div class="card-body text-center py-5">
+                <h2>Pas encore de conseil</h2>
+                <p class="text-body-secondary mb-0">Les conseils que vos coachs écrivent pour vous apparaîtront ici.</p>
+            </div>
+        </section>
+    {% else %}
+        <div class="d-flex flex-column gap-4">
+            {{ _self.list('Conseils', 'am-advice-current', current, attachment_counts, 'Aucun conseil en cours.') }}
+            {% if archived is not empty %}
+                {{ _self.list('Archivés', 'am-advice-archived', archived, attachment_counts) }}
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% macro list(title, id, advices, attachment_counts, empty = null) %}
+    <section class="card" aria-labelledby="{{ id }}">
+        <div class="card-body pb-2">
+            <h2 id="{{ id }}" class="mb-0">{{ title }}</h2>
+        </div>
+        {% if advices is empty %}
+            <p class="card-body pt-0 text-body-secondary mb-0">{{ empty }}</p>
+        {% else %}
+            <ul class="am-agenda">
+                {% for advice in advices %}
+                    {% set files = attachment_counts[advice.id] ?? 0 %}
+                    <li class="am-agenda-item">
+                        <a class="am-agenda-link" href="{{ path('app_practice_advice_show', {advice: advice.id}) }}">
+                            <span class="am-agenda-title">{{ advice.title }}</span>
+                            <span class="am-agenda-meta">
+                                {{ advice.createdAt|format_date(pattern='d MMMM yyyy', locale='fr') }}
+                                {%- if advice.author %} · {{ licensee_display_name(advice.author) }}{% endif %}
+                                {%- if files > 0 %} · {{ files }} pièce{{ files > 1 ? 's' }} jointe{{ files > 1 ? 's' }}{% endif %}
+                            </span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </section>
+{% endmacro %}

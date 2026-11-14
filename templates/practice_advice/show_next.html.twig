@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+{#
+    A coach's advice in the redesigned interface (canvas board Advice): the Markdown text, rendered and sanitized by
+    advice_html (never |raw), and its attachments. Personal: only the archer it was written for reads it.
+    Today's interface keeps practice_advice/show.html.twig.
+#}
+
+{% block title %}{{ advice.title }}{% endblock %}
+
+{% block body %}
+    <div class="am-reading">
+        <a href="{{ path('app_practice_advice_index') }}" class="am-crumb">
+            <em class="fa-solid fa-chevron-left" aria-hidden="true"></em>Mes conseils
+        </a>
+
+        <header class="mb-4">
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                <span class="am-tag">Conseil personnel</span>
+                {% if advice.archivedAt %}
+                    <span class="am-status am-status-no"><em class="fa-solid fa-box-archive" aria-hidden="true"></em>Archivé</span>
+                {% endif %}
+            </div>
+            <h1>{{ advice.title }}</h1>
+            <p class="text-body-secondary mb-0">
+                Écrit par {{ advice.author ? licensee_display_name(advice.author) : 'votre coach' }} ·
+                {{ advice.createdAt|format_date(pattern='d MMMM yyyy', locale='fr') }}
+            </p>
+        </header>
+
+        <article class="card am-prose">
+            <div class="card-body">
+                {{ advice.advice|advice_html }}
+            </div>
+        </article>
+
+        {% if attachments is not empty %}
+            <section class="card mt-4" aria-labelledby="am-advice-files-title">
+                <div class="card-body pb-2">
+                    <h2 id="am-advice-files-title" class="mb-0">Pièces jointes</h2>
+                </div>
+                <ul class="am-agenda">
+                    {% for attachment in attachments %}
+                        <li class="am-agenda-item">
+                            <em class="fa-regular fa-file" aria-hidden="true"></em>
+                            <a class="am-agenda-link" href="{{ path('app_practice_advice_attachment', {advice: advice.id, attachmentId: attachment.id}) }}">
+                                <span class="am-agenda-title">{{ attachment.file.originalName ?? ('Pièce jointe ' ~ loop.index) }}</span>
+                            </a>
+                            <a class="btn btn-outline-dark btn-sm"
+                               href="{{ path('app_practice_advice_attachment', {advice: advice.id, attachmentId: attachment.id, download: 1}) }}">
+                                Télécharger<span class="visually-hidden"> {{ attachment.file.originalName ?? 'la pièce jointe' }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+    </div>
+{% endblock %}

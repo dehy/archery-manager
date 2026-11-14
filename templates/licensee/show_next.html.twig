@@ -149,7 +149,10 @@
                         <h2 id="am-advice-title">Dernier conseil</h2>
                         <p class="fw-semibold mb-1">{{ latestAdvice.title }}</p>
                         <p class="small am-card-advice-sub">{{ latestAdvice.createdAt|format_date(pattern='d MMMM yyyy', locale='fr') }}</p>
-                        <a href="{{ path('app_practice_advice_show', {advice: latestAdvice.id}) }}" class="btn btn-outline-dark btn-sm">Lire le conseil</a>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <a href="{{ path('app_practice_advice_show', {advice: latestAdvice.id}) }}" class="btn btn-outline-dark btn-sm">Lire le conseil</a>
+                            <a href="{{ path('app_practice_advice_index') }}" class="btn btn-link btn-sm">Tous mes conseils</a>
+                        </div>
                     </div>
                 </section>
             {% endif %}

@@ -1,0 +1,46 @@
+// Practice advice of the redesigned interface (canvas board Advice). Markup: templates/practice_advice/*_next.html.twig.
+// Tokens only (see _themes.scss).
+
+// A narrow column for long texts
+.am-reading {
+  max-width: 860px;
+}
+
+// Text written by a person (Markdown rendered by advice_html): comfortable reading
+.am-prose {
+  font-size: 1.0625rem;
+  line-height: 1.65;
+
+  .card-body > :first-child {
+    margin-top: 0;
+  }
+
+  .card-body > :last-child {
+    margin-bottom: 0;
+  }
+
+  h1,
+  h2,
+  h3 {
+    margin-top: 1.25em;
+    font-size: 1.25rem;
+  }
+
+  ul,
+  ol {
+    padding-left: 1.4em;
+  }
+
+  blockquote {
+    margin: 0 0 1rem;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: var(--am-sand);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+  }
+}
