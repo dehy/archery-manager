@@ -288,6 +288,45 @@ class EventController extends BaseController
         ]);
     }
 
+    /**
+     * One-tap answer to a training from a list (redesigned dashboard): present or absent, with the activity
+     * the event page would preselect. Contests need a target face and a start, so they are answered on their page.
+     */
+    #[Route('/events/{slug}/presence', name: 'app_event_presence', methods: ['POST'])]
+    public function presence(string $slug, Request $request): Response
+    {
+        $this->assertHasValidLicense();
+
+        $event = $this->eventRepository->findBySlug($slug);
+        if (!$event instanceof Event || $this->eventHelper->isContest($event)) {
+            throw $this->createNotFoundException();
+        }
+
+        if (!$this->isCsrfTokenValid('presence'.$event->getId(), $request->getPayload()->getString('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $licensee = $this->licenseeHelper->getLicenseeFromSession();
+        $participation = $this->eventHelper->licenseeParticipationToEvent($licensee, $event);
+        if (!$this->eventHelper->canLicenseeParticipateInEvent($licensee, $event) || null === $participation->getActivity()) {
+            $this->addFlash('danger', "Votre réponse n'a pas été enregistrée : ouvrez l'événement pour voir pourquoi.");
+
+            return $this->redirectToRoute('app_event_show', ['slug' => $event->getSlug()]);
+        }
+
+        $present = $request->getPayload()->getBoolean('present');
+        $participation->setParticipationState($present ? EventParticipationStateType::REGISTERED : EventParticipationStateType::NOT_GOING);
+        if (null === $participation->getId()) {
+            $this->entityManager->persist($participation);
+        }
+
+        $this->entityManager->flush();
+
+        $this->addFlash('success', \sprintf('C\'est noté : %s à « %s ».', $present ? 'présent·e' : 'absent·e', $event->getTitle()));
+
+        return $this->redirectToRoute('app_homepage');
+    }
+
     #[Route('/events/{slug}/results', name: 'app_event_results')]
     public function resultsShow(
         string $slug,

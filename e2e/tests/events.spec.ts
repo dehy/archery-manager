@@ -1,4 +1,4 @@
-import { accounts, choose, expect, pageTitle, test } from '../support/fixtures';
+import { accounts, choose, expect, pageTitle, test, ui } from '../support/fixtures';
 
 test.use({ storageState: accounts.member.state });
 
@@ -6,9 +6,23 @@ test.describe('events for a member', () => {
     test('the dashboard lists the next events', async ({ page }) => {
         await page.goto('/');
 
-        await expect(page.getByRole('heading', { name: 'Prochains événements' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: ui === 'next' ? 'À venir' : 'Prochains événements' })).toBeVisible();
         await expect(page.getByRole('link', { name: /^Concours/ }).first()).toBeVisible();
         await expect(page.getByRole('link', { name: /^Entraînement/ }).first()).toBeVisible();
+    });
+
+    test('from the dashboard, a member misses a training in one tap, then comes back', async ({ page }) => {
+        test.skip(ui !== 'next', 'One-tap answer: redesigned dashboard only');
+        await page.goto('/');
+
+        const absent = page.getByRole('button', { name: /^Je serai absent·e : / }).first();
+        const name = (await absent.getAttribute('aria-label'))!.replace(/^Je serai absent·e : /, '');
+        await absent.click();
+        await expect(page.getByRole('alert').filter({ hasText: "C'est noté : absent·e" })).toBeVisible();
+
+        await page.getByRole('button', { name: `Je viens finalement : ${name}` }).click();
+        await expect(page.getByRole('alert').filter({ hasText: "C'est noté : présent·e" })).toBeVisible();
+        await expect(page.getByRole('button', { name: `Je serai absent·e : ${name}` })).toBeVisible();
     });
 
     test('a member answers a contest: state, target face and start', async ({ page }) => {
