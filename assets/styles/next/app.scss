@@ -1,4 +1,4 @@
-// Stylesheet of the redesigned interface (Encore entry `app_next`, layout templates/base_next.html.twig).
+// Stylesheet of the redesigned interface (Encore entry `theme_next`, layout templates/base_next.html.twig).
 // Today's interface keeps assets/styles/app.scss. Both share the page-level styles (_events, _pages) while pages
 // are migrated screen by screen.
 
@@ -7,6 +7,8 @@
 
 @import "../events";
 @import "../pages";
+@import "../calendar";
+@import "../event_participation";
 
 @import "status";
 @import "shell";
