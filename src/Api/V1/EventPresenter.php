@@ -27,9 +27,6 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 final readonly class EventPresenter
 {
-    /** The departures (waves of shooters) a contest can offer. */
-    private const array DEPARTURES = [1, 2, 3, 4];
-
     public function __construct(
         private ClubPresenter $clubPresenter,
         private UrlGeneratorInterface $urlGenerator,
@@ -112,7 +109,7 @@ final readonly class EventPresenter
                 $actingAs?->getLicenseForSeason(Season::seasonForDate($event->getStartsAt()))?->getActivities(),
             ),
             'target_types' => $contest ? EnumValue::listOf(TargetTypeType::class, TargetTypeType::getValues()) : null,
-            'departures' => $contest ? self::DEPARTURES : null,
+            'departures' => $contest ? EventParticipation::DEPARTURES : null,
         ];
     }
 

@@ -15,6 +15,7 @@ use App\Entity\HobbyContestEvent;
 use App\Entity\Result;
 use App\Entity\Season;
 use App\Entity\TrainingEvent;
+use App\Entity\User;
 use App\Factory\IcsFactory;
 use App\Form\EventMandateType;
 use App\Form\EventParticipationType;
@@ -258,7 +259,7 @@ class EventController extends BaseController
         if ($eventParticipationForm->isSubmitted() && $eventParticipationForm->isValid()) {
             // Verify authorization before saving
             if (!$canParticipate) {
-                $this->addFlash('error', "Vous n'êtes pas autorisé à participer à cet événement. Il est réservé à d'autres groupes.");
+                $this->addFlash('danger', "Vous n'êtes pas autorisé à participer à cet événement. Il est réservé à d'autres groupes.");
 
                 return $this->redirectToRoute('app_event_show', ['slug' => $event->getSlug()]);
             }
@@ -268,6 +269,7 @@ class EventController extends BaseController
             }
 
             $this->entityManager->flush();
+            $this->addFlash('success', 'Votre réponse est enregistrée.');
 
             return $this->redirectToRoute('app_event_show', ['slug' => $event->getSlug()]);
         }
@@ -278,7 +280,12 @@ class EventController extends BaseController
             TrainingEvent::class, FreeTrainingEvent::class => '_training',
             default => '_default',
         };
-        $template = $modalTemplate ? 'event/show.modal.html.twig' : \sprintf('event/show%s.html.twig', $templateSuffix);
+        $user = $this->getUser();
+        $template = match (true) {
+            $modalTemplate => 'event/show.modal.html.twig',
+            $user instanceof User && $user->hasNewInterface() => 'event/show_next.html.twig',
+            default => \sprintf('event/show%s.html.twig', $templateSuffix),
+        };
 
         return $this->render($template, [
             'event' => $event,

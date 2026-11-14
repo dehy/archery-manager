@@ -66,12 +66,10 @@ class EventParticipationType extends AbstractType
             $builder
                 ->add('targetType')
                 ->add('departure', ChoiceType::class, [
-                    'choices' => [
-                        'n°1' => 1,
-                        'n°2' => 2,
-                        'n°3' => 3,
-                        'n°4' => 4,
-                    ],
+                    'choices' => array_combine(
+                        array_map(static fn (int $departure): string => 'n°'.$departure, EventParticipation::DEPARTURES),
+                        EventParticipation::DEPARTURES,
+                    ),
                     'required' => false,
                     'placeholder' => 'Unspecified',
                 ]);

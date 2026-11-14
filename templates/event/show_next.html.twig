@@ -1,0 +1,296 @@
+{% extends 'base.html.twig' %}
+{#
+    Event page of the redesigned interface, for every kind of event (canvas boards Event, Training and MobileEvent):
+    what, when and where, documents, who comes, and the licensee's answer as an inline form (no modal).
+    Today's interface keeps event/show_{contest,training,default}.html.twig.
+#}
+{% import '_next/event_macros.html.twig' as ev %}
+
+{% set licensee = licenseeHelper.licenseeFromSession %}
+{% set license = licenseHelper.currentLicenseeCurrentLicense %}
+{% set participation = eventHelper.licenseeParticipationToEvent(licensee, event) %}
+{% set contest = ev.isContest(event) is not empty %}
+{% set ended = event.endsAt < date() %}
+{% set states = {
+    registered: constant('App\\DBAL\\Types\\EventParticipationStateType::REGISTERED'),
+    interested: constant('App\\DBAL\\Types\\EventParticipationStateType::INTERESTED'),
+    notGoing: constant('App\\DBAL\\Types\\EventParticipationStateType::NOT_GOING'),
+} %}
+
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block body %}
+    {% set dateLine = event.allDay
+        ? event.startsAt|format_date(pattern='EEEE d MMMM', locale='fr')|capitalize
+        : event.startsAt|format_date(pattern='EEEE d MMMM', locale='fr')|capitalize ~ ' · ' ~ event.startsAt|format_datetime(pattern="H'h'mm", locale='fr') ~ ' à ' ~ event.endsAt|format_datetime(pattern="H'h'mm", locale='fr') %}
+
+    <a href="{{ path('app_event_index') }}" class="am-crumb">
+        <em class="fa-solid fa-chevron-left" aria-hidden="true"></em>Calendrier
+    </a>
+
+    <header class="am-page-head">
+        <div class="d-flex flex-column gap-2">
+            <span class="am-tag align-self-start">
+                <em class="fa-solid fa-{{ contest ? 'trophy' : 'bullseye' }}" aria-hidden="true"></em>{{ ev.typeLabel(event) }}
+                {%- if event.discipline %} · {{ event.discipline|readable_enum('DisciplineType') }}{% endif %}
+            </span>
+            <h1>{{ event.title }}</h1>
+            <p class="text-body-secondary mb-0">{{ dateLine }}{% if event.address %} · {{ event.address }}{% endif %}</p>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            {{ ev.participationStatus(event, participation, can_participate) }}
+            <a href="{{ path('app_event_ics', {slug: event.slug}) }}" class="btn btn-outline-dark btn-sm">
+                <em class="fa-solid fa-calendar-plus me-1" aria-hidden="true"></em>Ajouter à mon agenda
+            </a>
+        </div>
+    </header>
+
+    <div class="row g-4">
+        {# The answer comes first on a phone, beside the details on a wide screen #}
+        <aside class="col-lg-4 order-lg-2 d-flex flex-column gap-4">
+            {{ _self.answer(event, event_participation_form, participation, can_participate, license, contest, ended, states) }}
+            {% if is_granted('ROLE_CLUB_ADMIN') %}
+                {{ _self.management(event, contest) }}
+            {% endif %}
+        </aside>
+
+        <div class="col-lg-8 order-lg-1 d-flex flex-column gap-4">
+            <section class="card" aria-labelledby="am-details-title">
+                <div class="card-body">
+                    <h2 id="am-details-title" class="visually-hidden">Détails</h2>
+                    <dl class="am-facts mb-0">
+                        <div><dt>Date</dt><dd>{{ dateLine }}</dd></div>
+                        {% if event.discipline %}
+                            <div><dt>Discipline</dt><dd>{{ event.discipline|readable_enum('DisciplineType') }}</dd></div>
+                        {% endif %}
+                        {% if event.contestType is defined and event.contestType %}
+                            <div><dt>Format</dt><dd>{{ event.contestType|readable_enum('ContestType') }}</dd></div>
+                        {% endif %}
+                        <div>
+                            <dt>Groupes invités</dt>
+                            <dd>{{ event.assignedGroups is empty ? 'Tout le club' : event.assignedGroups|map(group => group.name)|join(', ') }}</dd>
+                        </div>
+                        {% if event.address %}
+                            <div>
+                                <dt>Lieu</dt>
+                                <dd>
+                                    <address class="mb-1">{{ event.address }}</address>
+                                    <span class="small">
+                                        <a href="https://www.openstreetmap.org/search?query={{ event.address|url_encode }}">Carte</a> ·
+                                        <a href="https://maps.apple.com/?q={{ event.address|url_encode }}">Plans</a> ·
+                                        <a href="https://www.google.com/maps/search/?api=1&amp;query={{ event.address|url_encode }}">Google Maps</a> ·
+                                        <a href="https://waze.com/ul?q={{ event.address|url_encode }}">Waze</a>
+                                    </span>
+                                </dd>
+                            </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </section>
+
+            {% if contest %}
+                {{ _self.documents(event) }}
+            {% endif %}
+
+            {{ _self.participants(event, all_participants, contest, states) }}
+        </div>
+    </div>
+{% endblock %}
+
+{# ---- The licensee's answer -------------------------------------------------------------------------------------- #}
+
+{% macro answer(event, form, participation, canParticipate, license, contest, ended, states) %}
+    {% set licenseValid = licenseHelper.licenseIsValidForEvent(license, event) %}
+    <section class="card" aria-labelledby="am-answer-title">
+        <div class="card-body">
+            <h2 id="am-answer-title">Ma réponse</h2>
+            {% if not canParticipate or not licenseValid or ended %}
+                {% set reason = not canParticipate
+                    ? 'Réservé ' ~ (event.assignedGroups|length > 1 ? 'aux groupes ' : 'au groupe ') ~ event.assignedGroups|map(group => group.name)|join(', ') ~ '. Demandez à votre coach pour y être ajouté·e.'
+                    : (ended ? 'Cet événement est terminé.' : "Votre licence ne couvre pas la saison de cet événement.") %}
+                <p id="am-answer-unavailable" class="mb-0">
+                    <em class="fa-solid fa-lock me-1" aria-hidden="true"></em>{{ reason }}
+                </p>
+            {% else %}
+                {{ form_start(form, {attr: {class: 'am-answer', novalidate: 'novalidate'}}) }}
+                    <fieldset class="am-options">
+                        <legend>{{ contest ? 'Je participe ?' : 'Je viens ?' }}</legend>
+                        {% for choice in form.participationState %}
+                            {% set value = choice.vars.value %}
+                            {% set label = value == states.registered ? (contest ? 'Je suis inscrit·e' : 'Présent·e')
+                                : (value == states.interested ? 'Intéressé·e, je vais m\'inscrire' : (contest ? 'Je n\'y vais pas' : 'Absent·e')) %}
+                            {# Plain input: the Bootstrap theme would wrap each radio in its own label #}
+                            <label class="am-option" for="{{ choice.vars.id }}">
+                                <input type="radio" id="{{ choice.vars.id }}" name="{{ choice.vars.full_name }}"
+                                       value="{{ value }}"{{ choice.vars.checked ? ' checked' }}>
+                                {{ label }}
+                            </label>
+                            {% do choice.setRendered %}
+                        {% endfor %}
+                        {{ form_errors(form.participationState) }}
+                    </fieldset>
+
+                    {% if contest or not form.activity.vars.value %}
+                        <div class="am-answer-details row g-3 mt-1">
+                            {% if form.targetType is defined %}
+                                <div class="col-sm-6 col-lg-12 col-xl-6">
+                                    {{ form_label(form.targetType, 'Blason') }}
+                                    {{ form_widget(form.targetType) }}
+                                    {{ form_errors(form.targetType) }}
+                                </div>
+                            {% endif %}
+                            {% if form.departure is defined %}
+                                <div class="col-sm-6 col-lg-12 col-xl-6">
+                                    {{ form_label(form.departure, 'Départ') }}
+                                    {{ form_widget(form.departure) }}
+                                    {{ form_errors(form.departure) }}
+                                </div>
+                            {% endif %}
+                            <div class="col-12">
+                                {{ form_label(form.activity, 'Activité') }}
+                                {{ form_widget(form.activity, {attr: {'aria-describedby': 'am-activity-help'}}) }}
+                                <div id="am-activity-help" class="form-text">Par défaut, la première activité de votre licence.</div>
+                                {{ form_errors(form.activity) }}
+                            </div>
+                        </div>
+                    {% else %}
+                        {# A training only asks "present or not": the activity stays the one already set (licence default) #}
+                        <input type="hidden" name="{{ form.activity.vars.full_name }}" value="{{ form.activity.vars.value }}">
+                        {% do form.activity.setRendered %}
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Enregistrer</button>
+                {{ form_end(form) }}
+                {% if contest %}
+                    <p class="small text-body-secondary mt-3 mb-0">
+                        Cette réponse informe les archers du club. L'inscription au concours se fait auprès de
+                        l'organisateur, comme l'indique le mandat.
+                    </p>
+                {% elseif participation.id is null and participation.participationState == states.registered %}
+                    <p class="small text-body-secondary mt-3 mb-0">
+                        Vous êtes compté·e présent·e tant que vous n'avez pas répondu. Une absence prévenue aide
+                        l'encadrant à organiser les cibles.
+                    </p>
+                {% endif %}
+            {% endif %}
+        </div>
+    </section>
+{% endmacro %}
+
+{# ---- Documents (contests) --------------------------------------------------------------------------------------- #}
+
+{% macro documents(event) %}
+    {% set mandate = event.attachments('mandate')|first %}
+    {% set resultsFile = event.attachments('results')|first %}
+    {% set hasResults = event.results is defined and event.results is not empty %}
+    <section class="card" aria-labelledby="am-documents-title">
+        <div class="card-body">
+            <h2 id="am-documents-title">Documents</h2>
+            <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                <li>
+                    {% if mandate %}
+                        <a href="{{ path('events_attachments_download', {attachment: mandate.id}) }}">
+                            <em class="fa-regular fa-file me-2" aria-hidden="true"></em>Mandat (PDF)
+                        </a>
+                    {% else %}
+                        <span class="text-body-secondary"><em class="fa-regular fa-file me-2" aria-hidden="true"></em>Mandat pas encore disponible</span>
+                    {% endif %}
+                </li>
+                {% if resultsFile %}
+                    <li>
+                        <a href="{{ path('events_attachments_download', {attachment: resultsFile.id}) }}">
+                            <em class="fa-regular fa-file me-2" aria-hidden="true"></em>Résultats (PDF)
+                        </a>
+                    </li>
+                {% endif %}
+                {% if hasResults %}
+                    <li>
+                        <a href="{{ path('app_event_results', {slug: event.slug}) }}">
+                            <em class="fa-solid fa-trophy me-2" aria-hidden="true"></em>Résultats des archers du club
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </section>
+{% endmacro %}
+
+{# ---- Who comes -------------------------------------------------------------------------------------------------- #}
+
+{% macro participants(event, allParticipants, contest, states) %}
+    {% import '_next/event_macros.html.twig' as ev %}
+    {% set coming = allParticipants|filter(p => p.participationState is not same as states.notGoing) %}
+    {% set absent = allParticipants|filter(p => p.participationState is same as states.notGoing) %}
+    {% set interested = coming|filter(p => p.participationState is same as states.interested) %}
+    {% set summary = contest
+        ? (coming|length - interested|length) ~ ' inscrit·e' ~ ((coming|length - interested|length) > 1 ? 's' : '') ~ ' · ' ~ interested|length ~ ' intéressé·e' ~ (interested|length > 1 ? 's' : '')
+        : coming|length ~ ' présent·e' ~ (coming|length > 1 ? 's' : '') ~ ' · ' ~ absent|length ~ ' absent·e' ~ (absent|length > 1 ? 's' : '') %}
+    <section class="card" aria-labelledby="am-participants-title">
+        <div class="card-body pb-2 d-flex flex-wrap justify-content-between align-items-baseline gap-2">
+            <h2 id="am-participants-title" class="mb-0">{{ contest ? 'Participants' : 'Qui vient ?' }}</h2>
+            <span class="text-body-secondary">{{ summary }}</span>
+        </div>
+        {% set listed = contest ? coming : allParticipants %}
+        {% if listed is empty %}
+            <p class="card-body pt-0 text-body-secondary mb-0">Personne n'a encore répondu.</p>
+        {% else %}
+            <ul class="am-agenda">
+                {% for participation in listed|sort((a, b) => licensee_display_name(a.participant) <=> licensee_display_name(b.participant)) %}
+                    <li class="am-agenda-item">
+                        <span class="am-agenda-link">
+                            <span class="am-agenda-title">{{ licensee_display_name(participation.participant) }}</span>
+                            {% if participation.departure %}
+                                <span class="am-agenda-meta">Départ n°{{ participation.departure }}</span>
+                            {% endif %}
+                        </span>
+                        {{ ev.participationStatus(event, participation, true) }}
+                    </li>
+                {% endfor %}
+            </ul>
+            {% if not contest %}
+                <p class="card-body pt-2 small text-body-secondary mb-0">
+                    Les membres des groupes invités sont comptés présents tant qu'ils n'ont pas répondu.
+                </p>
+            {% endif %}
+        {% endif %}
+    </section>
+{% endmacro %}
+
+{# ---- Club admins ------------------------------------------------------------------------------------------------ #}
+
+{% macro management(event, contest) %}
+    <section class="card am-card-sand" aria-labelledby="am-manage-title">
+        <div class="card-body d-flex flex-column gap-2">
+            <h2 id="am-manage-title" class="h3">Gestion</h2>
+            <a href="{{ path('app_event_manage_edit', {id: event.id}) }}" class="btn btn-outline-dark btn-sm">
+                <em class="fa-solid fa-pen-to-square me-1" aria-hidden="true"></em>Modifier l'événement
+            </a>
+            {% if contest %}
+                <a href="{{ path('events_attachment_edit', {slug: event.slug, attachmentType: 'mandate'}) }}"
+                   class="btn btn-outline-dark btn-sm" data-action="modal#open" data-title="Mandat">
+                    <em class="fa-solid fa-upload me-1" aria-hidden="true"></em>{{ event.attachments('mandate') is empty ? 'Ajouter le mandat' : 'Remplacer le mandat' }}
+                </a>
+                {% if event.results is defined %}
+                    <a href="{{ path('app_event_resultsedit', {slug: event.slug}) }}"
+                       class="btn btn-outline-dark btn-sm" data-action="modal#open" data-title="Édition des résultats">
+                        <em class="fa-solid fa-trophy me-1" aria-hidden="true"></em>Saisir les résultats
+                    </a>
+                {% endif %}
+                <a href="{{ path('events_attachment_edit', {slug: event.slug, attachmentType: 'results'}) }}"
+                   class="btn btn-outline-dark btn-sm" data-action="modal#open" data-title="Résultats en PDF">
+                    <em class="fa-solid fa-upload me-1" aria-hidden="true"></em>Téléverser les résultats (PDF)
+                </a>
+            {% endif %}
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ adminUrlGenerator
+                    .setController('App\\Controller\\Admin\\EventParticipationCrudController')
+                    .setAction('index')
+                    .set('filters[event][comparison]', '=')
+                    .set('filters[event][value]', event.id)
+                    .generateUrl }}" class="btn btn-link btn-sm text-start px-0">
+                    Participations dans EasyAdmin
+                </a>
+            {% endif %}
+        </div>
+    </section>
+{% endmacro %}
