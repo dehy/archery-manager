@@ -11,43 +11,6 @@
             <em class="fa-solid fa-chevron-right ms-auto"></em>
         </a>
         {% endif %}
-        {% if app.user.hasNewInterface %}
-            {# The redesigned tab bar keeps four tabs (Accueil, Calendrier, Moi, Plus): the rest of the sidebar lives here #}
-            {% if licenseHelper.currentLicenseeCurrentLicense %}
-                <a href="{{ path('app_licensee_index') }}" class="list-group-item list-group-item-action">
-                    <em class="fa-solid fa-users" aria-hidden="true"></em>
-                    Annuaire
-                    <em class="fa-solid fa-chevron-right ms-auto" aria-hidden="true"></em>
-                </a>
-                <a href="{{ path('app_club_show') }}" class="list-group-item list-group-item-action">
-                    <em class="fa-solid fa-building" aria-hidden="true"></em>
-                    Le club
-                    <em class="fa-solid fa-chevron-right ms-auto" aria-hidden="true"></em>
-                </a>
-            {% endif %}
-            {% if is_granted('ROLE_CLUB_ADMIN') %}
-                <a href="{{ path('app_event_manage_index') }}" class="list-group-item list-group-item-action">
-                    <em class="fa-solid fa-calendar-check" aria-hidden="true"></em>
-                    Gestion des événements
-                    <em class="fa-solid fa-chevron-right ms-auto" aria-hidden="true"></em>
-                </a>
-                <a href="{{ path('app_club_members') }}" class="list-group-item list-group-item-action">
-                    <em class="fa-solid fa-users-gear" aria-hidden="true"></em>
-                    Gestion des adhérents
-                    <em class="fa-solid fa-chevron-right ms-auto" aria-hidden="true"></em>
-                </a>
-                <a href="{{ path('app_club_application_manage') }}" class="list-group-item list-group-item-action">
-                    <em class="fa-solid fa-clipboard-check" aria-hidden="true"></em>
-                    Demandes d'adhésion
-                    <em class="fa-solid fa-chevron-right ms-auto" aria-hidden="true"></em>
-                </a>
-                <a href="{{ path('app_club_equipment_index') }}" class="list-group-item list-group-item-action">
-                    <em class="fa-solid fa-bullseye" aria-hidden="true"></em>
-                    Matériel
-                    <em class="fa-solid fa-chevron-right ms-auto" aria-hidden="true"></em>
-                </a>
-            {% endif %}
-        {% endif %}
         <a href="{{ path('app_user_account') }}" class="list-group-item list-group-item-action">
             <em class="fa-solid fa-user-gear"></em>
             Mon compte

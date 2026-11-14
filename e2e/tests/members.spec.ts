@@ -1,4 +1,4 @@
-import { accounts, expect, login, pageTitle, test } from '../support/fixtures';
+import { accounts, expect, login, pageTitle, test, ui } from '../support/fixtures';
 import { solidPng } from '../support/png';
 
 /** "Firstname L." — what a plain member may see of other members */
@@ -39,9 +39,10 @@ test.describe('profile', () => {
     test('a member sees their own profile and changes their photo', async ({ page }) => {
         await page.goto('/my-profile');
         await expect(pageTitle(page)).not.toHaveText(SHORT_NAME);
-        await expect(page.getByRole('heading', { name: /^Licence \d{4}$/ })).toBeVisible();
+        await expect(page.getByRole('heading', { name: ui === 'next' ? 'Ma licence' : /^Licence \d{4}$/ })).toBeVisible();
 
-        await page.getByRole('button', { name: 'Modifier la photo' }).click();
+        // The redesign puts a camera button on the photo itself
+        await page.getByRole('button', { name: ui === 'next' ? 'Changer la photo de profil' : 'Modifier la photo' }).click();
         const dialog = page.getByRole('dialog', { name: 'Photo de profil' });
         await dialog.getByLabel('Nouvelle photo').setInputFiles({ name: 'photo.png', mimeType: 'image/png', buffer: solidPng() });
         await dialog.getByRole('button', { name: 'Enregistrer' }).click();

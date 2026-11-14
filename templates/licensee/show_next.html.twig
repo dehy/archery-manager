@@ -1,0 +1,205 @@
+{% extends 'base.html.twig' %}
+{#
+    Archer profile of the redesigned interface (canvas boards Profile and MobileProfile): photo, name, licence status,
+    then the licence, groups, borrowed equipment, results and the coach's latest advice.
+    Who sees it is unchanged (LicenseeController::checkLicenseeAccess): the archer's own account, admins, and coaches
+    and club admins of the same club. Today's interface keeps licensee/show.html.twig.
+#}
+
+{% set own = app.user.licensees.contains(licensee) %}
+{% set name = own ? licensee.fullname : licensee_display_name(licensee) %}
+{% set season = licenseHelper.seasonForDate(date()) %}
+{% set license = licensee.licenseForSeason(season) %}
+
+{% block title %}{{ name }}{% endblock %}
+
+{% block body %}
+    <header class="am-profile-head">
+        <div class="am-profile-photo">
+            <img src="{{ licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}"
+                 alt="{{ licensee.profilePicture ? 'Photo de ' ~ name : '' }}" width="96" height="96">
+            {% if picture_form %}
+                <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#profilePictureModal"
+                        aria-label="Changer la photo de profil">
+                    <em class="fa-solid fa-camera" aria-hidden="true"></em>
+                </button>
+            {% endif %}
+        </div>
+        <div class="am-profile-name">
+            <h1>{{ name }}</h1>
+            <div class="d-flex flex-wrap gap-2">
+                {% if license %}
+                    <span class="am-status am-status-ok"><em class="fa-solid fa-check" aria-hidden="true"></em>Licence {{ season }} active</span>
+                {% else %}
+                    <span class="am-status am-status-bad"><em class="fa-solid fa-xmark" aria-hidden="true"></em>Pas de licence pour {{ season }}</span>
+                {% endif %}
+                {% for activity in license.activities ?? [] %}
+                    <span class="am-tag">{{ activity|readable_enum('LicenseActivityType') }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ path('app_licensee_edit', {id: licensee.id}) }}" class="btn btn-outline-dark">
+                <em class="fa-solid fa-pen-to-square me-1" aria-hidden="true"></em>Modifier
+            </a>
+            {% if is_granted('ROLE_CLUB_ADMIN') and is_granted('RENEW', licensee) and licensee.getLicenseForSeason(seasonHelper.getSelectedSeason()) is null %}
+                <a href="{{ path('app_licensee_renew', {id: licensee.id}) }}" class="btn btn-primary">
+                    <em class="fa-solid fa-arrows-rotate me-1" aria-hidden="true"></em>Renouveler la licence
+                </a>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="row g-4">
+        <div class="col-lg-8 d-flex flex-column gap-4">
+            <section class="card am-card-strip" aria-labelledby="am-license-title">
+                <div class="card-body">
+                    <h2 id="am-license-title">{{ own ? 'Ma licence' : 'Licence' }}</h2>
+                    {% if license %}
+                        <dl class="am-facts mb-0">
+                            <div><dt>Saison</dt><dd>{{ season }}</dd></div>
+                            <div><dt>Club</dt><dd>{{ license.club.name }}</dd></div>
+                            {% if license.type %}<div><dt>Type</dt><dd>{{ license.type|readable_enum('LicenseType') }}</dd></div>{% endif %}
+                            {% if license.ageCategory %}<div><dt>Catégorie</dt><dd>{{ license.ageCategory|readable_enum('LicenseAgeCategoryType') }}</dd></div>{% endif %}
+                            {% if license.activities is not empty %}<div><dt>Activités</dt><dd>{{ license.activities|map(a => a|readable_enum('LicenseActivityType'))|join(', ') }}</dd></div>{% endif %}
+                            {% if licensee.fftaMemberCode %}<div><dt>Code FFTA</dt><dd>{{ licensee.fftaMemberCode }}</dd></div>{% endif %}
+                            <div>
+                                <dt>Groupes</dt>
+                                <dd>{{ licensee.groups is empty ? 'Aucun' : licensee.groups|map(group => group.name)|join(', ') }}</dd>
+                            </div>
+                        </dl>
+                    {% else %}
+                        <p class="mb-0">Aucune licence pour la saison {{ season }}.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <section class="card" aria-labelledby="am-loans-title">
+                <div class="card-body pb-2">
+                    <h2 id="am-loans-title" class="mb-0">Matériel prêté par le club</h2>
+                </div>
+                {% if activeLoans is empty %}
+                    <p class="card-body pt-0 text-body-secondary mb-0">Aucun prêt en cours.</p>
+                {% else %}
+                    <ul class="am-agenda">
+                        {% for loan in activeLoans %}
+                            <li class="am-agenda-item">
+                                <a href="{{ path('app_club_equipment_show', {id: loan.equipment.id}) }}" class="am-agenda-link">
+                                    <span class="am-agenda-title">{{ loan.equipment.name }}</span>
+                                    <span class="am-agenda-meta">
+                                        {{ loan.equipment.type|club_equipment_type_readable }} · prêté depuis le {{ loan.startDate|format_date(pattern='d MMMM yyyy', locale='fr') }}
+                                    </span>
+                                </a>
+                                <span class="am-status am-status-info"><em class="fa-solid fa-clock" aria-hidden="true"></em>En cours</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </section>
+
+            <section class="card" aria-labelledby="am-results-title">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <h2 id="am-results-title" class="mb-0">Résultats</h2>
+                        {% if results_charts|length > 0 %}
+                            <label class="visually-hidden" for="results-season-selector">Saison des résultats</label>
+                            <select class="form-select form-select-sm w-auto" id="results-season-selector">
+                                {% for season_label, result_season in seasons %}
+                                    <option value="{{ result_season }}"{{ loop.first ? ' selected' }}>{{ season_label }}</option>
+                                {% endfor %}
+                            </select>
+                        {% endif %}
+                    </div>
+                    {% if results_charts|length > 0 %}
+                        {% for result_season, charts_by_category in results_charts %}
+                            <div class="d-none results-season-pane" data-season="{{ result_season }}">
+                                <ul class="nav nav-underline mb-3" role="tablist">
+                                    {% for category, chart in charts_by_category %}
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link{{ loop.first ? ' active' }}" type="button" role="tab"
+                                                    data-bs-toggle="tab" data-bs-target="#results-{{ result_season }}-{{ category|slug|lower }}"
+                                                    aria-controls="results-{{ result_season }}-{{ category|slug|lower }}"
+                                                    aria-selected="{{ loop.first ? 'true' : 'false' }}">
+                                                {{ category }}
+                                            </button>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                                <div class="tab-content">
+                                    {% for category, chart in charts_by_category %}
+                                        <div class="tab-pane fade{{ loop.first ? ' show active' }}" role="tabpanel" tabindex="0"
+                                             id="results-{{ result_season }}-{{ category|slug|lower }}">
+                                            {{ render_chart(chart, {'data-controller': 'results-chart'}) }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-body-secondary mb-0">Aucun résultat enregistré.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+
+        <aside class="col-lg-4 d-flex flex-column gap-4">
+            {% if latestAdvice %}
+                <section class="card am-card-advice" aria-labelledby="am-advice-title">
+                    <div class="card-body">
+                        <h2 id="am-advice-title">Dernier conseil</h2>
+                        <p class="fw-semibold mb-1">{{ latestAdvice.title }}</p>
+                        <p class="small am-card-advice-sub">{{ latestAdvice.createdAt|format_date(pattern='d MMMM yyyy', locale='fr') }}</p>
+                        <a href="{{ path('app_practice_advice_show', {advice: latestAdvice.id}) }}" class="btn btn-outline-dark btn-sm">Lire le conseil</a>
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if is_granted('ROLE_CLUB_ADMIN') or own %}
+                <section class="card" aria-labelledby="am-account-title">
+                    <div class="card-body">
+                        <h2 id="am-account-title">Compte</h2>
+                        <p class="small text-body-secondary">
+                            {{ own ? 'Adresse e-mail, mot de passe, archers liés à votre compte.' : 'Le compte qui gère cet archer.' }}
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ path('app_user_show', {id: licensee.user.id}) }}" class="btn btn-outline-dark btn-sm">
+                                {{ own ? 'Voir mon compte' : 'Voir le compte' }}
+                            </a>
+                            {% if own %}
+                                <a href="{{ path('app_user_appearance') }}" class="btn btn-outline-dark btn-sm">
+                                    <em class="fa-solid fa-palette me-1" aria-hidden="true"></em>Apparence
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if is_granted('ROLE_ADMIN') %}
+                <section class="card am-card-sand" aria-labelledby="am-admin-title">
+                    <div class="card-body d-flex flex-column gap-2">
+                        <h2 id="am-admin-title" class="h3">Administration</h2>
+                        <a href="{{ adminUrlGenerator.setController('App\\Controller\\Admin\\LicenseeCrudController').setAction('edit').setEntityId(licensee.id).generateUrl }}"
+                           class="btn btn-outline-dark btn-sm">Éditer dans EasyAdmin</a>
+                        <a href="{{ adminUrlGenerator.setController('App\\Controller\\Admin\\ResultCrudController').setAction('index').set('filters[licensee][comparison]', '=').set('filters[licensee][value]', licensee.id).generateUrl }}"
+                           class="btn btn-outline-dark btn-sm">Résultats dans EasyAdmin</a>
+                        <a href="{{ path('app_homepage', {_switch_user: licensee.user.email, _switch_licensee: licensee.id}) }}"
+                           class="btn btn-outline-danger btn-sm">Se connecter en tant que cet archer</a>
+                    </div>
+                </section>
+            {% endif %}
+        </aside>
+    </div>
+
+    {% if picture_form %}
+        {% include 'licensee/_picture_modal.html.twig' with {licensee: licensee, picture_form: picture_form} only %}
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {# Season selector of the results: only when there are results (the script expects the selector) #}
+    {% if results_charts|length > 0 %}
+        {{ encore_entry_script_tags('licensees_show') }}
+    {% endif %}
+{% endblock %}

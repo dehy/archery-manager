@@ -21,6 +21,7 @@ use App\Helper\SeasonHelper;
 use App\Repository\EquipmentLoanRepository;
 use App\Repository\GroupRepository;
 use App\Repository\LicenseeRepository;
+use App\Repository\PracticeAdviceRepository;
 use App\Repository\ResultRepository;
 use App\Security\Voter\LicenseeAccessVoter;
 use App\Service\ProfilePictureManager;
@@ -45,7 +46,7 @@ use Symfony\UX\Chartjs\Model\Chart;
 
 class LicenseeController extends BaseController
 {
-    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FilesystemOperator $licenseesStorage, private readonly EntityManagerInterface $entityManager, private readonly ProfilePictureManager $pictureManager)
+    public function __construct(LicenseeHelper $licenseeHelper, SeasonHelper $seasonHelper, private readonly LicenseeRepository $licenseeRepository, private readonly LicenseHelper $licenseHelper, private readonly GroupRepository $groupRepository, private readonly ResultRepository $resultRepository, private readonly EquipmentLoanRepository $loanRepository, private readonly ChartBuilderInterface $chartBuilder, private readonly FilesystemOperator $licenseesStorage, private readonly EntityManagerInterface $entityManager, private readonly ProfilePictureManager $pictureManager, private readonly PracticeAdviceRepository $practiceAdviceRepository)
     {
         parent::__construct($licenseeHelper, $seasonHelper);
     }
@@ -135,13 +136,23 @@ class LicenseeController extends BaseController
             $pictureForm = $this->createPictureForm($licensee);
         }
 
-        return $this->render('licensee/show.html.twig', [
+        $parameters = [
             'licensee' => $licensee,
             'seasons' => $seasons,
             'results_charts' => $resultsCharts,
             'picture_form' => $pictureForm?->createView(),
             'activeLoans' => $activeLoans,
-        ]);
+        ];
+        $template = 'licensee/show.html.twig';
+        if ($user->hasNewInterface()) {
+            $template = 'licensee/show_next.html.twig';
+            // Advice is personal: only the archer's own account reads it (a 404 for anybody else)
+            $parameters['latestAdvice'] = $user->getLicensees()->contains($licensee)
+                ? $this->practiceAdviceRepository->findForLicenseeNewestFirst($licensee, false)[0] ?? null
+                : null;
+        }
+
+        return $this->render($template, $parameters);
     }
 
     #[Route('/licensee/{id}/picture', name: 'app_licensee_picture_upload', requirements: ['id' => '\d+'], methods: ['POST'])]

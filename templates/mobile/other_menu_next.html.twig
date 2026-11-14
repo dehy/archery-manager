@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+{#
+    "Plus" tab of the redesigned interface (canvas board MobilePlus): what the four-tab bar leaves out, in groups:
+    archer and season, club, management (club admins), account. Today's interface keeps mobile/other_menu.html.twig.
+#}
+
+{% block title %}Plus{% endblock %}
+
+{% macro item(route, label, icon, params = {}, pending = 0) %}
+    <a href="{{ path(route, params) }}" class="list-group-item list-group-item-action am-menu-item">
+        <em class="fa-solid fa-{{ icon }}" aria-hidden="true"></em>
+        <span class="flex-grow-1">{{ label }}</span>
+        {%- if pending > 0 %}<span class="am-status am-status-maybe">{{ pending }}<span class="visually-hidden"> en attente</span></span>{% endif -%}
+        <em class="fa-solid fa-chevron-right am-menu-chevron" aria-hidden="true"></em>
+    </a>
+{% endmacro %}
+
+{% block body %}
+    {% set licensee = licenseeHelper.licenseeFromSession %}
+    {% set others = licensee ? app.user.licensees|filter(l => l.id is not same as(licensee.id)) : [] %}
+
+    <h1 class="mb-4">Plus</h1>
+
+    <div class="d-flex flex-column gap-4">
+        <section aria-labelledby="am-plus-archer">
+            <h2 id="am-plus-archer" class="am-menu-heading">Archer et saison</h2>
+            <div class="list-group">
+                {% if licensee %}
+                    <div class="list-group-item am-menu-item">
+                        <em class="fa-solid fa-user" aria-hidden="true"></em>
+                        <span class="flex-grow-1">
+                            <span class="d-block fw-semibold">{{ licensee.fullname }}</span>
+                            <span class="small text-body-secondary">Saison {{ seasonHelper.selectedSeason }}</span>
+                        </span>
+                    </div>
+                {% endif %}
+                {% for other in others %}
+                    {{ _self.item('app_mobile_othermenu', 'Passer à ' ~ licensee_display_name(other), 'arrows-rotate', {_switch_licensee: other.id}) }}
+                {% endfor %}
+            </div>
+        </section>
+
+        {% if licenseHelper.currentLicenseeCurrentLicense %}
+            <section aria-labelledby="am-plus-club">
+                <h2 id="am-plus-club" class="am-menu-heading">Club</h2>
+                <div class="list-group">
+                    {{ _self.item('app_licensee_index', 'Annuaire', 'users') }}
+                    {{ _self.item('app_club_show', 'Le club', 'building') }}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if is_granted('ROLE_CLUB_ADMIN') %}
+            <section aria-labelledby="am-plus-management">
+                <h2 id="am-plus-management" class="am-menu-heading">Gestion</h2>
+                <div class="list-group">
+                    {{ _self.item('app_event_manage_index', 'Événements', 'calendar-check') }}
+                    {{ _self.item('app_club_members', 'Adhérents', 'users-gear') }}
+                    {{ _self.item('app_club_application_manage', 'Demandes', 'clipboard-check', {}, pending_club_applications_count()) }}
+                    {{ _self.item('app_club_equipment_index', 'Matériel', 'bullseye') }}
+                </div>
+            </section>
+        {% endif %}
+
+        <section aria-labelledby="am-plus-account">
+            <h2 id="am-plus-account" class="visually-hidden">Compte</h2>
+            <div class="list-group">
+                {{ _self.item('app_user_account', 'Mon compte', 'user-gear') }}
+                {{ _self.item('app_user_appearance', 'Apparence', 'palette') }}
+                {% if is_granted('ROLE_ADMIN') %}
+                    {{ _self.item('admin', 'Administration', 'screwdriver-wrench') }}
+                {% endif %}
+                <a href="{{ path('app_logout') }}" class="list-group-item list-group-item-action am-menu-item am-menu-danger">
+                    <em class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></em>
+                    <span class="flex-grow-1">Se déconnecter</span>
+                </a>
+            </div>
+        </section>
+    </div>
+{% endblock %}
