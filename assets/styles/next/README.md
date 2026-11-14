@@ -18,7 +18,8 @@ Stylesheet of the redesigned interface (redesign roadmap, milestone M2). It is b
 | `_club.scss` | Club page: logo tile `.am-club-logo`, group cards `.am-group-grid` / `.am-group` |
 | `_results.scss` | Key figures `.am-stats`, contest results tables `.am-results` |
 | `_advice.scss` | Reading column `.am-reading`, text written by a person `.am-prose` (practice advice) |
-| `app.scss` | Entry: tokens → Bootstrap → shared page styles (`../_events`, `../_pages`) → themes → status → shell → agenda → event → calendar → appearance → profile → directory → club → results → advice |
+| `_account.scss` | Mon compte: calendar subscription links `.am-calendar-feed` |
+| `app.scss` | Entry: tokens → Bootstrap → shared page styles (`../_events`, `../_pages`) → themes → status → shell → agenda → event → calendar → appearance → profile → directory → club → results → advice → account |
 
 Encore entry: `theme_next` (`assets/theme_next.ts`, which also loads the self-hosted fonts). Scripts stay in `app`.
 
@@ -30,7 +31,7 @@ A page migrated in M3 to M6 gets its own `*_next.html.twig` body, which its cont
 (`homepage/index_next.html.twig`, `event/show_next.html.twig`, `event/index_next.html.twig`,
 `licensee/show_next.html.twig`, `mobile/other_menu_next.html.twig`, `licensee/index_next.html.twig`,
 `club/show_next.html.twig`, `event/results_next.html.twig`, `practice_advice/index_next.html.twig`,
-`practice_advice/show_next.html.twig`), and uses the `am-*` classes directly. Event pieces shared by the
+`practice_advice/show_next.html.twig`, `user/account_next.html.twig`), and uses the `am-*` classes directly. Event pieces shared by the
 screens that list events (type, date line, status chip, one-tap presence) are macros in
 `templates/_next/event_macros.html.twig`.
 

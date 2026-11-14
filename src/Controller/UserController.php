@@ -34,7 +34,7 @@ class UserController extends BaseController
         /** @var User $user */
         $user = $this->getUser();
 
-        return $this->render('user/account.html.twig', [
+        return $this->render($user->hasNewInterface() ? 'user/account_next.html.twig' : 'user/account.html.twig', [
             'user' => $user,
         ]);
     }

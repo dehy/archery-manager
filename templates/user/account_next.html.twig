@@ -1,0 +1,171 @@
+{% extends 'base.html.twig' %}
+{#
+    Mon compte in the redesigned interface (canvas board Account): login details, the archers of the account,
+    appearance and interface, calendar subscription links, help. The account is edited by club admins
+    (app_user_edit); members see their details here. Today's interface keeps user/account.html.twig.
+#}
+
+{% block title %}Mon compte{% endblock %}
+
+{% block body %}
+    {% set current = licenseeHelper.licenseeFromSession %}
+    {% set club = licenseHelper.currentLicenseeCurrentLicense.club ?? null %}
+
+    <div class="am-reading">
+        <header class="am-page-head">
+            <h1>Mon compte</h1>
+        </header>
+
+        <div class="d-flex flex-column gap-4">
+            <section class="card" aria-labelledby="am-account-login-title">
+                <div class="card-body">
+                    <h2 id="am-account-login-title">Connexion</h2>
+                    <dl class="am-facts">
+                        <div><dt>Adresse e-mail</dt><dd>{{ user.email }}</dd></div>
+                        <div><dt>Nom</dt><dd>{{ user.firstname }} {{ user.lastname }}</dd></div>
+                        <div>
+                            <dt>Téléphone</dt>
+                            <dd>{% if user.phoneNumber %}<a href="tel:{{ user.phoneNumber }}">{{ user.phoneNumber }}</a>{% else %}Non renseigné{% endif %}</dd>
+                        </div>
+                        <div>
+                            <dt>Discord</dt>
+                            <dd>
+                                {% if user.discordId %}
+                                    <span class="am-status am-status-ok"><em class="fa-solid fa-check" aria-hidden="true"></em>Connecté</span>
+                                {% else %}
+                                    Non connecté
+                                {% endif %}
+                            </dd>
+                        </div>
+                    </dl>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ path('app_forgot_password_request') }}" class="btn btn-outline-dark btn-sm">
+                            <em class="fa-solid fa-key me-1" aria-hidden="true"></em>Changer le mot de passe
+                        </a>
+                        {% if user.discordId %}
+                            <a href="{{ path('connect_discord_logout') }}" class="btn btn-outline-danger btn-sm">Déconnecter Discord</a>
+                        {% else %}
+                            <a href="{{ path('connect_discord_start') }}" class="btn btn-outline-dark btn-sm">
+                                <em class="fa-brands fa-discord me-1" aria-hidden="true"></em>Connecter Discord
+                            </a>
+                        {% endif %}
+                    </div>
+                    <p class="small text-body-secondary mt-3 mb-0">
+                        Pour changer d'adresse e-mail ou de nom, écrivez à votre club{{ club and club.contactEmail ? ' (' ~ club.contactEmail ~ ')' }}.
+                    </p>
+                </div>
+            </section>
+
+            <section class="card" aria-labelledby="am-account-archers-title">
+                <div class="card-body pb-2">
+                    <h2 id="am-account-archers-title" class="mb-0">Archers du compte</h2>
+                </div>
+                {% if user.licensees is empty %}
+                    <p class="card-body pt-0 text-body-secondary mb-0">Aucun archer n'est rattaché à ce compte.</p>
+                {% else %}
+                    <ul class="am-agenda">
+                        {% for licensee in user.licensees %}
+                            {% set selected = current and licensee.id == current.id %}
+                            <li class="am-agenda-item">
+                                <img class="am-avatar" alt=""
+                                     src="{{ licensee.profilePicture ? licensee.profilePicture|temporary_url : asset('build/profilePictureVertical.svg') }}">
+                                <a class="am-agenda-link" href="{{ path('app_licensee_profile', {id: licensee.id}) }}">
+                                    <span class="am-agenda-title">{{ licensee.fullname }}</span>
+                                    <span class="am-agenda-meta">
+                                        {{- licensee.licenseForSeason(seasonHelper.selectedSeason).club.name ?? ('Pas de licence pour ' ~ seasonHelper.selectedSeason) -}}
+                                    </span>
+                                </a>
+                                {% if selected %}
+                                    <span class="am-status am-status-ok"><em class="fa-solid fa-check" aria-hidden="true"></em>Sélectionné</span>
+                                {% else %}
+                                    <a href="{{ path('app_user_account', {_switch_licensee: licensee.id}) }}" class="btn btn-outline-dark btn-sm">
+                                        Passer à<span class="visually-hidden"> {{ licensee.fullname }}</span>
+                                    </a>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </section>
+
+            <section class="card" aria-labelledby="am-account-interface-title">
+                <div class="card-body">
+                    <h2 id="am-account-interface-title">Affichage</h2>
+                    <p class="text-body-secondary">
+                        Thème {{ user.interfaceTheme.label }}, mode {{ user.interfaceMode.label|lower }}.
+                        Vous testez la nouvelle interface : certains écrans gardent encore l'ancien style.
+                    </p>
+                    <form method="post" action="{{ path('app_user_interface_toggle') }}" class="d-flex flex-wrap gap-2">
+                        <a href="{{ path('app_user_appearance') }}" class="btn btn-outline-dark btn-sm">
+                            <em class="fa-solid fa-palette me-1" aria-hidden="true"></em>Apparence
+                        </a>
+                        <input type="hidden" name="_token" value="{{ csrf_token('toggle_interface') }}">
+                        <button type="submit" class="btn btn-link btn-sm">Revenir à l'interface actuelle</button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="card" aria-labelledby="am-account-calendar-title">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2">
+                        <h2 id="am-account-calendar-title" class="mb-0">Abonnement au calendrier</h2>
+                        <a href="{{ path('app_help_calendar') }}">Comment s'abonner ?</a>
+                    </div>
+                    <p class="text-body-secondary mt-2">
+                        Un lien par archer : abonnez-vous dans Google Agenda, Apple Calendrier ou Outlook pour y voir ses inscriptions.
+                    </p>
+                    {% for licensee in user.licensees %}
+                        <div class="am-calendar-feed">
+                            <h3>{{ licensee.fullname }}</h3>
+                            {% if licensee.calendarToken %}
+                                <div class="input-group" data-controller="clipboard-copy">
+                                    <label class="visually-hidden" for="am-feed-{{ licensee.id }}">Lien d'abonnement de {{ licensee.fullname }}</label>
+                                    <input type="text" class="form-control font-monospace" id="am-feed-{{ licensee.id }}" readonly
+                                           data-clipboard-copy-target="source" value="{{ url('app_calendar_feed', {token: licensee.calendarToken}) }}">
+                                    <button class="btn btn-outline-dark" type="button" data-action="clipboard-copy#copy">
+                                        <em class="fa-solid fa-copy me-1" aria-hidden="true"></em><span data-clipboard-copy-target="label">Copier</span>
+                                    </button>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    <form method="post" action="{{ path('app_calendar_generate_token', {id: licensee.id}) }}"
+                                          data-controller="confirm-action" data-action="submit->confirm-action#confirm"
+                                          data-confirm-action-message-value="Êtes-vous sûr ? L'ancien lien cessera de fonctionner.">
+                                        <button type="submit" class="btn btn-outline-dark btn-sm">Nouveau lien</button>
+                                    </form>
+                                    <form method="post" action="{{ path('app_calendar_revoke_token', {id: licensee.id}) }}"
+                                          data-controller="confirm-action" data-action="submit->confirm-action#confirm"
+                                          data-confirm-action-message-value="Êtes-vous sûr ? Le lien cessera de fonctionner immédiatement.">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer le lien</button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <form method="post" action="{{ path('app_calendar_generate_token', {id: licensee.id}) }}">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <em class="fa-solid fa-calendar-plus me-1" aria-hidden="true"></em>Créer un lien d'abonnement
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="mb-0">Aucun archer n'est rattaché à ce compte.</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="card am-card-sand" aria-labelledby="am-account-help-title">
+                <div class="card-body">
+                    <h2 id="am-account-help-title" class="h3">Besoin d'aide ?</h2>
+                    <p class="mb-0">
+                        {% if club and club.contactEmail %}
+                            Pour toute question ou modification, écrivez à votre club :
+                            <a href="mailto:{{ club.contactEmail }}">{{ club.contactEmail }}</a>.
+                        {% else %}
+                            Vous n'avez pas de licence cette saison. Pour toute question, écrivez à
+                            <a href="mailto:arnaud@flyingpingu.com">arnaud@flyingpingu.com</a>.
+                        {% endif %}
+                    </p>
+                </div>
+            </section>
+        </div>
+    </div>
+{% endblock %}

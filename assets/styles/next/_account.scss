@@ -1,0 +1,16 @@
+// Mon compte in the redesigned interface (canvas board Account). Markup: templates/user/account_next.html.twig.
+// Tokens only (see _themes.scss).
+
+// One calendar subscription link per archer
+.am-calendar-feed {
+  padding: 16px 0;
+  border-top: 1px solid var(--am-row);
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+
+  h3 {
+    margin-bottom: 8px;
+  }
+}
